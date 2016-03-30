@@ -1,0 +1,374 @@
+a:link 		{ text-decoration: none !important;}
+a:visited { text-decoration: none !important;}
+a:hover 	{ text-decoration: none !important;}
+a:active 	{ text-decoration: none !important;}
+
+html {
+}
+
+#facets
+{
+  top: 0;
+  bottom:0;
+  position:fixed;
+  overflow-x:hidden;
+}
+
+
+@media (max-width:991px)
+{
+  body 
+  {
+	  padding-top: 140px;
+  	background-repeat: no-repeat;
+  }
+  #facets
+  {
+    margin-top: 140px;
+  }
+}
+
+@media (min-width:992px)
+{
+  body 
+  {
+	  padding-top: 90px;
+  	background-repeat: no-repeat;
+  }
+  #facets
+  {
+    margin-top: 90px;
+  }
+}
+
+.navbar .navbar-form 
+{
+    padding: 5px 15px;
+
+    border: 0;
+    -webkit-box-shadow: none;
+    -webkit-appearance:none;
+    box-shadow: none;
+}
+
+.navbar-header
+{
+    padding-right: 15px;
+}
+
+.navbar-toggle
+{
+    margin-right: 0px;
+}
+
+.navbar-button-color
+{
+	border: 1px solid gray;
+}
+
+.navbar-button-color:hover 
+{
+	border: 1px solid gray;
+}
+
+.navbar-panel-color a
+{
+  cursor: pointer;
+}
+
+.navbar-panel-color a:hover
+{
+  cursor: pointer;
+}
+
+.navbar-brand 
+{ 
+    margin-top: 3px;
+    height : 53px;
+    display: block;
+}
+
+@media (max-width:766px)
+{
+  .navbar-brand 
+  { 
+    width : 70px;
+    background : url(ihrlogo_xs.png) no-repeat 0 0;
+  }
+}
+@media (min-width:767px)
+{
+  .navbar-brand 
+  { 
+    width : 200px;
+    margin-left: 0px !important;
+    background : url(ihrlogo_md.png) no-repeat 0 0;
+  }
+}
+
+.left-padding
+{
+  padding-left: 5px;
+}
+
+.search_text
+{
+  outline: none;
+  border: none !important;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.button-left-round
+{
+  border-top-left-radius: 4px !important;
+  border-bottom-left-radius: 4px !important;
+}
+
+.button-right-round
+{
+  border-top-right-radius: 4px !important;
+  border-bottom-right-radius: 4px !important;
+}
+
+.button-lg-left-round
+{
+  border-top-left-radius: 6px !important;
+  border-bottom-left-radius: 6px !important;
+}
+
+.button-lg-right-round
+{
+  border-top-right-radius: 6px !important;
+  border-bottom-right-radius: 6px !important;
+}
+
+.start-header
+{
+	border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+}
+
+.hideLoading 
+{
+    display: none;
+}
+
+.showLoading 
+{
+    display: block;
+}
+
+.noUi-connect 
+{
+    background: gray !important;
+}
+
+.badge
+{
+  border-radius: 5px;
+  padding: 1px 2px;
+}
+
+.panel
+{
+	border-radius: 3px;
+	border: 1px solid gray !important;
+}
+
+.preview
+{
+	margin-right: 10px;
+}
+
+.preview-header
+{
+	border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+	padding: 5px 10px 0px 25px !important;
+}
+
+.preview-cover
+{
+  margin: 0px;
+  padding: 0px;
+}
+
+.preview-text
+{
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.bootstrap-dialog-title
+{
+	width: 100%;
+}
+
+.counter
+{
+	margin-right: 0px;
+	margin-left: 2px;
+}
+
+.tab-content {
+    padding: 5px 5px 0px 5px;
+}
+
+.close
+{
+	margin-left: 10px;
+}
+
+.fullview-button-left
+{
+	float: left;
+}
+
+.table
+{
+  margin-bottom: 5px !Important; 
+}
+
+.tablemiddle
+{
+  vertical-align: middle !important;
+}
+
+.btn-exemplar 
+{
+  vertical-align: top !important;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: normal;
+  padding: 0px;
+  min-height:60px;
+}
+
+.empty-exemplar,
+.empty-exemplar:hover,
+.empty-exemplar:focus
+{
+  vertical-align: top !important;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: normal;
+  padding: 0px;
+  min-height:60px;
+  cursor: default;
+  color: inherit;
+  background-color: inherit;
+  border-color: inherit; 
+}
+
+.publication
+{
+  padding: 0px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  text-align: left;
+  min-height:60px;
+}
+
+.borderless tbody tr td, 
+.borderless tbody tr th, 
+.borderless thead tr th 
+{
+    border: none;
+}
+
+.rowheight-reduced tbody tr td, 
+.rowheight-reduced tbody tr th, 
+.rowheight-reduced tfoot tr td, 
+.rowheight-reduced tfoot tr th, 
+.rowheight-reduced thead tr td, 
+.rowheight-reduced thead tr th 
+{
+  padding: 2px;
+}
+
+.space 
+{
+    padding: 20px;
+}
+
+
+/*  Bootstrap Clearfix */
+
+/*  Tablet  */
+@media (min-width:767px){
+
+  /* Column clear fix */
+  .row-auto > .col-lg-1:nth-child(12n+1),
+  .row-auto > .col-lg-2:nth-child(6n+1),
+  .row-auto > .col-lg-3:nth-child(4n+1),
+  .row-auto > .col-lg-4:nth-child(3n+1),
+  .row-auto > .col-lg-6:nth-child(2n+1),
+  .row-auto > .col-md-1:nth-child(12n+1),
+  .row-auto > .col-md-2:nth-child(6n+1),
+  .row-auto > .col-md-3:nth-child(4n+1),
+  .row-auto > .col-md-4:nth-child(3n+1),
+  .row-auto > .col-md-6:nth-child(2n+1){
+    clear: none;
+  }
+  .row-auto > .col-sm-1:nth-child(12n+1),
+  .row-auto > .col-sm-2:nth-child(6n+1),
+  .row-auto > .col-sm-3:nth-child(4n+1),
+  .row-auto > .col-sm-4:nth-child(3n+1),
+  .row-auto > .col-sm-6:nth-child(2n+1){
+    clear: left;
+  }
+}
+
+
+/*  Medium Desktop  */
+@media (min-width:992px){
+
+  /* Column clear fix */
+  .row-auto > .col-lg-1:nth-child(12n+1),
+  .row-auto > .col-lg-2:nth-child(6n+1),
+  .row-auto > .col-lg-3:nth-child(4n+1),
+  .row-auto > .col-lg-4:nth-child(3n+1),
+  .row-auto > .col-lg-6:nth-child(2n+1),
+  .row-auto > .col-sm-1:nth-child(12n+1),
+  .row-auto > .col-sm-2:nth-child(6n+1),
+  .row-auto > .col-sm-3:nth-child(4n+1),
+  .row-auto > .col-sm-4:nth-child(3n+1),
+  .row-auto > .col-sm-6:nth-child(2n+1){
+    clear: none;
+  }
+  .row-auto > .col-md-1:nth-child(12n+1),
+  .row-auto > .col-md-2:nth-child(6n+1),
+  .row-auto > .col-md-3:nth-child(4n+1),
+  .row-auto > .col-md-4:nth-child(3n+1),
+  .row-auto > .col-md-6:nth-child(2n+1){
+    clear: left;
+  }
+}
+
+
+/*  Large Desktop  */
+@media (min-width:1200px){
+
+  /* Column clear fix */
+  .row-auto > .col-md-1:nth-child(12n+1),
+  .row-auto > .col-md-2:nth-child(6n+1),
+  .row-auto > .col-md-3:nth-child(4n+1),
+  .row-auto > .col-md-4:nth-child(3n+1),
+  .row-auto > .col-md-6:nth-child(2n+1),
+  .row-auto > .col-sm-1:nth-child(12n+1),
+  .row-auto > .col-sm-2:nth-child(6n+1),
+  .row-auto > .col-sm-3:nth-child(4n+1),
+  .row-auto > .col-sm-4:nth-child(3n+1),
+  .row-auto > .col-sm-6:nth-child(2n+1){
+    clear: none;
+  }
+  .row-auto > .col-lg-1:nth-child(12n+1),
+  .row-auto > .col-lg-2:nth-child(6n+1),
+  .row-auto > .col-lg-3:nth-child(4n+1),
+  .row-auto > .col-lg-4:nth-child(3n+1),
+  .row-auto > .col-lg-6:nth-child(2n+1){
+    clear: left;
+  }
+}
