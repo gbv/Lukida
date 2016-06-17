@@ -13,18 +13,9 @@ Lukida-Homepage is [here](https://www.lukida.org/)
 1) Download lukida
 This is the main software 
 
-2) Download lukida_newlibrary
-This is the basic set of files for a new library, which should be customized
-(Please note that there is a .htaccess file inside)
+2) Rename the libraries/lukida_newlibrary folder to something more convienient
 
-3) Place them together in this structure
-```
-.../lukida/kernel/...
-.../lukida/libraries/lukida_newlibrary/...
-```
-(You should rename the lukida_newlibrary to something more convienient)
-
-4) Create a link from your library to kernel
+3) Create a link from your library to kernel
 Linux:
 ```
 cd .../lukida/libraries/lukida_newlibrary
@@ -36,7 +27,7 @@ cd .../lukida/libraries/lukida_newlibrary
 mklink /d /j systemassets ..\..\kernel\application\systemassets
 ```
 
-5) Setup and import the mysql database
+4) Setup and import the mysql database
 a) Create an empty mysql database and an user who has full access to that new database
 b) Import the mysql_import.sql file into that database
 c) Configure kernel/application/config/database.php by replacing these values 
@@ -48,7 +39,7 @@ c) Configure kernel/application/config/database.php by replacing these values
 ```
 with your mysql connection information.
 
-6) Point your webbrowser's document_root to .../lukida/libaries/lukida_newlibrary. Add to environment settings
+5) Point your webbrowser's document_root to .../lukida/libaries/lukida_newlibrary. Add to environment settings
 ```
 # Name of library
 SetEnv LIBRARY "newlibrary"
@@ -56,9 +47,12 @@ SetEnv LIBRARY "newlibrary"
 # Mode (development, test, production)
 SetEnv MODE "development"
 ```
-Remember the URL to access lukida (http://lukida.domain.tld)
+Remember the URL to access lukida (e.g. http://lukida.domain.tld)
 
-7) Enter the URL in the mail config file ../lukida/libraries/lukida_newlibrary/general.ini:
+*** Important ***
+There is a .htaccess file located in this folder, which is neccessary.
+
+6) Enter the URL in the mail config file ../lukida/libraries/lukida_newlibrary/general.ini:
 if development or test mode (without protocol)
 ```
 devurl=lukida.domain.tld
