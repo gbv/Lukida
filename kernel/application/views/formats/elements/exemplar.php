@@ -1,69 +1,112 @@
 <?php
 
-// Exemplar-Algorithmen for ALL LIBRARIES
+// Washington specific code
 
 // Initialize vars
-$BtnClass     = "col-xs-6 col-sm-4 col-md-3 btn btn-default btn-exemplar";
-$EmptyClass   = "col-xs-6 col-sm-4 col-md-3 btn btn-default empty-exemplar";
-$ExemplarAll  = array();
+$Exemplare    = array();
+$Zugaenge     = array();
+$Lizenzen     = array();
+$RelatedPubs  = array();
+$IncJournals  = array();
+$IncArticles  = array();
+$Interloan    = array();
+$SFX          = true;
+$Case         = true;
 
-// Mail decision area
-if ( $this->medium["online"] == 1 )
+//***************************************
+//********* M A I N - P A P  1 **********
+//***************************************
+if ( substr($this->medium["leader"],7,1) == "m" && substr($this->medium["leader"],19,1) == "a" )
 {
-  // eMedia 
-  if ( array_key_exists("981", $this->contents) )
+  // Mehrbändige Werke
+  // $Output .= "Mehrbändige Werke";
+  $RelatedPubs = GetRelatedPubs($this->CI,$this,$this->PPN,1);
+}
+
+if ( substr($this->medium["leader"],7,1) == "s" && substr(Get008($this->contents),21,1) == "m" )
+{
+  // Schriftenreihen
+  // $Output .= "Schriftenreihen";
+  $RelatedPubs = GetRelatedPubs($this->CI,$this,$this->PPN,2);
+}
+
+if ( substr($this->medium["leader"],7,1) == "s" && in_array(substr(Get008($this->contents),21,1), array("p","n")) )
+{
+  // Zeitschriften mit Einzelheften
+  // $Output .= "Zeitschriften mit Einzelheften";
+  $IncludedPubs = GetIncludedPubs($this->CI,$this,$this->PPN);
+  $IncJournals  = $IncludedPubs["journals"];
+  $IncArticles  = $IncludedPubs["articles"];
+}
+
+//***************************************
+//********* M A I N - P A P  2 **********
+//***************************************
+
+// Bibliotheks eigener-Bestand ?
+if ( isset($this->contents[912]) && isset($_SESSION["iln"]) && $_SESSION["iln"] != "" && ( in_array( "GBV_ILN_".$_SESSION["iln"], $this->catalogues) ) )
+{
+  // Bibliotheks eigener-Bestand
+  if ( substr($this->medium["leader"],6,2) == "ma" 
+    || substr($this->medium["leader"],6,2) == "mm" 
+    || substr($this->medium["leader"],6,2) == "ms" )
   {
-    // Prio 1: use 981 records
-    $ExemplarAll = ExemplarOnline981($this->contents["981"]);
+    // Bibliotheks eigener Online Bestand
+
+    // Fetch Link stuff
+    $Zugaenge = BestandLinks($this->contents, $this->medium, $this->CI);
+
+    // Fetch License stuff
+    $Lizenzen = Get980k($this->contents);
   }
   else
   {
-    if ( array_key_exists("856", $this->contents) )
+    // Bibliotheks eigener Haptischer Bestand
+
+    // Mehrbändige Werke, Schriftenreihen, Zeitschriften mit Einzelheften
+    if ( ( substr($this->medium["leader"],7,1) == "m" && substr($this->medium["leader"],19,1) == "a" )
+      || ( substr($this->medium["leader"],7,1) == "s" && substr(Get008($this->contents),21,1) == "m" )
+      || ( substr($this->medium["leader"],7,1) == "s" && in_array(substr(Get008($this->contents),21,1), array("p","n")) && Get980($this->contents,"d") == "-" ) )
     {
-      // Prio 2: use 856 records
-      $ExemplarAll = ExemplarOnline856($this->contents["856"]);
+      $SFX = false;
+    }
+    else
+    {
+      if ( Get980($this->contents,"d") != "-" )
+      {
+        // Haptische Exemplartypen im Bestand
+        // Fälle 1-22
+        $Exemplare = BestandExemplare($this->CI,$this->leader,$this->contents,$this->medium,$this->PPN);
+      }
+      else
+      {
+        if ( substr($this->medium["leader"],7,1) == "a" )
+        {
+          // Haptische Artikel im Bestand 
+          // Fälle 23-26
+          $Exemplare = BestandArtikel($this->CI,$this->contents,$this->medium);
+        }
+      }
     }
   }
 }
 else
 {
-  if ( isset($this->contents[912]) && isset($_SESSION["iln"]) && $_SESSION["iln"] != "" && ( in_array( "GBV_ILN_".$_SESSION["iln"], $this->catalogues) ) )
+  // Fremdbestand
+  if ( substr($this->medium["leader"],6,2) == "ma" 
+    || substr($this->medium["leader"],6,2) == "mm" 
+    || substr($this->medium["leader"],6,2) == "ms" )
   {
-    // Printmedia, This ILN-Library
-
-    // Process DAIA Data if possible
-    $ExemplarDAIA = array();
-    if ( isset($_SESSION["interfaces"]["lbs"]) && $_SESSION["interfaces"]["lbs"] == "1" )
+    // Fall 32 (Online Fremdbestand)
+    if ( array_key_exists("856", $this->contents) )
     {
-      // Local storage (ILN)
-      $DAIA = $this->CI->GetLBS($this->PPN);
-
-      if ( isset($DAIA["message"][0]["errno"]) )
-      {
-        // Fehler passiert zun�chst nur ausgeben
-        if ( isset($this->medium["parents"][0]) )
-        {
-          $DAIA = $this->CI->GetLBS($this->medium["parents"][0]);
-        }
-      }
-      $ExemplarDAIA = ProcessDAIA($this->CI, $DAIA, $this->medium);
+      // Prio 2: use 856 records
+      $Zugaenge = Get856($this->contents["856"], $this->CI);
     }
-
-    //$this->CI->printArray2Screen($ExemplarDAIA);
-
-    // Get MARC Parent
-    $ParentMARC = ( isset($this->medium["parents"][0]) ) ? $this->CI->internal_search("id:".$this->medium["parents"][0]) : array();
-    $ParentMARC = ( count($ParentMARC) > 0 && isset($ParentMARC["results"][$this->medium["parents"][0]]["contents"])) ? $ParentMARC["results"][$this->medium["parents"][0]]["contents"] : array();
-
-    // Process 980 Data
-    $ExemplarMARC = ProcessMARC($this->CI, $this->contents, $this->medium, $ParentMARC);
-
-    // Merge and prepare data
-    $ExemplarAll  = MergeAndPrepare($this->CI, $this->contents, $this->medium, $ExemplarDAIA, $ExemplarMARC, $ParentMARC);
   }
   else
   {
-    // Printmedia, Other Libraries, Interlibrary loan
+    // Fall 31 (Haptischer Fremdbestand)
 
     // Determine database
     if ( isset($_SESSION["config_general"]["interlibraryloan"]) )
@@ -82,112 +125,552 @@ else
     }
     $FinalDB = (isset($CatDB) && $CatDB != "") ? $CatDB : $DefaultDB;
     
-    $ExemplarAll[] = array
+    $Interloan[] = array
     (
-      "action" => "link",
       "link"   => "http://gso.gbv.de/DB=" . $FinalDB . "/PPNSET?PPN=" . $this->PPN,
-      "name"   => $this->CI->database->code2text("interloan")
+      "label1" => $this->CI->database->code2text("INTERLOAN")
     );
   }
+
 }
 
-//$this->CI->printArray2Screen($ExemplarAll);
+//*************************************
+//***** S T A R T   O U T P U T *******
+//*************************************
 
-// Generate Buttons
-foreach ( $ExemplarAll as $EPN => $Exemplar )
-{ 
-  if ( isset($Exemplar["action"]) && $Exemplar["action"] == "link" )
-  {
-    if ( isset($Exemplar["link"]) )
+// $this->CI->printArray2Screen($Image);
+// $this->CI->printArray2Screen($this->contents);
+
+/*
+$this->CI->printArray2Screen(array(
+  "Zugänge"                  => $Zugaenge,
+  "Exemplare"                => $Exemplare,
+  "Fernleihe"                => $Interloan,
+  "Lizenzen"                 => $Lizenzen,
+  "Zugehörige Publikationen" => $RelatedPubs,
+  "Zugehörige Einzelhefte"   => $IncJournals,
+  "Zugehörige Artikel"       => $IncArticles
+));
+*/
+
+// Create Access Buttons
+if ( count($Zugaenge) > 0 )
+{
+  $BtnClass     = "col-xs-12 col-sm-6 col-md-4 btn btn-default btn-exemplar";
+  $EmptyClass   = "col-xs-12 col-sm-6 col-md-4 btn btn-default empty-exemplar";
+  $Output .= "<div>" . $this->CI->database->code2text("ACCESS") . "</div>";
+  $Output .= "<div class='container-fluid'><div class='row'>";
+
+  // Generate Buttons
+  foreach ( $Zugaenge as $EPN => $Link )
+  { 
+    $Exams  = array_unique($Zugaenge, SORT_REGULAR);
+
+    $Action = (isset($Link["link"])) ? "onclick='window.open(\"" . $Link["link"] . "\",\"_blank\")'" : "";
+    $Class  = (isset($Link["link"])) ? $BtnClass : $EmptyClass;
+    $Output .= "<button " . $Action . " class='" . $Class . "'>";
+    $Output .= (isset($Link["label1"])) ?  addslashes($Link["label1"]) : "";
+    $Output .= ($Case && isset($Link["case"])) ? " <small>" . $Link["case"]  . "</small>" : "";
+    if ( isset($Link["link"]) )
     {
-      $Output .= "<button onclick='window.open(\"" . $Exemplar["link"] . "\",\"_blank\")' class='" . $BtnClass . "'>";
-      $Output .= ( isset($Exemplar["name"]) && $Exemplar["name"] != "" ) ? $Exemplar["name"] : $this->CI->database->code2text("online");
       $Output .= " <span class='fa fa-external-link'></span>";
-      if ( $Host = parse_url($Exemplar["link"],PHP_URL_HOST) )
+      if ( $Host = parse_url($Link["link"],PHP_URL_HOST) )
       {  
         if ( $Host == "www.bibliothek.uni-regensburg.de" ) $Host = "Elektr. Zeitschriftenbibliothek";
         if ( substr($Host,0,4) == "www.")   $Host = substr($Host,4);
         $Output .= "<br /><small>" . $Host . "</small>";
       }
-      $Output .= "</button>";
     }
+    $Output .= "</button>";
   }
-  else
+
+  // LinkResolver Spaceholder for async js
+  if ( $SFX )   $Output .= "<div id='linkresolver'></div>";
+  $Output .= "</div></div>";  
+}
+elseif ( $SFX )
+{
+  // LinkResolver Spaceholder for async js
+  $Output .= "<div id='linkresolvercontainer'></div>";
+}
+
+// Create Exemplar Buttons
+if ( count($Exemplare) > 0 || count($Interloan) > 0)
+{
+  if ( count($Zugaenge) > 0 )  $Output .= "<div class='space_buttons'></div>";
+  $BtnClass     = "col-xs-6 col-sm-4 col-md-3 btn btn-default btn-exemplar";
+  $EmptyClass   = "col-xs-6 col-sm-4 col-md-3 btn btn-default empty-exemplar";
+  $Output .= "<div>" . $this->CI->database->code2text("Exemplars") . "</div>";
+  $Output .= "<div class='container-fluid'><div class='row'>";
+
+  // Generate Buttons
+  foreach ( $Exemplare as $EPN => $Exemplar )
   {
     // Unique messages
-    $Exams  = array_unique($Exemplar, SORT_REGULAR);
+    $Exams    = array_unique($Exemplar, SORT_REGULAR);
+    $ExamCase = ($Case && isset($Exams["case"])) ? " <small>" . $Exams["case"]  . "</small>" : "";
+    unset($Exams["case"]);
     ksort($Exams);
     $_SESSION["exemplar"][$this->PPN][$EPN] = $Exams;
     $Action = (isset($Exemplar["action"])) ? "onclick='$." . $Exemplar["action"] . "(\"" . $this->PPN . "\",\"" . $EPN . "\"," . json_encode($Exams,JSON_HEX_TAG) . ")'" : "";
     $Class  = (isset($Exemplar["action"])) ? $BtnClass : $EmptyClass;
     $Output .= "<button " . $Action . " class='" . $Class . "'>";
     $Output .= (isset($Exemplar["label1"])) ?  addslashes($Exemplar["label1"]) : "";
+    $Output .= $ExamCase;
     $Output .= (isset($Exemplar["label2"])) ?  "<br />" . addslashes($Exemplar["label2"]) : "";
     $Output .= (isset($Exemplar["label3"])) ?  "<br />" . addslashes($Exemplar["label3"]) : "";
     $Output .= "</button>";
   }
+
+  foreach ( $Interloan as $EPN => $Link )
+  {
+    $Action = (isset($Link["link"])) ? "onclick='window.open(\"" . $Link["link"] . "\",\"_blank\")'" : "";
+    $Class  = (isset($Link["link"])) ? $BtnClass : $EmptyClass;
+    $Output .= "<button " . $Action . " class='" . $Class . "'>";
+    $Output .= (isset($Link["label1"])) ?  addslashes($Link["label1"]) : "";
+    $Output .= ($Case && isset($Link["case"])) ? " <small>" . $Link["case"]  . "</small>" : "";
+    if ( isset($Link["link"]) )
+    {
+      $Output .= " <span class='fa fa-external-link'></span>";
+      if ( $Host = parse_url($Link["link"],PHP_URL_HOST) )
+      {  
+        if ( $Host == "www.bibliothek.uni-regensburg.de" ) $Host = "Elektr. Zeitschriftenbibliothek";
+        if ( substr($Host,0,4) == "www.")   $Host = substr($Host,4);
+        $Output .= "<br /><small>" . $Host . "</small>";
+      }
+    }
+    $Output .= "</button>";
+  }
+
+  $Output .= "</div></div>";
 }
 
-// Add SFX-Button
-if ( isset($_SESSION["config_general"]["export"]["openurlLink"]) && $_SESSION["config_general"]["export"]["openurlLink"] == "1" &&
-     isset($this->pretty["issn"]) && $this->pretty["issn"] != "" && isset($this->pretty["year"]) && $this->pretty["year"] != "" ) 
+// Show License stuff
+if ( count($Lizenzen)>0)
 {
-  $Link  = $this->CI->internal_exportlink($this->PPN, "sfx");
-  if (!empty($Link)) 
+  if ( count($Zugaenge) > 0 || count($Exemplare) > 0 )  $Output .= "<div class='space_buttons'></div>";
+  $Output .= "<div>";
+  $Output .= "<div>" . $this->CI->database->code2text("License") . "</div><small>";
+  foreach ( $Lizenzen as $Lizenz)
   {
-    $Image = (isset($_SESSION["config_general"]["export"]["sfximagebasedlinking"]) &&
-             $_SESSION["config_general"]["export"]["sfximagebasedlinking"] == true) ?
-             $this->CI->internal_exportimage($this->PPN) : "noIBL";
-    if (!empty($Image)) 
+    $Output .= $Lizenz . "</br>";
+  }
+  $Output .= "</small>";
+  $Output .= "</div>";
+}
+
+// Create Related Publications
+if ( count($RelatedPubs) > 0 )
+{
+  $BtnClass = "col-xs-12 col-sm-6 btn btn btn-default publication";
+  if ( count($Zugaenge) > 0 || count($Exemplare) > 0 || count($Lizenzen) > 0 )  $Output .= "<div class='space_buttons'></div>";
+  
+  $Output .= "<div>" . $this->CI->database->code2text("RELATEDPUBLICATIONS") . "</div>";
+  $Output .= "<div class='container-fluid'><div class='row'>";
+
+  // Generate Buttons
+  foreach ( $RelatedPubs as $PPN => $Exemplar )
+  {
+    $Action = "onclick='$.open_fullview(\"" . $PPN . "\"," . json_encode(array_keys($RelatedPubs)) . ",\"publications\")'";
+    $Output .= "<button " . $Action . " class='" . $BtnClass . "'>";
+    $Output .= "<div id='related_" . $PPN . "'>";
+    $Output .= "<table><tr><td data-toggle='tooltip' title='" . $this->CI->database->code2text($Exemplar["format"]) . "' class='publication-icon'>";
+    $Output .= "<span class='gbvicon'>" . $Exemplar["cover"] . "</span>";
+    $Output .= "</td><td>";  
+    $Output .= $this->trim_text($Exemplar["title"],60);
+    $Output .= "<br /><small>" . $this->trim_text($Exemplar["publisher"],50) . "</small>";
+    $Output .= "</td></tr></table></div>";
+    $Output .= "</button>";
+  }
+
+  // Close div
+  $Output .= "</div></div>";  
+}
+
+// Create Included Journals
+if ( count($IncJournals) > 0 )
+{
+  $BtnClass = "col-xs-12 col-sm-6 btn btn btn-default publication";
+  if ( count($Zugaenge) > 0 || count($Exemplare) > 0 || count($Lizenzen) > 0 )  $Output .= "<div class='space_buttons'></div>";
+  
+  $Output .= "<div>" . $this->CI->database->code2text("RelatedJournals") . "</div>";
+  $Output .= "<div class='container-fluid'><div class='row'>";
+
+  // Generate Buttons
+  foreach ( $IncJournals as $PPN => $Exemplar )
+  {
+    $Action = "onclick='$.open_fullview(\"" . $PPN . "\"," . json_encode(array_keys($IncJournals)) . ",\"publications\")'";
+    $Output .= "<button " . $Action . " class='" . $BtnClass . "'>";
+    $Output .= "<div id='related_" . $PPN . "'>";
+    $Output .= "<table><tr><td data-toggle='tooltip' title='" . $this->CI->database->code2text($Exemplar["format"]) . "' class='publication-icon'>";
+    $Output .= "<span class='gbvicon'>" . $Exemplar["cover"] . "</span>";
+    $Output .= "</td><td>";  
+    $Output .= $this->trim_text($Exemplar["title"],60);
+    $Output .= "<br /><small>" . $this->trim_text($Exemplar["publisher"],50) . "</small>";
+    $Output .= "</td></tr></table></div>";
+    $Output .= "</button>";
+  }
+
+  // Close div
+  $Output .= "</div></div>";  
+}
+
+// Create Included Articles
+if ( count($IncArticles) > 0 )
+{
+  $BtnClass = "col-xs-12 col-sm-6 btn btn btn-default publication";
+  if ( count($Zugaenge) > 0 || count($Exemplare) > 0 || count($Lizenzen) > 0 )  $Output .= "<div class='space_buttons'></div>";
+  
+  $Output .= "<div>" . $this->CI->database->code2text("RelatedArticles") . "</div>";
+  $Output .= "<div class='container-fluid'><div class='row'>";
+
+  // Generate Buttons
+  foreach ( $IncArticles as $PPN => $Exemplar )
+  {
+    $Action = "onclick='$.open_fullview(\"" . $PPN . "\"," . json_encode(array_keys($IncArticles)) . ",\"publications\")'";
+    $Output .= "<button " . $Action . " class='" . $BtnClass . "'>";
+    $Output .= "<div id='related_" . $PPN . "'>";
+    $Output .= "<table><tr><td data-toggle='tooltip' title='" . $this->CI->database->code2text($Exemplar["format"]) . "' class='publication-icon'>";
+    $Output .= "<span class='gbvicon'>" . $Exemplar["cover"] . "</span>";
+    $Output .= "</td><td>";  
+    $Output .= $this->trim_text($Exemplar["title"],60);
+    $Output .= "<br /><small>" . $this->trim_text($Exemplar["publisher"],50) . "</small>";
+    $Output .= "</td></tr></table></div>";
+    $Output .= "</button>";
+  }
+
+  // Close div
+  $Output .= "</div></div>";  
+}
+
+
+
+//*************************************
+//******** F U N C T I O N S **********
+//*************************************
+
+function BestandLinks($Contents, $Medium, $CI)
+{
+  $Format = $Medium["format"];
+
+  // Collect 981 Links
+  $Links = array();
+  if ( array_key_exists("981", $Contents) )
+  {
+    foreach ( $Contents["981"] as $Record )
     {
-      if ($Image == "noIBL") 
+      $Link = array();
+      foreach ( $Record as $Subrecord )
       {
-        $Output .= "<a href=\"" . $Link . "\" target=\"_sfx\"><button class=\"" . $BtnClass . "\">Volltext pr&uuml;fen</button></a>";
+        if ( isset($Subrecord["r"]) && $Subrecord["r"] != "" )  $Link["link"] = $Subrecord["r"];
+        if ( isset($Subrecord["y"]) && $Subrecord["y"] != "" )  $Link["name"] = $Subrecord["y"];
       }
-      else 
-      { 
-        $Output .= "<a href=\"" . $Link . "\" target=\"_sfx\"><img class='' src=\"" . $Image . "\"></a>";
+      $Links[] = $Link;
+    }
+  }
+
+  // Prepare Buttons
+  $Zugaenge = array();
+  foreach ( $Links as $One )
+  {
+    $Exemplar = array();
+    if ( $Format == "ebook" && isset($One["link"]) && $One["link"] != "" )
+    {
+      // Fall 27
+      $Exemplar["case"]   = "27";
+      $Exemplar["label1"] = (isset($One["name"]) && $One["name"] != "") ? $One["name"] : "Online";
+      $Exemplar["link"]   = $One["link"];
+      $Zugaenge[] = $Exemplar;
+    }
+    if ( $Format == "ejournal" && isset($One["link"]) && $One["link"] != "" )
+    {
+      // Fall 28
+      $Exemplar["case"]   = "28";
+      $Exemplar["label1"] = $CI->database->code2text("Online");
+      $Exemplar["label2"] = ( Get980($Contents,"g") != "-" ) ? Get980($Contents,"g") : "";
+      $Exemplar["link"]   = $One["link"] ;
+      $Zugaenge[] = $Exemplar;
+    }
+  }
+
+  if ( count($Zugaenge) == 0 )
+  {
+    $Exemplar = array();
+    if ( $Format == "ebook" )
+    {
+      // Fall 27a
+      $Exemplar["case"]   = "27a";
+      $Exemplar["label1"] = $CI->database->code2text("SEEADDINFO");
+      $Zugaenge[] = $Exemplar;
+    }
+    if ( $Format == "ejournal" )
+    {
+      // Fall 28a
+      $Exemplar["case"]   = "28a";
+      $Exemplar["label1"] = $CI->database->code2text("SEEADDINFO");
+      $Zugaenge[] = $Exemplar;
+    }
+  }
+
+  if ( $Format == "earticle" )
+  {
+    // Fall 29
+    // Lese Eltern-Infos aus / Get MARC Parent
+    $ParentData = ( isset($Medium["parents"][0]) ) ? $CI->internal_search("id:".$Medium["parents"][0]) : array();
+    $ParentData = ( count($ParentData) > 0 && isset($ParentData["results"][$Medium["parents"][0]])) ? $ParentData["results"][$Medium["parents"][0]] : array();
+
+    $Exemplar["case"]   = "29";
+    $Exemplar["label1"] = $CI->database->code2text("SEEPUBLISHED");
+    $Zugaenge[] = $Exemplar;
+  }
+
+  return ($Zugaenge);
+}
+
+function BestandExemplare($CI, $Leader, $Contents, $Medium, $PPN)
+{
+  // Parse MARC records
+  $E980 = array();
+  if ( array_key_exists("980", $Contents) )
+  {
+    foreach ( $Contents["980"] as $Record )
+    {
+      $One = array();
+      foreach ( $Record as $Subrecord )
+      {
+        foreach ( $Subrecord as $Key => $Value )
+        {
+          // Only use first subfield and slip follow-ups inside one record.
+          if (!isset($One[$Key])) $One[$Key] = $Value;
+        }
+      }
+      // Use or create ExpID
+      $ExpID = ( isset($One["b"]) ) ? $One["b"] : $X++;
+      $E980[$ExpID] = $One;
+    }
+  }
+
+  $ExemplarMARC = array();
+  $ExemplarDAIA = array();
+
+  $ExemplarMARC = array();
+  foreach ($E980 as $ExpID => $One) 
+  {
+    $ExemplarMARC[$ExpID] = array();
+    if ( isset($One["e"]) && $One["e"] == "a")
+    {
+      // Fall 1 - Geschäftsgang
+      $ExemplarMARC["label1"]  = $CI->database->code2text("ORDERED");
+      continue;
+    }
+
+    if ( isset($One["e"]) && in_array($One["e"], array("b","c","d","i","s","u") ) )
+    {
+      $ExemplarMARC[$ExpID]["action"]    = "shelve";
+      $ExemplarMARC[$ExpID]["label1"] = ( isset($One["f"]) && $One["f"] != "" ) ? addslashes($CI->database->code2text(strtoupper($One["f"]))) : "";
+      $ExemplarMARC[$ExpID]["label2"] = ( isset($One["d"]) ) ? addslashes($CI->database->code2text("Signature")) . " " . $One["d"] : "";
+      $ExemplarMARC[$ExpID]["label3"] = addslashes($CI->database->code2text(strtoupper("Available")));
+      continue;
+    }
+
+    if ( isset($One["e"]) && in_array($One["e"], array("g","o","z") ) )
+    {
+      $ExemplarMARC[$ExpID]["label1"] = ( isset($One["f"]) && $One["f"] != "" ) ? addslashes($CI->database->code2text(strtoupper($One["f"]))) : "";
+      $ExemplarMARC[$ExpID]["label2"] = ( isset($One["d"]) ) ? addslashes($CI->database->code2text("Signature")) . " " . $One["d"] : "";
+      $ExemplarMARC[$ExpID]["label3"] = addslashes($CI->database->code2text(strtoupper("NotAvailable")));
+      continue;
+    }
+  }
+  return $ExemplarMARC;
+}
+
+function BestandArtikel($CI, $Contents, $Medium)
+{
+  // Get MARC Parent
+  $ParentMARC = ( isset($Medium["parents"][0]) ) ? $CI->internal_search("id:".$Medium["parents"][0]) : array();
+
+  $ParentLeader = ( count($ParentMARC) > 0 && isset($ParentMARC["results"][$Medium["parents"][0]]["leader"])) ? $ParentMARC["results"][$Medium["parents"][0]]["leader"] : "";
+
+  $ParentContents = ( count($ParentMARC) > 0 && isset($ParentMARC["results"][$Medium["parents"][0]]["contents"])) ? $ParentMARC["results"][$Medium["parents"][0]]["contents"] : array();
+
+  // Collect Parent 980
+  $E980 = array();
+  if ( array_key_exists("980", $ParentContents) )
+  {
+    $X = 0;
+    foreach ( $ParentContents["980"] as $Record )
+    {
+      $One = array();
+      foreach ( $Record as $Subrecord )
+      {
+        foreach ( $Subrecord as $Key => $Value )
+        {
+          // Only use first subfield and slip follow-ups inside one record.
+          if (!isset($One[$Key])) $One[$Key] = $Value;
+        }
+      }
+      // Use or create ExpID
+      $ExpID = ( isset($One["b"]) ) ? $One["b"] : $X++;
+      $E980[$ExpID] = $One;
+    }
+  }
+
+  $Artikels = array();
+  if ( substr($ParentLeader,7,1) == "s" )
+  {
+    foreach ($E980 as $ExpID => $One) 
+    {
+      $Artikels[$ExpID] = array();
+      if ( isset($One["f"]) && strtolower(substr($One["f"],0,5)) == "zs-fh" )
+      {
+        // Fall 23 - Artikel aus Zeitschrift Freihand
+        $Artikels[$ExpID]["case"]    = "23";
+        $Artikels[$ExpID]["action"]  = "mailorder";
+        $Artikels[$ExpID]["form"]    = "journal";
+        $Artikels[$ExpID]["data1"]   = Get773gq($Contents);
+        $Artikels[$ExpID]["label1"]  = ( isset($One["f"]) ) ? $One["f"] : "";
+        $Artikels[$ExpID]["label2"]  = ( isset($One["d"]) ) ? $CI->database->code2text("SIGNATURE") . " " . $One["d"] : "";
+        $Artikels[$ExpID]["label3"]  = $CI->database->code2text("REFERENCECOLLECTION");
+        $Artikels[$ExpID]["label4"]  = ( isset($One["g"]) ) ? $One["g"] : "";
+        $Artikels[$ExpID]["label5"]  = ( isset($One["k"]) ) ? $One["k"] : "";
+        $Artikels[$ExpID]["remark0"] = $CI->database->code2text("NOTE");
+        $Artikels[$ExpID]["remark1"] = $CI->database->code2text("EXAMPLES10ONSHELVE");
+        $Artikels[$ExpID]["remark2"] = $CI->database->code2text("ONLYMAGAZINEORDERS");
+      }
+      else
+      {
+        if ( isset($One["f"]) && strtolower(substr($One["f"],0,7)) == "magazin" )
+        {
+          // Fall 24 - Artikel aus Zeitschrift Magazin
+          $Artikels[$ExpID]["case"]   = "24";
+          $Artikels[$ExpID]["action"] = "mailorder";
+          $Artikels[$ExpID]["form"]   = "journal";
+          $Artikels[$ExpID]["data1"]  = Get773gq($Contents);
+          $Artikels[$ExpID]["label1"] = $CI->database->code2text("MAGAZINE");
+          $Artikels[$ExpID]["label2"] = ( isset($One["d"]) ) ? $CI->database->code2text("SIGNATURE") . " " . $One["d"] : "";
+          $Artikels[$ExpID]["label3"] = $CI->database->code2text("ORDER");
+          $Artikels[$ExpID]["label4"] = ( isset($One["g"]) ) ? $One["g"] : "";
+          $Artikels[$ExpID]["label5"] = ( isset($One["k"]) ) ? $One["k"] : "";
+        }
+        else
+        {
+          // Fall 25 - Artikel aus Zeitschrift außerhalb UB
+          $Artikels[$ExpID]["case"]    = "25";
+          $Artikels[$ExpID]["label1"]  = ( isset($One["f"]) ) ? $One["f"] : "";
+          $Artikels[$ExpID]["label2"]  = ( isset($One["d"]) ) ? $CI->database->code2text("SIGNATURE") . " " . $One["d"] : "";
+          $Artikels[$ExpID]["label3"] = $CI->database->code2text("LOCKED");
+        }
       }
     }
   }
-}
-
-function ExemplarOnline981($Area)
-{
-  $ExemplarOnline = array();
-  foreach ( $Area as $Record )
+  else
   {
-    $Link = array("action"=>"link");
-    foreach ( $Record as $Subrecord )
-    {
-      if ( isset($Subrecord["r"]) && $Subrecord["r"] != "" )  $Link["link"] = $Subrecord["r"];
-      if ( isset($Subrecord["y"]) && $Subrecord["y"] != "" )  $Link["name"] = $Subrecord["y"];
-    }
-    $ExemplarOnline[] = $Link;
+    // Fall 26 - Enthaltenes Werk
+    $Artikels[0] = array();
+    $Artikels[0]["case"]   = "26";
+    $Artikels[0]["label1"] = $CI->database->code2text("SEEPUBLISHED");
   }
-  return $ExemplarOnline;
+  return $Artikels;
 }
 
-function ExemplarOnline856($Area)
+function GetRelatedPubs($CI, $T, $PPN, $Modus)
 {
-  $ExemplarOnline = array();
+  // Modus
+  // 1: Mehrbändige Werke
+  // 2: Schriftenreihen
+  
+  $RelatedPubs = array();
+  $PPNLink = $CI->internal_search("ppnlink:".$PPN);
+  if ( ! isset($PPNLink["results"]) ) return ($RelatedPubs);
 
-  foreach ( $Area as $Record )
+  //$CI->printArray2Screen($PPNLink);
+
+  $PPNStg = json_encode(array_keys($PPNLink["results"]));
+
+  foreach ( $PPNLink["results"] as $One )
   {
-    $Link = array("action"=>"link");
-    foreach ( $Record as $Subrecord )
+    $CI->contents = $One["contents"];
+    $Pretty = $T->SetContents("preview");  
+
+    $Title = "";
+    if ( $Modus == 1 )
     {
-      if ( isset($Subrecord["u"]) && $Subrecord["u"] != "" )  $Link["link"] = $Subrecord["u"];
-      if ( isset($Subrecord["y"]) && $Subrecord["y"] != "" )  $Link["name"] = $Subrecord["y"];
-      if ( isset($Subrecord["3"]) && $Subrecord["3"] != "" )  $Link["name"] = $Subrecord["3"];
+      $Title = Get245npa($One["contents"]);
     }
-    $ExemplarOnline[] = $Link;
+    else
+    {
+      $Title = Get245an($One["contents"]);
+    }
+
+    $Publisher = "";
+    $Publisher  = Get250a($One["contents"]);
+    $Publisher  = ($Publisher != "" ) ? $Publisher . ", " . Get260c($One["contents"]) :  Get260c($One["contents"]);
+
+    $RelatedPubs[$One["id"]] = array
+    (
+      "format"    => $One["format"],
+      "cover"     => $One["cover"],
+      "title"     => $Title,
+      "publisher" => $Publisher
+    );
   }
-  return $ExemplarOnline;
+  return ($RelatedPubs);
 }
 
-function ProcessDAIA($CI, $DAIA, $Medium)
+function GetIncludedPubs($CI, $T, $PPN)
 {
+  // Zeitschriften mit Einzelheften
+
+  $PPNLink = $CI->internal_search("ppnlink:".$PPN);
+  if ( ! isset($PPNLink["results"]) ) return ($Pubs);
+
+  //$CI->printArray2Screen($PPNLink);
+
+  $PPNStg   = json_encode(array_keys($PPNLink["results"]));
+  $Journals = array();
+  $Articles = array();
+  $Counter  = 0;
+  foreach ( $PPNLink["results"] as $One )
+  {
+    $CI->contents = $One["contents"];
+    $Pretty = $T->SetContents("preview");  
+
+    if ( substr($One["leader"],7,1) == "m" || substr($One["leader"],7,1) == "d" )
+    {
+      $Counter++;
+      $Title = Get245ab($One["contents"]);
+      if ( $Title == "" )  $Title = Get490av($One["contents"]);
+      if ( $Title == "" )  $Title = "Nr." . $Counter;
+
+      $Journals[$One["id"]] = array
+      (
+        "format"    => $One["format"],
+        "cover"     => $One["cover"],
+        "title"     => $Title,
+        "publisher" => Get260c($One["contents"])
+      );
+    }
+    if ( substr($One["leader"],7,1) == "a" )
+    {
+      $Articles[$One["id"]] = array
+      (
+        "format"    => $One["format"],
+        "cover"     => $One["cover"],
+        "title"     => Get245ab($One["contents"]),
+        "publisher" => Get260c($One["contents"])
+      );
+    }
+  }
+  return (array("articles" => $Articles, "journals" => $Journals ));
+}
+function GetDAIA($CI, $Medium, $PPN)
+{
+  if ( isset($_SESSION["interfaces"]["lbs"]) && $_SESSION["interfaces"]["lbs"] == "1" )
+  {
+    // Local storage (ILN)
+    $DAIA = $CI->GetLBS($PPN);
+  }
+
   $Exemplars = array();
   if ( isset($DAIA["document"]) )
   {
@@ -217,51 +700,32 @@ function ProcessDAIA($CI, $DAIA, $Medium)
 
           if ( isset($Services["loan"]) && $Services["loan"] == true && isset($Exp["available"][0]["href"]) && $Exp["available"][0]["href"] != "" )
           {
-            // Magazin verf�gbar
+            // Sofort verfügbar für Magazin-Ausleihe
             $Exemplars[$ExpID] = array
             (
               "action"  => "order",
-              "typ"     => "magazine",
-              "id"      => $Exp["id"],
-              "label1"  => $CI->database->code2text("Magazine"),
-              "label2"  => (isset($Exp["label"])) ?  $CI->database->code2text("Signature") . " " . $Exp["label"] : "",
-              "label3"  => $CI->database->code2text("Order")
             );
           }
 
           if ( isset($Services["presentation"]) && $Services["presentation"] == true && ! isset($Exp["available"][0]["href"]) )
           {
+            // Freihand
             $Exemplars[$ExpID] = array
             (
               "action" => "shelve",
-              "id"      => $Exp["id"],
-              "label1" => ($Medium["online"] == 0 && $Medium["format"] == "journal") ? "" : $CI->database->code2text("Shelve"),
-              "label2" => (isset($Exp["label"])) ?  $CI->database->code2text("Signature") . " " . $Exp["label"] : ""
             );
-            if ( isset($Services["loan"]) && $Services["loan"] == false )
-            {
-              $Exemplars[$ExpID]["typ"]     = "shelve_not_lendable";
-              $Exemplars[$ExpID]["label3"]  = $CI->database->code2text("Referencecollection");
-              $Exemplars[$ExpID]["remark1"] = $CI->database->code2text("ReferencecollectionLong");
-            }
-            else
-            {
-              $Exemplars[$ExpID]["typ"]     = "shelve_lendable";
-              $Exemplars[$ExpID]["label3"]  = $CI->database->code2text("Lendable");
-            }
           }
 
           if ( isset($Services["loan"]) && $Services["loan"] == false && isset($Exp["unavailable"][0]["href"]) && $Exp["unavailable"][0]["href"] != "" )
           {
-            // Magazin vorbestellbar
+            // Vorbestellbar für Magazin-Ausleihe
+            $Datum = (isset($Exp["unavailable"][0]["expected"])) ? strtolower(trim($Exp["unavailable"][0]["expected"])) : "-";
+            if ( $Datum != "unknown" && $Datum != "-") $Datum = date("d.m.Y", strtotime($Datum));
+
             $Exemplars[$ExpID] = array
             (
               "action" => "reservation",
-              "id"     => $Exp["id"],
-              "typ"    => "magazine",
-              "label1" => $CI->database->code2text("reservation"),
-              "label2" => (isset($Exp["label"])) ?  $CI->database->code2text("Signature") . " " . $Exp["label"] : "",
-              "label3" => (isset($Exp["unavailable"][0]["expected"])) ? $CI->database->code2text("AvailableFrom") . " " . date("d.m.Y", strtotime($Exp["unavailable"][0]["expected"])) : ""
+              "date" => $Datum
             );
           }
         }
@@ -271,212 +735,226 @@ function ProcessDAIA($CI, $DAIA, $Medium)
   return ($Exemplars);
 }
 
-function ProcessMARC($CI, $Contents, $Medium, $Parent)
+function Get008($Contents)
 {
-  // Check order progress
-  $ExemplarMARC = array();
-  if ( array_key_exists("980", $Contents) )
+  if ( array_key_exists("008", $Contents) )
   {
-    foreach ( $Contents["980"] as $Record )
+    return $Contents["008"];
+  }
+  else
+  {
+    return "-";
+  }  
+}
+
+function Get245ab($Contents)
+{
+  $Titel = "";
+  if ( array_key_exists("245", $Contents) )
+  {
+    foreach ( $Contents["245"] as $Record )
     {
-      $One = array();
       foreach ( $Record as $Subrecord )
       {
         foreach ( $Subrecord as $Key => $Value )
         {
-          $One[$Key] = $Value;
+          if ( $Key == "a" )    $Titel .= ($Titel != "" ) ? " | " . $Value : $Value;
+          if ( $Key == "b" )    $Titel .= ($Titel != "" ) ? " : " . $Value : $Value;
         }
-      }
-      // Use or create ExpID
-      $ExpID = ( isset($One["b"]) ) ? $One["b"] : $X++;
-      $ExemplarMARC[$ExpID] = $One;
-    }
-  }
-
-  if ( count($ExemplarMARC) == 0 && count($Parent) > 0 )
-  {
-    if ( array_key_exists("980", $Parent) )
-    {
-      $X = 0;
-      foreach ( $Parent["980"] as $Record )
-      {
-        $One = array();
-        foreach ( $Record as $Subrecord )
-        {
-          foreach ( $Subrecord as $Key => $Value )
-          {
-            $One[$Key] = $Value;
-          }
-        }
-        // Use or create ExpID
-        $ExpID = ( isset($One["b"]) ) ? $One["b"] : $X++;
-        $ExemplarMARC[$ExpID] = $One;
       }
     }
   }
-  return $ExemplarMARC;
+  return ($Titel);  
 }
 
-function Process983($CI, $Contents)
+function Get245an($Contents)
 {
-  $Location = array();
-//  $Count = 10;
-//  if ( array_key_exists("983", $Contents) )
-//  {
-//    foreach ( $Contents["983"] as $Record )
-//    {
-//      foreach ( $Record as $Subrecord )
-//      {
-//        foreach ( $Subrecord as $Key => $Value )
-//        {
-//          if ( $Key == "a" )
-//          {
-//            $Ortexp = "";
-//            if (substr($Value,0,2) == 'F/')
-//            {
-//              $Ortexp = $CI->database->code2text("983aF/");
-//            }
-//
-//            //$CI->printArray2File($Ortexp);
-//            if ( $Ortexp != "" )
-//            {
-//              $Count++;
-//              $Location["location".$Count] = prepareStr($Ortexp);
-//            }
-//            $Count++;
-//            $Location["location".$Count] = prepareStr($Value);
-//          }
-//        }
-//      }
-//    }
-//  }
-  return ($Location);
+  $Titel = "";
+  if ( array_key_exists("245", $Contents) )
+  {
+    foreach ( $Contents["245"] as $Record )
+    {
+      foreach ( $Record as $Subrecord )
+      {
+        foreach ( $Subrecord as $Key => $Value )
+        {
+          if ( $Key == "a" )    $Titel .= ($Titel != "" ) ? " | " . $Value : $Value;
+          if ( $Key == "n" )    $Titel .= ($Titel != "" ) ? " : " . $Value : $Value;
+        }
+      }
+    }
+  }
+  return ($Titel);  
 }
 
-function MergeAndPrepare($CI, $Contents, $Medium, $ExemplarDAIA, $ExemplarMARC, $ParentMARC)
+function Get245npa($Contents)
 {
-  $ExemplarBOTH = $ExemplarDAIA;
-
-  $ParentData = array();
-  if ( count($ParentMARC) > 0 && isset($ParentMARC["980"]["0"]) )
+  $Titel = "";
+  $A = "";
+  if ( array_key_exists("245", $Contents) )
   {
-    foreach ( $ParentMARC["980"]["0"] as $Record )
+    foreach ( $Contents["245"] as $Record )
     {
-      foreach ( $Record as $key => $value )
+      foreach ( $Record as $Subrecord )
       {
-        $ParentData[$key] = $value;
-      }
-    }
-  }
-
-  // Add or update ordered or non existing data
-  foreach ( $ExemplarMARC as $ExpID => $One )
-  {  
-    if ( isset($One["e"]) && in_array($One["e"], array("a","b","c","d","e","f","g","i","s","u") ) )
-    {
-      // Step 1 - Add ordered data ( replace data )
-      if ( isset($One["e"]) && $One["e"] == "a" )
-      {
-        if ( ! array_key_exists($ExpID, $ExemplarBOTH) )
+        foreach ( $Subrecord as $Key => $Value )
         {
-          $ExemplarBOTH[$ExpID] = array
-          (
-            "label1" => $CI->database->code2text("Ordered"),
-            "typ"    => "ordered"
-          );
+          if ( $Key == "n" )    $Titel .= ($Titel != "" ) ? " | " . $Value : $Value;
+          if ( $Key == "p" )    $Titel .= ($Titel != "" ) ? ", " . $Value : $Value;
+          if ( $Key == "a" )    $A = $Value;
         }
       }
+    }
+  }
 
-      // Step 2 - Update locked data
-      if ( isset($One["e"]) && in_array($One["e"], array("b","g") ) && isset($One["f"]) && $One["f"] != "" )
+  if ( $Titel == "" && $A != "" ) $Titel = $A;
+
+  return ($Titel);  
+}
+
+function Get250a($Contents)
+{
+  if ( array_key_exists("250", $Contents) )
+  {
+    foreach ( $Contents["250"] as $Record )
+    {
+      foreach ( $Record as $Subrecord )
       {
-        if ( array_key_exists($ExpID, $ExemplarBOTH) )
+        foreach ( $Subrecord as $Key => $Value )
         {
-          if ( $One["e"] == "g" && $One["f"] == "FH" )
+          if ( $Key == "a" )    return ($Value);
+        }
+      }
+    }
+  }
+  return ("");  
+}
+
+function Get260c($Contents)
+{
+  $Jahr = "";
+  if ( array_key_exists("260", $Contents) )
+  {
+    foreach ( $Contents["260"] as $Record )
+    {
+      foreach ( $Record as $Subrecord )
+      {
+        foreach ( $Subrecord as $Key => $Value )
+        {
+          if ( $Key == "c" )    $Jahr .= ($Jahr != "" ) ? " | " . $Value : $Value;
+        }
+      }
+    }
+  }
+  return ($Jahr);  
+}
+
+function Get490av($Contents)
+{
+  $Titel = "";
+  if ( array_key_exists("490", $Contents) )
+  {
+    foreach ( $Contents["490"] as $Record )
+    {
+      foreach ( $Record as $Subrecord )
+      {
+        foreach ( $Subrecord as $Key => $Value )
+        {
+          if ( $Key == "a" )    $Titel .= ($Titel != "" ) ? " | " . $Value : $Value;
+          if ( $Key == "v" )    $Titel .= ($Titel != "" ) ? " ; " . $Value : $Value;
+        }
+      }
+    }
+  }
+  return ($Titel);  
+}
+
+function Get773gq($Contents)
+{
+  if ( array_key_exists("773", $Contents) )
+  {
+    foreach ( $Contents["773"] as $Record )
+    {
+      foreach ( $Record as $Subrecord )
+      {
+        foreach ( $Subrecord as $Key => $Value )
+        {
+          if ( $Key == "g" )
           {
-            $ExemplarBOTH[$ExpID] = array
-            (
-              "typ"     => "shelve_not_lendable",
-              "action"  => "shelve",
-              "label1"  => $CI->database->code2text("Shelve"),
-              "label2"  => ( isset($One["d"]) && $One["d"] != "" ) ? $CI->database->code2text("Signature") . " " . $One["d"] : "",
-              "label3"  => $CI->database->code2text("Referencecollection"),
-              "remark1" => $CI->database->code2text("ReferencecollectionLong")
-            );
+            return $Value;
           }
-          else
+          if ( $Key == "q" )
           {
-            // b and g, not 980f = FH
-            $ExemplarBOTH[$ExpID] = array
-            (
-              "label1" => $One["f"],
-              "label2" => ( isset($One["d"]) && $One["d"] != "" ) ? $CI->database->code2text("Signature") . " " . $One["d"] : "",
-              "label3" => $CI->database->code2text("Locked"),
-              "typ"    => "Locked"
-            );
+            return $Value;
+          }
+
+        }
+      }
+    }
+  }
+  return "-";
+}
+
+function Get856($Area, $CI)
+{
+  $ExemplarOnline = array();
+
+  foreach ( $Area as $Record )
+  {
+    foreach ( $Record as $Subrecord )
+    {
+      if ( isset($Subrecord["u"]) && $Subrecord["u"] != "" )  $Link["link"] = $Subrecord["u"];
+      // if ( isset($Subrecord["y"]) && $Subrecord["y"] != "" )  $Link["label1"] = $Subrecord["y"];
+      // if ( isset($Subrecord["3"]) && $Subrecord["3"] != "" )  $Link["label1"] = $Subrecord["3"];
+      $Link["label1"] = $CI->database->code2text("Online");
+    }
+    $ExemplarOnline[] = $Link;
+  }
+  return $ExemplarOnline;
+}
+
+function Get980($Contents,$Subfield)
+{
+  if ( array_key_exists("980", $Contents) )
+  {
+    foreach ( $Contents["980"] as $Record )
+    {
+      foreach ( $Record as $Subrecord )
+      {
+        foreach ( $Subrecord as $Key => $Value )
+        {
+          if ( $Key == $Subfield )
+          {
+            return $Value;
           }
         }
-      }  
-
-      // Step 3 - Add new data to list with default behaviour (will be updated in later steps)
-      if ( ! array_key_exists($ExpID, $ExemplarBOTH) )
-      {
-        $ExemplarBOTH[$ExpID] = array
-        (
-          "action"  => "shelve",
-          "typ"     => "shelve_lendable",
-          "label1"  => ($Medium["online"] == 0 && $Medium["format"] == "journal") ? "" : $CI->database->code2text("Shelve"),
-          "label2"  => ( isset($One["d"]) && $One["d"] != "" ) ? $CI->database->code2text("Signature") . " " . $One["d"] : "",
-          "label3"  => $CI->database->code2text("Lendable")
-        );
       }
     }
   }
+  return "-";
+}
 
-  // Now both data sources have been merged.
-
-  // Loop over merged list and check for additionally required data
-  $GetLocation = false;
-  $Location = array();
-  foreach ( $ExemplarBOTH as $ExpID => &$One )
+function Get980k($Contents)
+{
+  $Lizenzen = array();
+  if ( array_key_exists("980", $Contents) )
   {
-    if ( substr($One["typ"],0,6) == "shelve" || $One["typ"] == "mailorder_referencecollection" )
+    foreach ( $Contents["980"] as $Record )
     {
-      
-      if ( $Medium["online"] == 0 && $Medium["format"] == "journal" ) continue;
-      
-      // Magdeburg specific
-      // Process 983 location data
-      if ( !$GetLocation )
+      foreach ( $Record as $Subrecord )
       {
-        $Location     = Process983($CI, $Contents);
-        $GetLocation  = true;
-      }
-
-      if (count($Location) > 0 )
-      { 
-        $One["location0"] = $CI->database->code2text("ITEMLOCATION");
-        $One += $Location;
-      }
-    }
-    
-    // Add storage infos from parent
-    if ( count($ParentData ) > 0 )
-    {
-      if ( isset($ParentData["g"]) && $ParentData["g"] != "" )
-      {
-        if ( !isset($One["location0"]) )   $One["location0"] = $CI->database->code2text("ITEMLOCATION");
-        $One["location95x"] = $ParentData["g"];
-      }
-      if ( isset($ParentData["k"]) && $ParentData["k"] != "" )
-      {
-        if ( !isset($One["location0"]) )   $One["location0"] = $CI->database->code2text("ITEMLOCATION");
-        $One["location96x"] = $ParentData["k"];
+        foreach ( $Subrecord as $Key => $Value )
+        {
+          if ( $Key == "k" )
+          {
+            $Lizenzen[] = prepareStr($Value);
+          }
+        }
       }
     }
   }
-  return ($ExemplarBOTH);
-}        
+  return ($Lizenzen);  
+}
 
 function prepareStr($Str)
 {

@@ -15,7 +15,10 @@
 
               <div class="FACETYEARTOTAL">
                 <div class="well">
-                  <span class="FACETYEAR">Zeitraum </span> <span class="yearrange"></span>
+                  <input type="hidden" id="hiddenyearstart" />
+                  <input type="hidden" id="hiddenyearend" />
+                  <span class="FACETYEAR">Zeitraum </span> 
+                  <span class="yearstart inlineedit"> </span> - <span class="yearend inlineedit"> </span>
                   <div class="navbar-form" id="pubyear"></div>
                 </div>
               </div>

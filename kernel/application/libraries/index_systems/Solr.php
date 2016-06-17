@@ -1,6 +1,6 @@
 <?php
 
-class Solr
+class Solr extends General
 {
   protected $CI;
   protected $search;
@@ -44,7 +44,7 @@ class Solr
     if ( strpos($search, ":") !== false )
     {
       $Tmp = explode(":", $search);
-      if ( in_array(strtolower(trim($Tmp[0])), array("author","autor","id","isn","subject","schlagwort","title","titel","series","reihe","publisher","verlag","year","jahr","toc","inhalt")) )
+      if ( in_array(strtolower(trim($Tmp[0])), array("author","autor","id","isn","subject","schlagwort","title","titel","series","reihe","publisher","verlag","year","jahr","toc","inhalt","class","sachgebiet")) )
       {
         $Type = strtolower(trim($Tmp[0]));
         unset($Tmp[0]);
@@ -53,9 +53,23 @@ class Solr
     }
 
     // Escape Solr special characters
-    $search = str_replace(array('+','-','&','|','!','(',')','{','}','[',']','^','~','?'),
-                          array('\+','\-','\&','\|','\!','\(','\)','\{','\}','\[','\]','\^','\~','\?'),
-                          $search);
+    if ( $Type != "id" )
+    {
+      $search = str_replace(array( '+', '-', '&', '|', '!', '(' ,')' ,'{', '}', '[', ']', '^', '~', '?'),
+                            array('\+','\-','\&','\|','\!','\(','\)','\{','\}','\[','\]','\^','\~','\?'),
+                            $search);
+    }
+    else
+    {
+      $search = str_replace(" ","",$search);
+      $search = str_replace(",,",",",$search);
+      $IDs = explode(",", $search);
+      foreach ( $IDs as &$ID )
+      {
+        $ID = "id:".trim(preg_replace("/[^A-Za-z0-9]/", "", $ID));
+      }
+      $search = (count($IDs)>1) ? "(" . implode(" OR ",$IDs) . ")" : $IDs[0];
+    }
                           
     // Initialize Client
     $dismaxQuery = new SolrDisMaxQuery($search);
@@ -141,6 +155,13 @@ class Solr
         ->addQueryField("contents",100);
         break;
       }
+      case "class":
+      case "sachgebiet":
+      {
+        $dismaxQuery
+        ->addQueryField("class",100);
+        break;
+      }
       case "id":
       {
         $dismaxQuery
@@ -181,62 +202,66 @@ class Solr
     ->addField('id')
     ->addField('fullrecord');
 
-    // Facet fields (only for new searches (package=1), not for inkremential searches (package=0, package >=2)
-    if ( $package == 1 && $facets )
+    if ( $Type != "id" )
     {
-      $dismaxQuery->setFacet(true);
-      $dismaxQuery
-      ->addFacetField('remote_bool')
-      ->addFacetField('format_phy_str_mv');
-      $dismaxQuery->setFacetLimit(20);
-      //->addFacetField('publishDate');
-    }
-    
-    // Filter 
-    foreach ( $_SESSION["filter"] as $key => $value)
-    {
-      switch ($key )
+      // Facet fields (only for new searches (package=1), not for inkremential searches (package=0, package >=2)
+      if ( $package == 1 && $facets )
       {
-        case "datapool":
+        $dismaxQuery->setFacet(true);
+        $dismaxQuery
+        ->addFacetField('remote_bool')
+        ->addFacetField('format_phy_str_mv');
+        $dismaxQuery->setFacetLimit(20);
+      }
+    
+      // Filter 
+      foreach ( $_SESSION["filter"] as $key => $value)
+      {
+        switch ($key )
         {
-          if ( isset($_SESSION["iln"]) && $value == "local" )
+          case "datapool":
           {
-            $dismaxQuery
-            ->addFilterQuery('collection_details:GBV_ILN_' . $_SESSION['iln']);
+            if ( isset($_SESSION["iln"]) && $value == "local" )
+            {
+              $dismaxQuery
+              ->addFilterQuery('collection_details:GBV_ILN_' . $_SESSION['iln']);
+            }
+            break;
           }
-          break;
-        }
-  
-        case "typ":
-        {
-          if ( $value != "total" && $facets )
+    
+          case "typ":
           {
-            $dismaxQuery
-            ->addFilterQuery('remote_bool:'.$value);
+            if ( $value != "total" && $facets )
+            {
+              $dismaxQuery
+              ->addFilterQuery('remote_bool:'.$value);
+            }
+            break;
           }
-          break;
-        }
-  
-        case "yearrange":
-        {
-          if ( $value != "" && $facets )
+    
+          case "yearrange":
           {
-            $dismaxQuery
-            ->addFilterQuery('publishDate:'.$value);
+            if ( $value != "" && $facets )
+            {
+              $dismaxQuery
+              ->addFilterQuery('publishDate:'.$value);
+            }
+            break;
           }
-          break;
-        }
-        case "formats":
-        {
-          if ( count((array)$value) > 0 && $facets )
+          case "formats":
           {
-            $dismaxQuery
-            ->addFilterQuery('format_phy_str_mv:("' . implode('" OR "', array_keys((array)$value)) . '")');
+            if ( count((array)$value) > 0 && $facets )
+            {
+              $dismaxQuery
+              ->addFilterQuery('format_phy_str_mv:("' . implode('" OR "', array_keys((array)$value)) . '")');
+            }
           }
         }
       }
-    }
-    
+      $dismaxQuery->setStats(true);
+      $dismaxQuery->addStatsField('publishDate');
+    }    
+
     // Package start & end
     if ( $package == 0 )
     {
@@ -248,14 +273,12 @@ class Solr
       $dismaxQuery->setStart((($package-1)*50));
       $dismaxQuery->setRows(50);
     }
-    $dismaxQuery->setStats(true);
-    $dismaxQuery->addStatsField('publishDate');
 
     // Store query in session
     $_SESSION["query"] = $dismaxQuery;
 
     // Store query in file
-    //$this->CI->appendFile("EDisMax.txt", "http://" . $options["hostname"] . ":" . $options["port"] . "/". $options["path"] . "/select?" . $dismaxQuery);
+    // $this->CI->appendFile("EDisMax.txt", "http://" . $options["hostname"] . ":" . $options["port"] . "/". $options["path"] . "/select?" . $dismaxQuery);
 
     // Execute query
     $query_response = $client->query($dismaxQuery);
@@ -277,7 +300,7 @@ class Solr
       "hits"    => $result["response"]["numFound"],
       "hitspack"=> count($result["response"]["docs"]),
       "facets"  => $result["facet_counts"]["facet_fields"],
-      "stats"  => $result["stats"]["stats_fields"],
+      "stats"   => $result["stats"]["stats_fields"],
       "start"   => ($package != 0 ) ? ($package-1)*50 : 0,
     );
 
@@ -328,6 +351,84 @@ class Solr
 
     // Return Data
     return ( $container );
+  }
+
+  public function silmularpubs($params)
+  {
+    // Check params
+    if ( isset($params['ppn'] ) )  $PPN = $params['ppn'];
+    if ( $PPN == "" )
+    {
+      echo "Es ist ein Fehler passiert (NO_PPN) !";
+      return false;
+    }
+
+    $options = array
+    (
+      'hostname'  => (isset($_SESSION["config_general"]["index_system"]["host"]) && $_SESSION["config_general"]["index_system"]["host"] != "" ) ? $_SESSION["config_general"]["index_system"]["host"] : "findex.gbv.de",
+      'port'      => (isset($_SESSION["config_general"]["index_system"]["port"]) && $_SESSION["config_general"]["index_system"]["port"] != "" ) ? $_SESSION["config_general"]["index_system"]["port"] : "80",
+      'path'      => (isset($_SESSION["config_general"]["index_system"]["path"]) && $_SESSION["config_general"]["index_system"]["path"] != "" ) ? $_SESSION["config_general"]["index_system"]["path"] : "index/100",
+      'wt'        => 'json',
+    );
+    $client = new SolrClient($options);
+
+    // Initialize Client
+    $dismaxQuery = new SolrDisMaxQuery("id:".$PPN);
+
+    // Set query parser to EDisMax
+    $dismaxQuery->useEDisMaxQueryParser();
+
+    $dismaxQuery
+    ->addQueryField("id",100)
+    ->addField('id');
+
+    $dismaxQuery
+    ->addMltField("title")
+    ->addMltField("title_short")
+    ->addMltQueryField("title",75)
+    ->addMltQueryField("title_short",100);
+          //topic^300%20language^30%20author^75%20publishDate
+    $dismaxQuery
+    ->setMlt(true)
+    ->setMltBoost(true)
+    ->setMltMinDocFrequency(1)
+    ->setMltCount(6);
+
+    if ( isset($_SESSION["iln"]) && isset($_SESSION["filter"]["datapool"]) && 
+                                          $_SESSION["filter"]["datapool"] == "local" )
+    {
+      $dismaxQuery
+      ->addFilterQuery('collection_details:GBV_ILN_' . $_SESSION['iln']);
+    }    
+
+    // Store query in file
+    // $this->CI->appendFile("EDisMax.txt", "http://" . $options["hostname"] . ":" . $options["port"] . "/". $options["path"] . "/select?" . $dismaxQuery);
+
+    // Execute query
+    $query_response = $client->query($dismaxQuery);
+
+    $container = $query_response->getResponse();
+
+    // Store answer in file
+    // $this->CI->printArray2File($container);
+
+    $PPNList = array();
+    if ( isset($container["moreLikeThis"][1]["docs"]))
+    {
+      $container = $container["moreLikeThis"][1]["docs"];
+
+      foreach ( $container as $one )
+      {
+        $PPNList[]  = $one["id"];
+      }
+    }
+
+    // Store PPNList in file
+    //$this->CI->printArray2File($PPNList);
+
+    // Return Data
+    return ( $PPNList );
+
   }
 
 }

@@ -2,7 +2,7 @@
 <html lang="de">
   <head>
     <noscript><meta http-equiv="refresh" content="0; url=nojavascript" /></noscript>
-    <title><?php echo utf8_encode($_SESSION["config_general"]['general']['title']); ?></title>
+    <title><?php echo $_SESSION["config_general"]['general']['title']; ?></title>
     <link href="favicon.ico" rel="shortcut icon" type="image/x-icon">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -22,7 +22,7 @@
     $themeinfo = ($configtheme != "") ? array("customer", $configtheme) : array("system", "vzg");
 
     // Check Cookie in multiple theme mode
-    if ( isset($_SESSION["config_system"]["systemcommon"]["thememode"]) && $_SESSION["config_system"]["systemcommon"]["thememode"] == "1" )
+    if ( isset($_SESSION["config_discover"]["dev"]["thememode"]) && $_SESSION["config_discover"]["dev"]["thememode"] == "1" )
     {
       // Read Cookie
       $cookietheme = get_cookie("theme");
@@ -51,7 +51,7 @@
 		    }
 		    elseif ( $themeinfo[0] == "system" )
     		{
-          $link = "/systemassets/lukida/" . $themeinfo[1] . ".css";
+          $link = "/systemassets/lukida/css/" . $themeinfo[1] . ".css";
 		    }
 		    elseif ( $themeinfo[0] == "bootstrap" )
 		    {
@@ -77,6 +77,12 @@
       echo "<link rel='stylesheet' href='" . base_url("/assets/" . $value) . "'>";
     }
     ?>
+<script>
+  function onImgError(source)
+  {
+    console.log("Hello");
+  }
+</script>
 
   </head>
   <body class='<?php echo ( $front ) ? "frontbody" : "backbody" ?>'>

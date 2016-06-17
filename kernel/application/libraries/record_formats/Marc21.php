@@ -1,18 +1,8 @@
 <?php
 
-class Marc21
+class Marc21 extends General
 {
   protected $CI;
-  private $marc    = "";
-  private $leader  = "";
-  private $format  = "";
-  private $ppnlink = "";
-  private $cover   = "";
-  private $online  = "";
-  private $isbn    = "";
-  private $parents    = array();
-  private $catalogues = array();
-  private $contents   = array();
 
   public function __construct()
   {
@@ -21,19 +11,6 @@ class Marc21
 
     // Load pear loader class
     $this->CI->load->library('Pearloader');
-  }
-
-  // ********************************************
-  // ************** Tool-Functions **************
-  // ********************************************
-
-
-  private function LogEmptyPPNs()
-  {
-    if (isset($_SESSION["config_discover"]["preview"]["previewlogging"]) && $_SESSION["config_discover"]["preview"]["previewlogging"] == "1" )
-    {
-      file_put_contents("Empty_PPNs.html", date("d.m.Y H:i:s") . " <a target='_blank' href='" . base_url($this->PPN) . "'>" . $this->PPN . "</a><br />",FILE_APPEND);
-    }
   }
 
   // ********************************************
@@ -61,29 +38,29 @@ class Marc21
     $F008 = $this->marc->getFields("008");
     $F008_21 = ($F008 && $F008[0]) ? substr($F008[0],29,1) : "";
 
-    if     ( $Pos6 == "a" && $Pos7 == "m" && $Pos19 == "a" )                    { $Cover = "14"; $Online = 0; $PPNLink = 1; $Name = "multivolumework"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "m" && $F007_0 == "h" )                   { $Cover = "12"; $Online = 0; $PPNLink = 0; $Name = "microform"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "m" )                                     { $Cover = "02"; $Online = 0; $PPNLink = 0; $Name = "book"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "a" )                                     { $Cover = "01"; $Online = 0; $PPNLink = 0; $Name = "article"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "d" )                                     { $Cover = "09"; $Online = 0; $PPNLink = 0; $Name = "journal"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "s" && in_array($F008_21,array("p","n"))) { $Cover = "09"; $Online = 0; $PPNLink = 0; $Name = "journal"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "s" && $F008_21 == "m" )                  { $Cover = "14"; $Online = 0; $PPNLink = 1; $Name = "series"; }
-    elseif ( $Pos6 == "c"                 )                                     { $Cover = "08"; $Online = 0; $PPNLink = 0; $Name = "musicalscore"; }
-    elseif ( $Pos6 == "e"                 )                                     { $Cover = "11"; $Online = 0; $PPNLink = 0; $Name = "map"; }
-    elseif ( $Pos6 == "g" && $Pos7 == "a" )                                     { $Cover = "13"; $Online = 0; $PPNLink = 0; $Name = "movieadditionalmaterial"; }
-    elseif ( $Pos6 == "g"                 )                                     { $Cover = "13"; $Online = 0; $PPNLink = 0; $Name = "movie"; }
-    elseif ( $Pos6 == "j" && $Pos7 == "a" )                                     { $Cover = "15"; $Online = 0; $PPNLink = 0; $Name = "audiocarrieradditionalmaterial"; }
-    elseif ( $Pos6 == "j"                 )                                     { $Cover = "15"; $Online = 0; $PPNLink = 0; $Name = "audiocarrier"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "m" && $F007_0_2 == "cu" )                { $Cover = "03"; $Online = 0; $PPNLink = 0; $Name = "datacarrier"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "m" )                                     { $Cover = "04"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "a" )                                     { $Cover = "06"; $Online = 1; $PPNLink = 0; $Name = "earticle"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "d" && $F007_0_2 == "cu" )                { $Cover = "03"; $Online = 0; $PPNLink = 0; $Name = "datacarrier"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "s" )                                     { $Cover = "05"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
-    elseif ( $Pos6 == "p" && $Pos7 == "m" )                                     { $Cover = "17"; $Online = 0; $PPNLink = 1; $Name = "mixedmaterials"; }
-    elseif ( $Pos6 == "r" && $Pos7 == "m" )                                     { $Cover = "07"; $Online = 0; $PPNLink = 0; $Name = "game"; }
-    elseif ( $Pos6 == "r" && $Pos7 == "a" )                                     { $Cover = "16"; $Online = 0; $PPNLink = 0; $Name = "picture"; }
-    elseif ( $Pos6 == "t"                 )                                     { $Cover = "10"; $Online = 0; $PPNLink = 0; $Name = "manuscript"; }
-    else                                                                        { $Cover = "99"; $Online = 0; $PPNLink = 0; $Name = "unkwown"; }
+    if     ( $Pos6 == "a" && $Pos7 == "m" && $Pos19 == "a" )                    { $Cover = "R"; $Online = 0; $PPNLink = 1; $Name = "multivolumework"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "m" && $F007_0 == "h" )                   { $Cover = "I"; $Online = 0; $PPNLink = 0; $Name = "microform"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "m" )                                     { $Cover = "B"; $Online = 0; $PPNLink = 0; $Name = "book"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "a" )                                     { $Cover = "A"; $Online = 0; $PPNLink = 0; $Name = "article"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "d" )                                     { $Cover = "F"; $Online = 0; $PPNLink = 0; $Name = "journal"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "s" && in_array($F008_21,array("p","n"))) { $Cover = "F"; $Online = 0; $PPNLink = 0; $Name = "journal"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "s" && $F008_21 == "m" )                  { $Cover = "Q"; $Online = 0; $PPNLink = 1; $Name = "series"; }
+    elseif ( $Pos6 == "c"                 )                                     { $Cover = "H"; $Online = 0; $PPNLink = 0; $Name = "musicalscore"; }
+    elseif ( $Pos6 == "e"                 )                                     { $Cover = "J"; $Online = 0; $PPNLink = 0; $Name = "map"; }
+    elseif ( $Pos6 == "g" && $Pos7 == "a" )                                     { $Cover = "P"; $Online = 0; $PPNLink = 0; $Name = "movieadditionalmaterial"; }
+    elseif ( $Pos6 == "g"                 )                                     { $Cover = "E"; $Online = 0; $PPNLink = 0; $Name = "movie"; }
+    elseif ( $Pos6 == "j" && $Pos7 == "a" )                                     { $Cover = "P"; $Online = 0; $PPNLink = 0; $Name = "audiocarrieradditionalmaterial"; }
+    elseif ( $Pos6 == "j"                 )                                     { $Cover = "C"; $Online = 0; $PPNLink = 0; $Name = "audiocarrier"; }
+    elseif ( $Pos6 == "m" && $Pos7 == "m" && $F007_0_2 == "cu" )                { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datacarrier"; }
+    elseif ( $Pos6 == "m" && $Pos7 == "m" )                                     { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
+    elseif ( $Pos6 == "m" && $Pos7 == "a" )                                     { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "earticle"; }
+    elseif ( $Pos6 == "m" && $Pos7 == "d" && $F007_0_2 == "cu" )                { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datacarrier"; }
+    elseif ( $Pos6 == "m" && $Pos7 == "s" )                                     { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
+    elseif ( $Pos6 == "p" && $Pos7 == "m" )                                     { $Cover = "P"; $Online = 0; $PPNLink = 1; $Name = "mixedmaterials"; }
+    elseif ( $Pos6 == "r" && $Pos7 == "m" )                                     { $Cover = "O"; $Online = 0; $PPNLink = 0; $Name = "game"; }
+    elseif ( $Pos6 == "r" && $Pos7 == "a" )                                     { $Cover = "K"; $Online = 0; $PPNLink = 0; $Name = "picture"; }
+    elseif ( $Pos6 == "t"                 )                                     { $Cover = "G"; $Online = 0; $PPNLink = 0; $Name = "manuscript"; }
+    else                                                                        { $Cover = "O"; $Online = 0; $PPNLink = 0; $Name = "unknown"; }
 
     $this->format  = $Name;
     $this->cover   = $Cover;
@@ -240,8 +217,6 @@ class Marc21
       (
         "id" 		       => $one["id"],
         "parents"      => $this->parents,
-        //"fullrecord"   => $one["fullrecord"],
-        //"marc"         => $this->marc,
         "leader"       => $this->leader,
         "format"       => $this->format,
         "ppnlink"      => $this->ppnlink,
@@ -252,11 +227,11 @@ class Marc21
         "contents"     => $this->contents
       );
 
-      $results_reduced[$one["id"]]	= $reduced;
+      $results_reduced[$one["id"]]	= $reduced + $this->SetContents("preview");
     }
     $container["results"] = $results_reduced;
 
-    // $this->CI->printArray2File($container["results"]);
+    // $this->CI->printArray2File($this->marc);
 
     return ($container);
   }

@@ -25,7 +25,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 
 /*
-  04.11.2015 AKa Code neu eingeführt für CI Version 3.0.3, welche Security
+  04.11.2015 AKa Code neu eingefÃ¼hrt fÃ¼r CI Version 3.0.3, welche Security
                  Issues behoben hat.
                  https://www.codeigniter.com/user_guide/installation/upgrade_303.html
 */
@@ -208,7 +208,7 @@ $config['composer_autoload'] = FALSE;
 | DO NOT CHANGE THIS UNLESS YOU FULLY UNDERSTAND THE REPERCUSSIONS!!
 |
 */
-$config['permitted_uri_chars'] = 'a-z 0-9={}&+~%.:_\-';
+$config['permitted_uri_chars'] = 'a-z 0-9={}()&+~%.:_\-,';
 
 
 /*

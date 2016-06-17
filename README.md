@@ -15,6 +15,7 @@ This is the main software
 
 2) Download lukida_newlibrary
 This is the basic set of files for a new library, which should be customized
+(Please note that there is a .htaccess file inside)
 
 3) Place them together in this structure
 ```

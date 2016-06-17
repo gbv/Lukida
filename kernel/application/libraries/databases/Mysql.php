@@ -1,6 +1,6 @@
 <?php
 
-class Mysql
+class Mysql extends General
 {
   protected $CI;
 
@@ -28,16 +28,16 @@ class Mysql
     // Return code directly (without accessing the database again), if it has alrady been loaded
     if ( $_SESSION["language"] == "ger" )
     {
-      if ( array_key_exists($code,$_SESSION['translation_ger']) )
+      if ( array_key_exists($code,$_SESSION["translation_ger"]) )
       {
-        return $_SESSION['translation_ger'][$code];
+        return $_SESSION["translation_ger"][$code];
       }
     }
     else
     {
-      if ( array_key_exists($code,$_SESSION['translation_eng']) )
+      if ( array_key_exists($code,$_SESSION["translation_eng"]) )
       {
-        return $_SESSION['translation_eng'][$code];
+        return $_SESSION["translation_eng"][$code];
       }
     }
 
@@ -67,13 +67,15 @@ class Mysql
         // Return library specific code found
         if ( $_SESSION["language"] == "ger" )
         {
-          $_SESSION['translation_ger'][$code]	= $results->row()->german;
-          return ($results->row()->german);
+          $Value = $results->row()->german;
+          $_SESSION["translation_ger"][$code]	= $Value;
+          return ($Value);
         }
         else
         {
-          $_SESSION['translation_eng'][$code]	= $results->row()->english;
-          return ($results->row()->english);
+          $Value = $results->row()->english;
+          $_SESSION["translation_eng"][$code]	= $Value;
+          return ($Value);
         }
       }
     }
@@ -102,13 +104,15 @@ class Mysql
     // Return general code found
     if ( $_SESSION["language"] == "ger" )
     {
-      $_SESSION['translation_ger'][$code]	= $results->row()->german;
-      return ($results->row()->german);
+      $Value = $results->row()->german;
+      $_SESSION["translation_ger"][$code] = $Value;
+      return ($Value);
     }
     else
     {
-      $_SESSION['translation_eng'][$code]	= $results->row()->english;
-      return ($results->row()->english);
+      $Value = $results->row()->english;
+      $_SESSION["translation_eng"][$code] = $Value;
+      return ($Value);
     }
   }
 
@@ -244,11 +248,21 @@ class Mysql
     $Worte = explode(" ", $phrase);
     $Wort  = array_pop($Worte);
     $Ready = implode(" ", $Worte);
+
+    if ( substr($Wort,0,1) == "+" || substr($Wort,0,1) == "-" )
+    {
+      $AddOn = substr($Wort,0,1);
+      $Wort  = substr($Wort,1);
+    }
+    else
+    {
+      $AddOn = "";
+    }
     
     $this->CI->db->reset_query();
     $this->CI->db->select('wort');
     $this->CI->db->from('words');
-    $this->CI->db->like('wort', $Wort);
+    $this->CI->db->like('wort', $Wort, 'after');
     $this->CI->db->order_by('anzahl', 'DESC');
     $this->CI->db->order_by('datumzeit', 'DESC');
     $this->CI->db->limit(6);
@@ -257,11 +271,9 @@ class Mysql
     $Data = array();
     foreach ($results->result_array() as $row)
     {
-      $Data[] = $Ready . " " . $row['wort'];
+      $Data[] = $Ready . " " . $AddOn . $row['wort'];
     }
     return ($Data);
-
-    //return array("Alabama","Kasnas","Karims","Kongo","Kantalonien");
   }
 
 }

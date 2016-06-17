@@ -17,7 +17,7 @@ foreach ( $PPNLink["results"] as $One )
   $Output .= "<div class=''>";
   $Output .= "<button class='col-xs-12 col-sm-6 btn btn-default publication' onclick='$.open_fullview(\"" . $One["id"] . "\"," . $PPNStg . ",\"publications\",\"" . $this->PPN . "\");'>";
   $Output .= "<table><tr><td>";
-  $Output .= $this->SetCover2($One["cover"]);
+  $Output .= $this->SetCoverPublication($One["cover"]);
   $Output .= "</td><td>";  
   $Output .= ( isset($Pretty["part"]) && $Pretty["part"] != "" ) ? $this->trim_text($Pretty["part"],50) : $this->trim_text($Pretty["title"],50);
   $Output .= "<br /><small>" . $this->trim_text($Pretty["pv_publishershort"],60) . "</small>";

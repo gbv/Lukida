@@ -5,7 +5,7 @@
   <body>
     <noscript>
       Deutsch:
-      Diese Seite benötigt JavaScript für den vollen Funktionsumfang.
+      Diese Seite benÃ¶tigt JavaScript fÃ¼r den vollen Funktionsumfang.
       <a href="http://enable-javascript.com/de/" target="_blank">Hier</a> ist eine Anleitung zur Aktivierung von JavaScript.
       ---
       English:

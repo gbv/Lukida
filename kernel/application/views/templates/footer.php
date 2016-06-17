@@ -9,7 +9,8 @@ $Impressum = ( isset($_SESSION["config_general"]["general"]["imprint"])
 $Mode      = ( strtolower(MODE) == "production" ) ? "" : " &middot; " . ucfirst(MODE) . " " . ucfirst(LIBRARY);
 
 echo "<div class='row'>";
-echo "<div class='lastline col-sm-offset-5 col-sm-7 col-md-offset-4 col-md-8 col-lg-offset-3 col-lg-9 text-center'>" . $Impressum . $Version . $Copyright . $Mode . "</div>";
+echo "<div id='version_search' class='lastline col-sm-offset-5 col-sm-7 col-md-offset-4 col-md-8 col-lg-offset-3 col-lg-9 text-center collapse'>" . $Impressum . $Version . $Copyright . $Mode . "</div>";
+echo "<div id='version_start' class='lastline text-center'>" . $Impressum . $Version . $Copyright . $Mode . "</div>";
 echo "</div>";
 
 if ( $front )

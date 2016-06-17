@@ -32,14 +32,7 @@ if ( isset($_SESSION["searches"]) && count($_SESSION["searches"])>0) $Add["users
 if ( $TabGen != "" )
 {
   // Show general area element above all user tabs
-  $Output .= "<div class='col-xs-12'><div class='col-md-10'>";
-  $Output .= "<table class='table rowheight-reduced table-hover borderless small'><tbody>";
   $Output .= $this->LoadElement($TabGen);
-  $Output .= "</tbody></table>";
-  $Output .= "</div><div class='col-md-2'>";
-  $Output .= "<button onclick='window.open(\"https://opac.lbs-magdeburg.gbv.de/loan/DB=1/LNG=DU/USERINFO_LOGIN\",\"_blank\")' class='btn fullview-button-color'>" . $this->CI->database->code2text("CHANGEPASSWORT") . "</button>";
-  $Output .= "</div></div>";
-  
 }
 if ( isset($Add["usercollectables"]) )
 {

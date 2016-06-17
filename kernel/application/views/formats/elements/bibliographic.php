@@ -76,6 +76,15 @@ if ( count($this->pretty["associates"]) > 0 )
   $Output .=  "</td></tr>";
 }
 
+// Format
+if ( $this->format != "" )
+{
+  $Output .=  "<tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("format") . "</td>";
+  $Output .=  "<td>" . $this->CI->database->code2text($this->format) . "</td>";
+  $Output .=  "</tr>";
+}  
+
 // Corporation
 if ( $this->pretty["corporation"] != "" )
 {
@@ -196,15 +205,15 @@ if ( count($this->pretty["publisherarticle"]) > 0 )
   {
     $In = ( !$First ) ? " | " : "";
     if ( isset($one["i"]) && $one["i"] != "" )  $In .= $one["i"] . " ";
-    if ( isset($one["t"]) && $one["t"] != "" )
+    if ( isset($one["w"]) && substr($one["w"],0,8) == "(DE-601)" )
     {
-      if ( isset($one["w"]) && substr($one["w"],0,8) == "(DE-601)" )
+      if ( isset($one["t"]) && $one["t"] != "" )
       {
         $In .= $this->link("id", trim(substr($one["w"],8)),$one["t"]) . " ";
       }
       else
       {
-        $In .= $one["t"] . " ";
+        $In .= $this->link("id", trim(substr($one["w"],8)),$this->pretty["title"]) . " ";
       }
     }
     if ( isset($one["d"]) && $one["d"] != "" )  $In .= $one["d"] . " ";
@@ -343,45 +352,52 @@ if ( $this->pretty["summary"] != "" )
 }
 
 // Additionalinfo
-//if ( count($this->pretty["additionalinfo"]) > 0 )
-//{
-//  $Output .=  "<tr>";
-//  $Output .=  "<td>" . $this->CI->database->code2text("additionalinformations") . "</td>";
-//  $Output .=  "<td>";
-//  $First = true;
-//  $Links = array();
-//  foreach ( $this->pretty["additionalinfo"] as $one)
-//  {
-//    if ( isset($one["3"]) && isset($one["u"]) )
-//    {     
-//      if ( in_array($one["u"],$Links) ) continue;
-//      $Links[]  = $one["u"];
-//      
-//      switch (trim($one["3"]))
-//      {
-//        case "Rezension":
-//        case "Ausfuehrliche Beschreibung":
-//        case "Volltext":
-//        case "Inhaltsverzeichnis":
-//        case "Inhaltstext":
-//        {
-//          if ( !$First ) $Output .= " | ";
-//          $Output .=  $this->link($one["3"], $one["u"]);
-//          $First = false;
-//          break; 
-//        }
-//        case "Cover":
-//        {
-//          if ( !$First ) $Output .= " | ";
-//          $Output .=  $this->link("Cover", $one["u"]);
-//          $First = false;
-//          break; 
-//        }
-//      }
-//    }
-//  }
-//  $Output .=  "</td></tr>";   
-//}
+if ( count($this->pretty["additionalinfo"]) > 0 )
+{
+  $Output .=  "<tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("additionalinformations") . "<d>";
+  $Output .=  "<td>";
+  $First = true;
+  $Links = array();
+  foreach ( $this->pretty["additionalinfo"] as $one)
+  {
+    if ( isset($one["3"]) && isset($one["u"]) )
+    {
+      // Do not repeat identical links
+      if ( in_array($one["u"],$Links) ) continue;
+      $Links[]  = $one["u"];
+      
+      switch (trim($one["3"]))
+      {
+        case "Rezension":
+        case "Ausfuehrliche Beschreibung":
+        case "Volltext":
+        case "Inhaltsverzeichnis":
+        case "Inhaltstext":
+        {
+          if ( !$First ) $Output .= " | ";
+          $Output .=  $this->link($one["3"], $one["u"]);
+          $First = false;
+          break; 
+        }
+        case "Cover":
+        {
+          if ( !$First ) $Output .= " | ";
+          $Output .=  $this->link("Cover", $one["u"]);
+          $First = false;
+          break; 
+        }
+      }
+    }
+    if ( !isset($one["3"]) && isset($one["u"]) )
+    {    
+      if ( !$First ) $Output .= " | ";
+      $Output .=  $this->link("Online", $one["u"]);
+      $First = false;
+    }
+  }
+  $Output .=  "</td></tr>";   
+}
 
 // Subject
 if ( count($this->pretty["subject"]) > 0 )
@@ -425,5 +441,20 @@ if ( count($this->catalogues) > 1 || ( count($this->catalogues) == 1 && isset($_
   $Output .=  "</td></tr>";
 }
 
+// Class
+if ( count($this->pretty["class"]) > 0 )
+{
+  $Output .=  "<tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("class") . "</td>";
+  $Output .=  "<td>";
+  $First = true;
+  foreach ( $this->pretty["class"] as $one)
+  {
+    if ( !$First ) $Output .= " | ";
+    $Output .= $this->link("class", trim($one));
+    $First = false;
+  }
+  $Output .=  "</td></tr>";
+}
 
 ?>

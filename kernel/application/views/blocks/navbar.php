@@ -3,21 +3,21 @@
 // Prefilled Values for DevMode
 $Value       = "";
 $DevMode  = false;
-if (isset($_SESSION["config_system"]["systemcommon"]["devmode"]) && $_SESSION["config_system"]["systemcommon"]["devmode"] == "1" )
+if (isset($_SESSION["config_discover"]["discover"]["devmode"]) && $_SESSION["config_discover"]["discover"]["devmode"] == "1" )
 {
   $DevMode  = true;
-  if (isset($_SESSION["config_system"]["systemcommon"]["devvalues"]) && $_SESSION["config_system"]["systemcommon"]["devvalues"] != "" )
+  if (isset($_SESSION["config_discover"]["discover"]["devvalues"]) && $_SESSION["config_discover"]["discover"]["devvalues"] != "" )
   {
-    $DevValues = explode(",",$_SESSION["config_system"]["systemcommon"]["devvalues"]);
-    $Value = utf8_encode(trim($DevValues[array_rand($DevValues)]));
+    $DevValues = explode(",",$_SESSION["config_discover"]["discover"]["devvalues"]);
+    $Value = trim($DevValues[array_rand($DevValues)]);
   }
 }
 
-$ThemeMode = (isset($_SESSION["config_system"]["systemcommon"]["thememode"]) && $_SESSION["config_system"]["systemcommon"]["thememode"] == "1" ) ? true : false;
+$ThemeMode = (isset($_SESSION["config_discover"]["dev"]["thememode"]) && $_SESSION["config_discover"]["dev"]["thememode"] == "1" ) ? true : false;
 $ThemeCustomer = (isset($_SESSION["config_general"]["theme"]["theme"]) && $_SESSION["config_general"]["theme"]["theme"] != "" ) ? $_SESSION["config_general"]["theme"]["theme"] : "";
 $FacetDataPool = (isset($_SESSION["config_" . $modul]["navbar"]["facet_datapool"]) && $_SESSION["config_" . $modul]["navbar"]["facet_datapool"] == "1" ) ? true : false;
 // Logo Settings
-$logotitle = utf8_encode($_SESSION["config_general"]["general"]["title"]);
+$logotitle = $_SESSION["config_general"]["general"]["title"];
 $logocheck = true;
 
 // User already logged in?
@@ -43,20 +43,20 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
           <!-- Sprache -->
           <div class="btn-group dropdown">
             <button type='button' class='btn dropdown-toggle navbar-button-color' data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Sprache ausw&auml;hlen" data-container="body">
-              <img class="lang_ger<?php if ( $_SESSION["language"]!="ger" ) echo " hide"; ?>" height='15px' src='/systemassets/lukida/ger.png' />
-              <img class="lang_eng<?php if ( $_SESSION["language"]=="ger" ) echo " hide"; ?>" height='15px' src='/systemassets/lukida/eng.png' />
+              <img class="lang_ger<?php if ( $_SESSION["language"]!="ger" ) echo " hide"; ?>" height='15px' src='/systemassets/lukida/img/ger.png' />
+              <img class="lang_eng<?php if ( $_SESSION["language"]=="ger" ) echo " hide"; ?>" height='15px' src='/systemassets/lukida/img/eng.png' />
               <span class="caret"></span>
               <span class="sr-only">Toggle Dropdown</span>
             </button>
             <ul class="dropdown-menu lang" role="menu">
               <li>
-                <a href="javascript:void(0)" data-width='15px' data-src="/systemassets/lukida/ger.png" data-text="" data-value="ger" id="GER">
-                  <img width='20px' src='/systemassets/lukida/ger.png' /> <span class="ger"></span>
+                <a href="javascript:void(0)" data-width='15px' data-src="/systemassets/lukida/img/ger.png" data-text="" data-value="ger" id="GER">
+                  <img width='20px' src='/systemassets/lukida/img/ger.png' /> <span class="ger"></span>
                 </a>
               </li>
               <li>
-                <a href="javascript:void(0)" data-width='15px' data-src="/systemassets/lukida/eng.png" data-text="" data-value="eng" id="ENG">
-                  <img width='20px' src='/systemassets/lukida/eng.png' /> <span class="eng"></span>
+                <a href="javascript:void(0)" data-width='15px' data-src="/systemassets/lukida/img/eng.png" data-text="" data-value="eng" id="ENG">
+                  <img width='20px' src='/systemassets/lukida/img/eng.png' /> <span class="eng"></span>
                 </a>
               </li>
             </ul>
@@ -132,7 +132,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
         <?php if ( $lbs ) { ?>
         <!-- User NOT Login -->
         <div class="nologinarea btn-group<?php if ($Login) echo " hide";?>">
-          <button id="LOGINBUTTON" onClick="javascript:$.login()" type="button" class="btn navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Login" data-container="body">
+          <button id="LOGINBUTTON" onClick="javascript:$.loginonly('')" type="button" class="btn navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Login" data-container="body">
             <i class="fa fa-user"></i>
           </button>
         </div>
@@ -224,7 +224,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
 
           <!-- User NOT Login -->
           <div class="nologinarea btn-group pull-right left-padding<?php if ($Login) echo " hide";?>">
-            <button id="LOGINBUTTON" onClick="javascript:$.login()" type="button" class="btn  navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Login" data-container="body">
+            <button id="LOGINBUTTON" onClick="javascript:$.loginonly()" type="button" class="btn  navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Login" data-container="body">
               <i class="fa fa-user"></i>
             </button>
           </div>
@@ -267,20 +267,20 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
             <!-- Sprache -->
             <div class="btn-group dropdown">
               <button type='button' class='btn dropdown-toggle navbar-button-color' data-toggle="dropdown"  data-tooltip="tooltip" data-placement="left" title="Sprache ausw&auml;hlen" data-container="body">
-                <img class="lang_ger<?php if ( $_SESSION["language"]!="ger" ) echo " hide"; ?>" height='15px' src='/systemassets/lukida/ger.png' />
-                <img class="lang_eng<?php if ( $_SESSION["language"]=="ger" ) echo " hide"; ?>" height='15px' src='/systemassets/lukida/eng.png' />
+                <img class="lang_ger<?php if ( $_SESSION["language"]!="ger" ) echo " hide"; ?>" height='15px' src='/systemassets/lukida/img/ger.png' />
+                <img class="lang_eng<?php if ( $_SESSION["language"]=="ger" ) echo " hide"; ?>" height='15px' src='/systemassets/lukida/img/eng.png' />
                 <span class="caret"></span>
                 <span class="sr-only">Toggle Dropdown</span>
               </button>
               <ul class="dropdown-menu lang" role="menu">
                 <li>
-                  <a href="javascript:void(0)" data-width='15px' data-src="/systemassets/lukida/ger.png" data-text="" data-value="ger" id="GER">
-                    <img width='20px' src='/systemassets/lukida/ger.png' /> <span class="ger"></span>
+                  <a href="javascript:void(0)" data-width='15px' data-src="/systemassets/lukida/img/ger.png" data-text="" data-value="ger" id="GER">
+                    <img width='20px' src='/systemassets/lukida/img/ger.png' /> <span class="ger"></span>
                   </a>
                 </li>
                 <li>
-                  <a href="javascript:void(0)" data-width='15px' data-src="/systemassets/lukida/eng.png" data-text="" data-value="eng" id="ENG">
-                    <img width='20px' src='/systemassets/lukida/eng.png' /> <span class="eng"></span>
+                  <a href="javascript:void(0)" data-width='15px' data-src="/systemassets/lukida/img/eng.png" data-text="" data-value="eng" id="ENG">
+                    <img width='20px' src='/systemassets/lukida/img/eng.png' /> <span class="eng"></span>
                   </a>
                 </li>
               </ul>

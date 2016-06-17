@@ -7,7 +7,7 @@ foreach ( $_SESSION["items"] as $Item )
 
   $Output .= "<tr>";
   $Output .= "<td class='tablemiddle'>" . $Item["about"] . "</td>";
-  $Output .= "<td class='tablemiddle'>" . $this->CI->database->code2text("RENEWALS") . " " . $Item["renewals"] . " / 5</td>";
+  $Output .= "<td class='tablemiddle'>" . $this->CI->database->code2text("RENEWALS") . " " . $Item["renewals"] . "</td>";
 
   $Tmp = strtotime($Item["endtime"]);
   if ( date("Ymd",$Tmp) <= date("Ymd") )
