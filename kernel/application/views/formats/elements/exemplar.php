@@ -433,6 +433,7 @@ function BestandExemplare($CI, $Leader, $Contents, $Medium, $PPN)
   $E980 = array();
   if ( array_key_exists("980", $Contents) )
   {
+    $X = 0;
     foreach ( $Contents["980"] as $Record )
     {
       $One = array();
