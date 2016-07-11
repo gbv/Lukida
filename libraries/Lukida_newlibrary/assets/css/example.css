@@ -1,0 +1,232 @@
+a:link 		{ color: #013ADF !important; text-decoration: none}
+a:visited { color: #013ADF !important; text-decoration: none}
+a:hover 	{ color: #013ADF !important; text-decoration: none}
+a:active 	{ color: #013ADF !important; text-decoration: none}
+
+body {
+	font-family:'Lucida Grande','Lucida Sans Unicode','Lucida Sans',sans-serif;  
+}
+
+@media (max-width:991px)
+{
+  body 
+  {
+	  padding-top: 145px;
+  	background-repeat: no-repeat;
+  }
+}
+
+@media (min-width:992px)
+{
+  body 
+  {
+	  padding-top: 90px;
+  	background-repeat: no-repeat;
+  }
+}
+
+
+.navbar
+{
+	background-color: #cfd3d6;
+	color: black;
+}
+
+.navbar-brand 
+{ 
+    margin-top: 12px;
+    height : 46x;
+    display: block;
+}
+
+@media (max-width:766px)
+{
+  .navbar-brand 
+  { 
+    width : 61px;
+    background : url(ubfind_xs.png) no-repeat 0 0;
+  }
+}
+@media (min-width:767px)
+{
+  .navbar-brand 
+  { 
+    width : 261px;
+    background : url(ubfind_md.png) no-repeat 0 0;
+  }
+}
+
+.navbar-button-color
+{
+	background: #013ADF;
+	color: #fff;
+	border: 1px solid #ffffff;
+}
+.navbar-button-color:hover 
+{
+	background: grey;
+	color: #fff;
+	border: 1px solid #ffffff;
+}
+
+.navbar-panel-color
+{
+  background: #013ADF;
+	color: white;
+}
+
+.navbar-panel-color a
+{
+  color: white;
+}
+
+.navbar-panel-color a:hover
+{
+  color: white !important;
+}
+
+.inlineedit
+{
+  border-bottom: dashed 1px #013ADF;
+}
+
+.search, 
+.search:hover,
+.search:focus,
+.search:active
+{
+	border: 1px solid #013ADF;
+	border-radius: 4px;
+  line-height: 22px;
+}
+
+.carousel-inner img {
+  margin: auto;
+}
+
+#FACETTITLE
+{
+	color: #fff;
+}
+
+.noUi-connect 
+{
+    background: #013ADF !important;
+}
+
+.badge
+{
+  background-color: #cfd3d6;
+  font-weight: 300;
+  color: #000;
+}
+
+.panel
+{
+	border: 1px solid #96999C;
+}
+
+.start-header
+{
+	background-color: #cfd3d6;
+	color: #000;
+}
+
+.start-body
+{
+	background: #fff;
+}
+
+.start-footer
+{
+	background-color: #cfd3d6;
+	color: #000;
+}
+
+.preview-header
+{
+	background-color: #f5f5f5;
+	color: #000;
+}
+
+.preview-icon
+{
+  color: #013ADF;
+}
+
+.preview-text
+{
+  color: #000000;
+	padding: 2px 2px;
+}
+
+.preview-body
+{
+	background: #fff;
+}
+
+.preview-footer
+{
+	background-color: #cfd3d6;
+	color: #000;
+}
+
+.customer-link
+{
+	color: #013ADF;
+	text-decoration: none;
+}
+
+.btn-exemplar 
+{
+  color: #fff;
+  background-color: #013ADF;
+}
+
+.empty-exemplar 
+{
+  color: #000;
+  background-color: #fff;
+	border: 3px solid #013ADF;
+}
+
+.publication
+{
+  color: #fff;
+  background-color: #013ADF;
+}
+
+.fullview-button-color
+{
+	background: #013ADF;
+	color: #ffffff;
+}
+
+.dropdown-menu>.active>a, 
+.dropdown-menu>.active>a:focus, 
+.dropdown-menu>.active>a:hover 
+{
+    color: #ffffff !important;
+    text-decoration: none;
+    background-color: #013ADF;
+    outline: 0;
+}
+
+/* Spin Icon */
+.outercircle 
+{
+  background-color: rgba(0,0,0,0);
+  border: 5px solid rgba(122,0,63,0.9);
+  border-right: 5px solid rgba(0,0,0,0);
+  border-left: 5px solid rgba(0,0,0,0);
+  box-shadow: 0 0 35px #013ADF;
+}
+
+.innercircle 
+{
+  background-color: rgba(0,0,0,0);
+  border: 5px solid rgba(122,0,63,0.9);
+  border-left: 5px solid rgba(0,0,0,0);
+  border-right: 5px solid rgba(0,0,0,0);
+  box-shadow: 0 0 15px #013ADF;
+}
