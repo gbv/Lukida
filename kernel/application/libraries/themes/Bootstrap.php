@@ -248,4 +248,3 @@ class Bootstrap extends General
     return ( $Output );
   }
 }
-?>

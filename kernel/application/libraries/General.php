@@ -612,5 +612,3 @@ class General
     }
   }
 }
-
-?>

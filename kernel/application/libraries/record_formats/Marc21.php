@@ -237,5 +237,3 @@ class Marc21 extends General
   }
 
 }
-
-?>

@@ -664,6 +664,7 @@ function GetIncludedPubs($CI, $T, $PPN)
   }
   return (array("articles" => $Articles, "journals" => $Journals ));
 }
+
 function GetDAIA($CI, $Medium, $PPN)
 {
   if ( isset($_SESSION["interfaces"]["lbs"]) && $_SESSION["interfaces"]["lbs"] == "1" )
@@ -726,7 +727,8 @@ function GetDAIA($CI, $Medium, $PPN)
             $Exemplars[$ExpID] = array
             (
               "action" => "reservation",
-              "date" => $Datum
+              "date" => $Datum,
+              "queue" => (isset($Exp["unavailable"][0]["queue"])) ? strtolower(trim($Exp["unavailable"][0]["queue"])) : "0"
             );
           }
         }

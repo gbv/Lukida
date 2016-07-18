@@ -10,12 +10,6 @@ class Standard extends General
     $this->CI =& get_instance();
   }
 
-  /*
-  *****************************
-  * Version 2                 *
-  *****************************
-  */
-
   public function linkresolver($ppn)
   {
     $this->PPN = $ppn;
@@ -48,22 +42,81 @@ class Standard extends General
     return $linkarray;
   }
 
-/*
-    // Die folgenden DInge sind im Array $pretty["details"] enthalten
-      $pretty["part"]             "952" => array("a" => " | ")
-      $pretty["year"]             "952" => array("j" => " | ")
-      $pretty["volume"]           "952" => array("d" => " | ")
-      $pretty["issue"]            "952" => array("e" => " | ")
-      $pretty["pages"]            "952" => array("h" => " | ")
+  public function exportfile($data, $format)
+  {
+    // Create File Data
 
-    // Die folgenden Dinge sind im Array $pretty["publisher"] enthalten
-      $pretty["place"]            "260" => array("a" => " | ")
-      $pretty["publisherOnly"]    "260" => array("b" => " | ")
+    // Um die Daten zu sehen, die folgende Zeile aktivieren:
+    // $this->CI->printArray2File($data);
 
-    // Die folgenden Dinge sind im Array $pretty["publisher"] enthalten
-      $pretty["publisherOnly"]    "773" => array("d" => " | ")
- */
+    switch ($format)
+    {
+      case "citavi":
+        $openurlMetadata = $this->getCitaviMetaData($data);
+        break;
+      case "endnote":
+        $openurlMetadata = $this->getEndnoteMetaData($data);
+        break;
+      case "bibtex":
+        $openurlMetadata = $this->getBibtexMetaData($data);
+        break;
+    }
 
+    // Einen String (Dateinhalt, keine Datei) zusammenbauen und zurueckliefern
+    //return $data["id"] ." - " . $data["format"] ." - " . $format;
+
+    return $openurlMetadata;
+  }
+ 
+  public function exportlink($data, $format)
+  {
+    // Create File Data
+    // Um die Daten zu sehen, die folgende Zeile aktivieren
+    // $this->CI->printArray2File($data);
+    $openurlEntry    = "";    $openurlBase     = "";
+    $openurlReferer  = "";    $openurlMetadata = "";    
+    
+    switch ($format) 
+    {
+      case "refworks"     : if ($_SESSION["config_general"]["export"]["refworks"] !== false)
+								$openurlBase = "https://www.refworks.com/express/expressimport.asp";
+        break;
+      case "zotero"       : if ($_SESSION["config_general"]["export"]["zotero"] !== false)
+								$openurlBase = "ctx_ver=Z39.88-2004";
+        break;
+    }
+
+    if ($openurlBase != "") 
+    {
+      $openurlReferer  = (isset($_SESSION["config_general"]["export"]["openurlReferer"]) &&
+                                $_SESSION["config_general"]["export"]["openurlReferer"] != "") 
+                              ? $_SESSION["config_general"]["export"]["openurlReferer"] : "Lukida";
+
+      $isil            = (isset($_SESSION["config_general"]["general"]["isil"]) &&
+                                $_SESSION["config_general"]["general"]["isil"] != "") 
+                                ? $_SESSION["config_general"]["general"]["isil"] : null;
+
+      $openurlEntry    = $openurlBase . ($format == "zotero" ? "&" : "?") . 
+                          "sid=GBV&ctx_enc=info:ofi/enc:UTF-8&rfr_id=info:sid/gbv.de:" . $openurlReferer .
+                          ($format == "zotero" ? ("&rft_val_fmt=info:ofi/fmt:kev:mtx:" .                        
+                          ((isset($data["format"]) && $data["format"] == "book") ? "book" : "journal")) : "");
+
+      $openurlMetadata = $this->getOpenURLmetaData($data);
+
+      $link            = $openurlEntry . (($format == "refworks") ? str_replace("&rft.","&",$openurlMetadata) : $openurlMetadata);
+    }
+    else 
+    { 
+      $link = null;
+    }
+    // Link/URL zurueckliefern:
+    return $link;
+  }
+/* 
+*****************************
+ * EZB                 *
+*****************************
+*/ 
   protected function getEZB_Link($data)
   {
     if (isset($data["issn"])  && $data["issn"] != "" )
@@ -161,7 +214,11 @@ class Standard extends General
     }
     return false;
   }  
-
+/*
+*****************************
+ * SFX                 *
+*****************************
+*/
   protected function getSFX_Link($data)
   {
     if (isset($data["issn"])  && $data["issn"] != "" )
@@ -184,7 +241,7 @@ class Standard extends General
                          . "?sid=GBV&ctx_enc=info:ofi/enc:UTF-8&rfr_id=info:sid/gbv.de:" 
                          . $openurlReferer;
 
-      $openurlMetadata  = $this->getSFX_Meta($data);
+      $openurlMetadata  = $this->getOpenURLmetaData($data);
 
       $sfxlink          = $openurlEntry . $openurlMetadata;
 
@@ -199,194 +256,6 @@ class Standard extends General
       }
     }
     return "";
-  }
-
-  public function getSFX_Meta($data)
-  {
-    //$this->CI->printArray2File($data);
-
-    $metadataOU = "";
-    if (isset($data["format"])) 
-    {
-      $metadataOU = "&rft.genre=" .  $data["format"];
-    }
-    if (isset($data["title"]) && $data["title"] != "") 
-    {
-      if (isset($data["publisherarticle"])) 
-      {
-        if (is_array($data["publisherarticle"])) 
-        {
-          if (count($data["publisherarticle"]) >= 1 && isset($data["publisherarticle"][0]["t"]) && $data["publisherarticle"][0]["t"] != "") 
-          {
-            $publisherarticle = str_replace('&', '%22', $data["publisherarticle"][0]["t"]);
-          }
-        }
-        else { $publisherarticle = $data["publisherarticle"];
-        }
-        if (!empty($publisherarticle)) 
-        {
-          $metadataOU .= "&rft.atitle=" . str_replace('&', '%22', $data["title"]) . "&rft.title=" . (stripos($publisherarticle, "in:") !== false ?
-          trim(substr($publisherarticle,stripos($publisherarticle, "in:") + 3)) :
-          $publisherarticle);
-        }
-        else 
-        { 
-          $metadataOU .= "&rft.title=" . $data["title"];
-        }
-      }
-      else 
-      { 
-        $metadataOU .= "&rft.title=" . $data["title"];
-      }
-    }
-    if (isset($data["serial"])) 
-    {
-      if (is_array($data["serial"])) 
-      {
-        if (count($data["serial"]) >= 1) 
-        {
-          foreach($data["serial"] as $serial) 
-          {
-            foreach($serial as $sKey=>$sValue) 
-            {
-              if (!empty($sValue) && $sKey == "a") 
-              {
-                $metadataOU .= "&rft.jtitle=" . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
-              }
-              else { $metadataOU .= " " . $sValue;
-              }
-            }
-          }
-        }
-      }
-      elseif ($data["serial"] != "") 
-      {
-        $metadataOU .= "&rft.jtitle=" . ((stripos($data["serial"], "in:") !== false) ? trim(substr($data["serial"],stripos($data["serial"], "in:") + 3)) : $data["serial"]);
-      }
-    }
-    if (isset($data["author"]))
-    {
-      if (is_array($data["author"])) 
-      {
-        if (count($data["author"]) >= 1) 
-        {
-          $aNr = 0;
-          foreach($data["author"] as $author) 
-          {
-            $aNr += 1;
-            $metadataOU .= "&rft.author=" . $author;
-            if ($aNr == 1 && !empty($author) && strpos($author, ', ') !== false) 
-            {
-              $metadataOU .= "&rft.aulast=" . strstr($author, ', ', true);
-              $metadataOU .= "&rft.aufirst=" . substr(strstr($author, ", "), 2);
-            }
-          }
-        }
-      }
-      elseif ($data["author"] != "") 
-      {
-        $metadataOU .= "&rft.author=" . $data["author"];
-        if (strpos($data["author"], ", ")) 
-        {
-          $metadataOU .= "&rft.aulast=" . strstr($data["author"], ', ', true);
-          $metadataOU .= "&rft.aufirst=" . substr(strstr($data["author"], ", "), 2);
-        }
-      }
-    }
-    if (isset($data["isbn"])) 
-    {
-      if (is_array($data["isbn"])) 
-      {
-        if (count($data["isbn"]) >= 1) 
-        {
-          foreach($data["isbn"] as $isbn) 
-          {
-            if ($isbn != "") 
-            {
-              $metadataOU .= "&rft.isbn=" . (strpos($data["isbn"]," ") !== false ?
-              strstr($data["isbn"], ' ', true) : $data["isbn"]);
-              break;
-            }
-          }
-        }
-      }
-      elseif ($data["isbn"] != "") 
-      {
-        $metadataOU .= "&rft.isbn=" . (strpos($data["isbn"]," ") !== false ?
-        strstr($data["isbn"], ' ', true) : $data["isbn"]);
-      }
-    }
-    if (isset($data["issn"])) 
-    {
-      $metadataISSN = "";
-      if (is_array($data["issn"])) 
-      {
-        if (count($data["issn"]) >= 1) 
-        {
-          foreach($data["issn"] as $issn) 
-          {
-            if ($issn != "") {
-              $metadataISSN = $issn;
-              break;
-            }
-          }
-        }
-      }
-      elseif ($data["issn"] != "") 
-      {
-        $metadataISSN = $data["issn"];
-      }
-      if ($metadataISSN != "") 
-      {
-        if (strpos($metadataISSN," ") !== false) 
-        {
-          $metadataISSN = strstr($metadataISSN, ' ', true);
-        }
-        if ($metadataISSN != "" && strpos($metadataISSN,"-") === false) 
-        {
-          $metadataISSN = substr($metadataISSN,0,4) . '-' . substr($metadataISSN,4);
-        }
-        $metadataOU .= "&rft.issn=" . $metadataISSN;
-      }
-    }
-
-    if (isset($data["edition"]) && $data["edition"] != "") 
-    {
-      $metadataOU .= "&rft.edition=" . $data["edition"];
-    }
-    if (isset($data["details"][0]["a"]) && $data["details"][0]["a"] != "") 
-    {
-      $metadataOU .= "&rft.part=" . $data["details"][0]["a"];
-    }
-    if (isset($data["details"][0]["j"]) && $data["details"][0]["j"] != "") 
-    {
-      $metadataOU .= "&rft.date=" . $data["details"][0]["j"];
-    }
-    if (isset($data["details"][0]["d"]) && $data["details"][0]["d"] != "") 
-    {
-      $metadataOU .= "&rft.volume=" . $data["details"][0]["d"];
-    }
-    if (isset($data["details"][0]["e"]) && $data["details"][0]["e"] != "") {
-      $metadataOU .= "&rft.issue=" . $data["details"][0]["e"];
-    }
-    if (isset($data["details"][0]["h"]) && $data["details"][0]["h"] != "") 
-    {
-      $metadataOU .= "&rft.pages=" . $data["details"][0]["h"];
-      if ( strpos($data["details"][0]["h"], "-") !== false ) 
-      {
-        $metadataOU .= "&rft.spage=" . strstr($data["details"][0]["h"], '-', true);
-        $metadataOU .= "&rft.epage=" . substr(strstr($data["details"][0]["h"], "-"), 1);
-      }
-    }
-    if (isset($data["publisher"][0]["a"]) && $data["publisher"][0]["a"] != "") 
-    {
-      $metadataOU .= "&rft.place=" . $data["publisher"][0]["a"];
-    }
-    if (isset($data["publisher"][0]["b"]) && $data["publisher"][0]["b"] != "") 
-    {
-      $metadataOU .= "&pub=" . $data["publisher"][0]["b"];
-    }
-    return $metadataOU;
   }
 
   protected function getSFX_Full($link)
@@ -425,209 +294,27 @@ class Standard extends General
     }
     return array_values((array)$returnValue)[0];
   }
+/*
+*****************************
+ * METADATA                *
+*****************************
+*/
+    /*
+    // Die folgenden DInge sind im Array $pretty["details"] enthalten
+      $pretty["part"]             "952" => array("a" => " | ")
+      $pretty["year"]             "952" => array("j" => " | ")
+      $pretty["volume"]           "952" => array("d" => " | ")
+      $pretty["issue"]            "952" => array("e" => " | ")
+      $pretty["pages"]            "952" => array("h" => " | ")
 
-  /*
-  *****************************
-  * Version 1                 *
-  *****************************
-  */
+    // Die folgenden Dinge sind im Array $pretty["publisher"] enthalten
+      $pretty["place"]            "260" => array("a" => " | ")
+      $pretty["publisherOnly"]    "260" => array("b" => " | ")
 
-  public function exportfile($data, $format)
-  {
-    // Create File Data
-
-    // Um die Daten zu sehen, die folgende Zeile aktivieren:
-    // $this->CI->printArray2File($data);
-
-    switch ($format)
-    {
-      case "citavi":
-        $openurlMetadata = $this->getCitaviMetaData($data);
-        break;
-      case "endnote":
-        $openurlMetadata = $this->getEndnoteMetaData($data);
-        break;
-      case "bibtex":
-        $openurlMetadata = $this->getBibtexMetaData($data);
-        break;
-    }
-
-    // Einen String (Dateinhalt, keine Datei) zusammenbauen und zurueckliefern
-    //return $data["id"] ." - " . $data["format"] ." - " . $format;
-
-    return $openurlMetadata;
-  }
+    // Die folgenden Dinge sind im Array $pretty["publisher"] enthalten
+      $pretty["publisherOnly"]    "773" => array("d" => " | ")
+ */
  
-  public function exportlink($data, $format)
-  {
-    // Create File Data
-    // Um die Daten zu sehen, die folgende Zeile aktivieren
-    // $this->CI->printArray2File($data);
-    $configBase      = "";    $openurlBase     = "";
-    $openurlEntry    = "";    $openurlMetadata = "";
-    $openurlReferer  = "";    $isil = "";
-    switch ($format) 
-    {
-      case "refworks"     : $configBase  = "refworksBase";
-        break;
-      case "sfx"          : if ($_SESSION["config_general"]["export"]["sfxLink"] !== false)
-        $configBase  = "sfxBase";
-        break;
-      case "zotero"       : if ($_SESSION["config_general"]["export"]["zotero"] !== false)
-        $openurlBase = "ctx_ver=Z39.88-2004";
-        break;
-      case "ezb"          : if ($_SESSION["config_general"]["export"]["jopLink"] !== false)
-        $openurlBase = "https://services.dnb.de/fize-service/gvr/html-service.htm";
-        break;
-      case "ezbImage"     : if ($_SESSION["config_general"]["export"]["jopLink"] !== false)
-        $openurlBase = "https://services.dnb.de/fize-service/gvr/brief.xml";
-        break;
-    }
-
-    if ($openurlBase == "") 
-    {
-      $openurlBase = (isset($_SESSION["config_general"]["export"][$configBase]) &&
-                            $_SESSION["config_general"]["export"][$configBase] != "") 
-                          ? $_SESSION["config_general"]["export"][$configBase] : null;
-    }
-
-    if (isset($openurlBase) )
-    {
-      $openurlReferer  = (isset($_SESSION["config_general"]["export"]["openurlReferer"]) &&
-                                $_SESSION["config_general"]["export"]["openurlReferer"] != "") 
-                              ? $_SESSION["config_general"]["export"]["openurlReferer"] : "Lukida";
-
-      $isil            = (isset($_SESSION["config_general"]["general"]["isil"]) &&
-                                $_SESSION["config_general"]["general"]["isil"] != "") 
-                                ? $_SESSION["config_general"]["general"]["isil"] : null;
-
-      $openurlEntry    = $openurlBase . ($format == "zotero" ? "&" : "?") . 
-                          (($format == "ezb" || $format == "ezbImage") 
-                        ? "sid=GBV:" : "sid=GBV&ctx_enc=info:ofi/enc:UTF-8&rfr_id=info:sid/gbv.de:") . $openurlReferer .
-                          ($format == "zotero" 
-                        ? ("&rft_val_fmt=info:ofi/fmt:kev:mtx:" .
-                          ((isset($data["format"]) && $data["format"] == "book") ? "book" : "journal")) : "");
-
-      $openurlMetadata = $format == "ezb" ? $this->getOpenURLmetaDataEZB($data) : $this->getOpenURLmetaData($data);
-
-      $link            = $openurlEntry . (($format == "refworks") ? str_replace("&rft.","&",$openurlMetadata) : $openurlMetadata) .
-                          (($format == "ezb" || $format == "ezbImage") ? ("&pid=" . (isset($isil) ? ("isil%3D" . $isil)
-                          : "") . (!empty($data["zdbid"]) && $data["zdbid"] != "" 
-                          ? ("%26zdbid%3D" . (strpos($data["zdbid"]," ") !== false 
-                          ? strstr($data["zdbid"], ' ', true) : $data["zdbid"])) : "")) : "");
-
-      if ($format == "sfx")
-      {
-        if (isset($_SESSION["config_general"]["export"]["sfxOnlyFulltext"]) &&
-                  $_SESSION["config_general"]["export"]["sfxOnlyFulltext"] == true)
-        {
-          $sfxFullTxtUrl = $this->getSFX_FullTxtURL($link);
-          if ( $sfxFullTxtUrl != "") {
-            $link = $sfxFullTxtUrl;
-          }
-        }
-      }
-    }
-    else 
-    { 
-      $link = null;
-    }
-    // Link/URL zurueckliefern:
-    return $link;
-  }
-
-  protected function getSFX_FullTxtURL($link)
-  {
-    $returnValue = "";
-    //Build the url for the sfx answer
-    $sfx_xml_url = $link . "&sfx.response_type=simplexml";
-    //Get the xml answer
-    $sfx_xml_url_header = get_headers($sfx_xml_url);
-    if (strpos($sfx_xml_url_header[0],"200") !== false)
-    {
-      $sfx_xml     = simplexml_load_file($sfx_xml_url);
-      //Go on xml tag 'targets'
-      $sfx_xml_targets = $sfx_xml->targets;
-      //Loop through results and select target_url for service_type 'getFullTxt'
-      foreach ($sfx_xml_targets->target as $target)
-      {
-        if ($target->target_name == 'MESSAGE_NO_FULLTXT')
-        {
-          break;
-        }
-        elseif ($target->service_type == 'getFullTxt')
-        {
-          if (!empty($target->target_url))
-          {
-            $returnValue = $target->target_url;
-            break;
-          }
-        }
-      }
-    }
-    return array_values((array)$returnValue)[0];
-  }
-
-  protected function getEZB_Available($data)
-  {
-    $returnValue = "";
-    if ((strpos(strtolower($data["format"]),"article") !== false
-    || strpos(strtolower($data["format"]),"journal") !== false)
-    && (isset($data["issn"]) && $data["issn"] != ""
-    || isset($data["zdbid"]) && $data["zdbid"] != "" ))
-    {
-      $ezbConfig        = $_SESSION["config_general"]["export"]["jopLinkOption"];
-      $isil             = (isset($_SESSION["config_general"]["general"]["isil"]) &&
-                          $_SESSION["config_general"]["general"]["isil"] != "") ?
-                          $_SESSION["config_general"]["general"]["isil"] : null;
-      $openurlReferer   = (isset($_SESSION["config_general"]["export"]["openurlReferer"]) &&
-                          $_SESSION["config_general"]["export"]["openurlReferer"] != "") ?
-                          $_SESSION["config_general"]["export"]["openurlReferer"] : "Lukida";
-      $openurlMetadata  = $this->getOpenURLmetaDataEZB($data);
-      $ezbLinkExtension = "sid=GBV:" . $openurlReferer . $openurlMetadata .
-                          ("&pid=" . (isset($isil) ? ("isil%3D" . $isil) : "") .
-                          (!empty($data["zdbid"]) && $data["zdbid"] != "" ? ("%26zdbid%3D" .
-                          (strpos($data["zdbid"]," ") !== false ? strstr($data["zdbid"], ' ', true) :
-                          $data["zdbid"])) : ""));
-      $ezbLink          = "https://services.dnb.de/fize-service/gvr/html-service.htm?" . $ezbLinkExtension;
-      if (!empty($ezbLink)) 
-      {
-        $available = false;
-        $ezbLinkImage  = "https://services.dnb.de/fize-service/gvr/brief.xml?" . $ezbLinkExtension;
-        $ezbLinkImageURL = str_replace(' ', '%20', $ezbLinkImage);
-        $ezbLinkImageURLheader = get_headers($ezbLinkImageURL);
-        if (strpos($ezbLinkImageURLheader[0],"200") !== false) 
-        {
-          $ezb_xml = file_get_contents($ezbLinkImageURL);
-          $ezb_xml = simplexml_load_string($ezb_xml);
-          foreach($ezb_xml as $key => $value) 
-          {
-            if ($key == "Brief") 
-            {
-              foreach($value as $key => $value) 
-              {
-                if (strpos($ezbConfig,"online") !== false && $key == "ElectronicData" && strpos('0,1,2,3',(string) $value['state']) !== false) 
-                {
-                  $available = true;
-                }
-                if (strpos($ezbConfig,"print") !== false && $key == "PrintData" && strpos('2,3',(string) $value['state']) !== false ) 
-                {
-                  $available = true;
-                }
-              }
-            }
-          }
-          if (!empty($ezbLinkImage) && $available == true)
-          {
-            $returnValue = $ezbLink;
-          }
-        }
-
-      }
-    }
-    return $returnValue;
-  }
-
   public function getOpenURLmetaData($data)
   {
     $metadataOU = "";
@@ -810,156 +497,6 @@ class Standard extends General
     if (isset($data["publisher"][0]["b"]) && $data["publisher"][0]["b"] != "") 
     {
       $metadataOU .= "&pub=" . $data["publisher"][0]["b"];
-    }
-    return $metadataOU;
-  }
-
-  public function getOpenURLmetaDataEZB($data)
-  {
-    $metadataOU = "";
-    if (isset($data["format"])) 
-    {
-      $metadataOU = "&genre=" . ((strpos(strtolower($data["format"]),"article") !== false) ? "article" :
-      ((strpos(strtolower($data["format"]),"journal") !== false) ? "journal" : $data["format"]));
-    }
-    if (isset($data["title"]) && $data["title"] != "") 
-    {
-      if (isset($data["publisherarticle"])) 
-      {
-        if (is_array($data["publisherarticle"])) 
-        {
-          if (count($data["publisherarticle"]) >= 1 && isset($data["publisherarticle"][0]["t"]) && $data["publisherarticle"][0]["t"] != "") 
-          {
-            $publisherarticle = str_replace('&', '%22', $data["publisherarticle"][0]["t"]);
-          }
-        }
-        else { $publisherarticle = $data["publisherarticle"];
-        }
-        if (!empty($publisherarticle)) 
-        {
-          $metadataOU .= "&atitle=" . str_replace('&', '%22', $data["title"]) . "&title=" . (stripos($publisherarticle, "in:") !== false ?
-          trim(substr($publisherarticle,stripos($publisherarticle, "in:") + 3)) :
-          $publisherarticle);
-        }
-        else { $metadataOU .= "&title=" . $data["title"];
-        }
-      }
-      else { $metadataOU .= "&title=" . $data["title"];
-      }
-    }
-    if (isset($data["serial"])) 
-    {
-      if (is_array($data["serial"]))
-      {
-        if (count($data["serial"]) >= 1) 
-        {
-          foreach($data["serial"] as $serial) 
-          {
-            foreach($serial as $sKey=>$sValue) 
-            {
-              if (!empty($sValue) && $sKey == "a") 
-              {
-                $metadataOU .= "&jtitle=" . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
-              }
-              else { $metadataOU .= " " . $sValue;
-              }
-            }
-          }
-        }
-      }
-      elseif ($data["serial"] != "") 
-      {
-        $metadataOU .= "&jtitle=" . ((stripos($data["serial"], "in:") !== false) ? trim(substr($data["serial"],stripos($data["serial"], "in:") + 3)) : $data["serial"]);
-      }
-    }
-    if (isset($data["author"]))
-    {
-      if (is_array($data["author"])) 
-      {
-        if (count($data["author"]) >= 1) 
-        {
-          $aNr = 0;
-          foreach($data["author"] as $author) 
-          {
-            $aNr += 1;
-            $metadataOU .= "&author=" . $author;
-            if ($aNr == 1 && !empty($author) && strpos($author, ', ') !== false) 
-            {
-              $metadataOU .= "&aulast=" . strstr($author, ', ', true);
-              $metadataOU .= "&aufirst=" . substr(strstr($author, ", "), 2);
-            }
-          }
-        }
-      }
-      elseif ($data["author"] != "") 
-      {
-        $metadataOU .= "&author=" . $data["author"];
-        if (strpos($data["author"], ", ")) 
-        {
-          $metadataOU .= "&aulast=" . strstr($data["author"], ', ', true);
-          $metadataOU .= "&aufirst=" . substr(strstr($data["author"], ", "), 2);
-        }
-      }
-    }
-    if (isset($data["issn"])) 
-    {
-      $metadataISSN = "";
-      if (is_array($data["issn"])) 
-      {
-        if (count($data["issn"]) >= 1) 
-        {
-          foreach($data["issn"] as $issn) 
-          {
-            if ($issn != "") 
-            {
-              $metadataISSN = $issn;
-              break;
-            }
-          }
-        }
-      }
-      elseif ($data["issn"] != "") 
-      {
-        $metadataISSN = $data["issn"];
-      }
-      if ($metadataISSN != "") 
-      {
-        if (strpos($metadataISSN," ") !== false) 
-        {
-          $metadataISSN = strstr($metadataISSN, ' ', true);
-        }
-        if ($metadataISSN != "" && strpos($metadataISSN,"-") === false) 
-        {
-          $metadataISSN = substr($metadataISSN,0,4) . '-' . substr($metadataISSN,4);
-        }
-        $metadataOU .= "&issn=" . $metadataISSN;
-      }
-    }
-
-    if (isset($data["edition"]) && $data["edition"] != "") 
-    {
-      $metadataOU .= "&edition=" . $data["edition"];
-    }
-    if (isset($data["details"][0]["a"]) && $data["details"][0]["a"] != "") 
-    {
-      $metadataOU .= "&part=" . $data["details"][0]["a"];
-    }
-    if (isset($data["details"][0]["d"]) && $data["details"][0]["d"] != "") 
-    {
-      $metadataOU .= "&volume=" . $data["details"][0]["d"];
-    }
-    if (isset($data["details"][0]["e"]) && $data["details"][0]["e"] != "") 
-    {
-      $metadataOU .= "&issue=" . $data["details"][0]["e"];
-    }
-    if (isset($data["details"][0]["h"]) && $data["details"][0]["h"] != "") 
-    {
-      $metadataOU .= "&pages=" . $data["details"][0]["h"];
-      if ( strpos($data["details"][0]["h"], "-") !== false ) 
-      {
-        $metadataOU .= "&spage=" . strstr($data["details"][0]["h"], '-', true);
-        $metadataOU .= "&epage=" . substr(strstr($data["details"][0]["h"], "-"), 1);
-      }
     }
     return $metadataOU;
   }
