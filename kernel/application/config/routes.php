@@ -65,6 +65,7 @@ $route['ajax/exportlink']                  = 'Vzg_controller/exportlink';
 $route['ajax/facet']                       = 'Vzg_controller/facet';
 $route['ajax/language']                    = 'Vzg_controller/language';
 $route['ajax/layout']                      = 'Vzg_controller/layout';
+$route['ajax/libraryspecial']              = 'Vzg_controller/libraryspecial';
 $route['ajax/linkresolver']                = 'Vzg_controller/linkresolver';
 $route['ajax/login']                       = 'Vzg_controller/login';
 $route['ajax/logout']                      = 'Vzg_controller/logout';

@@ -276,4 +276,43 @@ class Mysql extends General
     return ($Data);
   }
 
+
+  /**
+  * System Counter Function
+  *
+  * @author  Alexander Karim <Alexander.Karim@gbv.de>
+  */
+  public function counter($name)
+  {
+    if ( $name == "" )  return (-1);
+
+    $this->CI->db->reset_query();
+    $this->CI->db->query("insert into counter (name, value) values ('" . $name . "', 0) ON DUPLICATE KEY UPDATE value=value+1");
+
+    $this->CI->db->reset_query();
+    $this->CI->db->select('value');
+    $this->CI->db->from('counter');
+    $this->CI->db->where('name', $name);
+    return ($this->CI->db->get()->row()->value);
+  }
+
+  /**
+  * Library specific counter function
+  *
+  * @author  Alexander Karim <Alexander.Karim@gbv.de>
+  */
+  public function counter_library($name, $iln)
+  {
+    if ( $name == "" || $iln == "" )  return (-1);
+
+    $this->CI->db->reset_query();
+    $this->CI->db->query("insert into counter_library (name, iln, value) values ('" . $name . "'," . $iln . ", 0) ON DUPLICATE KEY UPDATE value=value+1");
+
+    $this->CI->db->reset_query();
+    $this->CI->db->select('value');
+    $this->CI->db->from('counter_library');
+    $this->CI->db->where('name', $name);
+    $this->CI->db->where('iln', $iln);
+    return ($this->CI->db->get()->row()->value);
+  }
 }

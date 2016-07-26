@@ -40,7 +40,7 @@
     }
 
     // Laden der Systemmodule
-    $cssmodules = ( $front ) ? $_SESSION["config_system"]["frontcss"] : $_SESSION["config_system"]["systemcss"];
+    $cssmodules = ( $front && isset($_SESSION["config_system"]["frontcss"]) ) ? $_SESSION["config_system"]["frontcss"] : $_SESSION["config_system"]["systemcss"];
     foreach ( $cssmodules as $value )
     {
       if ( stripos($value, "bootstrap-theme.min.cs") !== false && count($themeinfo) == 2 )
@@ -66,7 +66,8 @@
     }
 
     // Laden der allgemeinen Kundenmodule
-    foreach ( $_SESSION["config_general"]["css"] as $value )
+    $cssmodules = ( $front && isset($_SESSION["config_general"]["frontcss"]) ) ? $_SESSION["config_general"]["frontcss"] : $_SESSION["config_general"]["css"];
+    foreach ( $cssmodules as $value )
     {
       echo "<link rel='stylesheet' href='" . base_url("/assets/" . $value) . "'>";
     }
@@ -77,13 +78,6 @@
       echo "<link rel='stylesheet' href='" . base_url("/assets/" . $value) . "'>";
     }
     ?>
-<script>
-  function onImgError(source)
-  {
-    console.log("Hello");
-  }
-</script>
-
   </head>
   <body class='<?php echo ( $front ) ? "frontbody" : "backbody" ?>'>
     <div class="container-fluid">

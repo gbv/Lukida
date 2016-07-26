@@ -20,6 +20,16 @@ if ( $front )
   {
     echo "<script type='text/javascript' src='" . base_url("/systemassets/" . $value) . "'></script>";
   }
+
+  // Laden der allgemeinen Kundenmodule
+  if ( isset($_SESSION["config_general"]["frontjs"]) )
+  {
+    foreach ( $_SESSION["config_general"]["frontjs"] as $value )
+    {
+      echo "<script type='text/javascript' src='" . base_url("/assets/" . $value) . "'></script>";
+    }
+  }
+
 }
 else
 {

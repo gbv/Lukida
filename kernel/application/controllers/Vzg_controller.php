@@ -625,6 +625,38 @@ class Vzg_controller extends CI_Controller
     echo "0";
   }
 
+  /**
+  * Special activities for a specific library
+  *
+  * @author  Alexander Karim <Alexander.Karim@gbv.de>
+  */
+  public function libraryspecial()
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+    $action       = $this->input->post('action');
+    $ppnlist      = (array)json_decode($this->input->post('ppnlist'));
+    $fields       = (array)json_decode($this->input->post('fields'));
+
+    // Check params
+    if ( $action == "" )          return ($this->ajaxreturn("400","action is missing"));
+    if ( count($ppnlist) == 0 )   return ($this->ajaxreturn("400","ppnlist is missing or empty"));
+
+    // Ensure required ppn data
+    foreach ($ppnlist as $ppn)
+    {
+      if ( !$this->ensurePPN($ppn)) return(-2);
+    }
+
+    // Load Special Library of Library
+    $this->load->library('/special/special', NULL, 'special');
+    $container = $this->special->$action($ppnlist, $fields);
+
+    // Return data
+    echo json_encode($container);
+  }
+
   public function command()
   {
     // Ajax Method => No view will be loaded, just data is returned
@@ -957,6 +989,27 @@ class Vzg_controller extends CI_Controller
     // Call LBS
     echo json_encode($this->ilsService->renew($uri));
   }  
+
+  // ********************************************
+  // ********** Database-Functions **************
+  // ********************************************
+  public function getcounter($name, $iln="")
+  {
+    // Check params
+    if ( $name == "" ) return (-1);
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","database"));
+
+    if ( $iln == "" ) 
+    {
+      return ($this->database->counter($name));
+    }
+    else
+    {
+      return ($this->database->counter_library($name, $iln));
+    }
+  }
 
   // ********************************************
   // ********* Main-Functions (AJAX) ************
