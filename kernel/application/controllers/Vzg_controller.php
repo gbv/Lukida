@@ -429,7 +429,9 @@ class Vzg_controller extends CI_Controller
       "softwarename"		=> (isset($_SESSION["config_general"]["general"]["softwarename"]) 			 && $_SESSION["config_general"]["general"]["softwarename"] != "" ) 				? $_SESSION["config_general"]["general"]["softwarename"]				: "GBV Discovery",
       "language"        => $_SESSION["language"],
       "layout"          => $_SESSION["layout"],
-      "datapool"        => $_SESSION["filter"]["datapool"]
+      "datapool"        => $_SESSION["filter"]["datapool"],
+      "time2warn" => (isset($_SESSION["config_general"]["lbs"]["time2warn"]) && $_SESSION["config_general"]["lbs"]["time2warn"] != "" ) ? $_SESSION["config_general"]["lbs"]["time2warn"]  : "",
+      "time2kill" => (isset($_SESSION["config_general"]["lbs"]["time2kill"]) && $_SESSION["config_general"]["lbs"]["time2kill"] != "" ) ? $_SESSION["config_general"]["lbs"]["time2kill"]  : ""
     );
 
     // Return data in jsonformat

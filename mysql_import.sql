@@ -1,3 +1,12 @@
+-- phpMyAdmin SQL Dump
+-- version 4.5.1
+-- http://www.phpmyadmin.net
+--
+-- Host: 127.0.0.1
+-- Erstellungszeit: 27. Jul 2016 um 09:18
+-- Server-Version: 10.1.13-MariaDB
+-- PHP-Version: 7.0.8
+
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
@@ -5,7 +14,7 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES utf8mb4 */;
 
 --
 -- Datenbank: `lukida`
@@ -17,12 +26,11 @@ SET time_zone = "+00:00";
 -- Tabellenstruktur für Tabelle `code_country`
 --
 
-CREATE TABLE IF NOT EXISTS `code_country` (
+CREATE TABLE `code_country` (
   `code_639-2` varchar(20) NOT NULL,
   `code_639-1` varchar(20) DEFAULT NULL,
   `english` varchar(100) DEFAULT NULL,
-  `german` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`code_639-2`)
+  `german` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -520,20 +528,69 @@ INSERT INTO `code_country` (`code_639-2`, `code_639-1`, `english`, `german`) VAL
 -- --------------------------------------------------------
 
 --
+-- Tabellenstruktur für Tabelle `counter`
+--
+
+CREATE TABLE `counter` (
+  `name` varchar(100) NOT NULL,
+  `value` int(10) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `counter_library`
+--
+
+CREATE TABLE `counter_library` (
+  `name` varchar(100) NOT NULL,
+  `iln` int(10) NOT NULL,
+  `value` int(10) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `search_log`
+--
+
+CREATE TABLE `search_log` (
+  `suche` varchar(200) NOT NULL DEFAULT '',
+  `anzahl` int(10) NOT NULL,
+  `datumzeit` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `search_user`
+--
+
+CREATE TABLE `search_user` (
+  `id` int(10) NOT NULL,
+  `user` varchar(100) NOT NULL,
+  `datumzeit` datetime NOT NULL,
+  `suche` varchar(200) NOT NULL,
+  `facetten` varchar(2000) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Tabellenstruktur für Tabelle `translation`
 --
 
-CREATE TABLE IF NOT EXISTS `translation` (
+CREATE TABLE `translation` (
   `shortcut` varchar(100) NOT NULL,
   `german` varchar(2000) DEFAULT NULL,
   `english` varchar(2000) DEFAULT NULL,
-  `init` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`shortcut`)
+  `init` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Daten für Tabelle `translation`
 --
+
 INSERT INTO `translation` (`shortcut`, `german`, `english`, `init`) VALUES
 ('100', 'UB Magdeburg', 'UB Magdeburg', 0),
 ('A', 'nicht bestellbar', 'not available', 0),
@@ -576,6 +633,7 @@ INSERT INTO `translation` (`shortcut`, `german`, `english`, `init`) VALUES
 ('COL4', '4-Spaltig', '4 Columns', 1),
 ('COLLECTABLE', 'Abholbar', 'Collectable', 0),
 ('COLLECTABLEREMARK', 'Wichtig: Ihre Vormerkung(en) sind an der Ausleihtheke abholbar!', 'Note: Your reservations are collectable!', 1),
+('COMMENT', 'Kommentar', 'Comment', 1),
 ('COMPUTERFILE', 'Technische Angaben', 'Computer file', 0),
 ('CORPORATION', 'Körperschaft', 'corporation', 0),
 ('CORRECTPERIOD', 'Bitte geben Sie einen gültigen Bereich aus dem Zeitraum {PERIOD} an!', 'Please enter a valid area from the period {PERIOD}', 1),
@@ -653,6 +711,7 @@ INSERT INTO `translation` (`shortcut`, `german`, `english`, `init`) VALUES
 ('MAIL', 'Mail', 'Mail', 1),
 ('MAILRECIPIENT', 'Empfänger Mailadresse', 'Mail Recipient', 1),
 ('MAILSUCCESS', 'Mail erfolgreich verschickt', 'Mail successfully sent', 1),
+('MAILWRONG', 'Mailadresse ist nicht korrekt', 'Mail is not valid', 1),
 ('MANUSCRIPT', 'Handschrift', 'Manuscripts', 1),
 ('MAP', 'Karte', 'Map', 1),
 ('MF-NR.', 'MF-Nr.', 'MF-Nr.', 0),
@@ -687,6 +746,7 @@ INSERT INTO `translation` (`shortcut`, `german`, `english`, `init`) VALUES
 ('PROVIDEMAIL', 'Diese Funktion ist erst verfügbar, wenn Sie der Bibliothek Ihre Mailadresse mitgeteilt haben', 'This function is available only after you have submitted your email address to the library', 1),
 ('PRT', 'DruckerIn', 'Printer', 0),
 ('PUBLISHED', 'Veröffentlicht', 'Published in', 0),
+('QUEUE', 'Vormerkungen', 'Queue position', 0),
 ('READINGROOMONLY', 'Benutzung nur im Lesesaal', 'For use only in reading room', 0),
 ('RECORDDAIA', 'Daten DAIA', 'Record DAIA', 0),
 ('RECORDMARC21', 'Daten MARC21', 'Record MARC21', 0),
@@ -837,45 +897,17 @@ INSERT INTO `translation` (`shortcut`, `german`, `english`, `init`) VALUES
 ('ZDB-1-WBA', 'World Bank E-Library Archive', 'World Bank E-Library Archive', 0),
 ('ZDB-1-WIS', 'Wiley InterScience Backfile Collections 1832-2005', 'Wiley InterScience Backfile Collections 1832-2005', 0);
 
-
---
--- Tabellenstruktur für Tabelle `search_log`
---
-
-CREATE TABLE IF NOT EXISTS `search_log` (
-  `suche` varchar(200) NOT NULL DEFAULT '',
-  `anzahl` int(10) NOT NULL,
-  `datumzeit` datetime NOT NULL,
-  PRIMARY KEY (`suche`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Tabellenstruktur für Tabelle `search_user`
---
-
-CREATE TABLE IF NOT EXISTS `search_user` (
-  `id` int(10) NOT NULL AUTO_INCREMENT,
-  `user` varchar(100) NOT NULL,
-  `datumzeit` datetime NOT NULL,
-  `suche` varchar(200) NOT NULL,
-  `facetten` varchar(2000) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=25 ;
-
 -- --------------------------------------------------------
 
 --
 -- Tabellenstruktur für Tabelle `translation_library`
 --
 
-CREATE TABLE IF NOT EXISTS `translation_library` (
+CREATE TABLE `translation_library` (
   `shortcut` varchar(100) NOT NULL,
   `iln` int(10) NOT NULL,
   `german` varchar(2000) DEFAULT NULL,
-  `english` varchar(2000) DEFAULT NULL,
-  PRIMARY KEY (`iln`,`shortcut`)
+  `english` varchar(2000) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -884,11 +916,10 @@ CREATE TABLE IF NOT EXISTS `translation_library` (
 -- Tabellenstruktur für Tabelle `translation_log`
 --
 
-CREATE TABLE IF NOT EXISTS `translation_log` (
+CREATE TABLE `translation_log` (
   `iln` int(10) NOT NULL,
   `shortcut` varchar(100) NOT NULL,
-  `anzahl` int(10) NOT NULL,
-  PRIMARY KEY (`iln`,`shortcut`)
+  `anzahl` int(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -897,12 +928,10 @@ CREATE TABLE IF NOT EXISTS `translation_log` (
 -- Tabellenstruktur für Tabelle `words`
 --
 
-CREATE TABLE IF NOT EXISTS `words` (
+CREATE TABLE `words` (
   `wort` varchar(200) NOT NULL,
   `anzahl` int(10) NOT NULL,
-  `datumzeit` datetime NOT NULL,
-  PRIMARY KEY (`wort`),
-  KEY `Zugriff` (`wort`,`anzahl`,`datumzeit`)
+  `datumzeit` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -911,14 +940,92 @@ CREATE TABLE IF NOT EXISTS `words` (
 -- Tabellenstruktur für Tabelle `words_unsolved`
 --
 
-CREATE TABLE IF NOT EXISTS `words_unsolved` (
-  `id` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `words_unsolved` (
+  `id` int(10) NOT NULL,
   `worte` text NOT NULL,
   `status` int(1) NOT NULL,
-  `datumzeit` datetime NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=21018 ;
+  `datumzeit` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- Indizes der exportierten Tabellen
+--
+
+--
+-- Indizes für die Tabelle `code_country`
+--
+ALTER TABLE `code_country`
+  ADD PRIMARY KEY (`code_639-2`);
+
+--
+-- Indizes für die Tabelle `counter`
+--
+ALTER TABLE `counter`
+  ADD PRIMARY KEY (`name`);
+
+--
+-- Indizes für die Tabelle `counter_library`
+--
+ALTER TABLE `counter_library`
+  ADD PRIMARY KEY (`name`,`iln`);
+
+--
+-- Indizes für die Tabelle `search_log`
+--
+ALTER TABLE `search_log`
+  ADD PRIMARY KEY (`suche`);
+
+--
+-- Indizes für die Tabelle `search_user`
+--
+ALTER TABLE `search_user`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indizes für die Tabelle `translation`
+--
+ALTER TABLE `translation`
+  ADD PRIMARY KEY (`shortcut`);
+
+--
+-- Indizes für die Tabelle `translation_library`
+--
+ALTER TABLE `translation_library`
+  ADD PRIMARY KEY (`iln`,`shortcut`);
+
+--
+-- Indizes für die Tabelle `translation_log`
+--
+ALTER TABLE `translation_log`
+  ADD PRIMARY KEY (`iln`,`shortcut`);
+
+--
+-- Indizes für die Tabelle `words`
+--
+ALTER TABLE `words`
+  ADD PRIMARY KEY (`wort`),
+  ADD KEY `Zugriff` (`wort`,`anzahl`,`datumzeit`);
+
+--
+-- Indizes für die Tabelle `words_unsolved`
+--
+ALTER TABLE `words_unsolved`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- AUTO_INCREMENT für exportierte Tabellen
+--
+
+--
+-- AUTO_INCREMENT für Tabelle `search_user`
+--
+ALTER TABLE `search_user`
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+--
+-- AUTO_INCREMENT für Tabelle `words_unsolved`
+--
+ALTER TABLE `words_unsolved`
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86492;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

@@ -212,7 +212,8 @@ class PaiaDaiaService implements ILSService
         $json_start = strpos($pure_response, '{');
         $json_response = substr($pure_response, $json_start);
         $user_response = json_decode($json_response, true);
-        $nameArr = explode(',', $user_response['name']);
+        $nameArr = ( isset($user_response['name']) ) ? explode(',', $user_response['name']) : array();
+
         //$this->CI->printArray2File($user_response);    
 
         $this->ilsUser->setUsername($_SESSION["userlogin"])

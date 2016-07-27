@@ -5,7 +5,7 @@ $Copyright = " &copy; " . date("Y");
 $Impressum = ( isset($_SESSION["config_general"]["general"]["imprint"]) 
             && $_SESSION["config_general"]["general"]["imprint"] != "" ) 
             ? "<a href='" . $_SESSION["config_general"]["general"]["imprint"] 
-            . "' target='_blank'><span class='imprint'></span></a> &middot; " : "";
+            . "' target='_blank'><span class='imprint'>" . ( ( $_SESSION["language"] == "eng" ) ? "Imprint" : "Impressum" ) . "</span></a> &middot; " : "";
 $Mode      = ( strtolower(MODE) == "production" ) ? "" : " &middot; " . ucfirst(MODE) . " " . ucfirst(LIBRARY);
 
 echo "<div class='row'>";
