@@ -49,7 +49,7 @@ SetEnv MODE "development"
 ```
 Remember the URL to access lukida (e.g. http://lukida.domain.tld)
 
-*** Important ***
+**Important**
 There is a .htaccess file located in this folder, which is neccessary.
 
 6) Enter the URL in the mail config file ../lukida/libraries/lukida_newlibrary/general.ini:
@@ -67,15 +67,14 @@ Try the URL in your browser.
 ###Vagrant virtual machine
 For a local developer system, you can use a virtual machine with Virtualbox and Vagrant. These are the installation steps:
 
-1) Be sure to have [Virtualbox](https://www.virtualbox.org/wiki/Downloads) installed.
-2) You need a POSIX compatible shell - on MS Windows [GIT Bash](https://git-for-windows.github.io/) is verified to work.
-3) Install [Vagrant](https://www.vagrantup.com/downloads.html) (if not present) with Virtualbox guest additions plugin (execute ```vagrant plugin install vagrant-vbguest``` in a shell after the installation of Vagrant).
-4) Navigate to the projects root folder in your shell (e.g. the folder with the [Vagrantfile](Vagrantfile)).
-5) Run `vagrant up` to automatically download, start and initially provision the virtual machine.
-6) Add the ip 192.168.33.12 as "lukida.dev" to your hosts file (/etc/hosts on POSIX compatible systems, C:\Windows\System32\drivers\etc\hosts on Windows systems).
+1. Be sure to have [Virtualbox](https://www.virtualbox.org/wiki/Downloads) installed.
+2. You need a POSIX compatible shell - on MS Windows [GIT Bash](https://git-for-windows.github.io/) is verified to work.
+3. Install [Vagrant](https://www.vagrantup.com/downloads.html) (if not present) with Virtualbox guest additions plugin (execute ```vagrant plugin install vagrant-vbguest``` in a shell after the installation of Vagrant).
+4. Navigate to the projects root folder in your shell (e.g. the folder with the [Vagrantfile](Vagrantfile)).
+5. Run `vagrant up` to automatically download, start and initially provision the virtual machine.
 
 Usage hints:
-- Lukida can be accessed via http://lukida.dev; the db admin via http://lukida.dev/phpmyadmin (user: newlibrary, password: newlibrary)
+- Lukida can be accessed via http://192.168.33.12; the db admin via http://192.168.33.12/phpmyadmin/ (user: newlibrary, password: newlibrary)
 - you can develop on your host system without immediate impact
 - a connection into the virtual machine running Lukida can be done with ```vagrant ssh```
 - to apply changes made in the code, run ```lukida_sync``` from inside the virtual machine

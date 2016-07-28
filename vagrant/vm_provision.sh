@@ -25,6 +25,7 @@ mysql -unewlibrary -pnewlibrary newlibrary < /vagrant/mysql_import.sql
 
 echo "### START CONFIGURING THE PROJECT ###"
 sudo cp /vagrant/vagrant/lukida_apache.conf /etc/apache2/sites-available/lukida.conf
+sudo a2dissite 000-default.conf
 sudo a2ensite lukida
 sudo a2enmod rewrite
 sudo cp /vagrant/vagrant/sync_project.sh /usr/local/bin/lukida_sync
