@@ -42,18 +42,19 @@ $config['base_url']  = "";
 // Step 1: Set development base_url, if $_SERVER['HTTP_HOST'] matches against ini-setting
 if ( isset($general["general"]["devurl"]) && $general["general"]["devurl"] != "" )
 {
-    $DevUrls = explode(",",$general["general"]["devurl"]);
-
-    if (in_array($_SERVER['HTTP_HOST'], $DevUrls, TRUE))
+    $delimiter = ", \t";
+    $host = strtok($general["general"]["devurl"], $delimiter);
+    while ($host !== FALSE)
     {
-        if ( ! empty($_SERVER['HTTPS']))
+        if ($host !== $_SERVER['HTTP_HOST'])
         {
-            $config['base_url'] = 'https://' . $_SERVER['HTTP_HOST'];
+            $host = strtok($delimiter);
+            continue;
         }
-        else
-        {
-            $config['base_url'] = 'http://' . $_SERVER['HTTP_HOST'];
-        }
+        $config['base_url'] = empty($_SERVER['HTTPS'])
+            ? 'http://'  . $host
+            : 'https://' . $host;
+        break;
     }
 }
 
