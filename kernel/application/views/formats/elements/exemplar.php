@@ -11,7 +11,7 @@ $IncJournals  = array();
 $IncArticles  = array();
 $Interloan    = array();
 $SFX          = true;
-$Case         = true;
+$Case         = false;
 
 //***************************************
 //********* M A I N - P A P  1 **********
@@ -453,8 +453,7 @@ function BestandExemplare($CI, $Leader, $Contents, $Medium, $PPN)
 
   $ExemplarMARC = array();
   $ExemplarDAIA = array();
-
-  $ExemplarMARC = array();
+  $GetDAIA = false;
   foreach ($E980 as $ExpID => $One) 
   {
     $ExemplarMARC[$ExpID] = array();
@@ -467,10 +466,29 @@ function BestandExemplare($CI, $Leader, $Contents, $Medium, $PPN)
 
     if ( isset($One["e"]) && in_array($One["e"], array("b","c","d","i","s","u") ) )
     {
-      $ExemplarMARC[$ExpID]["action"]    = "shelve";
+      
+      $ExemplarMARC[$ExpID]["action"] = "shelve";
       $ExemplarMARC[$ExpID]["label1"] = ( isset($One["f"]) && $One["f"] != "" ) ? addslashes($CI->database->code2text(strtoupper($One["f"]))) : "";
       $ExemplarMARC[$ExpID]["label2"] = ( isset($One["d"]) ) ? addslashes($CI->database->code2text("Signature")) . " " . $One["d"] : "";
-      $ExemplarMARC[$ExpID]["label3"] = addslashes($CI->database->code2text(strtoupper("Available")));
+
+      if ( isset($_SESSION["internal"]["daia"]) && $_SESSION["internal"]["daia"] == "1" )
+      {
+        if ( ! $GetDAIA )
+        {
+          $ExemplarDAIA = GetDAIA($CI, $Medium, $PPN); 
+          $GetDAIA = true;
+        }
+        $ExemplarMARC[$ExpID]["id"]    = (isset($ExemplarDAIA[$ExpID]["id"]) && $ExemplarDAIA[$ExpID]["id"] != "") ? $ExemplarDAIA[$ExpID]["id"] : "";
+
+        $ExemplarMARC[$ExpID]["label3"]    = (isset($ExemplarDAIA[$ExpID]["date"])) ? $CI->database->code2text("AvailableFrom") . " " . $ExemplarDAIA[$ExpID]["date"] : $CI->database->code2text("LENDABLE");
+        $ExemplarMARC[$ExpID]["label4"]    = (isset($ExemplarDAIA[$ExpID]["queue"]) && $ExemplarDAIA[$ExpID]["queue"] >= "1") ? $CI->database->code2text("QUEUE") . ": " . $ExemplarDAIA[$ExpID]["queue"] : "";
+        $ExemplarMARC[$ExpID]["label5"]    = (isset($ExemplarDAIA[$ExpID]["storage"]) && $ExemplarDAIA[$ExpID]["storage"] != "") ? $ExemplarDAIA[$ExpID]["storage"] : "";
+        $ExemplarMARC[$ExpID]["label6"]    = (isset($ExemplarDAIA[$ExpID]["label"]) && $ExemplarDAIA[$ExpID]["label"] != "") ? $ExemplarDAIA[$ExpID]["label"] : "";
+      }
+      else
+      {
+        $ExemplarMARC[$ExpID]["label3"] = addslashes($CI->database->code2text(strtoupper("Available")));
+      }
       continue;
     }
 
@@ -726,11 +744,30 @@ function GetDAIA($CI, $Medium, $PPN)
 
             $Exemplars[$ExpID] = array
             (
-              "action" => "reservation",
-              "date" => $Datum,
-              "queue" => (isset($Exp["unavailable"][0]["queue"])) ? strtolower(trim($Exp["unavailable"][0]["queue"])) : "0"
+              "action"  => "reservation",
+              "date"    => $Datum,
+              "queue"   => (isset($Exp["unavailable"][0]["queue"])) ? strtolower(trim($Exp["unavailable"][0]["queue"])) : "0"
             );
           }
+
+          // ID Parameter ergänzen
+          if ( (isset($Exp["id"])) && $Exp["id"] != "" )
+          {
+            $Exemplars[$ExpID]["id"] = (isset($Exp["id"])) ? trim($Exp["id"]) : "";
+          }
+
+          // Storage Parameter ergänzen
+          if ( (isset($Exp["storage"]["content"])) && $Exp["storage"]["content"] != "" )
+          {
+            $Exemplars[$ExpID]["storage"] = (isset($Exp["storage"]["content"])) ? trim($Exp["storage"]["content"]) : "";
+          }
+
+          // Label Parameter ergänzen
+          if ( (isset($Exp["label"])) && $Exp["label"] != "" )
+          {
+            $Exemplars[$ExpID]["label"] = (isset($Exp["label"])) ? trim($Exp["label"]) : "";
+          }
+
         }
       }
     }

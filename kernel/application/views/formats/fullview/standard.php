@@ -99,12 +99,12 @@ if ( isset($_SESSION["internal"]["marc"]) && $_SESSION["internal"]["marc"] == "1
 if ( isset($_SESSION["internal"]["daia"]) && $_SESSION["internal"]["daia"] == "1" )
 {
   $Output .= "<div role='tabpanel' class='tab-pane fade' id='daia_" . $this->dlgid . "'>";
-  $Output .= "<table class='table rowheight-reduced table-hover borderless small'><tbody>";
+  $Output .= "<div class='table-responsive'><table class='table table-striped rowheight-reduced table-hover borderless small'><tbody>";
 
   // Show elements based on ini-file
   $Output .= $this->LoadTabElements("tab4_elements");
 
-  $Output .= "</tbody></table>";
+  $Output .= "</tbody></table></div>";
   $Output .= "</div>";
   // ****** Ende Tab 4 ******
 }

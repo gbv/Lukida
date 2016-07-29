@@ -365,7 +365,8 @@ class Standard extends General
               {
                 $metadataOU .= "&rft.jtitle=" . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
               }
-              else { $metadataOU .= " " . $sValue;
+              else 
+			  { $metadataOU .= " " . $sValue;
               }
             }
           }
@@ -428,6 +429,20 @@ class Standard extends General
         strstr($data["isbn"], ' ', true) : $data["isbn"]);
       }
     }
+	elseif (!empty($data["contents"]["020"][0])) 
+	{
+		foreach($data["contents"]["020"][0] as $isbnGroup) 
+		{
+			foreach($isbnGroup as $isbnKey => $isbnValue) 
+			{
+				if ($isbnKey == "a" || $isbnKey == "9") 
+				{
+					$isbnVal = $isbnValue;	
+				}
+			}
+		}
+		$metadataOU .= "&rft.isbn=" . $isbnVal;	
+	}
     if (isset($data["issn"])) 
     {
       $metadataISSN = "";
@@ -534,6 +549,9 @@ class Standard extends General
         $publisherarticle) . "\r\n";
       }
     }
+	if (isset($data["contents"]["240"][0][0]["a"]) && $data["contents"]["240"][0][0]["a"] != "") {
+	  $metadataOU .= "T2  - " . $data["contents"]["240"][0][0]["a"] . "\r\n";
+	}
     if (isset($data["serial"])) 
     {
       if (is_array($data["serial"])) 
@@ -546,9 +564,10 @@ class Standard extends General
             {
               if (!empty($sValue) && $sKey == "a") 
               {
-                $metadataOU .= "JF  - " . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
+                $metadataOU .= "T3  - " . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
               }
-              else { $metadataOU .= " " . $sValue;
+              else 
+			  { $metadataOU .= " " . $sValue;
               }
             }
             $metadataOU .= "\r\n";
@@ -557,7 +576,7 @@ class Standard extends General
       }
       elseif ($data["serial"] != "") 
       {
-        $metadataOU .= "JF  - " . ((stripos($data["serial"], "in: ") !== false) ? trim(substr($data["serial"],stripos($data["serial"], "in:") + 3)) : $data["serial"]) . "\r\n";
+        $metadataOU .= "T3  - " . ((stripos($data["serial"], "in: ") !== false) ? trim(substr($data["serial"],stripos($data["serial"], "in:") + 3)) : $data["serial"]) . "\r\n";
       }
     }
     if (isset($data["author"])) 
@@ -581,9 +600,9 @@ class Standard extends General
     }
     if (isset($data["notes"]) && $data["notes"] != "") 
     {
-      if (strpos($data["notes"]," - ")!==false) 
+      if (strpos($data["notes"]," | ")!==false) 
       {
-        foreach (explode(" - ", $data["notes"]) as $note) 
+        foreach (explode(" | ", $data["notes"]) as $note) 
         {
           $metadataOU .= "N1  - " . $note . "\r\n";
         }
@@ -591,7 +610,26 @@ class Standard extends General
       else { $metadataOU .= "N1  - " . $data["notes"] . "\r\n";
       }
     }
-    if (isset($data["isbn"])) 
+	if (isset($data["associates"])) 
+    {
+      if (is_array($data["associates"])) 
+      {
+        if (count($data["associates"]) >= 1) 
+        { 
+		  $counter = 0; 
+		  $associates = "";
+          foreach($data["associates"] as $associate) 
+          {
+            $metadataOU .= "A2  - " . $associate["a"] . "\r\n";
+          }
+        }
+      }
+      elseif ($data["associates"] != "") 
+      {
+        $metadataOU .= "A2  - " . $data["associates"][a] . "\r\n";
+      }
+    }
+    if (!empty($data["isbn"])) 
     {
       if (is_array($data["isbn"])) 
       {
@@ -612,6 +650,19 @@ class Standard extends General
         $metadataOU .= "BN  - " . $data["isbn"] . "\r\n";
       }
     }
+	elseif (!empty($data["contents"]["020"][0])) {
+		foreach($data["contents"]["020"][0] as $isbnGroup) 
+		{
+			foreach($isbnGroup as $isbnKey => $isbnValue) 
+			{
+				if ($isbnKey == "a" || $isbnKey == "9") 
+				{
+					$isbnVal = $isbnValue;	
+				}
+			}
+		}
+		$metadataOU .= "BN  - " . $isbnVal . "\r\n";	
+	}
     if (isset($data["issn"])) 
     {
       if (is_array($data["issn"])) 
@@ -646,6 +697,28 @@ class Standard extends General
     {
       $metadataOU .= "PY  - " . $data["details"][0]["j"] . "\r\n";
     }
+	elseif (isset($data["publisher"][0]["c"]) && $data["publisher"][0]["c"] != "") 
+	{
+	  $metadataOU .= "PY  - " . $data["publisher"][0]["c"] . "\r\n";
+	}
+    if (isset($data["publisher"][0]) && $data["publisher"][0] != "") 
+    {
+	  foreach($data["publisher"][0] as $publisherKey => $publisherValue)
+	  {
+		if ($publisherKey == "a") 
+		{ 
+			$metadataOU .= "CY  - " . $publisherValue . "\r\n";
+		}
+		elseif ($publisherKey == "b") 
+		{ 
+			$metadataOU .= "PB  - " . $publisherValue . "\r\n";
+		} 
+	  }
+    }
+	elseif (isset($data["contents"]["300"][0][0]["a"]) && $data["contents"]["300"][0][0]["a"] != "") 
+	{
+	  $metadataOU .= "PB  - " . $data["contents"]["300"][0][0]["a"] . "\r\n";
+	}	
     if (isset($data["details"][0]["d"]) && $data["details"][0]["d"] != "") 
     {
       $metadataOU .= "VL  - " . $data["details"][0]["d"] . "\r\n";
@@ -653,14 +726,10 @@ class Standard extends General
     if (isset($data["details"][0]["e"]) && $data["details"][0]["e"] != "") 
     {
       $metadataOU .= "IS  - " . $data["details"][0]["e"] . "\r\n";
-    }
-    if (isset($data["publisher"][0]["a"]) && $data["publisher"][0]["a"] != "") 
+    }	
+	if (isset($data["additionalinfo"][0]["u"]) && $data["additionalinfo"][0]["u"] != "") 
     {
-      $metadataOU .= "CY  - " . $data["publisher"][0]["a"] . "\r\n";
-    }
-    if (isset($data["publisher"][0]["b"]) && $data["publisher"][0]["b"] != "") 
-    {
-      $metadataOU .= "PB  - " . $data["publisher"][0]["b"] . "\r\n";
+      $metadataOU .= "UR  - " . $data["additionalinfo"][0]["u"] . "\r\n";
     }
     if (isset($data["details"][0]["h"]) && $data["details"][0]["h"] != "") 
     {
@@ -669,11 +738,11 @@ class Standard extends General
         $metadataOU .= "SP  - " . strstr($data["details"][0]["h"], '-', true) . "\r\n";
         $metadataOU .= "EP  - " . substr(strstr($data["details"][0]["h"], "-"), 1) . "\r\n";
       }
-      $metadataOU .= "S1  - Gemeinsamer Bibliotheksverbund (GBV) / Verbundzentrale des GBV (VZG)\r\n";
-      $metadataOU .= "S2  - OPAC Magdeburg\r\n";
-      $metadataOU .= "S3  - Lukida.ub_md\r\n";
-      $metadataOU .= "L3  - " . base_url() . $data["id"] . "/id\r\n";
-    }
+	}
+    $metadataOU .= "S1  - Gemeinsamer Bibliotheksverbund (GBV) / Verbundzentrale des GBV (VZG)\r\n";
+    $metadataOU .= "S2  - OPAC Magdeburg\r\n";
+    $metadataOU .= "S3  - Lukida.ub_md\r\n";
+    $metadataOU .= "L3  - " . base_url() . $data["id"] . "/id\r\n";
     return $metadataOU;
   }
 
@@ -701,7 +770,8 @@ class Standard extends General
           $publisherarticle = $data["publisherarticle"][0]["t"];
         }
       }
-      else { $publisherarticle = $data["publisherarticle"];
+      else 
+	  { $publisherarticle = $data["publisherarticle"];
       }
       if (!empty($publisherarticle)) 
       {
@@ -710,6 +780,10 @@ class Standard extends General
         $publisherarticle) . "\r\n";
       }
     }
+	if (isset($data["contents"]["240"][0][0]["a"]) && $data["contents"]["240"][0][0]["a"] != "") 
+	{
+	  $metadataOU .= "%Q " . $data["contents"]["240"][0][0]["a"] . "\r\n";
+	}
     if (isset($data["serial"])) 
     {
       if (is_array($data["serial"])) 
@@ -722,7 +796,7 @@ class Standard extends General
             {
               if (!empty($sValue) && $sKey == "a") 
               {
-                $metadataOU .= "%J " . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
+                $metadataOU .= "%B " . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
               }
               else { $metadataOU .= " " . $sValue;
               }
@@ -733,7 +807,7 @@ class Standard extends General
       }
       elseif ($data["serial"] != "") 
       {
-        $metadataOU .= "%J " . ((stripos($data["serial"], "in:") !== false) ? trim(substr($data["serial"],stripos($data["serial"], "in:") + 3)) : $data["serial"]) . "\r\n";
+        $metadataOU .= "%B " . ((stripos($data["serial"], "in:") !== false) ? trim(substr($data["serial"],stripos($data["serial"], "in:") + 3)) : $data["serial"]) . "\r\n";
       }
     }
     if (isset($data["author"])) 
@@ -753,7 +827,26 @@ class Standard extends General
         $metadataOU .= "%A " . $data["author"] . "\r\n";
       }
     }
-    if (isset($data["isbn"])) 
+	if (isset($data["associates"])) 
+    {
+      if (is_array($data["associates"])) 
+      {
+        if (count($data["associates"]) >= 1) 
+        { 
+		  $counter = 0; 
+		  $associates = "";
+          foreach($data["associates"] as $associate) 
+          {
+            $metadataOU .= "%A " . $associate["a"] . "\r\n";
+          }
+        }
+      }
+      elseif ($data["associates"] != "") 
+      {
+        $metadataOU .= "%A " . $data["associates"][a] . "\r\n";
+      }
+    }
+    if (!empty($data["isbn"])) 
     {
       if (is_array($data["isbn"])) 
       {
@@ -774,6 +867,19 @@ class Standard extends General
         $metadataOU .= "%@ " . $data["isbn"] . "\r\n";
       }
     }
+	elseif (!empty($data["contents"]["020"][0])) {
+		foreach($data["contents"]["020"][0] as $isbnGroup) 
+		{
+			foreach($isbnGroup as $isbnKey => $isbnValue) 
+			{
+				if ($isbnKey == "a" || $isbnKey == "9") 
+				{
+					$isbnVal = $isbnValue;	
+				}
+			}
+		}
+		$metadataOU .= "%@ " . $isbnVal . "\r\n";	
+	}
     if (isset($data["issn"])) 
     {
       if (is_array($data["issn"])) 
@@ -808,6 +914,24 @@ class Standard extends General
     {
       $metadataOU .= "%D " . $data["details"][0]["j"] . "\r\n";
     }
+	elseif (isset($data["publisher"][0]["c"]) && $data["publisher"][0]["c"] != "") 
+	{
+	  $metadataOU .= "%D " . $data["publisher"][0]["c"] . "\r\n";
+	}
+    if (isset($data["publisher"][0]) && $data["publisher"][0] != "") 
+    {
+	  foreach($data["publisher"][0] as $publisherKey => $publisherValue)
+	  {
+		if ($publisherKey == "a") 
+		{ 
+			$metadataOU .= "%C " . $publisherValue . "\r\n";
+		}
+		elseif ($publisherKey == "b") 
+		{ 
+			$metadataOU .= "%I " . $publisherValue . "\r\n";
+		} 
+	  }
+    }
     if (isset($data["details"][0]["d"]) && $data["details"][0]["d"] != "") 
     {
       $metadataOU .= "%V " . $data["details"][0]["d"] . "\r\n";
@@ -820,28 +944,29 @@ class Standard extends General
     {
       $metadataOU .= "%P " . $data["details"][0]["h"] . "\r\n";
     }
-    if (isset($data["publisher"][0]["a"]) && $data["publisher"][0]["a"] != "") 
-    {
-      $metadataOU .= "%C " . $data["publisher"][0]["a"] . "\r\n";
-    }
-    if (isset($data["publisher"][0]["b"]) && $data["publisher"][0]["b"] != "") 
-    {
-      $metadataOU .= "%I " . $data["publisher"][0]["b"] . "\r\n";
-    }
+	elseif (isset($data["contents"]["300"][0][0]["a"]) && $data["contents"]["300"][0][0]["a"] != "") 
+	{
+	  $metadataOU .= "%P " . $data["contents"]["300"][0][0]["a"] . "\r\n";
+	}
     if (isset($data["notes"]) && $data["notes"] != "") 
     {
-      if (strpos($data["notes"]," - ")!==false) 
+      if (strpos($data["notes"]," | ")!==false) 
       {
-        foreach (explode(" - ", $data["notes"]) as $note) 
+        foreach (explode(" | ", $data["notes"]) as $note) 
         {
           $metadataOU .= "%Z " . $note . "\r\n";
         }
       }
-      else { $metadataOU .= "%Z " . $data["notes"] . "\r\n";
+      else 
+	  { $metadataOU .= "%Z " . $data["notes"] . "\r\n";
       }
     }
-    $metadataOU .= "%W Gemeinsamer Bibliotheksverbund (GBV) / Verbundzentrale des GBV (VZG)\r\n";
+	if (isset($data["additionalinfo"][0]["u"]) && $data["additionalinfo"][0]["u"] != "") 
+    {
+      $metadataOU .= "%U " . $data["additionalinfo"][0]["u"] . "\r\n";
+    }
     $metadataOU .= "%U " . base_url() . $data["id"] . "/id\r\n";
+	$metadataOU .= "%W Gemeinsamer Bibliotheksverbund (GBV) / Verbundzentrale des GBV (VZG)\r\n";
     return $metadataOU;
   }
 
@@ -861,8 +986,10 @@ class Standard extends General
     {
       $metadataOU .= "\ttitle = {" . $data["title"] . "},\r\n";
     }
-    if (isset($data["publisherarticle"])) {
-      if (is_array($data["publisherarticle"])) {
+    if (isset($data["publisherarticle"])) 
+	{
+      if (is_array($data["publisherarticle"])) 
+	  {
         if (count($data["publisherarticle"]) >= 1 && $data["publisherarticle"][0]["t"] != "") 
         {
           $publisherarticle = $data["publisherarticle"][0]["t"];
@@ -889,9 +1016,10 @@ class Standard extends General
             {
               if (!empty($sValue) && $sKey == "a") 
               {
-                $metadataOU .= "\tjournal = {" . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
+                $metadataOU .= "\tseries = {" . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
               }
-              else { $metadataOU .= " " . $sValue;
+              else 
+			  { $metadataOU .= " " . $sValue;
               }
             }
             $metadataOU .= "},\r\n";
@@ -900,7 +1028,7 @@ class Standard extends General
       }
       elseif ($data["serial"] != "") 
       {
-        $metadataOU .= "\tjournal = {" . ((stripos($data["serial"], "in:") !== false) ? trim(substr($data["serial"],stripos($data["serial"], "in:") + 3)) : $data["serial"]) . "},\r\n";
+        $metadataOU .= "\series = {" . ((stripos($data["serial"], "in:") !== false) ? trim(substr($data["serial"],stripos($data["serial"], "in:") + 3)) : $data["serial"]) . "},\r\n";
       }
     }
     if (isset($data["author"])) 
@@ -908,16 +1036,38 @@ class Standard extends General
       if (is_array($data["author"])) 
       {
         if (count($data["author"]) >= 1) 
-        {
-          foreach($data["author"] as $author) 
+        { 
+		  $authors = "";
+          foreach($data["author"] as $keyAuthor => $author) 
           {
-            $metadataOU .= "\tauthor = {" . $author . "},\r\n";
+            $authors .= ($keyAuthor > 0 ? " and " : "") . $author;
           }
+		  $metadataOU .= "\tauthor = {" . $authors . "},\r\n";
         }
       }
       elseif ($data["author"] != "") 
       {
         $metadataOU .= "\tauthor = {" . $data["author"] . "},\r\n";
+      }
+    }
+	if (isset($data["associates"])) 
+    {
+      if (is_array($data["associates"])) 
+      {
+        if (count($data["associates"]) >= 1) 
+        { 
+		  $counter = 0; 
+		  $associates = "";
+          foreach($data["associates"] as $associate) 
+          {
+            $associates .=  (++$counter > 1 ? " and " : "") . $associate["a"];
+          }
+		  $metadataOU .= "\teditor = {" . $associates . "},\r\n";
+        }
+      }
+      elseif ($data["associates"] != "") 
+      {
+        $metadataOU .= "\teditor = {" . $data["associates"][a] . "},\r\n";
       }
     }
     if (isset($data["edition"]) && $data["edition"] != "") 
@@ -933,6 +1083,24 @@ class Standard extends General
     {
       $metadataOU .= "\tyear = {" . $data["details"][0]["j"] . "},\r\n";
     }
+	elseif (isset($data["publisher"][0]["c"]) && $data["publisher"][0]["c"] != "") 
+	{
+	  $metadataOU .= "\tyear = {" . $data["publisher"][0]["c"] . "},\r\n";
+	}
+    if (isset($data["publisher"][0]) && $data["publisher"][0] != "") 
+    {
+	  foreach($data["publisher"][0] as $publisherKey => $publisherValue) 
+	  {
+		if ($publisherKey == "a") 
+		{ 
+			$metadataOU .= "\taddress = {" . $publisherValue . "},\r\n";
+		}
+		elseif ($publisherKey == "b") 
+		{ 
+			$metadataOU .= "\tpublisher = {" . $publisherValue . "},\r\n";
+		} 
+	  }
+    }	
     if (isset($data["details"][0]["d"]) && $data["details"][0]["d"] != "") 
     {
       $metadataOU .= "\tvolume = {" . $data["details"][0]["d"] . "},\r\n";
@@ -945,10 +1113,15 @@ class Standard extends General
     {
       $metadataOU .= "\tpages = {" . $data["details"][0]["h"] . "}\r\n";
     }
+	elseif (isset($data["contents"]["300"][0][0]["a"]) && $data["contents"]["300"][0][0]["a"] != "") 
+	{
+	  $metadataOU .= "\tpages = {" . $data["contents"]["300"][0][0]["a"] . "}\r\n";
+	}
     if (isset($data["notes"]) && $data["notes"] != "") 
     {
-      if (strpos($data["notes"]," - ")!==false) {
-        foreach (explode(" - ", $data["notes"]) as $note) 
+      if (strpos($data["notes"]," | ")!==false) 
+	  {
+        foreach (explode(" | ", $data["notes"]) as $note) 
         {
           $metadataOU .= "\tnote = {" . $note . "}\r\n";
         }

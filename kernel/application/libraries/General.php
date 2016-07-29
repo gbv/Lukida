@@ -140,6 +140,31 @@ class General
     return $Output;
   }
 
+  protected function printtable($level, $Array)
+  {
+    $Output = "";
+    foreach ( $Array as $Field => $Value )
+    {
+      $Output .= "<tr><td class='tabcell'>";
+      $Output .= ($level==2) ? "<b>" . $Field . "</b>" : $Field;
+      $Output .= "</td><td class='tabcell'>";
+      if ( !is_array($Value) )
+      {
+        $Output .= $Value;
+      }
+      else
+      {
+        $Output .= "<table>";
+        $level++;
+        $Output .= $this->printtable($level, $Value);
+        $level--;
+        $Output .= "</table>";
+      }
+      $Output .= "</td></tr>";
+    }
+    return $Output;
+  }
+
   protected function format_uri( $string, $separator = ' ' )
   {
     return $title = str_replace( array( '\'','"',',',';','<','>',' ','!','§','$','%','&','/','(',')','{','}','[',']'), ' ', $string);

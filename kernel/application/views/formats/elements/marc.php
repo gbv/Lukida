@@ -5,45 +5,6 @@
 // Leader
 $Output .= "<tr><td>Leader</td><td>" . substr($this->leader,0,6) . "<b>"  .  substr($this->leader,6,2) . "</b>" . substr($this->leader,8) . "</td></tr>";
 
-/*
-foreach ($this->contents as $Field => $Record)
-{
-  $Output .= "<tr><td>" . $Field . "</td><td>";
-  $First = true;
-  if ( ! is_array($Record ) )
-  {
-    $Output .= $Record;
-  }
-  else
-  {
-    foreach ( $Record as $Subrecord )
-    {
-      foreach ( $Subrecord as $Subfieldrecord )
-      {
-        foreach ( $Subfieldrecord as $Key => $Value )
-        {
-          if ( !is_array($Value) )
-          {
-            if ( !$First )
-            {
-              $Output .= " | <b>" . $Key . "</b> " . htmlspecialchars($Value, ENT_QUOTES, "UTF-8");
-            }
-            else
-            {
-              $Output .= "<b>" . $Key . "</b> " . htmlspecialchars($Value, ENT_QUOTES, "UTF-8");
-              $First = false;
-            }
-          }
-        }
-      }
-    }
-  }
-  $Output .= "</td></tr>";
-}
-*/
-
-// $this->CI->printArray2Screen($this->contents["689"]);
-
 foreach ($this->contents as $Field => $Record)
 {
   $Output .= "<tr><td>" . $Field . "</td>";
@@ -66,10 +27,9 @@ foreach ($this->contents as $Field => $Record)
         }
       }
     }
-//$Output .= "<td>" . implode("",$SubList) . "</td>";
 
     // Output
-    $Output .= "<td><table class='table' style='background-color: inherit !important;  white-space: nowrap; width: 1%'>";
+    $Output .= "<td valign='top'><table class='table' style='background-color: inherit !important;  white-space: nowrap; width: 1%'>";
     foreach ( $Record as $Subrecord )
     {
       $Output .= "<tr>";

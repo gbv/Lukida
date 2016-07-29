@@ -250,10 +250,19 @@ html {
     width:100%;
 }
 .table-layout .table-cell {
-    display:table-cell;
-    vertical-align: top;
-    padding-top: 1px;
+  display:table-cell;
+  vertical-align: top;
+  padding-top: 1px;
 }
+
+.tabcell
+{
+  display:table-cell;
+  vertical-align: top;
+  padding-top: 0px !important;
+  line-height:1 !important;
+}
+
 
 .preview-first-col
 {
