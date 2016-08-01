@@ -116,12 +116,10 @@ html {
     margin-right: 0px;
 }
 
-.navbar-button-color
-{
-	border: 1px solid gray;
-}
-
-.navbar-button-color:hover 
+.navbar-button-color,
+.navbar-button-color:hover,
+.navbar-button-color:visited,
+.navbar-button-color:active
 {
 	border: 1px solid gray;
 }

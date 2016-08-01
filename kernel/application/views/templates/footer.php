@@ -2,15 +2,29 @@
 
 $Version   = KERNEL . " " . KERNELVERSION . "." .  LIBRARYVERSION;
 $Copyright = " &copy; " . date("Y");
-$Impressum = ( isset($_SESSION["config_general"]["general"]["imprint"]) 
+$Mode      = ( strtolower(MODE) == "production" ) ? "" : " &middot; " . ucfirst(MODE) . " " . ucfirst(LIBRARY);
+
+if ( $front && isset($_SESSION["config_general"]["general"]["frontpagewithoutlinks"]) && $_SESSION["config_general"]["general"]["frontpagewithoutlinks"] == "1" )
+{
+  // Frontpage without Links
+  $Imprint = "";
+  $About = "";
+}
+else
+{
+  $Imprint = ( isset($_SESSION["config_general"]["general"]["imprint"]) 
             && $_SESSION["config_general"]["general"]["imprint"] != "" ) 
             ? "<a href='" . $_SESSION["config_general"]["general"]["imprint"] 
             . "' target='_blank'><span class='imprint'>" . ( ( $_SESSION["language"] == "eng" ) ? "Imprint" : "Impressum" ) . "</span></a> &middot; " : "";
-$Mode      = ( strtolower(MODE) == "production" ) ? "" : " &middot; " . ucfirst(MODE) . " " . ucfirst(LIBRARY);
+  $About = ( isset($_SESSION["config_general"]["general"]["about"]) 
+            && $_SESSION["config_general"]["general"]["about"] != "" ) 
+            ? " &middot; <a href='" . $_SESSION["config_general"]["general"]["about"] 
+            . "' target='_blank'><span class='about'>" . ( ( $_SESSION["language"] == "eng" ) ? "About" : "Über" ) . "</span></a>" : "";
+}            
 
 echo "<div class='row'>";
-echo "<div id='version_search' class='lastline col-sm-offset-5 col-sm-7 col-md-offset-4 col-md-8 col-lg-offset-3 col-lg-9 text-center collapse'>" . $Impressum . $Version . $Copyright . $Mode . "</div>";
-echo "<div id='version_start' class='lastline text-center'>" . $Impressum . $Version . $Copyright . $Mode . "</div>";
+echo "<div id='version_search' class='lastline col-sm-offset-5 col-sm-7 col-md-offset-4 col-md-8 col-lg-offset-3 col-lg-9 text-center collapse'>" . $Imprint . $Version . $Copyright . $Mode . $About ."</div>";
+echo "<div id='version_start' class='lastline text-center'>" . $Imprint . $Version . $Copyright . $Mode . $About . "</div>";
 echo "</div>";
 
 if ( $front )

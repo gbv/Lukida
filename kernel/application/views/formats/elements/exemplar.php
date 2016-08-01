@@ -460,7 +460,7 @@ function BestandExemplare($CI, $Leader, $Contents, $Medium, $PPN)
     if ( isset($One["e"]) && $One["e"] == "a")
     {
       // Fall 1 - Geschäftsgang
-      $ExemplarMARC["label1"]  = $CI->database->code2text("ORDERED");
+      $ExemplarMARC[$ExpID]["label1"]  = $CI->database->code2text("ORDERED");
       continue;
     }
 
