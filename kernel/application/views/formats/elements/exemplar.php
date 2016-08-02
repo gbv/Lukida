@@ -471,7 +471,7 @@ function BestandExemplare($CI, $Leader, $Contents, $Medium, $PPN)
       $ExemplarMARC[$ExpID]["label1"] = ( isset($One["f"]) && $One["f"] != "" ) ? addslashes($CI->database->code2text(strtoupper($One["f"]))) : "";
       $ExemplarMARC[$ExpID]["label2"] = ( isset($One["d"]) ) ? addslashes($CI->database->code2text("Signature")) . " " . $One["d"] : "";
 
-      if ( isset($_SESSION["internal"]["daia"]) && $_SESSION["internal"]["daia"] == "1" )
+      if ( isset($_SESSION["interfaces"]["lbs"]) && $_SESSION["interfaces"]["lbs"] == "1" )
       {
         if ( ! $GetDAIA )
         {
