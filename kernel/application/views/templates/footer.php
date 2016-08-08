@@ -1,8 +1,17 @@
 <?php
 
-$Version   = KERNEL . " " . KERNELVERSION . "." .  LIBRARYVERSION;
-$Copyright = " &copy; " . date("Y");
-$Mode      = ( strtolower(MODE) == "production" ) ? "" : " &middot; " . ucfirst(MODE) . " " . ucfirst(LIBRARY);
+if ( $front && isset($_SESSION["config_general"]["general"]["frontpagewithoutlukida"]) && $_SESSION["config_general"]["general"]["frontpagewithoutlukida"] == "1" )
+{
+  $Version   = "";
+  $Copyright = "";
+  $Mode      = "";
+}
+else
+{
+  $Version   = KERNEL . " " . KERNELVERSION . "." .  LIBRARYVERSION;
+  $Copyright = " &copy; " . date("Y");
+  $Mode      = ( strtolower(MODE) == "production" ) ? "" : " &middot; " . ucfirst(MODE) . " " . ucfirst(LIBRARY);
+}
 
 if ( $front && isset($_SESSION["config_general"]["general"]["frontpagewithoutlinks"]) && $_SESSION["config_general"]["general"]["frontpagewithoutlinks"] == "1" )
 {

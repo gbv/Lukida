@@ -1,6 +1,6 @@
 <?php
 
-// Washington specific code
+// General code
 
 // Initialize vars
 $Exemplare    = array();
@@ -10,8 +10,7 @@ $RelatedPubs  = array();
 $IncJournals  = array();
 $IncArticles  = array();
 $Interloan    = array();
-$SFX          = true;
-$Case         = false;
+$LinkResolver = true;
 
 //***************************************
 //********* M A I N - P A P  1 **********
@@ -68,14 +67,13 @@ if ( isset($this->contents[912]) && isset($_SESSION["iln"]) && $_SESSION["iln"] 
       || ( substr($this->medium["leader"],7,1) == "s" && substr(Get008($this->contents),21,1) == "m" )
       || ( substr($this->medium["leader"],7,1) == "s" && in_array(substr(Get008($this->contents),21,1), array("p","n")) && Get980($this->contents,"d") == "-" ) )
     {
-      $SFX = false;
+      $LinkResolver = false;
     }
     else
     {
       if ( Get980($this->contents,"d") != "-" )
       {
         // Haptische Exemplartypen im Bestand
-        // Fälle 1-22
         $Exemplare = BestandExemplare($this->CI,$this->leader,$this->contents,$this->medium,$this->PPN);
       }
       else
@@ -83,7 +81,6 @@ if ( isset($this->contents[912]) && isset($_SESSION["iln"]) && $_SESSION["iln"] 
         if ( substr($this->medium["leader"],7,1) == "a" )
         {
           // Haptische Artikel im Bestand 
-          // Fälle 23-26
           $Exemplare = BestandArtikel($this->CI,$this->contents,$this->medium);
         }
       }
@@ -97,7 +94,7 @@ else
     || substr($this->medium["leader"],6,2) == "mm" 
     || substr($this->medium["leader"],6,2) == "ms" )
   {
-    // Fall 32 (Online Fremdbestand)
+    // Online Fremdbestand
     if ( array_key_exists("856", $this->contents) )
     {
       // Prio 2: use 856 records
@@ -106,7 +103,7 @@ else
   }
   else
   {
-    // Fall 31 (Haptischer Fremdbestand)
+    // Haptischer Fremdbestand
 
     // Determine database
     if ( isset($_SESSION["config_general"]["interlibraryloan"]) )
@@ -138,8 +135,6 @@ else
 //***** S T A R T   O U T P U T *******
 //*************************************
 
-// $this->CI->printArray2Screen($Image);
-// $this->CI->printArray2Screen($this->contents);
 
 /*
 $this->CI->printArray2Screen(array(
@@ -170,7 +165,6 @@ if ( count($Zugaenge) > 0 )
     $Class  = (isset($Link["link"])) ? $BtnClass : $EmptyClass;
     $Output .= "<button " . $Action . " class='" . $Class . "'>";
     $Output .= (isset($Link["label1"])) ?  addslashes($Link["label1"]) : "";
-    $Output .= ($Case && isset($Link["case"])) ? " <small>" . $Link["case"]  . "</small>" : "";
     if ( isset($Link["link"]) )
     {
       $Output .= " <span class='fa fa-external-link'></span>";
@@ -185,13 +179,13 @@ if ( count($Zugaenge) > 0 )
   }
 
   // LinkResolver Spaceholder for async js
-  if ( $SFX )   $Output .= "<div id='linkresolver'></div>";
+  if ( $LinkResolver )   $Output .= "<div id='linkresolver_" . $this->dlgid . "'></div>";
   $Output .= "</div></div>";  
 }
-elseif ( $SFX )
+elseif ( $LinkResolver )
 {
   // LinkResolver Spaceholder for async js
-  $Output .= "<div id='linkresolvercontainer'></div>";
+  $Output .= "<div id='linkresolvercontainer_" . $this->dlgid . "'></div>";
 }
 
 // Create Exemplar Buttons
@@ -208,15 +202,12 @@ if ( count($Exemplare) > 0 || count($Interloan) > 0)
   {
     // Unique messages
     $Exams    = array_unique($Exemplar, SORT_REGULAR);
-    $ExamCase = ($Case && isset($Exams["case"])) ? " <small>" . $Exams["case"]  . "</small>" : "";
-    unset($Exams["case"]);
     ksort($Exams);
     $_SESSION["exemplar"][$this->PPN][$EPN] = $Exams;
     $Action = (isset($Exemplar["action"])) ? "onclick='$." . $Exemplar["action"] . "(\"" . $this->PPN . "\",\"" . $EPN . "\"," . json_encode($Exams,JSON_HEX_TAG) . ")'" : "";
     $Class  = (isset($Exemplar["action"])) ? $BtnClass : $EmptyClass;
     $Output .= "<button " . $Action . " class='" . $Class . "'>";
     $Output .= (isset($Exemplar["label1"])) ?  addslashes($Exemplar["label1"]) : "";
-    $Output .= $ExamCase;
     $Output .= (isset($Exemplar["label2"])) ?  "<br />" . addslashes($Exemplar["label2"]) : "";
     $Output .= (isset($Exemplar["label3"])) ?  "<br />" . addslashes($Exemplar["label3"]) : "";
     $Output .= "</button>";
@@ -228,7 +219,6 @@ if ( count($Exemplare) > 0 || count($Interloan) > 0)
     $Class  = (isset($Link["link"])) ? $BtnClass : $EmptyClass;
     $Output .= "<button " . $Action . " class='" . $Class . "'>";
     $Output .= (isset($Link["label1"])) ?  addslashes($Link["label1"]) : "";
-    $Output .= ($Case && isset($Link["case"])) ? " <small>" . $Link["case"]  . "</small>" : "";
     if ( isset($Link["link"]) )
     {
       $Output .= " <span class='fa fa-external-link'></span>";
@@ -376,16 +366,12 @@ function BestandLinks($Contents, $Medium, $CI)
     $Exemplar = array();
     if ( $Format == "ebook" && isset($One["link"]) && $One["link"] != "" )
     {
-      // Fall 27
-      $Exemplar["case"]   = "27";
       $Exemplar["label1"] = (isset($One["name"]) && $One["name"] != "") ? $One["name"] : "Online";
       $Exemplar["link"]   = $One["link"];
       $Zugaenge[] = $Exemplar;
     }
     if ( $Format == "ejournal" && isset($One["link"]) && $One["link"] != "" )
     {
-      // Fall 28
-      $Exemplar["case"]   = "28";
       $Exemplar["label1"] = $CI->database->code2text("Online");
       $Exemplar["label2"] = ( Get980($Contents,"g") != "-" ) ? Get980($Contents,"g") : "";
       $Exemplar["link"]   = $One["link"] ;
@@ -398,15 +384,11 @@ function BestandLinks($Contents, $Medium, $CI)
     $Exemplar = array();
     if ( $Format == "ebook" )
     {
-      // Fall 27a
-      $Exemplar["case"]   = "27a";
       $Exemplar["label1"] = $CI->database->code2text("SEEADDINFO");
       $Zugaenge[] = $Exemplar;
     }
     if ( $Format == "ejournal" )
     {
-      // Fall 28a
-      $Exemplar["case"]   = "28a";
       $Exemplar["label1"] = $CI->database->code2text("SEEADDINFO");
       $Zugaenge[] = $Exemplar;
     }
@@ -414,12 +396,10 @@ function BestandLinks($Contents, $Medium, $CI)
 
   if ( $Format == "earticle" )
   {
-    // Fall 29
     // Lese Eltern-Infos aus / Get MARC Parent
     $ParentData = ( isset($Medium["parents"][0]) ) ? $CI->internal_search("id:".$Medium["parents"][0]) : array();
     $ParentData = ( count($ParentData) > 0 && isset($ParentData["results"][$Medium["parents"][0]])) ? $ParentData["results"][$Medium["parents"][0]] : array();
 
-    $Exemplar["case"]   = "29";
     $Exemplar["label1"] = $CI->database->code2text("SEEPUBLISHED");
     $Zugaenge[] = $Exemplar;
   }
@@ -433,7 +413,6 @@ function BestandExemplare($CI, $Leader, $Contents, $Medium, $PPN)
   $E980 = array();
   if ( array_key_exists("980", $Contents) )
   {
-    $X = 0;
     foreach ( $Contents["980"] as $Record )
     {
       $One = array();
@@ -452,52 +431,141 @@ function BestandExemplare($CI, $Leader, $Contents, $Medium, $PPN)
   }
 
   $ExemplarMARC = array();
-  $ExemplarDAIA = array();
-  $GetDAIA = false;
+  $ExemplarDAIA = ( isset($_SESSION["interfaces"]["lbs"]) && $_SESSION["interfaces"]["lbs"] == "1" ) ? GetDAIA($CI, $Medium, $PPN) : array(); 
+   
   foreach ($E980 as $ExpID => $One) 
   {
     $ExemplarMARC[$ExpID] = array();
-    if ( isset($One["e"]) && $One["e"] == "a")
-    {
-      // Fall 1 - Geschäftsgang
-      $ExemplarMARC[$ExpID]["label1"]  = $CI->database->code2text("ORDERED");
-      continue;
-    }
 
-    if ( isset($One["e"]) && in_array($One["e"], array("b","c","d","i","s","u") ) )
-    {
-      
-      $ExemplarMARC[$ExpID]["action"] = "shelve";
-      $ExemplarMARC[$ExpID]["label1"] = ( isset($One["f"]) && $One["f"] != "" ) ? addslashes($CI->database->code2text(strtoupper($One["f"]))) : "";
-      $ExemplarMARC[$ExpID]["label2"] = ( isset($One["d"]) ) ? addslashes($CI->database->code2text("Signature")) . " " . $One["d"] : "";
-
-      if ( isset($_SESSION["interfaces"]["lbs"]) && $_SESSION["interfaces"]["lbs"] == "1" )
-      {
-        if ( ! $GetDAIA )
-        {
-          $ExemplarDAIA = GetDAIA($CI, $Medium, $PPN); 
-          $GetDAIA = true;
-        }
-        $ExemplarMARC[$ExpID]["id"]    = (isset($ExemplarDAIA[$ExpID]["id"]) && $ExemplarDAIA[$ExpID]["id"] != "") ? $ExemplarDAIA[$ExpID]["id"] : "";
-
-        $ExemplarMARC[$ExpID]["label3"]    = (isset($ExemplarDAIA[$ExpID]["date"])) ? $CI->database->code2text("AvailableFrom") . " " . $ExemplarDAIA[$ExpID]["date"] : $CI->database->code2text("LENDABLE");
-        $ExemplarMARC[$ExpID]["label4"]    = (isset($ExemplarDAIA[$ExpID]["queue"]) && $ExemplarDAIA[$ExpID]["queue"] >= "1") ? $CI->database->code2text("QUEUE") . ": " . $ExemplarDAIA[$ExpID]["queue"] : "";
-        $ExemplarMARC[$ExpID]["label5"]    = (isset($ExemplarDAIA[$ExpID]["storage"]) && $ExemplarDAIA[$ExpID]["storage"] != "") ? $ExemplarDAIA[$ExpID]["storage"] : "";
-        $ExemplarMARC[$ExpID]["label6"]    = (isset($ExemplarDAIA[$ExpID]["label"]) && $ExemplarDAIA[$ExpID]["label"] != "") ? $ExemplarDAIA[$ExpID]["label"] : "";
+		if ( isset($ExemplarDAIA[$ExpID] ) )
+		{
+			// DAIA Daten zum Exemplar vorhanden
+	    if ( isset($ExemplarDAIA[$ExpID]["services"]["loan"]) && $ExemplarDAIA[$ExpID]["services"]["loan"] == true ) 
+	    {
+	      // Beginn ausleihbare, verfuegbare Exemplare:
+	      if (isset($ExemplarDAIA[$ExpID]["action"]) && $ExemplarDAIA[$ExpID]["action"] == "order") 
+	      {
+	        // ausleihbar, verfuegbar, Magazin (geschlossener Standort)
+	        // zu erkennen an: available loan + request-Link
+	        $ExemplarMARC[$ExpID]["action"]  = (isset($ExemplarDAIA[$ExpID]["action"]))  ? $ExemplarDAIA[$ExpID]["action"]  : "order";
+	        $ExemplarMARC[$ExpID]["id"]      = (isset($ExemplarDAIA[$ExpID]["id"]))      ? $ExemplarDAIA[$ExpID]["id"]      : "";
+	        $ExemplarMARC[$ExpID]["label1"]  = (isset($ExemplarDAIA[$ExpID]["storage"])) ? $ExemplarDAIA[$ExpID]["storage"] : "";
+	        $ExemplarMARC[$ExpID]["label2"]  = (isset($One["d"]) )                       ? $CI->database->code2text("SIGNATURE") . " " . $One["d"] : "";
+	        $ExemplarMARC[$ExpID]["label3"]  = $CI->database->code2text("ORDER") . " (" . $CI->database->code2text("MAGAZINE") . ")";
+	      } 
+	      else 
+	      {
+	       // ausleihbar, verfuegbar, Freihand (offener Standort)
+	 	     // zu erkennen an: available loan OHNE request-Link
+	        $ExemplarMARC[$ExpID]["label1"]  = (isset($ExemplarDAIA[$ExpID]["storage"])) ? $ExemplarDAIA[$ExpID]["storage"] : "";
+	        $ExemplarMARC[$ExpID]["label2"]  = (isset($One["d"]) ) ? $CI->database->code2text("SIGNATURE") . " " . $One["d"] : "";
+	        $ExemplarMARC[$ExpID]["label3"]  = $CI->database->code2text("LENDABLE") . " (" . $CI->database->code2text("SHELVE") . ")";
+	      }
+	    } 
+	    else
+	    {
+		    // Beginn nicht fuer die Ausleihe verfuegbare Exemplare:
+	    	if ( isset($ExemplarDAIA[$ExpID]["services"]["loan"]) && $ExemplarDAIA[$ExpID]["services"]["loan"] == false ) 
+	    	{
+	        // Praesenzexemplare
+	        // zu erkennen an: unavailable loan + available presentation
+	        if ( isset($ExemplarDAIA[$ExpID]["services"]["presentation"]) && $ExemplarDAIA[$ExpID]["services"]["presentation"] == true ) 
+	        {
+	          // Praesenzexemplare im Magazin (geschlossener Standort)
+	          // zu erkennen an: unavailable loan + available presentation + request-Link
+	          if (isset($ExemplarDAIA[$ExpID]["action"]) && $ExemplarDAIA[$ExpID]["action"] == "order") 
+	          {
+	            $ExemplarMARC[$ExpID]["action"]  = ( isset($ExemplarDAIA[$ExpID]["action"]) ) ? $ExemplarDAIA[$ExpID]["action"] : "order";
+	            $ExemplarMARC[$ExpID]["id"]      = (isset($ExemplarDAIA[$ExpID]["id"]))       ? $ExemplarDAIA[$ExpID]["id"] : "";
+	            $ExemplarMARC[$ExpID]["label1"]  = $CI->database->code2text("MAGAZINE");
+	            $ExemplarMARC[$ExpID]["label2"]  = $CI->database->code2text("REFERENCECOLLECTION");
+	            $ExemplarMARC[$ExpID]["label3"]  = $CI->database->code2text("ORDER");
+	          } 
+	          else 
+	          {
+	            // Praesenzexemplare Freihand (offener Standort)
+	            // zu erkennen an: unavailable loan + available presentation OHNE request-Link
+	            $ExemplarMARC[$ExpID]["label1"]  = ( isset($ExemplarDAIA[$ExpID]["storage"]) ) ? $ExemplarDAIA[$ExpID]["storage"] : "";
+	            $ExemplarMARC[$ExpID]["label2"]  = (isset($One["d"]) ) ? $CI->database->code2text("SIGNATURE") . " " . $One["d"] : "";
+	            $ExemplarMARC[$ExpID]["label3"]  = $CI->database->code2text("REFERENCECOLLECTION");
+	          }
+	        } 
+	        else 
+	        {
+	          if ( isset($ExemplarDAIA[$ExpID]["services"]["presentation"]) && $ExemplarDAIA[$ExpID]["services"]["presentation"] == false ) 
+	        	{
+	            // Nicht verfuegbare Exemplare
+	            // zu erkennen an: unavailable loan + unavailable presentation
+	            if (isset($ExemplarDAIA[$ExpID]["action"]) && $ExemplarDAIA[$ExpID]["action"] == "reservation") 
+	            {
+	              // ausgeliehene Exemplare
+	              // zu erkennen an: unavailable loan + unavailable presentation + reserve-Link
+	              $ExemplarMARC[$ExpID]["action"]  = ( isset($ExemplarDAIA[$ExpID]["action"]) ) ? $ExemplarDAIA[$ExpID]["action"] : "reservation";
+	              $ExemplarMARC[$ExpID]["id"]      = (isset($ExemplarDAIA[$ExpID]["id"]))       ? $ExemplarDAIA[$ExpID]["id"] : "";
+                $ExemplarMARC[$ExpID]["label1"]  = $CI->database->code2text("MAGAZINE");
+       	        $ExemplarMARC[$ExpID]["label2"]  = (isset($One["d"]) ) ? $CI->database->code2text("SIGNATURE") . " " . $One["d"] : "";
+				        $ExemplarMARC[$ExpID]["label3"]  = (isset($ExemplarDAIA[$ExpID]["date"])) ? $CI->database->code2text("AvailableFrom") . " " . $ExemplarDAIA[$ExpID]["date"] : $CI->database->code2text("ORDER");
+	            } 
+	            else 
+	            {
+	              // grundsaetzlich nicht verfuegbare Exemplare, z. B. bestellt, in Bearbeitung
+	              // zu erkennen an: unavailable loan + unavailable presentation OHNE reserve-Link
+	              $ExemplarMARC[$ExpID]["label1"]  = ( isset($ExemplarDAIA[$ExpID]["storage"]) ) ? $ExemplarDAIA[$ExpID]["storage"] : "";
+       	        $ExemplarMARC[$ExpID]["label2"]  = (isset($One["d"]) ) ? $CI->database->code2text("SIGNATURE") . " " . $One["d"] : "";
+	              $ExemplarMARC[$ExpID]["label3"]  = $CI->database->code2text("NOTAVAILABLE");
+	            }
+	          }
+	        }
+	      }
       }
-      else
-      {
-        $ExemplarMARC[$ExpID]["label3"] = addslashes($CI->database->code2text(strtoupper("Available")));
-      }
-      continue;
     }
-
-    if ( isset($One["e"]) && in_array($One["e"], array("g","o","z") ) )
+    else
     {
-      $ExemplarMARC[$ExpID]["label1"] = ( isset($One["f"]) && $One["f"] != "" ) ? addslashes($CI->database->code2text(strtoupper($One["f"]))) : "";
-      $ExemplarMARC[$ExpID]["label2"] = ( isset($One["d"]) ) ? addslashes($CI->database->code2text("Signature")) . " " . $One["d"] : "";
-      $ExemplarMARC[$ExpID]["label3"] = addslashes($CI->database->code2text(strtoupper("NotAvailable")));
-      continue;
+    	// Anzeige ohne DAIA-Daten
+	    if ( isset($One["e"]) && $One["e"] == "a")
+	    {
+	      // Geschäftsgang
+	      $ExemplarMARC[$ExpID]["label1"]  = $CI->database->code2text("ORDERED");
+	      continue;
+	    }
+	
+	    if ( isset($One["e"]) && $One["e"] == "b")
+	    {
+	      // Gesperrt
+	      $ExemplarMARC[$ExpID]["label1"] = ( isset($One["f"]) ) ? $One["f"] : "";
+	      $ExemplarMARC[$ExpID]["label2"] = ( isset($One["d"]) ) ? $CI->database->code2text("SIGNATURE") . " " . $One["d"] : "";
+	      $ExemplarMARC[$ExpID]["label3"] = $CI->database->code2text("LOCKEDLEND"); 
+	      continue;
+	    }
+	
+	    if ( isset($One["e"]) && ( in_array( $One["e"], array("c","d","f","g","i","u") ) ) )
+	    {
+	      // Präsenzbestand
+	      $ExemplarMARC[$ExpID]["label1"]   = $CI->database->code2text("SHELVE");
+	      $ExemplarMARC[$ExpID]["label2"]   = ( isset($One["d"]) ) ? $CI->database->code2text("SIGNATURE") . " " . $One["d"] : "";
+	
+	      if ( isset($One["k"]) && $One["k"] != "" )
+	      {
+	        $ExemplarMARC[$ExpID]["remark0"] = $CI->database->code2text("NOTES");
+	        $ExemplarMARC[$ExpID]["remark1"] = $One["k"];
+	      }
+	      continue;
+	    }
+	
+	    if ( isset($One["e"]) && $One["e"] == "o")
+	    {
+	      // Verbrauchsmaterial
+	      $ExemplarMARC[$ExpID]["label1"] = ( isset($One["f"]) ) ? $One["f"] : "";
+	      $ExemplarMARC[$ExpID]["label2"] = ( isset($One["d"]) ) ? $CI->database->code2text("SIGNATURE") . " " . $One["d"] : "";
+	      $ExemplarMARC[$ExpID]["label3"] = ( isset($One["k"]) ) ? $One["k"] : "";
+	      continue;
+	    }
+	
+	    if ( isset($One["k"]) && $One["k"] != "" )
+	    {
+	      $ExemplarMARC[$ExpID]["remark0"] = $CI->database->code2text("NOTES");
+	      $ExemplarMARC[$ExpID]["remark1"] = $One["k"];
+	    }
     }
   }
   return $ExemplarMARC;
@@ -542,9 +610,8 @@ function BestandArtikel($CI, $Contents, $Medium)
       $Artikels[$ExpID] = array();
       if ( isset($One["f"]) && strtolower(substr($One["f"],0,5)) == "zs-fh" )
       {
-        // Fall 23 - Artikel aus Zeitschrift Freihand
-        $Artikels[$ExpID]["case"]    = "23";
-        $Artikels[$ExpID]["action"]  = "mailorder";
+        // Artikel aus Zeitschrift Freihand
+        $Artikels[$ExpID]["action"]  = "shelve";
         $Artikels[$ExpID]["form"]    = "journal";
         $Artikels[$ExpID]["data1"]   = Get773gq($Contents);
         $Artikels[$ExpID]["label1"]  = ( isset($One["f"]) ) ? $One["f"] : "";
@@ -552,17 +619,13 @@ function BestandArtikel($CI, $Contents, $Medium)
         $Artikels[$ExpID]["label3"]  = $CI->database->code2text("REFERENCECOLLECTION");
         $Artikels[$ExpID]["label4"]  = ( isset($One["g"]) ) ? $One["g"] : "";
         $Artikels[$ExpID]["label5"]  = ( isset($One["k"]) ) ? $One["k"] : "";
-        $Artikels[$ExpID]["remark0"] = $CI->database->code2text("NOTE");
-        $Artikels[$ExpID]["remark1"] = $CI->database->code2text("EXAMPLES10ONSHELVE");
-        $Artikels[$ExpID]["remark2"] = $CI->database->code2text("ONLYMAGAZINEORDERS");
       }
       else
       {
         if ( isset($One["f"]) && strtolower(substr($One["f"],0,7)) == "magazin" )
         {
-          // Fall 24 - Artikel aus Zeitschrift Magazin
-          $Artikels[$ExpID]["case"]   = "24";
-          $Artikels[$ExpID]["action"] = "mailorder";
+          // Artikel aus Zeitschrift Magazin
+          $Artikels[$ExpID]["action"] = "shelve";
           $Artikels[$ExpID]["form"]   = "journal";
           $Artikels[$ExpID]["data1"]  = Get773gq($Contents);
           $Artikels[$ExpID]["label1"] = $CI->database->code2text("MAGAZINE");
@@ -573,8 +636,7 @@ function BestandArtikel($CI, $Contents, $Medium)
         }
         else
         {
-          // Fall 25 - Artikel aus Zeitschrift außerhalb UB
-          $Artikels[$ExpID]["case"]    = "25";
+          // Artikel aus Zeitschrift außerhalb UB
           $Artikels[$ExpID]["label1"]  = ( isset($One["f"]) ) ? $One["f"] : "";
           $Artikels[$ExpID]["label2"]  = ( isset($One["d"]) ) ? $CI->database->code2text("SIGNATURE") . " " . $One["d"] : "";
           $Artikels[$ExpID]["label3"] = $CI->database->code2text("LOCKED");
@@ -584,9 +646,8 @@ function BestandArtikel($CI, $Contents, $Medium)
   }
   else
   {
-    // Fall 26 - Enthaltenes Werk
+    // Enthaltenes Werk
     $Artikels[0] = array();
-    $Artikels[0]["case"]   = "26";
     $Artikels[0]["label1"] = $CI->database->code2text("SEEPUBLISHED");
   }
   return $Artikels;
@@ -601,8 +662,6 @@ function GetRelatedPubs($CI, $T, $PPN, $Modus)
   $RelatedPubs = array();
   $PPNLink = $CI->internal_search("ppnlink:".$PPN);
   if ( ! isset($PPNLink["results"]) ) return ($RelatedPubs);
-
-  //$CI->printArray2Screen($PPNLink);
 
   $PPNStg = json_encode(array_keys($PPNLink["results"]));
 
@@ -642,8 +701,6 @@ function GetIncludedPubs($CI, $T, $PPN)
 
   $PPNLink = $CI->internal_search("ppnlink:".$PPN);
   if ( ! isset($PPNLink["results"]) ) return ($Pubs);
-
-  //$CI->printArray2Screen($PPNLink);
 
   $PPNStg   = json_encode(array_keys($PPNLink["results"]));
   $Journals = array();
@@ -723,7 +780,7 @@ function GetDAIA($CI, $Medium, $PPN)
             // Sofort verfügbar für Magazin-Ausleihe
             $Exemplars[$ExpID] = array
             (
-              "action"  => "order",
+              "action"  => "order"
             );
           }
 
@@ -732,7 +789,7 @@ function GetDAIA($CI, $Medium, $PPN)
             // Freihand
             $Exemplars[$ExpID] = array
             (
-              "action" => "shelve",
+              "action" => "shelve"
             );
           }
 
@@ -751,23 +808,35 @@ function GetDAIA($CI, $Medium, $PPN)
           }
 
           // ID Parameter ergänzen
-          if ( (isset($Exp["id"])) && $Exp["id"] != "" )
+          if ( isset($Exp["id"]) && $Exp["id"] != "" )
           {
-            $Exemplars[$ExpID]["id"] = (isset($Exp["id"])) ? trim($Exp["id"]) : "";
+            $Exemplars[$ExpID]["id"] = trim($Exp["id"]);
           }
 
           // Storage Parameter ergänzen
-          if ( (isset($Exp["storage"]["content"])) && $Exp["storage"]["content"] != "" )
+          if ( isset($Exp["storage"]["content"]) && $Exp["storage"]["content"] != "" )
           {
-            $Exemplars[$ExpID]["storage"] = (isset($Exp["storage"]["content"])) ? trim($Exp["storage"]["content"]) : "";
+            $Exemplars[$ExpID]["storage"] = trim($Exp["storage"]["content"]);
+          }
+          else
+          {
+          	if ( isset($Exp["department"]["content"]) && $Exp["department"]["content"] != "" )
+          	{
+          		$Exemplars[$ExpID]["storage"] = trim($Exp["department"]["content"]);
+          	}
           }
 
           // Label Parameter ergänzen
-          if ( (isset($Exp["label"])) && $Exp["label"] != "" )
+          if ( isset($Exp["label"]) && $Exp["label"] != "" )
           {
-            $Exemplars[$ExpID]["label"] = (isset($Exp["label"])) ? trim($Exp["label"]) : "";
+            $Exemplars[$ExpID]["label"] = trim($Exp["label"]);
           }
 
+          // Services Parameter ergänzen
+          if ( isset($Services) )
+          {
+	          $Exemplars[$ExpID]["services"] = $Services;
+          }
         }
       }
     }

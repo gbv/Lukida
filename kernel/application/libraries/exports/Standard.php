@@ -39,6 +39,15 @@ class Standard extends General
         $linkarray["jop"] = $Link;
       }
     }
+	
+    // LinkResolver WorldCat
+    if ( $_SESSION["config_general"]["export"]["worldcatLink"] !== false )
+    {
+      if ( ( $Link = $this->getWorldcat_Link($this->contents) ) != "")
+      {
+        $linkarray["worldcat"] = $Link;
+      }
+    }	
     return $linkarray;
   }
 
@@ -295,6 +304,37 @@ class Standard extends General
     return array_values((array)$returnValue)[0];
   }
 /*
+*****************************
+ * WORLDCAT                 *
+*****************************
+*/
+  protected function getWorldcat_Link($data)
+  {
+    if (isset($data["issn"])  && $data["issn"] != "" )
+    {
+      // worldcat knowledge base api: OpenURL Resource, URL and Supported Request
+	  //$openurlBase		= "http://worldcat.org/webservices/kb/openurl/resolve";
+	  // OpenURL Gateway (Web service):
+	  $openurlBase		= "http://worldcatlibraries.org/registry/gateway";
+
+      $openurlReferer   = (isset($_SESSION["config_general"]["export"]["openurlReferer"]) &&
+                                 $_SESSION["config_general"]["export"]["openurlReferer"] != "") 
+                          ? $_SESSION["config_general"]["export"]["openurlReferer"] 
+                          : "Lukida";
+
+      $openurlEntry     = $openurlBase 
+                         . "?svc_id=json&rft.content=fulltext&rfr_id=info:sid/gbv.de:" 
+                         . $openurlReferer;
+
+      $openurlMetadata  = $this->getOpenURLmetaData($data);
+
+      $worldcatlink		= $openurlEntry . $openurlMetadata;
+
+      return $worldcatlink;
+    }
+    return "";
+  }
+/*  
 *****************************
  * METADATA                *
 *****************************
