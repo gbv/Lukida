@@ -100,10 +100,15 @@ if ( ! $front )
   if ( isset($initfacets) && $initfacets != "" )
   {
     echo "\n<script>";
-    echo "\nsearchvals.initfacets = JSON.parse(decodeURIComponent(escape(window.atob('" . $initfacets . "'))));";
+
+
+
+    echo "\nvar urldata = JSON.parse(decodeURIComponent(escape(window.atob('" . $initfacets . "'))));";
+    echo "\nstatevals=urldata.statevals;";
+    echo "\nsearchvals.initfacets=urldata.facetvals;";
     echo "\n</script>";
   }
 }
 
 ?>
-</body></html>
+</div></body></html>

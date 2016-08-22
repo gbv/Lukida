@@ -40,14 +40,6 @@ class Standard extends General
       }
     }
 	
-    // LinkResolver WorldCat
-    if ( $_SESSION["config_general"]["export"]["worldcatLink"] !== false )
-    {
-      if ( ( $Link = $this->getWorldcat_Link($this->contents) ) != "")
-      {
-        $linkarray["worldcat"] = $Link;
-      }
-    }	
     return $linkarray;
   }
 
@@ -108,7 +100,8 @@ class Standard extends General
       $openurlEntry    = $openurlBase . ($format == "zotero" ? "&" : "?") . 
                           "sid=GBV&ctx_enc=info:ofi/enc:UTF-8&rfr_id=info:sid/gbv.de:" . $openurlReferer .
                           ($format == "zotero" ? ("&rft_val_fmt=info:ofi/fmt:kev:mtx:" .                        
-                          ((isset($data["format"]) && $data["format"] == "book") ? "book" : "journal")) : "");
+                          ((isset($data["format"]) && (strpos($data["format"], 'article') !== false ||
+						                               strpos($data["format"], 'journal') !== false)) ? "journal" : "book")) : "");
 
       $openurlMetadata = $this->getOpenURLmetaData($data);
 
@@ -303,37 +296,6 @@ class Standard extends General
     }
     return array_values((array)$returnValue)[0];
   }
-/*
-*****************************
- * WORLDCAT                 *
-*****************************
-*/
-  protected function getWorldcat_Link($data)
-  {
-    if (isset($data["issn"])  && $data["issn"] != "" )
-    {
-      // worldcat knowledge base api: OpenURL Resource, URL and Supported Request
-	  //$openurlBase		= "http://worldcat.org/webservices/kb/openurl/resolve";
-	  // OpenURL Gateway (Web service):
-	  $openurlBase		= "http://worldcatlibraries.org/registry/gateway";
-
-      $openurlReferer   = (isset($_SESSION["config_general"]["export"]["openurlReferer"]) &&
-                                 $_SESSION["config_general"]["export"]["openurlReferer"] != "") 
-                          ? $_SESSION["config_general"]["export"]["openurlReferer"] 
-                          : "Lukida";
-
-      $openurlEntry     = $openurlBase 
-                         . "?svc_id=json&rft.content=fulltext&rfr_id=info:sid/gbv.de:" 
-                         . $openurlReferer;
-
-      $openurlMetadata  = $this->getOpenURLmetaData($data);
-
-      $worldcatlink		= $openurlEntry . $openurlMetadata;
-
-      return $worldcatlink;
-    }
-    return "";
-  }
 /*  
 *****************************
  * METADATA                *
@@ -403,7 +365,7 @@ class Standard extends General
             {
               if (!empty($sValue) && $sKey == "a") 
               {
-                $metadataOU .= "&rft.jtitle=" . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
+				$metadataOU .= "&rft.series=" . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
               }
               else 
 			  { $metadataOU .= " " . $sValue;
@@ -414,7 +376,7 @@ class Standard extends General
       }
       elseif ($data["serial"] != "") 
       {
-        $metadataOU .= "&rft.jtitle=" . ((stripos($data["serial"], "in:") !== false) ? trim(substr($data["serial"],stripos($data["serial"], "in:") + 3)) : $data["serial"]);
+        $metadataOU .= "&rft.series=" . ((stripos($data["serial"], "in:") !== false) ? trim(substr($data["serial"],stripos($data["serial"], "in:") + 3)) : $data["serial"]);
       }
     }
     if (isset($data["author"]))

@@ -80,4 +80,5 @@
     ?>
   </head>
   <body class='<?php echo ( $front ) ? "frontbody" : "backbody" ?>'>
+    <div id='zotero'><span class='Z3988' title='ctx_ver=Z39.88-2004&sid=GBV&ctx_enc=info:ofi/enc:UTF-8&rft_val_fmt=info:ofi/fmt:kev:mtx:book'></span></div>
     <div class="container-fluid">

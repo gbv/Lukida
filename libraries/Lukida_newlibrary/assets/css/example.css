@@ -90,10 +90,10 @@ body {
   border-bottom: dashed 1px #013ADF;
 }
 
-.search, 
-.search:hover,
-.search:focus,
-.search:active
+.search_text, 
+.search_text:hover,
+.search_text:focus,
+.search_text:active
 {
 	border: 1px solid #013ADF;
 	border-radius: 4px;
