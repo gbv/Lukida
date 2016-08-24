@@ -502,7 +502,7 @@ function BestandExemplare($CI, $Leader, $Contents, $Medium, $PPN)
 	              // zu erkennen an: unavailable loan + unavailable presentation + reserve-Link
 	              $ExemplarMARC[$ExpID]["action"]  = ( isset($ExemplarDAIA[$ExpID]["action"]) ) ? $ExemplarDAIA[$ExpID]["action"] : "reservation";
 	              $ExemplarMARC[$ExpID]["id"]      = (isset($ExemplarDAIA[$ExpID]["id"]))       ? $ExemplarDAIA[$ExpID]["id"] : "";
-                $ExemplarMARC[$ExpID]["label1"]  = $CI->database->code2text("MAGAZINE");
+                $ExemplarMARC[$ExpID]["label1"]  = $CI->database->code2text("RESERVATION");
        	        $ExemplarMARC[$ExpID]["label2"]  = (isset($One["d"]) ) ? $CI->database->code2text("SIGNATURE") . " " . $One["d"] : "";
 				        $ExemplarMARC[$ExpID]["label3"]  = (isset($ExemplarDAIA[$ExpID]["date"])) ? $CI->database->code2text("AvailableFrom") . " " . $ExemplarDAIA[$ExpID]["date"] : $CI->database->code2text("ORDER");
 	            } 
