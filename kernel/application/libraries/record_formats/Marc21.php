@@ -107,14 +107,12 @@ class Marc21 extends General
         }
         foreach ($data->getSubfields() as $code => $value)
         {
-          {
-            $Sub[] = array($code => $value->getData());
-          }
+          $Sub[] = array($code => $value->getData());
         }
         $this->contents[$tag][] = $Sub;
       }
     }
-    //$this->CI->printArray2File($this->contents);
+    // $this->CI->printArray2File($this->contents);
   }
   
   private function SetMarcParents()

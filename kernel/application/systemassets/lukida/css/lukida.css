@@ -34,22 +34,55 @@ html {
     vertical-align: top;
 }
 
-.preview-icon
+@media (max-width:766px)
 {
-  display: inline-block;
-  text-align: center;
-  font-size: 75px;
-  line-height: 60px;
-  width: 75px;
-  cursor: default;
+  .preview-first-col
+  {
+    width: 40px;
+  }
+  .preview-icon
+  {
+    display: inline-block;
+    text-align: center;
+    font-size: 36px;
+    line-height: 30px;
+    width: 36px;
+    cursor: default;
+  }
+  .preview-counter
+  {
+    display: inline-block;
+    text-align: center;
+    font-size: 12px;
+    line-height: 8px;
+    width: 36px;
+  }
 }
-.preview-counter
+
+@media (min-width:767px)
 {
-  display: inline-block;
-  text-align: center;
-  font-size: 12px;
-  line-height: 18px;
-  width: 75px;
+  .preview-first-col
+  {
+    width: 80px;
+  }
+  .preview-icon
+  {
+    display: inline-block; 
+    text-align: center;
+    font-size: 75px;
+    line-height: 60px;
+    width: 75px;
+    cursor: default;
+  }
+
+  .preview-counter
+  {
+    display: inline-block;
+    text-align: center;
+    font-size: 12px;
+    line-height: 18px;
+    width: 75px;
+  }
 }
 
 .publication-icon
@@ -259,12 +292,6 @@ html {
   vertical-align: top;
   padding-top: 0px !important;
   line-height:1 !important;
-}
-
-
-.preview-first-col
-{
-  width: 80px;
 }
 
 .preview-second-col
