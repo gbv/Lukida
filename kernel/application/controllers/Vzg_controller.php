@@ -223,6 +223,8 @@ class Vzg_controller extends CI_Controller
 
           if ( ! isset($_SESSION["layout"]) )             $_SESSION["layout"] 		        = (isset($_SESSION["config_discover"]["discover"]["layout"]) && $_SESSION["config_discover"]["discover"]["layout"] != "" ) ? $_SESSION["config_discover"]["discover"]["layout"] : 3;
 
+          if ( ! isset($_SESSION["statistics"]) )         $_SESSION["statistics"]         = (isset($_SESSION["config_discover"]["discover"]["statistics"]) && $_SESSION["config_discover"]["discover"]["statistics"] == 1 ) ? 1 : 0;
+
           // ILN mal vorhanden und mal nicht vorhanden
           if ( isset($_SESSION["config_general"]["general"]["iln"]) && $_SESSION["config_general"]["general"]["iln"] != "" )  $_SESSION["iln"] = $_SESSION["config_general"]["general"]["iln"];
 
@@ -425,6 +427,11 @@ class Vzg_controller extends CI_Controller
       "devusername"			=> (isset($_SESSION["config_discover"]["dev"]["devusername"]) 		 && $_SESSION["config_discover"]["dev"]["devusername"] != "" )			? $_SESSION["config_discover"]["dev"]["devusername"]			: "",
       "devusermail"			=> (isset($_SESSION["config_discover"]["dev"]["devusermail"]) 		 && $_SESSION["config_discover"]["dev"]["devusermail"] != "" )			? $_SESSION["config_discover"]["dev"]["devusermail"]			: "",
       "devusermailtext" => (isset($_SESSION["config_discover"]["dev"]["devusermailtext"]) && $_SESSION["config_discover"]["dev"]["devusermailtext"] != "" )	? $_SESSION["config_discover"]["dev"]["devusermailtext"]	: "",
+      "button_checklist" => (isset($_SESSION["config_discover"]["fullview"]["checklist"]) && $_SESSION["config_discover"]["fullview"]["checklist"] == 1 ) ? true  : false,
+      "button_export" => (isset($_SESSION["config_discover"]["fullview"]["export"]) && $_SESSION["config_discover"]["fullview"]["export"] == 1 ) ? true  : false,
+      "button_mail" => (isset($_SESSION["config_discover"]["fullview"]["mail"]) && $_SESSION["config_discover"]["fullview"]["mail"] == 1 && isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] != "") ? true  : false,
+      "button_print" => (isset($_SESSION["config_discover"]["fullview"]["print"]) && $_SESSION["config_discover"]["fullview"]["print"] == 1 ) ? true  : false,
+
       "librarytitle"		=> (isset($_SESSION["config_general"]["general"]["title"])        			 && $_SESSION["config_general"]["general"]["title"] != "" )        				? $_SESSION["config_general"]["general"]["title"]								: "",
       "softwarename"		=> (isset($_SESSION["config_general"]["general"]["softwarename"]) 			 && $_SESSION["config_general"]["general"]["softwarename"] != "" ) 				? $_SESSION["config_general"]["general"]["softwarename"]				: "GBV Discovery",
       "language"        => $_SESSION["language"],
@@ -433,6 +440,9 @@ class Vzg_controller extends CI_Controller
       "time2warn" => (isset($_SESSION["config_general"]["lbs"]["time2warn"]) && $_SESSION["config_general"]["lbs"]["time2warn"] != "" ) ? $_SESSION["config_general"]["lbs"]["time2warn"]  : "",
       "time2kill" => (isset($_SESSION["config_general"]["lbs"]["time2kill"]) && $_SESSION["config_general"]["lbs"]["time2kill"] != "" ) ? $_SESSION["config_general"]["lbs"]["time2kill"]  : ""
     );
+
+    // Set stats
+    $this->stats("Config");
 
     // Return data in jsonformat
     echo json_encode($container);
@@ -463,6 +473,9 @@ class Vzg_controller extends CI_Controller
     {
       if ( !$this->ensurePPN($ppn)) return(-2);
     }
+
+    // Set stats
+    $this->stats("Mail");
     
     // Load Mail Library
     $this->load->library('email');
@@ -538,6 +551,9 @@ class Vzg_controller extends CI_Controller
 
     // Ensure required ppn data
     if ( !$this->ensurePPN($ppn)) return ($this->ajaxreturn("400","ppn not found"));
+
+    // Set stats
+    $this->stats("MailOrder");
 
     // Load Mail Library
     $this->load->library('email');
@@ -651,6 +667,9 @@ class Vzg_controller extends CI_Controller
       if ( !$this->ensurePPN($ppn)) return(-2);
     }
 
+    // Set stats
+    $this->stats("LibrarySpecial");
+
     // Load Special Library of Library
     $this->load->library('/special/special', NULL, 'special');
     $container = $this->special->$action($ppnlist, $fields);
@@ -671,6 +690,9 @@ class Vzg_controller extends CI_Controller
 
     // Ensure required interfaces
     $this->ensureInterface(array("config"));
+
+    // Set stats
+    $this->stats("Command");
 
     // Parse command
     $cmd = explode(":",$cmd);
@@ -755,6 +777,9 @@ class Vzg_controller extends CI_Controller
     // Check params
     if ( $language == "" ) return ($this->ajaxreturn("400","language is missing"));
 
+    // Set stats
+    $this->stats("Lanuguage_" . ucfirst($language));
+
     // Ensure required interfaces
     $this->ensureInterface(array("config"));
 
@@ -794,6 +819,9 @@ class Vzg_controller extends CI_Controller
     if ( $format == "" ) return ($this->ajaxreturn("400","format is missing"));
     if ( count($ppnlist) == 0 ) return ($this->ajaxreturn("400","ppnlist is empty"));
 
+    // Set stats
+    $this->stats("Export_" . ucfirst($format));
+
     // Ensure required interfaces
     $this->ensureInterface(array("config","export"));
 
@@ -829,6 +857,9 @@ class Vzg_controller extends CI_Controller
     // Check params
     if ( $ppn == "" || $format == "" ) return(-2);
 
+    // Set stats
+    $this->stats("Export_" . ucfirst($format));
+
     // Ensure required interfaces
     $this->ensureInterface(array("config","export"));
 
@@ -839,7 +870,7 @@ class Vzg_controller extends CI_Controller
     $this->load->helper('download');
 
     // Call export
-    $data = $this->export->exportfile($_SESSION["data"]["results"][$ppn],$format);
+    $data = $this->export->exportfile($_SESSION["data"]["results"][$ppn],$format, $ppn);
     $name = $format . "-" . $ppn . ".txt";
     force_download($name, $data);
   }
@@ -853,7 +884,7 @@ class Vzg_controller extends CI_Controller
 
     // Check params
     if ( $query == "" ) return ($this->ajaxreturn("400","query is missing"));
-    
+
     // Ensure required interfaces
     $this->ensureInterface(array("config","database"));
 
@@ -873,6 +904,9 @@ class Vzg_controller extends CI_Controller
     // Check params
     if ( $search == "" )  return ($this->ajaxreturn("400","search is missing"));
     if ( $user == "" )    return ($this->ajaxreturn("400","user is missing"));
+
+    // Set stats
+    $this->stats("StoreUserSearch");
     
     // Ensure required interfaces
     $this->ensureInterface(array("config","database"));
@@ -898,6 +932,9 @@ class Vzg_controller extends CI_Controller
     if ( $pw == "" )    return ($this->ajaxreturn("400","pw is missing"));
     if ( $user == "" )  return ($this->ajaxreturn("400","user is missing"));
 
+    // Set stats
+    $this->stats("LBS_Login");
+
     // Ensure required interfaces
     $this->ensureInterface(array("config"));
     $this->serviceFactory->createILSService();
@@ -918,6 +955,9 @@ class Vzg_controller extends CI_Controller
     $this->ensureInterface(array("config"));
     $this->serviceFactory->createILSService();
 
+    // Set stats
+    $this->stats("LBS_Logout");
+
     if ( isset($_SESSION["userlogin"]) )
     {
       // Logout lbs & echo
@@ -936,6 +976,9 @@ class Vzg_controller extends CI_Controller
     $this->ensureInterface(array("config"));
     $this->serviceFactory->createILSService();
 
+    // Set stats
+    $this->stats("LBS_Document");
+
     // Call LBS
     return $this->ilsService->document($PPN);
   }
@@ -947,6 +990,9 @@ class Vzg_controller extends CI_Controller
 
     // Check params
     if ( $uri == "" )    return ($this->ajaxreturn("400","uri is missing"));
+
+    // Set stats
+    $this->stats("LBS_Request");
 
     // Ensure required interfaces
     $this->ensureInterface(array("config"));
@@ -966,6 +1012,9 @@ class Vzg_controller extends CI_Controller
     // Check params
     if ( $uri == "" )    return ($this->ajaxreturn("400","uri is missing"));
 
+    // Set stats
+    $this->stats("LBS_Cancel");
+
     // Ensure required interfaces
     $this->ensureInterface(array("config"));
     $this->serviceFactory->createILSService();
@@ -984,6 +1033,9 @@ class Vzg_controller extends CI_Controller
     // Check params
     if ( $uri == "" )    return ($this->ajaxreturn("400","uri is missing"));
 
+    // Set stats
+    $this->stats("LBS_Renew");
+
     // Ensure required interfaces
     $this->ensureInterface(array("config"));
     $this->serviceFactory->createILSService();
@@ -995,7 +1047,20 @@ class Vzg_controller extends CI_Controller
   // ********************************************
   // ********** Database-Functions **************
   // ********************************************
-  public function getcounter($name, $iln="")
+  public function stats($name)
+  {
+    // Check params
+    if ( $name == "" ) return (-1);
+    if ( !isset($_SESSION["statistics"]) || ! $_SESSION["statistics"] ) return (-1);
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","database"));
+
+    return ($this->database->stats($name));
+  }
+
+
+  public function counter($name, $global=true)
   {
     // Check params
     if ( $name == "" ) return (-1);
@@ -1003,13 +1068,13 @@ class Vzg_controller extends CI_Controller
     // Ensure required interfaces
     $this->ensureInterface(array("config","database"));
 
-    if ( $iln == "" ) 
+    if ( $global ) 
     {
       return ($this->database->counter($name));
     }
     else
     {
-      return ($this->database->counter_library($name, $iln));
+      return ($this->database->counter_library($name));
     }
   }
 
@@ -1072,6 +1137,9 @@ class Vzg_controller extends CI_Controller
     if ( $search == "" )                     return ($this->ajaxreturn("400","search is missing"));
     if ( $package == "" || $package == "0" ) return ($this->ajaxreturn("400","package is missing or 0"));
 
+    // Set stats
+    $this->stats("Search");
+
     // Ensure required interfaces
     $this->ensureInterface(array("config","theme"));
 
@@ -1115,6 +1183,9 @@ class Vzg_controller extends CI_Controller
     // Check params
     if ( $search == "" ) return(-2);
 
+    // Set stats
+    $this->stats("Search_Internal");
+
     $container = $this->dosearch($search,"0",false);
 
     return ($container);
@@ -1129,6 +1200,9 @@ class Vzg_controller extends CI_Controller
 
     // Check params
     if ( $PPN == "" ) return ($this->ajaxreturn("400","ppn is missing"));
+
+    // Set stats
+    $this->stats("Search_Simular");
 
     try
     {
@@ -1176,6 +1250,9 @@ class Vzg_controller extends CI_Controller
     // Check params
     if ( $layout == "" ) return ($this->ajaxreturn("400","layout is missing"));
 
+    // Set stats
+    $this->stats("Layout_" . (12 / $layout));
+
     // Ensure required interfaces
     $this->ensureInterface(array("config", "theme"));
 
@@ -1206,6 +1283,9 @@ class Vzg_controller extends CI_Controller
     if ( $PPN == "" )   return ($this->ajaxreturn("400","ppn is missing"));
     if ( $dlgid == "" ) return ($this->ajaxreturn("400","dlgid is missing"));
 
+    // Set stats
+    $this->stats("FullView");
+
     // Ensure required interfaces
     $this->ensureInterface(array("config","theme"));
     $this->serviceFactory->createILSService();
@@ -1228,6 +1308,9 @@ class Vzg_controller extends CI_Controller
     if ( $Action == "" )                 return ($this->ajaxreturn("400","action is missing"));
     if ( ! $this->isUserSessionAlive() ) return ($this->ajaxreturn("400","timeout user session"));;
 
+    // Set stats
+    $this->stats("UserView");
+
     // Ensure required interfaces
     $this->ensureInterface(array("config","theme","database"));
     $this->serviceFactory->createILSService();
@@ -1241,6 +1324,27 @@ class Vzg_controller extends CI_Controller
     // Display view
     echo $this->theme->userview(array('action'=>$Action));
   }
+
+  // Show user data large 
+  public function assistant($dlgid)
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+    if ( $dlgid == "" ) return ($this->ajaxreturn("400","dlgid is missing"));
+
+    // Check params
+
+    // Set stats
+    $this->stats("Assistant");
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","theme"));
+    $this->serviceFactory->createILSService();
+
+    // Display view
+    echo $this->theme->assistant(array('dlgid'=>$dlgid));
+  }
   
   // Show user data large 
   public function mailorderview($PPN,$EPN)
@@ -1252,6 +1356,9 @@ class Vzg_controller extends CI_Controller
     // Check params
     if ( $PPN == "" ) return ($this->ajaxreturn("400","ppn is missing"));
     if ( $EPN == "")  return ($this->ajaxreturn("400","epn is missing"));;
+
+    // Set stats
+    $this->stats("MailOrderView");
 
     // Ensure required interfaces
     $this->ensureInterface(array("config","theme"));
@@ -1274,6 +1381,10 @@ class Vzg_controller extends CI_Controller
     // Check params
     
     // Ensure required interfaces
+    $this->ensureInterface(array("config","database"));
+
+    // Set stats
+    $this->stats("NoJavaScript");
 
     // Set params
 
@@ -1286,6 +1397,9 @@ class Vzg_controller extends CI_Controller
     // Receive params
 
     // Check params
+
+    // Set stats
+    $this->stats("ViewInit");
 
     // Ensure required interfaces
     $this->ensureInterface("config",$modul);
@@ -1337,16 +1451,19 @@ class Vzg_controller extends CI_Controller
     }
   }
 
-  public function directopen($search = "*", $group = "", $facets = "")
+  public function directopen($search = "*", $facets = "")
   {
     // Receive params
-    
+
     // Check params
 
     // Convert characters
     $search = ( urldecode($search) == "{star}" ) ? "*" : urldecode($search);
-    if ( urldecode($group) != "{}" && urldecode($group) != "" ) $search = urldecode($group) . ":" . $search;
-
+    $search = str_replace("{slash}", "/", $search);
+    $search = str_replace("{st}", "<", $search);
+    $search = str_replace("{gt}", ">", $search);
+    $search = str_replace("{colon}", ":", $search);
+    
     // Call main method with parameters
     $this->view("",$search,$facets);    
   }  

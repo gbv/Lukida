@@ -57,6 +57,7 @@ $route['ajax/searchsimularpubs']           = 'Vzg_controller/searchsimularpubs';
 $route['ajax/fullview/(:any)/(:any)']      = 'Vzg_controller/fullview/$1/$2';
 $route['ajax/userview/(:any)']             = 'Vzg_controller/userview/$1';
 $route['ajax/mailorderview/(:any)/(:any)'] = 'Vzg_controller/mailorderview/$1/$2';
+$route['ajax/assistant/(:any)']            = 'Vzg_controller/assistant/$1';
 $route['ajax/cancel']                      = 'Vzg_controller/cancel';
 $route['ajax/clear']                       = 'Vzg_controller/clear';
 $route['ajax/command']                     = 'Vzg_controller/command';
@@ -85,7 +86,6 @@ $route['exportfile/(:any)/(:any)']         = 'Vzg_controller/exportfile/$1/$2';
 $route['nojavascript']                     = 'Vzg_controller/nojavascript';
                                            
 // One Page Calls                          
-$route['(:any)/(:any)/(:any)']             = 'Vzg_controller/directopen/$1/$2/$3';
 $route['(:any)/(:any)']                    = 'Vzg_controller/directopen/$1/$2';
 $route['(:any)']                           = 'Vzg_controller/directopen/$1';
 $route['default_controller']               = 'Vzg_controller/view';

@@ -94,15 +94,12 @@ if ( ! $front )
   if ( isset($initsearch) && $initsearch != "" )
   {
     echo "\n<script>";
-    echo "\nsearchvals.inittext = '" . $initsearch . "';";
+    echo "\nsearchvals.inittext = '" . str_replace("'", "\'", $initsearch) . "';";
     echo "\n</script>";
   }
   if ( isset($initfacets) && $initfacets != "" )
   {
     echo "\n<script>";
-
-
-
     echo "\nvar urldata = JSON.parse(decodeURIComponent(escape(window.atob('" . $initfacets . "'))));";
     echo "\nstatevals=urldata.statevals;";
     echo "\nsearchvals.initfacets=urldata.facetvals;";

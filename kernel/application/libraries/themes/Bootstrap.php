@@ -213,6 +213,31 @@ class Bootstrap extends General
     return ( $Output );
   }
 
+  public function assistant( $params )
+  {
+    // Check Session & Parameters
+    if ( ! $this->ParamExits("_SESSION[config_discover][assistant][assistant]",$_SESSION,"config_discover","userview","userview") ) return false;
+    if ( ! $this->FileExits(KERNELFORMATS . "assistant/" . $_SESSION["config_discover"]["assistant"]["assistant"] . ".php") ) return false;
+    if ( ! $this->ParamExits("param[dlgid]", $params,"dlgid") ) return false;
+
+    // Prepare variables for loaded code
+    $this->dlgid      = $params['dlgid'];
+
+    // Start Output
+    $Output = $this->header();
+
+    // Load module inside div
+    $Output = "<div id='assistant'>";
+    include(KERNELFORMATS . "assistant/" . $_SESSION["config_discover"]["assistant"]["assistant"] .'.php');
+    $Output .= "</div>";
+
+    // End Output
+    $Output .= $this->footer();
+
+    // Return Output
+    return ( $Output );
+  }
+
   public function mailorderview ( $params )
   {
     // Check Session & Parameters

@@ -43,8 +43,13 @@ class Standard extends General
     return $linkarray;
   }
 
-  public function exportfile($data, $format)
+  public function exportfile($data, $format, $ppn)
   {
+    $this->PPN = $ppn;
+    $this->contents = $_SESSION["data"]["results"][$this->PPN]["contents"];
+    $_SESSION["data"]["results"][$this->PPN] += $this->SetContents("export");
+    $this->contents = $_SESSION["data"]["results"][$this->PPN];
+
     // Create File Data
 
     // Um die Daten zu sehen, die folgende Zeile aktivieren:
@@ -322,7 +327,7 @@ class Standard extends General
     $metadataOU = "";
     if (isset($data["format"])) 
     {
-      $metadataOU = "&rft.genre=" .  $data["format"];
+      $metadataOU = "&rft.genre=" . $data["format"];
     }
     if (isset($data["title"]) && $data["title"] != "") 
     {
@@ -365,7 +370,7 @@ class Standard extends General
             {
               if (!empty($sValue) && $sKey == "a") 
               {
-				$metadataOU .= "&rft.series=" . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
+                $metadataOU .= "&rft.series=" . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
               }
               else 
 			  { $metadataOU .= " " . $sValue;
@@ -524,7 +529,7 @@ class Standard extends General
     if (isset($data["format"]) && $data["format"] != "") 
     {
       $metadataOU = "TY  - " . $data["format"] . "\r\n";
-    }
+    }	
     if (isset($data["id"]) && $data["id"] != "") 
     {
       $metadataOU .= "ID  - " . $data["id"] . "\r\n";
@@ -690,19 +695,6 @@ class Standard extends General
     {
       $metadataOU .= "ED  - " . $data["edition"] . "\r\n";
     }
-    /*if (isset($data["details"][0]["a"]) && $data["details"][0]["a"] != "") 
-    {
-      $metadataOU .= "  - " . $data["details"][0]["a"] . "\r\n";
-    }
-    */
-    if (isset($data["details"][0]["j"]) && $data["details"][0]["j"] != "") 
-    {
-      $metadataOU .= "PY  - " . $data["details"][0]["j"] . "\r\n";
-    }
-	elseif (isset($data["publisher"][0]["c"]) && $data["publisher"][0]["c"] != "") 
-	{
-	  $metadataOU .= "PY  - " . $data["publisher"][0]["c"] . "\r\n";
-	}
     if (isset($data["publisher"][0]) && $data["publisher"][0] != "") 
     {
 	  foreach($data["publisher"][0] as $publisherKey => $publisherValue)
@@ -720,27 +712,51 @@ class Standard extends General
 	elseif (isset($data["contents"]["300"][0][0]["a"]) && $data["contents"]["300"][0][0]["a"] != "") 
 	{
 	  $metadataOU .= "PB  - " . $data["contents"]["300"][0][0]["a"] . "\r\n";
-	}	
-    if (isset($data["details"][0]["d"]) && $data["details"][0]["d"] != "") 
-    {
-      $metadataOU .= "VL  - " . $data["details"][0]["d"] . "\r\n";
-    }
-    if (isset($data["details"][0]["e"]) && $data["details"][0]["e"] != "") 
-    {
-      $metadataOU .= "IS  - " . $data["details"][0]["e"] . "\r\n";
-    }	
+	}
+	if (!empty($data["contents"]["952"][0]))
+	{
+		foreach($data["contents"]["952"][0] as $detailValue) {
+			foreach($detailValue as $dKey=>$dValue) 
+			{
+				switch ($dKey)
+				{
+				case "j":
+					$metadataOU .= "PY  - " . $dValue . "\r\n";
+					break;
+				case "d":
+					$metadataOU .= "VL  - " . $dValue . "\r\n";
+					break;
+				case "e":
+					$metadataOU .= "IS  - " . $dValue . "\r\n";
+					break;
+				case "h":
+					if ( strpos($dValue, "-") !== false ) 
+					{
+						 $metadataOU .= "SP  - " . strstr($dValue, '-', true) . "\r\n";
+						 $metadataOU .= "EP  - " . substr(strstr($dValue, "-"), 1) . "\r\n";
+					}
+					else $metadataOU .= "SP  - " . $dValue . "\r\n";
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		if (!empty($data["publisherarticle"][0]["g"]))
+		{ 
+			if (preg_match("#\((.*?)\)#", $data["publisherarticle"][0]["g"], $year))
+				$metadataOU .= "PY  - " . $year[1] . "\r\n";
+		}
+		elseif (isset($data["publisher"][0]["c"]) && $data["publisher"][0]["c"] != "") 
+		{
+			$metadataOU .= "PY  - " . $data["publisher"][0]["c"] . "\r\n";
+		}
+	}
 	if (isset($data["additionalinfo"][0]["u"]) && $data["additionalinfo"][0]["u"] != "") 
     {
       $metadataOU .= "UR  - " . $data["additionalinfo"][0]["u"] . "\r\n";
     }
-    if (isset($data["details"][0]["h"]) && $data["details"][0]["h"] != "") 
-    {
-      if ( strpos($data["details"][0]["h"], "-") !== false ) 
-      {
-        $metadataOU .= "SP  - " . strstr($data["details"][0]["h"], '-', true) . "\r\n";
-        $metadataOU .= "EP  - " . substr(strstr($data["details"][0]["h"], "-"), 1) . "\r\n";
-      }
-	}
     $metadataOU .= "S1  - Gemeinsamer Bibliotheksverbund (GBV) / Verbundzentrale des GBV (VZG)\r\n";
     $metadataOU .= "S2  - OPAC Magdeburg\r\n";
     $metadataOU .= "S3  - Lukida.ub_md\r\n";
@@ -907,19 +923,6 @@ class Standard extends General
     {
       $metadataOU .= "%7 " . $data["edition"] . "\r\n";
     }
-    /*if (isset($data["details"][0]["a"]) && $data["details"][0]["a"] != "") 
-    {
-      $metadataOU .= "% " . $data["details"][0]["a"] . "\r\n";
-    }
-    */
-    if (isset($data["details"][0]["j"]) && $data["details"][0]["j"] != "") 
-    {
-      $metadataOU .= "%D " . $data["details"][0]["j"] . "\r\n";
-    }
-	elseif (isset($data["publisher"][0]["c"]) && $data["publisher"][0]["c"] != "") 
-	{
-	  $metadataOU .= "%D " . $data["publisher"][0]["c"] . "\r\n";
-	}
     if (isset($data["publisher"][0]) && $data["publisher"][0] != "") 
     {
 	  foreach($data["publisher"][0] as $publisherKey => $publisherValue)
@@ -934,35 +937,58 @@ class Standard extends General
 		} 
 	  }
     }
-    if (isset($data["details"][0]["d"]) && $data["details"][0]["d"] != "") 
-    {
-      $metadataOU .= "%V " . $data["details"][0]["d"] . "\r\n";
-    }
-    if (isset($data["details"][0]["e"]) && $data["details"][0]["e"] != "") 
-    {
-      $metadataOU .= "%N " . $data["details"][0]["e"] . "\r\n";
-    }
-    if (isset($data["details"][0]["h"]) && $data["details"][0]["h"] != "") 
-    {
-      $metadataOU .= "%P " . $data["details"][0]["h"] . "\r\n";
-    }
-	elseif (isset($data["contents"]["300"][0][0]["a"]) && $data["contents"]["300"][0][0]["a"] != "") 
+	if (!empty($data["contents"]["952"][0]))
 	{
-	  $metadataOU .= "%P " . $data["contents"]["300"][0][0]["a"] . "\r\n";
+		foreach($data["contents"]["952"][0] as $detailValue) {
+			foreach($detailValue as $dKey=>$dValue) 
+			{
+				switch ($dKey)
+				{
+				case "j":
+					$metadataOU .= "%D " . $dValue . "\r\n";
+					break;
+				case "d":
+					$metadataOU .= "%V " . $dValue . "\r\n";
+					break;
+				case "e":
+					$metadataOU .= "%N " . $dValue . "\r\n";
+					break;
+				case "h":
+					$metadataOU .= "%P " . $dValue . "\r\n";
+					break;
+				}
+			}
+		}
 	}
-    if (isset($data["notes"]) && $data["notes"] != "") 
-    {
-      if (strpos($data["notes"]," | ")!==false) 
-      {
-        foreach (explode(" | ", $data["notes"]) as $note) 
-        {
-          $metadataOU .= "%Z " . $note . "\r\n";
-        }
-      }
-      else 
-	  { $metadataOU .= "%Z " . $data["notes"] . "\r\n";
-      }
-    }
+	else
+	{
+		if (!empty($data["publisherarticle"][0]["g"]))
+		{ 
+			if (preg_match("#\((.*?)\)#", $data["publisherarticle"][0]["g"], $year))
+				$metadataOU .= "%D " . $year[1] . "\r\n";
+		}
+		elseif (isset($data["publisher"][0]["c"]) && $data["publisher"][0]["c"] != "") 
+		{
+			$metadataOU .= "%D " . $data["publisher"][0]["c"] . "\r\n";
+		}
+		if (isset($data["contents"]["300"][0][0]["a"]) && $data["contents"]["300"][0][0]["a"] != "") 
+		{
+			$metadataOU .= "%P " . $data["contents"]["300"][0][0]["a"] . "\r\n";
+		}
+	}
+	if (isset($data["notes"]) && $data["notes"] != "") 
+	{
+		if (strpos($data["notes"]," | ")!==false) 
+		{
+			foreach (explode(" | ", $data["notes"]) as $note) 
+			{
+				$metadataOU .= "%Z " . $note . "\r\n";
+			}
+		}
+		else 
+		{ $metadataOU .= "%Z " . $data["notes"] . "\r\n";
+		}
+	}
 	if (isset($data["additionalinfo"][0]["u"]) && $data["additionalinfo"][0]["u"] != "") 
     {
       $metadataOU .= "%U " . $data["additionalinfo"][0]["u"] . "\r\n";
@@ -1076,19 +1102,6 @@ class Standard extends General
     {
       $metadataOU .= "\tedition = {" . $data["edition"] . "},\r\n";
     }
-    /*if (isset($data["details"][0]["a"]) && $data["details"][0]["a"] != "") 
-    {
-      $metadataOU .= "\t = {" . $data["details"][0]["a"] . "},\r\n";
-    }
-    */
-    if (isset($data["details"][0]["j"]) && $data["details"][0]["j"] != "") 
-    {
-      $metadataOU .= "\tyear = {" . $data["details"][0]["j"] . "},\r\n";
-    }
-	elseif (isset($data["publisher"][0]["c"]) && $data["publisher"][0]["c"] != "") 
-	{
-	  $metadataOU .= "\tyear = {" . $data["publisher"][0]["c"] . "},\r\n";
-	}
     if (isset($data["publisher"][0]) && $data["publisher"][0] != "") 
     {
 	  foreach($data["publisher"][0] as $publisherKey => $publisherValue) 
@@ -1102,22 +1115,45 @@ class Standard extends General
 			$metadataOU .= "\tpublisher = {" . $publisherValue . "},\r\n";
 		} 
 	  }
-    }	
-    if (isset($data["details"][0]["d"]) && $data["details"][0]["d"] != "") 
-    {
-      $metadataOU .= "\tvolume = {" . $data["details"][0]["d"] . "},\r\n";
     }
-    if (isset($data["details"][0]["e"]) && $data["details"][0]["e"] != "") 
-    {
-      $metadataOU .= "\tnumber = {" . $data["details"][0]["e"] . "},\r\n";
-    }
-    if (isset($data["details"][0]["h"]) && $data["details"][0]["h"] != "") 
-    {
-      $metadataOU .= "\tpages = {" . $data["details"][0]["h"] . "}\r\n";
-    }
-	elseif (isset($data["contents"]["300"][0][0]["a"]) && $data["contents"]["300"][0][0]["a"] != "") 
+	if (!empty($data["contents"]["952"][0]))
 	{
-	  $metadataOU .= "\tpages = {" . $data["contents"]["300"][0][0]["a"] . "}\r\n";
+		foreach($data["contents"]["952"][0] as $detailValue) {
+			foreach($detailValue as $dKey=>$dValue) 
+			{
+				switch ($dKey)
+				{
+				case "j":
+					$metadataOU .= "\tyear = {" . $dValue . "},\r\n";
+					break;
+				case "d":
+					$metadataOU .= "\tvolume = {" . $dValue . "},\r\n";
+					break;
+				case "e":
+					$metadataOU .= "\tnumber = {" . $dValue . "},\r\n";
+					break;
+				case "h":
+					$metadataOU .= "\tpages = {" . $dValue . "},\r\n";
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		if (!empty($data["publisherarticle"][0]["g"]))
+		{ 
+			if (preg_match("#\((.*?)\)#", $data["publisherarticle"][0]["g"], $year))
+				$metadataOU .= "\tyear = {" . $year[1] . "},\r\n";
+		}
+		elseif (isset($data["publisher"][0]["c"]) && $data["publisher"][0]["c"] != "") 
+		{
+			$metadataOU .= "\tyear = {" . $data["publisher"][0]["c"] . "},\r\n";
+		}
+		if (isset($data["contents"]["300"][0][0]["a"]) && $data["contents"]["300"][0][0]["a"] != "") 
+		{
+			$metadataOU .= "\tpages = {" . $data["contents"]["300"][0][0]["a"] . "}\r\n";
+		}
 	}
     if (isset($data["notes"]) && $data["notes"] != "") 
     {

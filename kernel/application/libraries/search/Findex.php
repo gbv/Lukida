@@ -38,138 +38,98 @@ class Findex extends AbstractSolrSearchService implements SearchService
   {
     $client = new SolrClient($this->config);
 
-    // Determine search type
-    $Type = "allfields";
-    if ( strpos($search, ":") !== false )
+    // Find complex search phrases and move them to $matches
+    preg_match_all("/([A-Za-z0-9]+)\(([^)]+)\)/", $search, $matches);
+    foreach ( $matches[0] as $one )
     {
-      $Tmp = explode(":", $search);
-      if ( in_array(strtolower(trim($Tmp[0])), array("author","autor","id","isn","subject","schlagwort","title","titel","series","reihe","publisher","verlag","year","jahr","toc","inhalt","class","sachgebiet")) )
+      $search = str_replace($one, "", $search);
+    }
+
+    preg_match_all("/([A-Za-z0-9]+):\(([^)]+)\)/", $search, $matchescolon);
+    foreach ( $matchescolon[0] as $one )
+    {
+      $search = str_replace($one, "", $search);
+    }
+
+    preg_match_all("/([A-Za-z0-9]+):([A-Za-z0-9]+)/", $search, $matchescolon2);
+    foreach ( $matchescolon2[0] as $one )
+    {
+      $search = str_replace($one, "", $search);
+    }
+
+    foreach ($matchescolon as $index => $one)
+    {
+      foreach ($one as $value)
       {
-        $Type = strtolower(trim($Tmp[0]));
-        unset($Tmp[0]);
-        $search = implode(":", $Tmp);
+        $matches[$index][] = $value;
+      }
+    }
+    foreach ($matchescolon2 as $index => $one)
+    {
+      foreach ($one as $value)
+      {
+        $matches[$index][] = $value;
       }
     }
 
-    // Escape Solr special characters
-    if ( $Type != "id" )
+    // Remove not allowed complex phrases based on used key
+    foreach ( $matches[1] as $index => $key )
     {
-      $search = str_replace(array( '+', '-', '&', '|', '!', '(' ,')' ,'{', '}', '[', ']', '^', '~', '?'),
-                            array('\+','\-','\&','\|','\!','\(','\)','\{','\}','\[','\]','\^','\~','\?'),
-                            $search);
-    }
-    else
-    {
-      $search = str_replace(" ","",$search);
-      $search = str_replace(",,",",",$search);
-      $IDs = explode(",", $search);
-      foreach ( $IDs as &$ID )
+      if ( ! in_array(strtolower(trim($key)), array("author","autor","id","isn","subject","schlagwort","title","titel","series","reihe","publisher","verlag","year","jahr","toc","inhalt","class","sachgebiet")) )
       {
-        $ID = "id:".trim(preg_replace("/[^A-Za-z0-9]/", "", $ID));
+        unset($matches[0][$index]);
       }
-      $search = (count($IDs)>1) ? "(" . implode(" OR ",$IDs) . ")" : $IDs[0];
     }
-                          
+    // $this->CI->printArray2File($matches);
+    
+    // Now loop over complex search phrased and add simple search word
+    // to build query string MainSearch
+    $MainSearch = "";
+    $search     = trim($search);
+    foreach ( $matches[0] as $index => $complex )
+    {
+      $CType = strtolower(trim($matches[1][$index]));
+      $CText = trim($matches[2][$index]);
+
+      // Mask solr special characters
+      $CText = str_replace(array( '+', '-', '&', '|', '!', '(' ,')' ,'{', '}', '[', ']', '^', '~', '?'),
+                           array('\+','\-','\&','\|','\!','\(','\)','\{','\}','\[','\]','\^','\~','\?'),
+                           $CText);
+
+      //First get phrases in "" and remove them
+      preg_match_all("/\"([^\"]+)\"/", $CText, $Cmatches);
+      foreach ( $Cmatches[0] as $one )
+      {
+        $CText = str_replace($one, "", $CText);
+      }
+      
+      // Second get remaininhg phrases split by ,
+      $Phrases = $Cmatches[1] + array_map('trim', array_filter(explode(",", $CText)));
+
+      if ( $index > 0 ) $MainSearch .= " AND ";
+      
+      if ( count($Phrases) == 1)
+      {
+        $MainSearch .= $Phrases[0];
+      }
+      else
+      {
+        $MainSearch .= "(" . $CType . ":\"" . implode("\" OR " . $CType . ":\"",$Phrases) . "\")";
+      }
+    }
+
+    $MainSearch .= ( trim($MainSearch) != "" && trim($search) != "" ) ? " AND " . $search : $search;
+
     // Initialize Client
-    $dismaxQuery = new SolrDisMaxQuery($search);
+    $dismaxQuery = new SolrDisMaxQuery($MainSearch);
 
     // Set query parser to EDisMax
     $dismaxQuery->useEDisMaxQueryParser();
-    
-    // Highlighting switched off, because highlighting inside fullrecord not possible
-    // $dismaxQuery->setHighlight(true);
 
     // Field groups & boosting
-    switch ($Type)
+    if ( $search != "" )
     {
-      case "author":
-      case "autor":
-      {
-        $dismaxQuery
-        ->addQueryField("author",100)
-        ->addQueryField("author_fuller",50)
-        ->addQueryField("author2")
-        ->addQueryField("author_additional");
-        break;
-      }
-      case "isn":
-      {
-        $dismaxQuery
-        ->addQueryField("isbn")
-        ->addQueryField("issn");
-        break;
-      }
-      case "subject":
-      case "schlagwort":
-      {
-        $dismaxQuery
-        ->addQueryField("topic_unstemmed",150)
-        ->addQueryField("topic",100)
-        ->addQueryField("geographic",50)
-        ->addQueryField("genre",50)
-        ->addQueryField("era");
-        break;
-      }
-      case "title":
-      case "titel":
-      {
-        $dismaxQuery
-        ->addQueryField("title_short",500)
-        ->addQueryField("title_full_unstemmed",450)
-        ->addQueryField("title_full",400)
-        ->addQueryField("title",300)
-        ->addQueryField("title_alt",200)
-        ->addQueryField("title_new",100)
-        ->addQueryField("title_old")
-        ->addQueryField("series",100)
-        ->addQueryField("series2");
-        break;
-      }
-      case "series":
-      case "reihe":
-      {
-        $dismaxQuery
-        ->addQueryField("series",100)
-        ->addQueryField("series2");
-        break;
-      }
-      case "publisher":
-      case "verlag":
-      {
-        $dismaxQuery
-        ->addQueryField("publisher",100);
-        break;
-      }
-      case "year":
-      case "jahr":
-      {
-        $dismaxQuery
-        ->addQueryField("publishDate",100);
-        break;
-      }
-      case "toc":
-      case "inhalt":
-      {
-        $dismaxQuery
-        ->addQueryField("contents",100);
-        break;
-      }
-      case "class":
-      case "sachgebiet":
-      {
-        $dismaxQuery
-        ->addQueryField("class",100);
-        break;
-      }
-      case "id":
-      {
-        $dismaxQuery
-        ->addQueryField("id",100);
-        break;
-      }
-      default:
-      {
-        // AllFields
+        // All fields for normal searches
         $dismaxQuery
         ->addQueryField("title_short",750)
         ->addQueryField("title_full_unstemmed",600)
@@ -192,16 +152,112 @@ class Findex extends AbstractSolrSearchService implements SearchService
         ->addQueryField("fulltext")
         ->addQueryField("description")
         ->addQueryField("isbn")
-        ->addQueryField("issn");
+        ->addQueryField("issn");      
+    }
+    else
+    {
+      // Add Fields based on types
+      foreach ( $matches[0] as $index => $complex )
+      {
+        $CType = strtolower(trim($matches[1][$index]));
+        switch ($CType)
+        {
+          case "author":
+          case "autor":
+          {
+            $dismaxQuery
+            ->addQueryField("author",100)
+            ->addQueryField("author_fuller",50)
+            ->addQueryField("author2")
+            ->addQueryField("author_additional");
+            break;
+          }
+          case "isn":
+          {
+            $dismaxQuery
+            ->addQueryField("isbn")
+            ->addQueryField("issn");
+            break;
+          }
+          case "subject":
+          case "schlagwort":
+          {
+            $dismaxQuery
+            ->addQueryField("topic_unstemmed",150)
+            ->addQueryField("topic",100)
+            ->addQueryField("geographic",50)
+            ->addQueryField("genre",50)
+            ->addQueryField("era");
+            break;
+          }
+          case "title":
+          case "titel":
+          {
+            $dismaxQuery
+            ->addQueryField("title_short",500)
+            ->addQueryField("title_full_unstemmed",450)
+            ->addQueryField("title_full",400)
+            ->addQueryField("title",300)
+            ->addQueryField("title_alt",200)
+            ->addQueryField("title_new",100)
+            ->addQueryField("title_old")
+            ->addQueryField("series",100)
+            ->addQueryField("series2");
+            break;
+          }
+          case "series":
+          case "reihe":
+          {
+            $dismaxQuery
+            ->addQueryField("series",100)
+            ->addQueryField("series2");
+            break;
+          }
+          case "publisher":
+          case "verlag":
+          {
+            $dismaxQuery
+            ->addQueryField("publisher",100);
+            break;
+          }
+          case "year":
+          case "jahr":
+          {
+            $dismaxQuery
+            ->addQueryField("publishDate",100);
+            break;
+          }
+          case "toc":
+          case "inhalt":
+          {
+            $dismaxQuery
+            ->addQueryField("contents",100);
+            break;
+          }
+          case "class":
+          case "sachgebiet":
+          {
+            $dismaxQuery
+            ->addQueryField("class",100);
+            break;
+          }
+          case "id":
+          {
+            $dismaxQuery
+            ->addQueryField("id",100);
+            break;
+          }
+        }
       }
     }
-    
+
     // Return fields
     $dismaxQuery
     ->addField('id')
     ->addField('fullrecord');
 
-    if ( $Type != "id" )
+    if ( $search != "" || count(array_values($matches[0])) >  1 || 
+       ( count(array_values($matches[0])) == 1 && $matches[0][0] != "id" ) )
     {
       // Facet fields (only for new searches (package=1), not for inkremential searches (package=0, package >=2)
       if ( $package == 1 && $facets )
@@ -277,13 +333,13 @@ class Findex extends AbstractSolrSearchService implements SearchService
     $_SESSION["query"] = $dismaxQuery;
 
     // Store query in file
-    // $this->CI->appendFile("EDisMax.txt", "http://" . $options["hostname"] . ":" . $options["port"] . "/". $options["path"] . "/select?" . $dismaxQuery);
+    // $this->CI->appendFile("EDisMax.txt", "/select?" . $dismaxQuery);
 
     // Execute query
     $query_response = $client->query($dismaxQuery);
 
     // Store answer in file
-    //$this->CI->printArray2File($query_response);
+    // $this->CI->printArray2File($query_response);
 
     // Store answer
     return ($query_response->getResponse());

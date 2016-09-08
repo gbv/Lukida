@@ -10,14 +10,6 @@ class Mysql extends General
     $this->CI =& get_instance();
   }
 
-  private function translation_use($code, $specific)
-  {
-    $iln = ( $specific ) ? $_SESSION["iln"] : "-1";
-    $this->CI->db->reset_query();
-    $this->CI->db->query("insert into translation_log (iln, shortcut, anzahl) values (" . $iln . ",'" . $code . "', 0) ON DUPLICATE KEY UPDATE anzahl=anzahl+1");
-    return 0;
-  }
-
   public function code2text($code)
   {
     // Clear & check code
@@ -61,9 +53,6 @@ class Mysql extends General
     
       if ($results->num_rows() == 1)
       {
-        // Log specific code
-        // $this->translation_use($code, true);
-               
         // Return library specific code found
         if ( $_SESSION["language"] == "ger" )
         {
@@ -97,9 +86,6 @@ class Mysql extends General
 
     // No Code found - return shorthand code
     if ($results->num_rows() != 1)	return ($code);
-
-    // Log general code
-    // $this->translation_use($code, false);
 
     // Return general code found
     if ( $_SESSION["language"] == "ger" )
@@ -204,14 +190,14 @@ class Mysql extends General
   public function log_search($search)
   {
     $this->CI->db->reset_query();
-    $this->CI->db->query("insert into search_log (suche, anzahl, datumzeit) values ('" . $search . "', 1,now()) ON DUPLICATE KEY UPDATE anzahl=anzahl+1,datumzeit=now()");
+    $this->CI->db->query("insert into search_log (suche, anzahl, datumzeit) values ('" . $this->CI->db->escape_str($search) . "', 1,now()) ON DUPLICATE KEY UPDATE anzahl=anzahl+1,datumzeit=now()");
     return 0;
   }
 
   public function store_user_search($search,$user,$facets)
   {
     $this->CI->db->reset_query();
-    $this->CI->db->query("insert into search_user (suche, user, datumzeit,facetten) values ('" . $search . "', '" . $user . "',now(),'" . $facets . "')");
+    $this->CI->db->query("insert into search_user (suche, user, datumzeit,facetten) values ('" . $this->CI->db->escape_str($search) . "', '" . $user . "',now(),'" . $facets . "')");
     return array("status" => 0);
   }
 
@@ -301,8 +287,9 @@ class Mysql extends General
   *
   * @author  Alexander Karim <Alexander.Karim@gbv.de>
   */
-  public function counter_library($name, $iln)
+  public function counter_library($name)
   {
+    $iln = $_SESSION["iln"];
     if ( $name == "" || $iln == "" )  return (-1);
 
     $this->CI->db->reset_query();
@@ -314,5 +301,18 @@ class Mysql extends General
     $this->CI->db->where('name', $name);
     $this->CI->db->where('iln', $iln);
     return ($this->CI->db->get()->row()->value);
+  }
+
+  public function stats($name)
+  {
+    $iln = $_SESSION["iln"];
+    if ( $name == "" || $iln == "" )  return (-1);
+
+    $Hour = date('H');
+
+    $this->CI->db->reset_query();
+    $this->CI->db->query("insert into stats_library (iln, area, day, hour_" . $Hour . ") values (" . $iln . ", '" . $name . "','" . date("y-m-d") . "', 1) ON DUPLICATE KEY UPDATE hour_" . $Hour . "=hour_" . $Hour . "+1");
+
+    return (0);
   }
 }
