@@ -110,7 +110,7 @@ class Findex extends AbstractSolrSearchService implements SearchService
       
       if ( count($Phrases) == 1)
       {
-        $MainSearch .= $Phrases[0];
+        $MainSearch .= $CType . ":" . $Phrases[0];
       }
       else
       {
@@ -332,8 +332,9 @@ class Findex extends AbstractSolrSearchService implements SearchService
     // Store query in session
     $_SESSION["query"] = $dismaxQuery;
 
+
     // Store query in file
-    // $this->CI->appendFile("EDisMax.txt", "/select?" . $dismaxQuery);
+    // $this->CI->appendFile("EDisMax.txt", "http://" . $this->config["hostname"] . "/" . $this->config["path"] . "/select?" . $dismaxQuery);
 
     // Execute query
     $query_response = $client->query($dismaxQuery);
