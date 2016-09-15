@@ -1,5 +1,8 @@
 # Changelog
 
+**15.09.2016**
+1. Bug Interne Suche korrigiert
+
 **09.09.2016**
 1. Kleine Korrekturen an der Suche
 2. Assistent auch für die Frontpage
