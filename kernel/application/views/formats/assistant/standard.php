@@ -98,4 +98,9 @@ $Output .= "<div id='assistantcount' class='text-center'></div>";
 // Message Bar
 $Output .= "<p></p><div id='assistant_" . $this->dlgid . "_messagebar'></div>";
 
+$Output .= "<script>";
+$Output .= "$('a[data-toggle=\"tab\"]').on('shown.bs.tab', function (e) {";
+$Output .= "  $(\"textarea\").focus();";
+$Output .= "});";
+$Output .= "</script>";
 ?>

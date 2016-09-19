@@ -1,5 +1,11 @@
 # Changelog
 
+**19.09.2016**
+1. Assistent-Search for author now searches as well Marc 700-fields
+2. Bug Frontpage Search * solved
+3. Link resolver switches corrected
+4. Bug Exemple 980e=a solved
+
 **15.09.2016**
 1. Bug Interne Suche korrigiert
 

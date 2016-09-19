@@ -110,11 +110,26 @@ class Findex extends AbstractSolrSearchService implements SearchService
       
       if ( count($Phrases) == 1)
       {
-        $MainSearch .= $CType . ":" . $Phrases[0];
+        if ( $CType == "author" || $CType == "autor" )
+        {
+          $MainSearch .= "(author:" . $Phrases[0] . " OR author2:" . $Phrases[0] . ")";
+        }
+        else
+        {
+          $MainSearch .= $CType . ":" . $Phrases[0];
+        }
       }
       else
       {
-        $MainSearch .= "(" . $CType . ":\"" . implode("\" OR " . $CType . ":\"",$Phrases) . "\")";
+        if ( $CType == "author" || $CType == "autor" )
+        {
+          $MainSearch .= "(author:\"" . implode("\" OR author:\"",$Phrases) ."\" OR "
+                       . " author2:\"" . implode("\" OR author2:\"",$Phrases)  . "\")";
+        }
+        else
+        {
+          $MainSearch .= "(" . $CType . ":\"" . implode("\" OR " . $CType . ":\"",$Phrases) . "\")";
+        }
       }
     }
 

@@ -23,7 +23,7 @@ class Standard extends General
     $linkarray = array();
 
     // LinkResolver SFX
-    if ($_SESSION["config_general"]["export"]["sfxLink"] !== false)
+    if ($_SESSION["config_general"]["export"]["sfxlink"] != false)
     {
       if ( ( $Link = $this->getSFX_Link($this->contents) ) != "")
       {
@@ -32,7 +32,7 @@ class Standard extends General
     }
 
     // LinkResolver Journals Online & Print
-    if ( $_SESSION["config_general"]["export"]["jopLink"] !== false )
+    if ( $_SESSION["config_general"]["export"]["joplink"] != false )
     {
       if ( ( $Link = $this->getEZB_Link($this->contents) ) != "")
       {
@@ -84,19 +84,19 @@ class Standard extends General
     
     switch ($format) 
     {
-      case "refworks"     : if ($_SESSION["config_general"]["export"]["refworks"] !== false)
+      case "refworks"     : if ($_SESSION["config_general"]["export"]["refworks"] != false)
 								$openurlBase = "https://www.refworks.com/express/expressimport.asp";
         break;
-      case "zotero"       : if ($_SESSION["config_general"]["export"]["zotero"] !== false)
+      case "zotero"       : if ($_SESSION["config_general"]["export"]["zotero"] != false)
 								$openurlBase = "ctx_ver=Z39.88-2004";
         break;
     }
 
     if ($openurlBase != "") 
     {
-      $openurlReferer  = (isset($_SESSION["config_general"]["export"]["openurlReferer"]) &&
-                                $_SESSION["config_general"]["export"]["openurlReferer"] != "") 
-                              ? $_SESSION["config_general"]["export"]["openurlReferer"] : "Lukida";
+      $openurlReferer  = (isset($_SESSION["config_general"]["export"]["openurlreferer"]) &&
+                                $_SESSION["config_general"]["export"]["openurlreferer"] != "") 
+                              ? $_SESSION["config_general"]["export"]["openurlreferer"] : "Lukida";
 
       $isil            = (isset($_SESSION["config_general"]["general"]["isil"]) &&
                                 $_SESSION["config_general"]["general"]["isil"] != "") 
@@ -128,16 +128,16 @@ class Standard extends General
   {
     if (isset($data["issn"])  && $data["issn"] != "" )
     {
-      $ezbConfig        = $_SESSION["config_general"]["export"]["jopLinkOption"];
+      $ezbConfig        = $_SESSION["config_general"]["export"]["joplinkoption"];
 
       $isil             = (isset($_SESSION["config_general"]["general"]["isil"]) &&
                                  $_SESSION["config_general"]["general"]["isil"] != "") 
                           ? $_SESSION["config_general"]["general"]["isil"] 
                           : null;
 
-      $openurlReferer   = (isset($_SESSION["config_general"]["export"]["openurlReferer"]) &&
-                                 $_SESSION["config_general"]["export"]["openurlReferer"] != "") 
-                          ? $_SESSION["config_general"]["export"]["openurlReferer"] 
+      $openurlReferer   = (isset($_SESSION["config_general"]["export"]["openurlreferer"]) &&
+                                 $_SESSION["config_general"]["export"]["openurlreferer"] != "") 
+                          ? $_SESSION["config_general"]["export"]["openurlreferer"] 
                           : "Lukida";
 
       $openurlMetadata  = $this->getEZB_Meta($data);
@@ -230,18 +230,18 @@ class Standard extends General
   {
     if (isset($data["issn"])  && $data["issn"] != "" )
     {
-      $openurlBase = (isset($_SESSION["config_general"]["export"]["sfxBase"]) &&
-                            $_SESSION["config_general"]["export"]["sfxBase"] != "") 
-                          ? $_SESSION["config_general"]["export"]["sfxBase"] : null;
+      $openurlBase = (isset($_SESSION["config_general"]["export"]["sfxbase"]) &&
+                            $_SESSION["config_general"]["export"]["sfxbase"] != "") 
+                          ? $_SESSION["config_general"]["export"]["sfxbase"] : null;
 
       $isil             = (isset($_SESSION["config_general"]["general"]["isil"]) &&
                                  $_SESSION["config_general"]["general"]["isil"] != "") 
                           ? $_SESSION["config_general"]["general"]["isil"] 
                           : null;
 
-      $openurlReferer   = (isset($_SESSION["config_general"]["export"]["openurlReferer"]) &&
-                                 $_SESSION["config_general"]["export"]["openurlReferer"] != "") 
-                          ? $_SESSION["config_general"]["export"]["openurlReferer"] 
+      $openurlReferer   = (isset($_SESSION["config_general"]["export"]["openurlreferer"]) &&
+                                 $_SESSION["config_general"]["export"]["openurlreferer"] != "") 
+                          ? $_SESSION["config_general"]["export"]["openurlreferer"] 
                           : "Lukida";
 
       $openurlEntry     = $openurlBase 
@@ -252,8 +252,8 @@ class Standard extends General
 
       $sfxlink          = $openurlEntry . $openurlMetadata;
 
-      if (isset($_SESSION["config_general"]["export"]["sfxOnlyFulltext"]) &&
-                $_SESSION["config_general"]["export"]["sfxOnlyFulltext"] == true)
+      if (isset($_SESSION["config_general"]["export"]["sfxonlyfulltext"]) &&
+                $_SESSION["config_general"]["export"]["sfxonlyfulltext"] == true)
       {
         $sfxFullUrl = $this->getSFX_Full($sfxlink);
         if ( $sfxFullUrl != "")
