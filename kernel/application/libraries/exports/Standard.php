@@ -128,8 +128,6 @@ class Standard extends General
   {
     if (isset($data["issn"])  && $data["issn"] != "" )
     {
-      $ezbConfig        = $_SESSION["config_general"]["export"]["joplinkoption"];
-
       $isil             = (isset($_SESSION["config_general"]["general"]["isil"]) &&
                                  $_SESSION["config_general"]["general"]["isil"] != "") 
                           ? $_SESSION["config_general"]["general"]["isil"] 
@@ -216,8 +214,8 @@ class Standard extends General
     if (strpos($url_header[0],"200") !== false)
     {
       $data     = file_get_contents($link);
-      if ( stripos($data,"keine gedruckte Version") === false 
-        || stripos($data,"keine elektronische Version") === false ) return true;
+      if ( stripos($data,"Zum Artikel") !== false ||
+		stripos($data,"Zur Zeitschrift") !== false ) return true;
     }
     return false;
   }  

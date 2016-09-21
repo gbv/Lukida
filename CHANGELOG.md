@@ -1,5 +1,9 @@
 # Changelog
 
+**21.09.2016**
+1. Fullview Buttons dimmed until form is loaded
+2. Journals Online & Print (JOP) Link Resolver improved
+
 **19.09.2016**
 1. Assistent-Search for author now searches as well Marc 700-fields
 2. Bug Frontpage Search * solved
