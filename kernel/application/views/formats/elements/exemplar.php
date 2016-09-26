@@ -505,7 +505,7 @@ function BestandExemplare($CI, $Leader, $Contents, $Medium, $PPN)
 	              $ExemplarMARC[$ExpID]["id"]      = (isset($ExemplarDAIA[$ExpID]["id"]))       ? $ExemplarDAIA[$ExpID]["id"] : "";
                 $ExemplarMARC[$ExpID]["label1"]  = $CI->database->code2text("RESERVATION");
        	        $ExemplarMARC[$ExpID]["label2"]  = (isset($One["d"]) ) ? $CI->database->code2text("SIGNATURE") . " " . $One["d"] : "";
-				        $ExemplarMARC[$ExpID]["label3"]  = (isset($ExemplarDAIA[$ExpID]["date"])) ? $CI->database->code2text("AvailableFrom") . " " . $ExemplarDAIA[$ExpID]["date"] : $CI->database->code2text("ORDER");
+				        $ExemplarMARC[$ExpID]["label3"]  = (isset($ExemplarDAIA[$ExpID]["date"])) ? $ExemplarDAIA[$ExpID]["date"] : $CI->database->code2text("ORDER");
 	            } 
 	            else 
 	            {
@@ -798,7 +798,14 @@ function GetDAIA($CI, $Medium, $PPN)
           {
             // Vorbestellbar für Magazin-Ausleihe
             $Datum = (isset($Exp["unavailable"][0]["expected"])) ? strtolower(trim($Exp["unavailable"][0]["expected"])) : "-";
-            if ( $Datum != "unknown" && $Datum != "-") $Datum = date("d.m.Y", strtotime($Datum));
+            if ( $Datum != "unknown" && $Datum != "-") 
+            {
+              $Datum = $CI->database->code2text("AvailableFrom") . " " . date("d.m.Y", strtotime($Datum));
+            }
+            else
+            {
+              $Datum = $CI->database->code2text("OrderedByUser");
+            }
 
             $Exemplars[$ExpID] = array
             (

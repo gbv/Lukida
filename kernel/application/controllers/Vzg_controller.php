@@ -1059,7 +1059,6 @@ class Vzg_controller extends CI_Controller
     return ($this->database->stats($name));
   }
 
-
   public function counter($name, $global=true)
   {
     // Check params

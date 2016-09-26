@@ -289,7 +289,7 @@ class Mysql extends General
   */
   public function counter_library($name)
   {
-    $iln = $_SESSION["iln"];
+    $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
     if ( $name == "" || $iln == "" )  return (-1);
 
     $this->CI->db->reset_query();
@@ -305,7 +305,7 @@ class Mysql extends General
 
   public function stats($name)
   {
-    $iln = $_SESSION["iln"];
+    $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
     if ( $name == "" || $iln == "" )  return (-1);
 
     $Hour = date('H');

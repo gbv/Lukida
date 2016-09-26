@@ -1,5 +1,9 @@
 # Changelog
 
+**26.09.2016**
+1. Corrected "unknown"-DAIA-Date
+2. MySQL Driver update
+
 **21.09.2016**
 1. Fullview Buttons dimmed until form is loaded
 2. Journals Online & Print (JOP) Link Resolver improved
