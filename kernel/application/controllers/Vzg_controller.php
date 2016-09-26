@@ -486,9 +486,11 @@ class Vzg_controller extends CI_Controller
     $this->email->initialize($config);
 
     // Mail Adresses
-    $FromName = (isset($_SESSION["config_general"]["general"]["softwarename"])       &&  isset($_SESSION["config_general"]["general"]["title"])) 
-         ? $_SESSION["config_general"]["general"]["softwarename"] . "@" . $_SESSION["config_general"]["general"]["title"] : "";
-    $this->email->from($_SESSION["config_general"]["general"]["mailfrom"], $FromName);
+    $FromName = (isset($_SESSION["config_general"]["general"]["softwarename"]) 
+              && isset($_SESSION["config_general"]["general"]["title"])) 
+          ? $_SESSION["config_general"]["general"]["softwarename"] . " | " . $_SESSION["config_general"]["general"]["title"] 
+          : "";
+    $this->email->from($_SESSION["config_general"]["general"]["mailfrom"], iconv('UTF-8', 'ASCII//TRANSLIT', $FromName));
     $this->email->to($mailto);
     $this->email->reply_to($mailfrom);
 
@@ -507,7 +509,7 @@ class Vzg_controller extends CI_Controller
       $fullbody  = preg_replace("/<\/a>/i", " ", $fullbody);
 
       $fullbody .= "<a style='color:blue;background-color:white;text-decoration:none;' href='" 
-                         . base_url($ppn."/id") . "'><b>Bitte klicken Sie hier, um diese Empfehlung zu öffnen</b></a>";
+                         . base_url("id%7Bcolon%7D".$ppn) . "'><b>Bitte klicken Sie hier, um diese Empfehlung zu öffnen</b></a>";
       $message  .= "<hr>" . $fullbody;
     }
 

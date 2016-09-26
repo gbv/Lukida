@@ -3,6 +3,9 @@
 **26.09.2016**
 1. Corrected "unknown"-DAIA-Date
 2. MySQL Driver update
+3. Resolved bug: Stored searches
+4. Resolved bug: Mail from Adress
+5. Login: Trim username & password
 
 **21.09.2016**
 1. Fullview Buttons dimmed until form is loaded
