@@ -76,7 +76,7 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-09-29 17:14:58
+-- Dump completed on 2016-09-29 17:19:00
 -- MySQL dump 10.16  Distrib 10.1.13-MariaDB, for Win32 (AMD64)
 --
 -- Host: localhost    Database: lukida
@@ -195,6 +195,33 @@ CREATE TABLE `stats_library` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `stats_year_library`
+--
+
+DROP TABLE IF EXISTS `stats_year_library`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `stats_year_library` (
+  `iln` int(10) NOT NULL,
+  `area` varchar(100) NOT NULL,
+  `year` int(4) NOT NULL,
+  `month_01` int(11) NOT NULL DEFAULT '0',
+  `month_02` int(11) NOT NULL DEFAULT '0',
+  `month_03` int(11) NOT NULL DEFAULT '0',
+  `month_04` int(11) NOT NULL DEFAULT '0',
+  `month_05` int(11) NOT NULL DEFAULT '0',
+  `month_06` int(11) NOT NULL DEFAULT '0',
+  `month_07` int(11) NOT NULL DEFAULT '0',
+  `month_08` int(11) NOT NULL DEFAULT '0',
+  `month_09` int(11) NOT NULL DEFAULT '0',
+  `month_10` int(11) NOT NULL DEFAULT '0',
+  `month_11` int(11) NOT NULL DEFAULT '0',
+  `month_12` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`iln`,`area`,`year`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `translation_library`
 --
 
@@ -251,4 +278,4 @@ CREATE TABLE `words_unsolved` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-09-29 17:14:58
+-- Dump completed on 2016-09-29 17:19:00
