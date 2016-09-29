@@ -76,6 +76,7 @@ $route['ajax/getwords']                    = 'Vzg_controller/getwords';
 $route['ajax/renew']                       = 'Vzg_controller/renew';
 $route['ajax/request']                     = 'Vzg_controller/request';
 $route['ajax/sessclear']                   = 'Vzg_controller/sessclear';
+$route['ajax/statsclient']                 = 'Vzg_controller/statsclient';
 $route['ajax/storeusersearch']             = 'Vzg_controller/storeusersearch';
 $route['ajax/(:any)']                      = 'Vzg_controller/search/$1';
                                            

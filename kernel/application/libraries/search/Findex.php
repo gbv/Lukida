@@ -75,7 +75,7 @@ class Findex extends AbstractSolrSearchService implements SearchService
     // Remove not allowed complex phrases based on used key
     foreach ( $matches[1] as $index => $key )
     {
-      if ( ! in_array(strtolower(trim($key)), array("author","autor","id","isn","subject","schlagwort","title","titel","series","reihe","publisher","verlag","year","jahr","toc","inhalt","class","sachgebiet","ppnlink")) )
+      if ( ! in_array(strtolower(trim($key)), array("author","autor","id","isn","subject","schlagwort","title","titel","series","reihe","publisher","verlag","year","jahr","contents","inhalt","class","sachgebiet","ppnlink")) )
       {
         unset($matches[0][$index]);
       }
@@ -110,25 +110,36 @@ class Findex extends AbstractSolrSearchService implements SearchService
       
       if ( count($Phrases) == 1)
       {
-        if ( $CType == "author" || $CType == "autor" )
+        switch ($CType)
         {
-          $MainSearch .= "(author:" . $Phrases[0] . " OR author2:" . $Phrases[0] . ")";
-        }
-        else
-        {
-          $MainSearch .= $CType . ":" . $Phrases[0];
+          case "author":
+          case "autor":
+            $MainSearch .= "(author:\"" . $Phrases[0] . "\" OR author2:\"" . $Phrases[0] . "\")";
+            break;
+          case "series":
+          case "reihe":
+            $MainSearch .= "(series:\"" . $Phrases[0] . "\" OR series2:\"" . $Phrases[0] . "\")";
+            break;
+          default:
+            $MainSearch .= $CType . ":\"" . $Phrases[0] . "\"";
         }
       }
       else
       {
-        if ( $CType == "author" || $CType == "autor" )
+        switch ($CType)
         {
-          $MainSearch .= "(author:\"" . implode("\" OR author:\"",$Phrases) ."\" OR "
-                       . " author2:\"" . implode("\" OR author2:\"",$Phrases)  . "\")";
-        }
-        else
-        {
-          $MainSearch .= "(" . $CType . ":\"" . implode("\" OR " . $CType . ":\"",$Phrases) . "\")";
+          case "author":
+          case "autor":
+            $MainSearch .= "(author:\"" .  implode("\" OR author:\"", $Phrases) . "\" OR "
+                         . " author2:\"" . implode("\" OR author2:\"",$Phrases) . "\")";
+            break;
+          case "series":
+          case "reihe":
+            $MainSearch .= "(series:\"" .  implode("\" OR series:\"", $Phrases) . "\" OR "
+                         . " series2:\"" . implode("\" OR series2:\"",$Phrases) . "\")";
+            break;
+          default:
+            $MainSearch .= "(" . $CType . ":\"" . implode("\" OR " . $CType . ":\"",$Phrases) . "\")";
         }
       }
     }
@@ -242,7 +253,7 @@ class Findex extends AbstractSolrSearchService implements SearchService
             ->addQueryField("publishDate",100);
             break;
           }
-          case "toc":
+          case "contents":
           case "inhalt":
           {
             $dismaxQuery

@@ -76,7 +76,7 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-09-26 17:25:26
+-- Dump completed on 2016-09-29 17:14:58
 -- MySQL dump 10.16  Distrib 10.1.13-MariaDB, for Win32 (AMD64)
 --
 -- Host: localhost    Database: lukida
@@ -239,7 +239,7 @@ CREATE TABLE `words_unsolved` (
   `status` int(1) NOT NULL,
   `datumzeit` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=254655 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=254744 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -251,4 +251,4 @@ CREATE TABLE `words_unsolved` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-09-26 17:25:26
+-- Dump completed on 2016-09-29 17:14:58

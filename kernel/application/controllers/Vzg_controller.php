@@ -409,6 +409,10 @@ class Vzg_controller extends CI_Controller
   {
     // Ajax Method => No view will be loaded, just data is returned
 
+    // Receive params
+    $platform = (array)json_decode($this->input->post("platform"));
+    $screen   = (array)json_decode($this->input->post("screen"));
+
     // Check params
 
     // Ensure required interfaces
@@ -443,6 +447,26 @@ class Vzg_controller extends CI_Controller
 
     // Set stats
     $this->stats("Config");
+
+    // Set Screen Resolution Stat
+    if ( isset($screen['Width']) && $screen['Width'] != "" && isset($screen['Height']) && $screen['Height'] != "")
+      $this->stats("Screen_" . $screen['Width'] . "x" . $screen['Height'], true);
+
+    // Set Browser & Version Stat
+    if ( isset($platform['name']) && $platform['name'] != "" && isset($platform['version']) && $platform['version'] != "")
+      $this->stats("Browser_" . $platform['name'] . " " . substr($platform['version'],0,strpos($platform['version'],".")), true);
+
+    // Set Render Stat
+    if ( isset($platform['layout']) && $platform['layout'] != "" )
+      $this->stats("Render_" . $platform['layout'], true);
+
+    // Set Product Stat
+    if ( isset($platform['manufacturer']) && $platform['manufacturer'] != "" && isset($platform['product']) && $platform['product'] != "")
+      $this->stats("Product_" . $platform['manufacturer'] . "_" . $platform['product'], true);
+
+    // Set OS Name & Version Stat
+    if ( ( $Tmp = implode("_",array_values((array)$platform['os']))) != "" )
+      $this->stats("OS_" . $Tmp, true);
 
     // Return data in jsonformat
     echo json_encode($container);
@@ -917,6 +941,27 @@ class Vzg_controller extends CI_Controller
     echo json_encode($this->database->store_user_search($search, $user, $facets));
   }
 
+  public function statsclient()
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+    $typ  = $this->input->post('typ');
+    $uri  = $this->input->post('link');
+    $tot  = $this->input->post('total');
+
+    // Check params
+    if ( $typ == "" )    return ($this->ajaxreturn("400","typ is missing"));
+    if ( $uri == "" )    return ($this->ajaxreturn("400","uri is missing"));
+    if ( $tot == "" )    return ($this->ajaxreturn("400","tot is missing"));
+
+    // Set stats
+    $this->stats(ucfirst($typ) . "_" . parse_url($uri,PHP_URL_HOST),$tot);
+
+    // Return 
+    echo json_encode(0);
+  }  
+
     
   // ********************************************
   // *********** LBS-Functions (AJAX) ***********
@@ -1049,7 +1094,7 @@ class Vzg_controller extends CI_Controller
   // ********************************************
   // ********** Database-Functions **************
   // ********************************************
-  public function stats($name)
+  public function stats($name, $total=false)
   {
     // Check params
     if ( $name == "" ) return (-1);
@@ -1058,7 +1103,7 @@ class Vzg_controller extends CI_Controller
     // Ensure required interfaces
     $this->ensureInterface(array("config","database"));
 
-    return ($this->database->stats($name));
+    return ($this->database->stats($name, $total));
   }
 
   public function counter($name, $global=true)

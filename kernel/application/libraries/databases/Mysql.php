@@ -303,16 +303,24 @@ class Mysql extends General
     return ($this->CI->db->get()->row()->value);
   }
 
-  public function stats($name)
+  public function stats($name, $total)
   {
     $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
     if ( $name == "" || $iln == "" )  return (-1);
 
-    $Hour = date('H');
-
     $this->CI->db->reset_query();
-    $this->CI->db->query("insert into stats_library (iln, area, day, hour_" . $Hour . ") values (" . $iln . ", '" . $name . "','" . date("y-m-d") . "', 1) ON DUPLICATE KEY UPDATE hour_" . $Hour . "=hour_" . $Hour . "+1");
-
+    if ( $total )
+    {
+      // Storage per month
+      $Month = date('m');
+      $this->CI->db->query("insert into stats_year_library (iln, area, year, month_" . $Month . ") values (" . $iln . ", '" . $name . "'," . date('Y') . ", 1) ON DUPLICATE KEY UPDATE month_" . $Month . "=month_" . $Month . "+1");
+    }
+    else
+    {
+      // Storage per day / hour
+      $Hour = date('H');
+      $this->CI->db->query("insert into stats_library (iln, area, day, hour_" . $Hour . ") values (" . $iln . ", '" . $name . "','" . date("y-m-d") . "', 1) ON DUPLICATE KEY UPDATE hour_" . $Hour . "=hour_" . $Hour . "+1");
+    }
     return (0);
   }
 }

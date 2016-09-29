@@ -1,5 +1,22 @@
 # Changelog
 
+29.09.2016
+1. Assistant: Quotations marks added
+2.            Spaces removed
+3. Search:    Added quotation marks
+4.            Series search improved
+5. Updates:   jQuery 3.1.1
+              Dialog 1.35.3
+
+28.09.2016
+1. Speedy LinkResolver added
+2. Stats external Links added
+3. Stats Clientsize / OS added
+4. Yearly Stat added
+5. Automatic search removed when starting the assistant
+
+###V41
+
 **26.09.2016**
 1. Corrected "unknown"-DAIA-Date
 2. MySQL Driver update

@@ -18,7 +18,7 @@ $Output .= "<li role='presentation' class='active'><a href='#title_" . $this->dl
 $Output .= "<li role='presentation'><a href='#author_" . $this->dlgid . "' aria-controls='p2' role='tab' data-toggle='tab'>" . $this->CI->database->code2text('Author') . "</a></li>";
 $Output .= "<li role='presentation'><a href='#subject_" . $this->dlgid . "' aria-controls='p3' role='tab' data-toggle='tab'>" . $this->CI->database->code2text('Subject') . "</a></li>";
 $Output .= "<li role='presentation'><a href='#class_" . $this->dlgid . "' aria-controls='p4' role='tab' data-toggle='tab'>" . $this->CI->database->code2text('Class') . "</a></li>";
-$Output .= "<li role='presentation'><a href='#toc_" . $this->dlgid . "' aria-controls='p5' role='tab' data-toggle='tab'>" . $this->CI->database->code2text('TOC') . "</a></li>";
+$Output .= "<li role='presentation'><a href='#contents_" . $this->dlgid . "' aria-controls='p5' role='tab' data-toggle='tab'>" . $this->CI->database->code2text('TOC') . "</a></li>";
 $Output .= "<li role='presentation'><a href='#year_" . $this->dlgid . "' aria-controls='p6' role='tab' data-toggle='tab'>" . $this->CI->database->code2text('Year') . "</a></li>";
 $Output .= "<li role='presentation'><a href='#publisher_" . $this->dlgid . "' aria-controls='p7' role='tab' data-toggle='tab'>" . $this->CI->database->code2text('Publisher') . "</a></li>";
 $Output .= "<li role='presentation'><a href='#isn_" . $this->dlgid . "' aria-controls='p8' role='tab' data-toggle='tab'>" . $this->CI->database->code2text('ISN') . "</a></li>";
@@ -54,7 +54,7 @@ $Output .= "</div>";
 // ****** Ende Tab 4 ******
 
 // ****** Start Tab 5 ******
-$Output .= "<div role='tabpanel' class='tab-pane fade' id='toc_" . $this->dlgid . "'>";
+$Output .= "<div role='tabpanel' class='tab-pane fade' id='contents_" . $this->dlgid . "'>";
 $Output .= "<textarea class='form-control' rows='5'></textarea>";
 $Output .= "</div>";
 // ****** Ende Tab 5 ******

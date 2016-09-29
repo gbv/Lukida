@@ -206,7 +206,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
             <span class="input-group-btn" style="width:1%;">
               <button type="submit" class="startsearch btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Suche starten" data-container="body"><span class="glyphicon glyphicon-search"></span></button>
               <?php if ( $Assistant ) { ?>
-                <button onClick="javascript:$.open_assistant();" class="btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Assistent" data-container="body"><span class="glyphicon glyphicon-question-sign"></span></button>
+                <button onClick="javascript:$.open_assistant();" class="btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" type="button" title="Assistent" data-container="body"><span class="glyphicon glyphicon-question-sign"></span></button>
               <?php } ?>
             </span>
 
@@ -401,7 +401,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
               <span class="input-group-btn" style="width:1%;">
                 <button type="submit" class="startsearch btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Suche starten" data-container="body"><span class="glyphicon glyphicon-search"></span></button>
                 <?php if ( $Assistant ) { ?>
-                  <button onClick="javascript:$.open_assistant();" class="btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Assistent" data-container="body"><span class="glyphicon glyphicon-question-sign"></span></button>
+                  <button onClick="javascript:$.open_assistant();" class="btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" type="button" title="Assistent" data-container="body"><span class="glyphicon glyphicon-question-sign"></span></button>
                 <?php } ?>
               </span>
 
