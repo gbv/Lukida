@@ -395,7 +395,7 @@ class Findex extends AbstractSolrSearchService implements SearchService
 
 
     // Store query in file
-    $this->CI->appendFile("EDisMax.txt", "http://" . $this->config["hostname"] . "/" . $this->config["path"] . "/select?" . $dismaxQuery);
+    // $this->CI->appendFile("EDisMax.txt", "http://" . $this->config["hostname"] . "/" . $this->config["path"] . "/select?" . $dismaxQuery);
 
     // Execute query
     $query_response = $client->query($dismaxQuery);
