@@ -1,4 +1,8 @@
 # Changelog
+30.09.2016
+1. Assistant: Title search improved
+2.            Year search improved
+3.            ISN search improved
 
 29.09.2016
 1. Assistant: Quotations marks added

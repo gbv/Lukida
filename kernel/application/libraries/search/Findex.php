@@ -120,6 +120,21 @@ class Findex extends AbstractSolrSearchService implements SearchService
           case "reihe":
             $MainSearch .= "(series:\"" . $Phrases[0] . "\" OR series2:\"" . $Phrases[0] . "\")";
             break;
+          case "subject":
+          case "schlagwort":
+            $MainSearch .= "(topic:\"" . $Phrases[0] . "\" OR topic_unstemmed:\"" . $Phrases[0] . "\")";
+            break;
+          case "isn":
+            $MainSearch .= "(issn:\"" . $Phrases[0] . "\" OR isbn:\"" . $Phrases[0] . "\")";
+            break;
+          case "title":
+          case "titel":
+            $MainSearch .= "(title_short:\"" . $Phrases[0] . "\" OR title_full_unstemmed:\"" . $Phrases[0] . "\" OR title_full:\"" . $Phrases[0] . "\" OR title:\"" . $Phrases[0] . "\")";
+            break;
+          case "jahr":
+          case "year":
+            $MainSearch .= "(publishDate:\"" . $Phrases[0] . "\")";
+            break;
           default:
             $MainSearch .= $CType . ":\"" . $Phrases[0] . "\"";
         }
@@ -137,6 +152,26 @@ class Findex extends AbstractSolrSearchService implements SearchService
           case "reihe":
             $MainSearch .= "(series:\"" .  implode("\" OR series:\"", $Phrases) . "\" OR "
                          . " series2:\"" . implode("\" OR series2:\"",$Phrases) . "\")";
+            break;
+          case "subject":
+          case "schlagwort":
+            $MainSearch .= "(topic:\"" .           implode("\" OR topic:\"", $Phrases) . "\" OR "
+                         . " topic_unstemmed:\"" . implode("\" OR topic_unstemmed:\"",$Phrases) . "\")";
+            break;
+          case "isn":
+            $MainSearch .= "(issn:\"" . implode("\" OR issn:\"", $Phrases) . "\" OR "
+                         . " ibsn:\"" . implode("\" OR ibsn:\"",$Phrases) . "\")";
+            break;
+          case "title":
+          case "titel":
+            $MainSearch .= "(title_short:\"" .          implode("\" OR title_short:\"", $Phrases) . "\" OR "
+                         . " title_full_unstemmed:\"" . implode("\" OR title_full_unstemmed:\"",$Phrases) . "\" OR "
+                         . " title_full:\"" .           implode("\" OR title_full:\"",$Phrases) . "\" OR "
+                         . " title:\"" .                implode("\" OR title:\"",$Phrases) . "\")";
+            break;
+          case "jahr":
+          case "year":
+            $MainSearch .= "(publishDate:\"" . implode("\" OR publishDate:\"", $Phrases) . "\")";
             break;
           default:
             $MainSearch .= "(" . $CType . ":\"" . implode("\" OR " . $CType . ":\"",$Phrases) . "\")";
@@ -360,7 +395,7 @@ class Findex extends AbstractSolrSearchService implements SearchService
 
 
     // Store query in file
-    // $this->CI->appendFile("EDisMax.txt", "http://" . $this->config["hostname"] . "/" . $this->config["path"] . "/select?" . $dismaxQuery);
+    $this->CI->appendFile("EDisMax.txt", "http://" . $this->config["hostname"] . "/" . $this->config["path"] . "/select?" . $dismaxQuery);
 
     // Execute query
     $query_response = $client->query($dismaxQuery);
