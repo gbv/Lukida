@@ -450,23 +450,23 @@ class Vzg_controller extends CI_Controller
 
     // Set Screen Resolution Stat
     if ( isset($screen['Width']) && $screen['Width'] != "" && isset($screen['Height']) && $screen['Height'] != "")
-      $this->stats("Screen_" . $screen['Width'] . "x" . $screen['Height'], true);
+      $this->stats("Screen_" . $screen['Width'] . "x" . $screen['Height'], "year");
 
     // Set Browser & Version Stat
     if ( isset($platform['name']) && $platform['name'] != "" && isset($platform['version']) && $platform['version'] != "")
-      $this->stats("Browser_" . $platform['name'] . " " . substr($platform['version'],0,strpos($platform['version'],".")), true);
+      $this->stats("Browser_" . $platform['name'] . " " . substr($platform['version'],0,strpos($platform['version'],".")), "year");
 
     // Set Render Stat
     if ( isset($platform['layout']) && $platform['layout'] != "" )
-      $this->stats("Render_" . $platform['layout'], true);
+      $this->stats("Render_" . $platform['layout'], "year");
 
     // Set Product Stat
     if ( isset($platform['manufacturer']) && $platform['manufacturer'] != "" && isset($platform['product']) && $platform['product'] != "")
-      $this->stats("Product_" . $platform['manufacturer'] . "_" . $platform['product'], true);
+      $this->stats("Product_" . $platform['manufacturer'] . "_" . $platform['product'], "year");
 
     // Set OS Name & Version Stat
     if ( ( $Tmp = implode("_",array_values((array)$platform['os']))) != "" )
-      $this->stats("OS_" . $Tmp, true);
+      $this->stats("OS_" . $Tmp, "year");
 
     // Return data in jsonformat
     echo json_encode($container);
@@ -947,16 +947,18 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $typ  = $this->input->post('typ');
-    $uri  = $this->input->post('link');
-    $tot  = $this->input->post('total');
+    $name = $this->input->post('name');
+    $tot  = $this->input->post('range');
 
     // Check params
-    if ( $typ == "" )    return ($this->ajaxreturn("400","typ is missing"));
-    if ( $uri == "" )    return ($this->ajaxreturn("400","uri is missing"));
-    if ( $tot == "" )    return ($this->ajaxreturn("400","tot is missing"));
+    if ( $typ == "" )  return ($this->ajaxreturn("400","typ is missing"));
+    if ( $name == "" ) return ($this->ajaxreturn("400","name is missing"));
+    if ( $tot == "" )  return ($this->ajaxreturn("400","range is missing"));
+
+    $name = ( $typ == "Link" ) ? parse_url($name,PHP_URL_HOST) : trim($name);
 
     // Set stats
-    $this->stats(ucfirst($typ) . "_" . parse_url($uri,PHP_URL_HOST),$tot);
+    $this->stats(ucfirst($typ) . "_" . $name, $tot);
 
     // Return 
     echo json_encode(0);
@@ -1094,7 +1096,7 @@ class Vzg_controller extends CI_Controller
   // ********************************************
   // ********** Database-Functions **************
   // ********************************************
-  public function stats($name, $total=false)
+  public function stats($name, $total="day")
   {
     // Check params
     if ( $name == "" ) return (-1);
@@ -1138,7 +1140,11 @@ class Vzg_controller extends CI_Controller
     $_SESSION["data"]["search"]	= $search;
 
     // Invoke database, store search 
-    $this->database->log_search($search);
+    if ( trim($search) != "*" && trim($search) != "" 
+      && substr(trim($search),0,3) !== "id:" && substr(trim($search),0,8) !== "ppnlink:" )
+    {
+      $this->stats("Search_" . $search,"month");
+    }
 
     // Invoke index system
     $container = $this->searchService->search($search, $package, $facets);

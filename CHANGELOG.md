@@ -1,49 +1,74 @@
 # Changelog
-30.09.2016
-1. Assistant: Title search improved
-2.            Year search improved
-3.            ISN search improved
 
-29.09.2016
-1. Assistant: Quotations marks added
-2.            Spaces removed
-3. Search:    Added quotation marks
-4.            Series search improved
-5. Updates:   jQuery 3.1.1
-              Dialog 1.35.3
+**17.10.2016**
+* Stats
+    * Old Table Search_Log redesigned to stats_monthly_library
+    * Now Search phrases are stored on a daily basis.
+    * Facets clicks are now counted as well
+* Updates
+    * NoUISlider 9.0.0
+* Scripts
+    * MySQL Import script changed to compact mode
 
-28.09.2016
-1. Speedy LinkResolver added
-2. Stats external Links added
-3. Stats Clientsize / OS added
-4. Yearly Stat added
-5. Automatic search removed when starting the assistant
+**30.09.2016**
+* Assistant
+    * Title search improved
+    * Year search improved
+    * ISN search improved
+
+**29.09.2016**
+* Assistant
+    * Quotations marks added
+    * Spaces removed
+* Search
+    * Added quotation marks
+    * Series search improved
+* Updates
+    * jQuery 3.1.1
+    * Dialog 1.35.3
+
+**28.09.2016**
+* New features
+    * Speedy LinkResolver added
+* Stats
+    * External Links added
+    * Clientsize / OS added
+    * Yearly Stat added
+* Resolved bugs
+    * Automatic search removed when starting the assistant
 
 ###V41
 
 **26.09.2016**
-1. Corrected "unknown"-DAIA-Date
-2. MySQL Driver update
-3. Resolved bug: Stored searches
-4. Resolved bug: Mail from Adress
-5. Login: Trim username & password
+* Updates
+    * MySQL Driver  - Improved speed
+    * LBS Driver    - Corrected "unknown"-DAIA-Date* 
+* Resolved bugs
+    * Stored searches
+    * Mail from Adress
+    * Trim username & password during login
 
 **21.09.2016**
-1. Fullview Buttons dimmed until form is loaded
-2. Journals Online & Print (JOP) Link Resolver improved
+* New features
+    * Fullview Buttons dimmed until form is loaded
+    * Journals Online & Print (JOP) Link Resolver improved
 
 **19.09.2016**
-1. Assistent-Search for author now searches as well Marc 700-fields
-2. Bug Frontpage Search * solved
-3. Link resolver switches corrected
-4. Bug Exemple 980e=a solved
+* New features
+    * Assistent-Search for author now searches as well Marc 700-fields
+* Resolved Bugs
+    * Bug Frontpage Search * solved
+    * Link resolver switches corrected
+    * Bug Exemple 980e=a solved
 
 **15.09.2016**
-1. Bug Interne Suche korrigiert
+* Resolved Bugs
+    * Internal search improved
 
 **09.09.2016**
-1. Kleine Korrekturen an der Suche
-2. Assistent auch für die Frontpage
+* New features
+    * Search improvements
+    * Assistent also available for frontpage
 
 ###V 40
 1. Erweiterte Such-Logik Paket 1

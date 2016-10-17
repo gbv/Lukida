@@ -187,13 +187,6 @@ class Mysql extends General
     return ($Data);
   }
   
-  public function log_search($search)
-  {
-    $this->CI->db->reset_query();
-    $this->CI->db->query("insert into search_log (suche, anzahl, datumzeit) values ('" . $this->CI->db->escape_str($search) . "', 1,now()) ON DUPLICATE KEY UPDATE anzahl=anzahl+1,datumzeit=now()");
-    return 0;
-  }
-
   public function store_user_search($search,$user,$facets)
   {
     $this->CI->db->reset_query();
@@ -303,23 +296,35 @@ class Mysql extends General
     return ($this->CI->db->get()->row()->value);
   }
 
-  public function stats($name, $total)
+  public function stats($name, $total = "day")
   {
     $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
     if ( $name == "" || $iln == "" )  return (-1);
 
     $this->CI->db->reset_query();
-    if ( $total )
+    switch ($total)
     {
-      // Storage per month
-      $Month = date('m');
-      $this->CI->db->query("insert into stats_year_library (iln, area, year, month_" . $Month . ") values (" . $iln . ", '" . $name . "'," . date('Y') . ", 1) ON DUPLICATE KEY UPDATE month_" . $Month . "=month_" . $Month . "+1");
-    }
-    else
-    {
-      // Storage per day / hour
-      $Hour = date('H');
-      $this->CI->db->query("insert into stats_library (iln, area, day, hour_" . $Hour . ") values (" . $iln . ", '" . $name . "','" . date("y-m-d") . "', 1) ON DUPLICATE KEY UPDATE hour_" . $Hour . "=hour_" . $Hour . "+1");
+      case "year":
+      {
+        // Storage per year / month
+        $Month = date('m');
+        $this->CI->db->query("insert into stats_year_library (iln, area, year, month_" . $Month . ") values (" . $iln . ", '" . $name . "'," . date('Y') . ", 1) ON DUPLICATE KEY UPDATE month_" . $Month . "=month_" . $Month . "+1");
+        break;
+      }
+      case "month":
+      {
+        // Storage per month / day
+        $Day = date('d');
+        $this->CI->db->query("insert into stats_month_library (iln, area, month, day_" . $Day . ") values (" . $iln . ", '" . $this->CI->db->escape_str($name) . "','" . date('Y-m') . "', 1) ON DUPLICATE KEY UPDATE day_" . $Day . "=day_" . $Day . "+1");
+        break;
+      }
+      case "day":
+      default:
+      {
+        // Storage per day / hour
+        $Hour = date('H');
+        $this->CI->db->query("insert into stats_day_library (iln, area, day, hour_" . $Hour . ") values (" . $iln . ", '" . $name . "','" . date("y-m-d") . "', 1) ON DUPLICATE KEY UPDATE hour_" . $Hour . "=hour_" . $Hour . "+1");
+      }
     }
     return (0);
   }
