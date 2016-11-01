@@ -34,6 +34,11 @@ html {
     vertical-align: top;
 }
 
+.icon_datapool
+{
+  width: 100px;
+}
+
 @media (max-width:766px)
 {
   .preview-first-col

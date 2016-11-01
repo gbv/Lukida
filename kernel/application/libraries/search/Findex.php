@@ -337,10 +337,10 @@ class Findex extends AbstractSolrSearchService implements SearchService
         {
           case "datapool":
           {
-            if ( isset($_SESSION["iln"]) && $value == "local" )
+            if ( $value != "global" && isset($_SESSION["config_discover"]["datapoolfilter"][$value]) )
             {
               $dismaxQuery
-              ->addFilterQuery('collection_details:GBV_ILN_' . $_SESSION['iln']);
+              ->addFilterQuery($_SESSION["config_discover"]["datapoolfilter"][$value]);
             }
             break;
           }

@@ -1,5 +1,25 @@
 # Changelog
 
+**31.10.2016**
+* Updates
+    * CodeIgniter 3.1.2
+* Resolved bugs
+    * Yearrange dragable
+    * Frontpage-Assistant corrected
+* Search
+    * Automatically added a space after a colon ',' -> ', '
+
+**25.10.2016**
+* Cleanup
+    * Removed Theme-Cookie 
+    * Removed Theme Button
+    * Removed Bootstrap Themes
+* Search
+    * Added dynamic datapool (see discover.ini)
+* Updates
+    * CodeIgniter 3.1.1
+    * FontAwesome 4.7.0
+
 **17.10.2016**
 * Stats
     * Old Table Search_Log redesigned to stats_monthly_library

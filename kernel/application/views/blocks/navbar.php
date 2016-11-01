@@ -15,12 +15,6 @@ if (isset($_SESSION["config_discover"]["discover"]["devmode"])
   }
 }
 
-$ThemeMode     = (isset($_SESSION["config_discover"]["dev"]["thememode"]) 
-                     && $_SESSION["config_discover"]["dev"]["thememode"] == "1" ) 
-               ? true : false;
-$ThemeCustomer = (isset($_SESSION["config_general"]["theme"]["theme"]) 
-                     && $_SESSION["config_general"]["theme"]["theme"] != "" ) 
-               ? $_SESSION["config_general"]["theme"]["theme"] : "";
 $FacetDataPool = (isset($_SESSION["config_" . $modul]["navbar"]["facet_datapool"]) 
                      && $_SESSION["config_" . $modul]["navbar"]["facet_datapool"] == "1" ) 
                ? true : false;
@@ -88,45 +82,6 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
               <li class="hidden-sm hidden-md"><a class="col4" href="javascript:void(0)" data-value= "3"> </a></li>
             </ul>
           </div>
-
-          <?php if ( $ThemeMode ) { ?>
-            <!-- Theme -->
-            <div class="btn-group">
-              <button type='button' class='selecttheme btn dropdown-toggle navbar-button-color' data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Optik ausw&auml;hlen" data-container="body">
-                <i class="fa fa-eye"></i>
-                <span class="caret"></span>
-                <span class="sr-only">Toggle Dropdown</span>
-              </button>
-              <ul class="dropdown-menu theme" role="menu">
-                <?php
-                if ( $ThemeCustomer != "" )
-                {
-                  echo "<li><a href='#' data-type='customer' data-rel='" . strtolower($ThemeCustomer) . "'>" . ucfirst($ThemeCustomer) . "</a></li>";
-                  echo "<li class='divider'></li>";
-                }
-                ?>
-                <li><a href="javascript:void(0)" data-type="system" data-rel="vzg">VZG</a></li>
-                <li class="divider"></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="bootstrap-theme">Bootstrap</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="cerulean">Cerulean</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="cosmo">Cosmo</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="cyborg">Cyborg</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="darkly">Darkly</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="flatly">Flatly</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="journal">Journal</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="lumen">Lumen</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="paper">Paper</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="readable">Readable</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="sandstone">Sanstone</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="simplex">Simplex</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="slate">Slate</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="spacelab">Spacelab</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="superhero">Superhero</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="united">United</a></li>
-                <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="yeti">Yeti</a></li>
-              </ul>
-            </div>
-          <?php } ?>
         </div>
 
         <!-- Favorites -->
@@ -181,22 +136,16 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
             <div class="input-group-btn" style="width:1%;">
               <div class="btn-group dropdown">
                 <button type='button' class='selectdatapool btn btn-lg dropdown-toggle navbar-button-color' data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Bestand ausw&auml;hlen" data-container="body">
-                    <span class="datapoollocal <?php if ( $_SESSION["filter"]["datapool"]=="global" ) echo " hide"; ?>"><i class="fa fa-map-marker"> </i> <span class="lang_datapoollocal">  <?php echo $_SESSION["language_".$_SESSION["language"]]["DATAPOOLLOCAL"]; ?></span></span>
-                    <span class="datapoolglobal <?php if ( $_SESSION["filter"]["datapool"]=="local" ) echo " hide"; ?>"><i class="fa fa-globe"> </i> <span class="lang_datapoolglobal"> <?php echo $_SESSION["language_".$_SESSION["language"]]["DATAPOOLGLOBAL"]; ?> </span></span>
+
+                  <?php 
+                    echo "<span class='icon_datapool'><i class='" . $_SESSION["config_discover"]["datapoolicons"][$_SESSION["filter"]["datapool"]] . "'></i> </span>";
+                    echo "<span class='lang_datapool'>" . $_SESSION["language_".$_SESSION["language"]]["DATAPOOL" . strtoupper($_SESSION["filter"]["datapool"])] . "</span>";
+                  ?>
                   <span class="caret"></span>
                   <span class="sr-only">Toggle Dropdown</span>
+
                 </button>
                 <ul class="dropdown-menu facetpool" role="menu">
-                  <li>
-                    <a href="javascript:void(0)" data-icon="fa fa-map-marker" data-text="Diese Bibliothek" data-value="local">
-                      <i class="fa fa-map-marker"></i> <span class="lang_datapoollocal"> </span>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="javascript:void(0)" data-icon="fa fa-globe" data-text="Alle Bibliotheken" data-value="global">
-                      <i class="fa fa-globe"></i> <span class="lang_datapoolglobal"> </span>
-                    </a>
-                  </li>
                 </ul>
               </div>
             </div>
@@ -309,50 +258,6 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
                 <li class="hidden-sm hidden-md"><a class="col4" href="javascript:void(0)" data-value= "3"> </a></li>
               </ul>
             </div>
-
-            <?php
-            if ( $ThemeMode )
-            {
-              ?>
-              <!-- Theme -->
-              <div class="btn-group">
-                <button type='button' class='selecttheme btn dropdown-toggle navbar-button-color' data-toggle="dropdown"  data-tooltip="tooltip" data-placement="left" title="Optik ausw&auml;hlen" data-container="body">
-                  <i class="fa fa-eye"></i>
-                  <span class="caret"></span>
-                  <span class="sr-only">Toggle Dropdown</span>
-                </button>
-                <ul class="dropdown-menu theme" role="menu">
-                  <?php
-                  if ( $ThemeCustomer != "" )
-                  {
-                    echo "<li><a href='#' data-type='customer' data-rel='" . strtolower($ThemeCustomer) . "'>" . ucfirst($ThemeCustomer) . "</a></li>";
-                    echo "<li class='divider'></li>";
-                  }
-                  ?>
-                  <li><a href="javascript:void(0)" data-type="system" data-rel="vzg">VZG</a></li>
-                  <li class="divider"></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="bootstrap-theme">Bootstrap</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="cerulean">Cerulean</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="cosmo">Cosmo</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="cyborg">Cyborg</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="darkly">Darkly</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="flatly">Flatly</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="journal">Journal</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="lumen">Lumen</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="paper">Paper</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="readable">Readable</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="sandstone">Sanstone</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="simplex">Simplex</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="slate">Slate</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="spacelab">Spacelab</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="superhero">Superhero</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="united">United</a></li>
-                  <li><a href="javascript:void(0)" data-type="bootstrap" data-rel="yeti">Yeti</a></li>
-                </ul>
-              </div>
-              <?php
-            }
-            ?>
           </div>
 
           <!-- Facetts -->
@@ -377,22 +282,13 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
               <div class="input-group-btn" style="width:1%;">
                 <div class="btn-group dropdown">
                   <button type='button' class='selectdatapool btn btn-lg dropdown-toggle navbar-button-color' data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Bestand ausw&auml;hlen" data-container="body">
-                    <span class="datapoollocal <?php if ( $_SESSION["filter"]["datapool"]!="local" ) echo " hide"; ?>"><i class="fa fa-map-marker"> </i> </span>
-                    <span class="datapoolglobal <?php if ( $_SESSION["filter"]["datapool"]=="local" ) echo " hide"; ?>"><i class="fa fa-globe"> </i> </span>
-                    <span class="caret"></span>
-                    <span class="sr-only">Toggle Dropdown</span>
+
+                  <?php 
+                    echo "<span class='icon_datapool'><i class='" . $_SESSION["config_discover"]["datapoolicons"][$_SESSION["filter"]["datapool"]] . "'></i> ";
+                  ?>
+
                   </button>
                   <ul class="dropdown-menu facetpool" role="menu">
-                    <li>
-                      <a href="javascript:void(0)" data-icon="fa fa-map-marker" data-text="" data-value="local">
-                        <i class="fa fa-map-marker"></i> <span class="lang_datapoollocal"></span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="javascript:void(0)" data-icon="fa fa-globe" data-text="" data-value="global">
-                        <i class="fa fa-globe"></i> <span class="lang_datapoolglobal"></span>
-                      </a>
-                    </li>
                   </ul>
                 </div>
               </div>

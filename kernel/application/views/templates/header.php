@@ -18,32 +18,14 @@
     }
 
     $configtheme = ( isset($_SESSION["config_general"]["theme"]["theme"]) && $_SESSION["config_general"]["theme"]["theme"] != "" ) ? $_SESSION["config_general"]["theme"]["theme"] : "";
-    
-    $themeinfo = ($configtheme != "") ? array("customer", $configtheme) : array("system", "vzg");
 
-    // Check Cookie in multiple theme mode
-    if ( isset($_SESSION["config_discover"]["dev"]["thememode"]) && $_SESSION["config_discover"]["dev"]["thememode"] == "1" )
-    {
-      // Read Cookie
-      $cookietheme = get_cookie("theme");
-      $cookiearray = explode("|",$cookietheme);
-      
-      // Ensure correct customer theme
-      if ( count($cookiearray) == 2 )
-      {
-        if ( $cookiearray[0] == "customer" && $cookiearray[1] != $configtheme )
-        {
-          $cookiearray[1] = $configtheme;
-        }
-        $themeinfo = $cookiearray;
-      }
-    }
+    $themeinfo = ($configtheme != "") ? array("customer", $configtheme) : array("system", "lukida");
 
     // Laden der Systemmodule
     $cssmodules = ( $front && isset($_SESSION["config_system"]["frontcss"]) ) ? $_SESSION["config_system"]["frontcss"] : $_SESSION["config_system"]["systemcss"];
     foreach ( $cssmodules as $value )
     {
-      if ( stripos($value, "bootstrap-theme.min.cs") !== false && count($themeinfo) == 2 )
+      if ( stripos($value, "bootstrap-theme.min.cs") !== false )
       {
      		if ( $themeinfo[0] == "customer" )
     		{
@@ -53,10 +35,6 @@
     		{
           $link = "/systemassets/lukida/css/" . $themeinfo[1] . ".css";
 		    }
-		    elseif ( $themeinfo[0] == "bootstrap" )
-		    {
-          $link = "/systemassets/" . str_replace("bootstrap-theme.min.cs", $themeinfo[1].".min.cs", $value);
-        }
         echo "<link id='activetheme' rel='stylesheet' href='" . base_url($link) . "'>";
       }
       else

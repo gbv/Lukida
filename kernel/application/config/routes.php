@@ -85,6 +85,9 @@ $route['exportfile/(:any)/(:any)']         = 'Vzg_controller/exportfile/$1/$2';
 
 // NoJavaScript                               
 $route['nojavascript']                     = 'Vzg_controller/nojavascript';
+
+// Library Module
+$route['librarymodule']                    = 'Vzg_controller/view/library';
                                            
 // One Page Calls                          
 $route['(:any)/(:any)']                    = 'Vzg_controller/directopen/$1/$2';

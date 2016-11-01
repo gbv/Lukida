@@ -27,10 +27,7 @@ class Vzg_controller extends CI_Controller
     // Load Session Library
     $this->load->library('session');
 
-    // Load Cookie Library
-    $this->load->helper('cookie');
-
-    // Load URL Library
+        // Load URL Library
     $this->load->helper('url');
 
     // Load General Library
@@ -175,7 +172,7 @@ class Vzg_controller extends CI_Controller
   // *********** Interface-Functions ************
   // ********************************************
   
-  private function ensureInterface($Interfaces, $Modul = "")
+  private function ensureInterface($Interfaces)
   {
     if ( ! is_array($Interfaces) )
     {
@@ -183,60 +180,74 @@ class Vzg_controller extends CI_Controller
     }
     if ( ! isset($_SESSION["interfaces"]) ) $_SESSION["interfaces"]  = array();
 
+    // Remove already checked interfaces from desired interfaces
+    $Interfaces = array_diff($Interfaces, array_keys($_SESSION["interfaces"]));
+
+    // Loop over open interfaces
     foreach ( $Interfaces as $Int )
     {
       switch ( strtolower($Int) )
       {
         case "config";
         {
-          if ( isset($_SESSION["interfaces"]["config"]) && $_SESSION["interfaces"]["config"] == 1 && $Modul != "" && $Modul != $this->module ) continue;
+          // Avoid multiple Configs
+          if ( isset($_SESSION["interfaces"]["config"]) && $_SESSION["interfaces"]["config"] == 1 ) break;
+
           // Load configuration from ini-files
           $this->load_check_system_config();
           $this->load_check_general_config();
-          $this->load_languages();
-          if (!isset($_SESSION["translation_ger"]))  $_SESSION["translation_ger"] = array();
-          if (!isset($_SESSION["translation_eng"]))  $_SESSION["translation_eng"] = array();
-          
-          if ( $Modul == "" && count($this->modules)>0 )
-          {
-            $Modul = $this->modules[0];
-          }
-          else
-          {
-            // Whoops, we don't have a page for that!
-            show_404();
-          }
-          $this->module = $Modul;
-          $this->load_check_module_config($Modul);
-
-          if ( ! isset($_SESSION["internal"]["marc"]) )   $_SESSION["internal"]["marc"]		= (isset($_SESSION["config_discover"]["dev"]["devmode"]) && $_SESSION["config_discover"]["dev"]["devmode"] == "1" ) ? 1 : 0;
-          if ( ! isset($_SESSION["internal"]["daia"]) )   $_SESSION["internal"]["daia"]		= (isset($_SESSION["config_discover"]["dev"]["devmode"]) && $_SESSION["config_discover"]["dev"]["devmode"] == "1" ) ? 1 : 0;
-          if ( ! isset($_SESSION["internal"]["paia"]) )   $_SESSION["internal"]["paia"]		= (isset($_SESSION["config_discover"]["dev"]["devmode"]) && $_SESSION["config_discover"]["dev"]["devmode"] == "1" ) ? 1 : 0;
-
-          if ( ! isset($_SESSION["language"]) )           $_SESSION["language"]				    = (isset($_SESSION["config_general"]["general"]["language"]) && $_SESSION["config_general"]["general"]["language"] != "" ) ? $_SESSION["config_general"]["general"]["language"] : "ger";
-
-
-          if ( ! isset($_SESSION["filter"]["datapool"]) ) $_SESSION["filter"]["datapool"] = (isset($_SESSION["config_discover"]["discover"]["datapool"]) && $_SESSION["config_discover"]["discover"]["datapool"] != "" ) ? $_SESSION["config_discover"]["discover"]["datapool"] : "local";
-
-          if ( ! isset($_SESSION["speech_ger"]) )         $_SESSION["speech_ger"]         = array();
-          if ( ! isset($_SESSION["speech_eng"]) )         $_SESSION["speech_eng"]         = array();
-
-          if ( ! isset($_SESSION["layout"]) )             $_SESSION["layout"] 		        = (isset($_SESSION["config_discover"]["discover"]["layout"]) && $_SESSION["config_discover"]["discover"]["layout"] != "" ) ? $_SESSION["config_discover"]["discover"]["layout"] : 3;
-
-          if ( ! isset($_SESSION["statistics"]) )         $_SESSION["statistics"]         = (isset($_SESSION["config_discover"]["discover"]["statistics"]) && $_SESSION["config_discover"]["discover"]["statistics"] == 1 ) ? 1 : 0;
 
           // ILN mal vorhanden und mal nicht vorhanden
           if ( isset($_SESSION["config_general"]["general"]["iln"]) && $_SESSION["config_general"]["general"]["iln"] != "" )  $_SESSION["iln"] = $_SESSION["config_general"]["general"]["iln"];
 
+          // Also load ILN dependant translations
+          $this->load_languages(); // Wichtig für ersten Seitenaufbau
+          if (!isset($_SESSION["translation_ger"]))  $_SESSION["translation_ger"] = array();
+          if (!isset($_SESSION["translation_eng"]))  $_SESSION["translation_eng"] = array();
+          
+          if ( ! isset($_SESSION["language"]) )           $_SESSION["language"]           = (isset($_SESSION["config_general"]["general"]["language"]) && $_SESSION["config_general"]["general"]["language"] != "" ) ? $_SESSION["config_general"]["general"]["language"] : "ger";
+
+          if ( ! isset($_SESSION["speech_ger"]) )         $_SESSION["speech_ger"]         = array();
+          if ( ! isset($_SESSION["speech_eng"]) )         $_SESSION["speech_eng"]         = array();
+
           $_SESSION["interfaces"]["config"] = 1;
           break;
         }
+        case "discover":
+        {
+          // Avoid multiple Configs
+          if ( isset($_SESSION["interfaces"]["discover"]) && $_SESSION["interfaces"]["discover"] == 1 ) break;
+
+          $this->load_check_module_config("discover");
+
+          if ( ! isset($_SESSION["internal"]["marc"]) )   $_SESSION["internal"]["marc"]   = (isset($_SESSION["config_discover"]["dev"]["devmode"]) && $_SESSION["config_discover"]["dev"]["devmode"] == "1" ) ? 1 : 0;
+          if ( ! isset($_SESSION["internal"]["daia"]) )   $_SESSION["internal"]["daia"]   = (isset($_SESSION["config_discover"]["dev"]["devmode"]) && $_SESSION["config_discover"]["dev"]["devmode"] == "1" ) ? 1 : 0;
+          if ( ! isset($_SESSION["internal"]["paia"]) )   $_SESSION["internal"]["paia"]   = (isset($_SESSION["config_discover"]["dev"]["devmode"]) && $_SESSION["config_discover"]["dev"]["devmode"] == "1" ) ? 1 : 0;
+
+          if ( ! isset($_SESSION["filter"]["datapool"]) ) $_SESSION["filter"]["datapool"] = (isset($_SESSION["config_discover"]["discover"]["datapool"]) && $_SESSION["config_discover"]["discover"]["datapool"] != "" ) ? $_SESSION["config_discover"]["discover"]["datapool"] : "local";
+
+          if ( ! isset($_SESSION["layout"]) )             $_SESSION["layout"]             = (isset($_SESSION["config_discover"]["discover"]["layout"]) && $_SESSION["config_discover"]["discover"]["layout"] != "" ) ? $_SESSION["config_discover"]["discover"]["layout"] : 3;
+
+          if ( ! isset($_SESSION["statistics"]) )         $_SESSION["statistics"]         = (isset($_SESSION["config_discover"]["discover"]["statistics"]) && $_SESSION["config_discover"]["discover"]["statistics"] == 1 ) ? 1 : 0;
+
+          $_SESSION["interfaces"]["discover"] = 1;
+          break;
+        }
+        case "library":
+        {
+          // Avoid multiple Configs
+          if ( isset($_SESSION["interfaces"]["library"]) && $_SESSION["interfaces"]["library"] == 1 ) break;
+
+          $this->load_check_module_config("library");
+
+          $_SESSION["interfaces"]["library"] = 1;
+          break;
+        }        
         case "theme":
         {
           // Read theme config & load library
           $Theme	= (isset($_SESSION["config_general"]["theme"]["type"]) && $_SESSION["config_general"]["theme"]["type"] != "" ) ? $_SESSION["config_general"]["theme"]["type"] : "bootstrap";
           $this->load->library('themes/'.$Theme, "", "theme");
-          $_SESSION["interfaces"]["theme"] = 1;
           break;
         }
     
@@ -245,7 +256,6 @@ class Vzg_controller extends CI_Controller
           // Read database config & load library
           $Database	= (isset($_SESSION["config_general"]["database"]["type"]) && $_SESSION["config_general"]["database"]["type"] != "" ) ? $_SESSION["config_general"]["database"]["type"] : "mysql";
           $this->load->library('databases/'.$Database, "", "database");
-          $_SESSION["interfaces"]["database"] = 1;
           break;
         }
     
@@ -254,7 +264,7 @@ class Vzg_controller extends CI_Controller
           // Read record format & load library
           $RF	= (isset($_SESSION["config_general"]["record_format"]["type"]) && $_SESSION["config_general"]["record_format"]["type"] != "" ) ? $_SESSION["config_general"]["record_format"]["type"] : "marc21";
           $this->load->library('record_formats/'.$RF, "", "record_format");
-          $_SESSION["interfaces"]["record_format"] = 1;
+          //$_SESSION["interfaces"]["record_format"] = 1;
           break;
         }
 
@@ -263,20 +273,10 @@ class Vzg_controller extends CI_Controller
           // Read export config & load library
           $export	= (isset($_SESSION["config_general"]["export"]["type"]) && $_SESSION["config_general"]["export"]["type"] != "" ) ? $_SESSION["config_general"]["export"]["type"] : "standard";
           $this->load->library('exports/'.$export, "", "export");
-          $_SESSION["interfaces"]["export"] = 1;
           break;
         }
       }
     }
-
-    //$Status = true;
-    //foreach ( $_SESSION["interfaces"] as $Int )
-    //{
-    //  if ( $Status == true && $_SESSION["interfaces"][$Int] == 0 ) $Status = false;
-    //}
-    //$this->printArray2File($Interfaces);
-    //$this->printArray2File($_SESSION["interfaces"]);
-    //return $Status;
   }
 
   private function ensurePPN($PPN)
@@ -441,8 +441,12 @@ class Vzg_controller extends CI_Controller
       "language"        => $_SESSION["language"],
       "layout"          => $_SESSION["layout"],
       "datapool"        => $_SESSION["filter"]["datapool"],
+      "datapoolicons"  => isset($_SESSION["config_discover"]["datapoolicons"]) ? $_SESSION["config_discover"]["datapoolicons"] : array(),
       "time2warn" => (isset($_SESSION["config_general"]["lbs"]["time2warn"]) && $_SESSION["config_general"]["lbs"]["time2warn"] != "" ) ? $_SESSION["config_general"]["lbs"]["time2warn"]  : "",
-      "time2kill" => (isset($_SESSION["config_general"]["lbs"]["time2kill"]) && $_SESSION["config_general"]["lbs"]["time2kill"] != "" ) ? $_SESSION["config_general"]["lbs"]["time2kill"]  : ""
+      "time2kill" => (isset($_SESSION["config_general"]["lbs"]["time2kill"]) && $_SESSION["config_general"]["lbs"]["time2kill"] != "" ) ? $_SESSION["config_general"]["lbs"]["time2kill"]  : "",
+      "discover" => isset($_SESSION["discover"]) ? $_SESSION["discover"] : true,
+      "library" => isset($_SESSION["library"]) ? $_SESSION["library"] : false,
+      "producer" => isset($_SESSION["producer"]) ? $_SESSION["producer"] : false
     );
 
     // Set stats
@@ -465,7 +469,7 @@ class Vzg_controller extends CI_Controller
       $this->stats("Product_" . $platform['manufacturer'] . "_" . $platform['product'], "year");
 
     // Set OS Name & Version Stat
-    if ( ( $Tmp = implode("_",array_values((array)$platform['os']))) != "" )
+    if ( isset($platform['os']) && ( $Tmp = implode("_",array_values((array)$platform['os']))) != "" )
       $this->stats("OS_" . $Tmp, "year");
 
     // Return data in jsonformat
@@ -1224,7 +1228,7 @@ class Vzg_controller extends CI_Controller
     $_SESSION["data"]["theme"]	= $container;
     
     // Transfer records to file
-    // $this->printArray2File($container);      
+    //$this->printArray2File($container);      
 
     echo json_encode($container);
   }
@@ -1444,17 +1448,22 @@ class Vzg_controller extends CI_Controller
     $this->load->view(DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR . 'nojavascript');
   }
 
-  public function view($modul = "", $search="", $facets="")
+  public function view($modul="discover", $search="", $facets="")
   {
-    // Receive params
-
     // Check params
+
+
+    // Reset Configuration
+    if ( $modul != $this->module )  $_SESSION["interfaces"] = array();
+
+    // Receive params
+    $this->module = $modul;
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config",$this->module));
 
     // Set stats
     $this->stats("ViewInit");
-
-    // Ensure required interfaces
-    $this->ensureInterface("config",$modul);
 
     // Set params
     $param["modul"] = $this->module;
@@ -1463,7 +1472,7 @@ class Vzg_controller extends CI_Controller
 
     // Show Frontpage
     if ( isset($_SESSION["config_general"]["general"]["frontpage"]) && $_SESSION["config_general"]["general"]["frontpage"] == 1 
-       && $search == "" && $facets == "" )
+       && $search == "" && $facets == "" && $this->module == "discover" )
     {
       $param["front"] = true;
 
@@ -1517,7 +1526,7 @@ class Vzg_controller extends CI_Controller
     $search = str_replace("{colon}", ":", $search);
     
     // Call main method with parameters
-    $this->view("",$search,$facets);    
+    $this->view("discover",$search,$facets);    
   }  
 
 }
