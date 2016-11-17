@@ -113,7 +113,16 @@ switch (ENVIRONMENT)
   	$INI = parse_ini_file("../../version.ini",true);
   	if ( isset($INI["version"]["version"]) ) $VERSION = $INI["version"]["version"];
   }
-  define('KERNELVERSION', str_pad($VERSION,3,"0",STR_PAD_LEFT));
+  define('KERNELVERSION', $VERSION);
+
+  // Determine kernel subversion
+  $VERSION = "???";
+  if ( file_exists("../../version.ini"))
+  {
+  	$INI = parse_ini_file("../../version.ini",true);
+  	if ( isset($INI["version"]["subversion"]) ) $VERSION = $INI["version"]["subversion"];
+  }
+  define('KERNELSUBVERSION', $VERSION);
 
 
   // Determine library version
@@ -123,7 +132,7 @@ switch (ENVIRONMENT)
   	$INI = parse_ini_file("version.ini",true);
   	if ( isset($INI["version"]["version"]) ) $VERSION = $INI["version"]["version"];
   }
-  define('LIBRARYVERSION', str_pad($VERSION,3,"0",STR_PAD_LEFT));
+  define('LIBRARYVERSION', $VERSION);
 
 /*
  *---------------------------------------------------------------

@@ -285,7 +285,7 @@ class Vzg_controller extends CI_Controller
 
     if ( !isset($_SESSION["data"])  ||  ! array_key_exists($PPN, $_SESSION["data"]["results"]) )
     {
-       $this->internal_search("id:" . $PPN);
+       $this->internal_search("id", $PPN);
     }
     return (isset($_SESSION["data"]["results"][$PPN]) ? true : false );
   }
@@ -831,10 +831,22 @@ class Vzg_controller extends CI_Controller
     if ( $ppn == "" ) return ($this->ajaxreturn("400","PPN is missing"));
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","export"));
+    $this->ensureInterface(array("config","database","export"));
+
+    // Check link already resolved in database
+    $Resolved = $this->database->get_resolved_link($ppn);
+
+    //  Resolve New PPN
+    if ( $Resolved["status"] != "1" )
+    {
+      $Resolved["links"] = json_encode($this->export->linkresolver($ppn));
+
+      // Store resolved link ( even if empty )
+      $this->database->store_resolved_link($ppn, $Resolved["links"]);
+    }
 
     // Call export & Return data in jsonformat
-    echo json_encode($this->export->linkresolver($ppn));
+    echo $Resolved["links"];
   }
 
   public function exportlink()
@@ -1233,17 +1245,24 @@ class Vzg_controller extends CI_Controller
     echo json_encode($container);
   }
 
-  // Search media data (invoked by system without optical stuff)
-  public function internal_search($search)
+  // Search media data (invoked by system without optical stuff and includes caching)
+  public function internal_search($type, $ppn)
   {
     // Check params
-    if ( $search == "" ) return(-2);
+    if ( $type == "" || $ppn == "" ) return(-2);
+    $type = strtolower($type);
 
     // Set stats
-    $this->stats("Search_Internal");
+    $this->stats("Search_Internal_" . $type);
 
-    $container = $this->dosearch($search,"0",false);
-
+    if ( $type == "id" && isset($_SESSION["data"]["results"])  && array_key_exists($ppn, $_SESSION["data"]["results"]) )
+    {
+      $container = $_SESSION["data"]["results"][$ppn];
+    }
+    else
+    {
+      $container = $this->dosearch($type . ":" . $ppn,"0",false);
+    }
     return ($container);
   }
 

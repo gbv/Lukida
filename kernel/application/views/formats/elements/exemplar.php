@@ -397,7 +397,7 @@ function BestandLinks($Contents, $Medium, $CI)
   if ( $Format == "earticle" )
   {
     // Lese Eltern-Infos aus / Get MARC Parent
-    $ParentData = ( isset($Medium["parents"][0]) ) ? $CI->internal_search("id:".$Medium["parents"][0]) : array();
+    $ParentData = ( isset($Medium["parents"][0]) ) ? $CI->internal_search("id",$Medium["parents"][0]) : array();
     $ParentData = ( count($ParentData) > 0 && isset($ParentData["results"][$Medium["parents"][0]])) ? $ParentData["results"][$Medium["parents"][0]] : array();
 
     $Exemplar["label1"] = $CI->database->code2text("SEEPUBLISHED");
@@ -575,7 +575,7 @@ function BestandExemplare($CI, $Leader, $Contents, $Medium, $PPN)
 function BestandArtikel($CI, $Contents, $Medium)
 {
   // Get MARC Parent
-  $ParentMARC = ( isset($Medium["parents"][0]) ) ? $CI->internal_search("id:".$Medium["parents"][0]) : array();
+  $ParentMARC = ( isset($Medium["parents"][0]) ) ? $CI->internal_search("id",$Medium["parents"][0]) : array();
 
   $ParentLeader = ( count($ParentMARC) > 0 && isset($ParentMARC["results"][$Medium["parents"][0]]["leader"])) ? $ParentMARC["results"][$Medium["parents"][0]]["leader"] : "";
 
@@ -661,7 +661,7 @@ function GetRelatedPubs($CI, $T, $PPN, $Modus)
   // 2: Schriftenreihen
   
   $RelatedPubs = array();
-  $PPNLink = $CI->internal_search("ppnlink:".$PPN);
+  $PPNLink = $CI->internal_search("ppnlink",$PPN);
   if ( ! isset($PPNLink["results"]) ) return ($RelatedPubs);
 
   $PPNStg = json_encode(array_keys($PPNLink["results"]));
@@ -700,7 +700,7 @@ function GetIncludedPubs($CI, $T, $PPN)
 {
   // Zeitschriften mit Einzelheften
 
-  $PPNLink = $CI->internal_search("ppnlink:".$PPN);
+  $PPNLink = $CI->internal_search("ppnlink",$PPN);
   if ( ! isset($PPNLink["results"]) ) return ($Pubs);
 
   $PPNStg   = json_encode(array_keys($PPNLink["results"]));

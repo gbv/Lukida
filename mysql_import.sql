@@ -26,7 +26,7 @@ CREATE TABLE `counter` (
   `name` varchar(100) NOT NULL,
   `value` int(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -35,18 +35,27 @@ CREATE TABLE `counter_library` (
   `iln` int(10) NOT NULL,
   `value` int(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`name`,`iln`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `links_resolved_library` (
+  `ppn` varchar(20) NOT NULL,
+  `iln` int(10) NOT NULL,
+  `resolved` text NOT NULL,
+  PRIMARY KEY (`ppn`,`iln`)
+);
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `search_user` (
-  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `id` int(10) NOT NULL,
   `user` varchar(100) NOT NULL,
   `datumzeit` datetime NOT NULL,
   `suche` varchar(200) NOT NULL,
   `facetten` varchar(2000) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=83 DEFAULT CHARSET=utf8;
+);
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -78,8 +87,8 @@ CREATE TABLE `stats_day_library` (
   `hour_21` int(11) NOT NULL DEFAULT '0',
   `hour_22` int(11) NOT NULL DEFAULT '0',
   `hour_23` int(11) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`iln`,`area`,`day`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  PRIMARY KEY (`iln`,`area`,`day`)
+);
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -119,7 +128,7 @@ CREATE TABLE `stats_month_library` (
   `day_30` int(11) NOT NULL DEFAULT '0',
   `day_31` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`iln`,`area`,`month`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -140,7 +149,7 @@ CREATE TABLE `stats_year_library` (
   `month_11` int(11) NOT NULL DEFAULT '0',
   `month_12` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`iln`,`area`,`year`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -150,7 +159,7 @@ CREATE TABLE `translation_library` (
   `german` varchar(2000) DEFAULT NULL,
   `english` varchar(2000) DEFAULT NULL,
   PRIMARY KEY (`iln`,`shortcut`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -160,15 +169,15 @@ CREATE TABLE `words` (
   `datumzeit` datetime NOT NULL,
   PRIMARY KEY (`wort`),
   KEY `Zugriff` (`wort`,`anzahl`,`datumzeit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `words_unsolved` (
-  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `id` int(10) NOT NULL,
   `worte` text NOT NULL,
   `status` int(1) NOT NULL,
   `datumzeit` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=255225 DEFAULT CHARSET=utf8;
+);
 /*!40101 SET character_set_client = @saved_cs_client */;

@@ -1,4 +1,24 @@
 # Changelog
+**15.11.2016
+* New Lukida Version with three elements x.y.z and without leading zeros
+    * x Lukida Main Version
+    * y Lukida Sub Version (new!)
+    * z Lukida Library Version
+* Search
+    * Increased performance
+    * Auto Grid Systems now supports 3 columns again
+* Compatibility
+    * IOs Safari support 
+    * Added robots.txt
+    * Updated .htaccess
+* Link Resolver
+    * Increased performance 
+    * Added database storage
+* Resolved bugs
+    * URL shortened
+    * Link resolver called more often
+* Database
+    * Added table link_resolver_library
 
 **31.10.2016**
 * Updates

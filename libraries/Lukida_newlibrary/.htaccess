@@ -1,6 +1,9 @@
 <IfModule mod_rewrite.c>
 	RewriteEngine On
+	RewriteRule ^\.htaccess$ - [F]
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteCond %{REQUEST_URI} !robots.txt
+	RewriteCond %{REQUEST_URI} !favicon.ico
 	RewriteRule ^(.*)$ index.php/$1 [L]
 </IfModule>

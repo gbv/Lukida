@@ -255,7 +255,6 @@ class Mysql extends General
     return ($Data);
   }
 
-
   /**
   * System Counter Function
   *
@@ -328,4 +327,36 @@ class Mysql extends General
     }
     return (0);
   }
+
+  public function get_resolved_link($ppn)
+  {
+    $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
+    if ( $ppn == "" || $iln == "" )  return (-1);
+
+    $this->CI->db->reset_query();
+    $this->CI->db->select('resolved');
+    $this->CI->db->from('links_resolved_library');
+    $this->CI->db->where('iln',$iln);
+    $this->CI->db->where('ppn',$ppn);
+    $this->CI->db->limit(1);
+    $results = $this->CI->db->get();
+
+    if ( isset($results->result_array()[0]["resolved"]) )
+    {
+      return array("status" => 1, "links" => $results->result_array()[0]["resolved"]);
+    }
+    else
+    {
+      return array("status" => -1, "links" => array());
+    }
+  }
+
+  public function store_resolved_link($ppn, $links)
+  {
+    $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
+    if ( $ppn == "" || $iln == "" )  return (-1);
+
+    $this->CI->db->query("insert into links_resolved_library (iln, ppn, resolved) values (" . $iln . ", '" . $ppn . "', '" .  $links . "')");
+  }
+
 }

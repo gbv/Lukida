@@ -2,7 +2,7 @@
 
 if ( ! isset($_SESSION["iln"]) )  return;
 
-$PPNLink = $this->CI->internal_search("ppnlink:".$this->PPN);
+$PPNLink = $this->CI->internal_search("ppnlink",$this->PPN);
 
 // $this->CI->printArray2Screen($PPNLink);
 

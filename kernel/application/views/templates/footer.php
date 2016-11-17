@@ -8,7 +8,7 @@ if ( $front && isset($_SESSION["config_general"]["general"]["frontpagewithoutluk
 }
 else
 {
-  $Version   = KERNEL . " " . KERNELVERSION . "." .  LIBRARYVERSION;
+  $Version   = KERNEL . " " . KERNELVERSION . "." .  KERNELSUBVERSION . "." .  LIBRARYVERSION;
   $Copyright = " &copy; " . date("Y");
   $Mode      = ( strtolower(MODE) == "production" ) ? "" : " &middot; " . ucfirst(MODE) . " " . ucfirst(LIBRARY);
 }
