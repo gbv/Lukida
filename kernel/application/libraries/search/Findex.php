@@ -344,6 +344,16 @@ class Findex extends AbstractSolrSearchService implements SearchService
             }
             break;
           }
+
+          case "iln":
+          {
+            if ( $value != "" && $value != "0" && $value != "")
+            {
+              $dismaxQuery
+              ->addFilterQuery("collection_details:GBV_ILN_" . $value);
+            }
+            break;
+          }
     
           case "typ":
           {

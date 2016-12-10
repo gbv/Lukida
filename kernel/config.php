@@ -104,7 +104,8 @@ switch (ENVIRONMENT)
   define('KERNEL', 'Lukida');
   define('MODE', apache_getenv("MODE"));
   define('LIBRARY', apache_getenv("LIBRARY"));
-  define('LIBRARYPATH', $_SERVER["DOCUMENT_ROOT"] . "/");
+  define('LIBRARYPATH', str_replace(array("/","\\"), DIRECTORY_SEPARATOR, $_SERVER["DOCUMENT_ROOT"]) . DIRECTORY_SEPARATOR);
+  define('LIBRARYCODE', LIBRARYPATH . "code" . DIRECTORY_SEPARATOR);
 
   // Determine kernel version
   $VERSION = "???";
@@ -356,10 +357,10 @@ switch (ENVIRONMENT)
  *---------------------------------------------------------------
  *
  */
-	define('KERNELASSETS', APPPATH . "views/assets/");
-	define('KERNELBLOCKS', APPPATH . "views/blocks/");
-	define('KERNELFORMATS', APPPATH . "views/formats/");
-
+	define('KERNELASSETS',  APPPATH . "views" . DIRECTORY_SEPARATOR . "assets"  . DIRECTORY_SEPARATOR);
+	define('KERNELBLOCKS',  APPPATH . "views" . DIRECTORY_SEPARATOR . "blocks"  . DIRECTORY_SEPARATOR);
+	define('KERNELFORMATS', APPPATH . "views" . DIRECTORY_SEPARATOR . "formats" . DIRECTORY_SEPARATOR);
+  
 /*
  * --------------------------------------------------------------------
  * LOAD THE BOOTSTRAP FILE

@@ -18,6 +18,7 @@ class General
   protected $ppnlink    = "";
   protected $pretty     = array();
   protected $words      = "";
+  protected $proofofpossession = array();
 
   protected function SessionExits()
   {

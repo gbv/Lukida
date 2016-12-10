@@ -5,6 +5,7 @@
  *
  * @author Richard Großer <richard.grosser@thulb.uni-jena.de>
  */
+
 class MY_Loader extends CI_Loader
 {
     /**
@@ -186,4 +187,16 @@ class MY_Loader extends CI_Loader
         log_message('error', 'Unable to load the requested abstract class: ' . $class);
         show_error('Unable to load the requested abstract class: ' . $class);
     }
+
+    public function library_view($folder, $view, $vars = array(), $return = FALSE) 
+    {
+        $this->_ci_view_paths = array_merge($this->_ci_view_paths, array($folder => TRUE));
+        return $this->_ci_load(array(
+                '_ci_view' => $view,
+                '_ci_vars' => $this->_ci_object_to_array($vars),
+                '_ci_return' => $return
+            ));
+    }
+
+
 }

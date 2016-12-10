@@ -359,4 +359,33 @@ class Mysql extends General
     $this->CI->db->query("insert into links_resolved_library (iln, ppn, resolved) values (" . $iln . ", '" . $ppn . "', '" .  $links . "')");
   }
 
+  public function get_discovery_bibs()
+  {
+    $this->CI->db->reset_query();
+    $this->CI->db->select('city');
+    $this->CI->db->select('title');
+    $this->CI->db->select('iln');
+    $this->CI->db->select('street');
+    $this->CI->db->select('zip');
+    $this->CI->db->from('discovery_bibs');
+    $this->CI->db->where('iln > 0');
+    $this->CI->db->order_by('city');
+    $this->CI->db->order_by('title');
+    $results = $this->CI->db->get();
+
+    $Data = array();
+
+    // Add all locations
+    $Data[] = array(
+                  "city"   => $this->CI->database->code2text("ALL"), 
+                  "title"  => $this->CI->database->code2text("DATAPOOLGLOBAL"),
+                  "iln"    => "",
+                  "street" => ""
+                 );
+    foreach ($results->result_array() as $row)
+    {
+      $Data[] = $row;
+    }
+    return ($Data);
+  }
 }

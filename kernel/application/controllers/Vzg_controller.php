@@ -69,7 +69,7 @@ class Vzg_controller extends CI_Controller
     // Check if configured system files are avialable
     foreach ( $config["systemcss"] as $value )
     {
-      if ( ! file_exists(LIBRARYPATH. "/systemassets/" . $value) )
+      if ( ! file_exists(LIBRARYPATH. "systemassets/" . $value) )
       {
         // Whoops, we don't have a page for that!
         show_404();
@@ -77,7 +77,7 @@ class Vzg_controller extends CI_Controller
     }
     foreach ( $config["systemjs"] as $value )
     {
-      if ( ! file_exists(LIBRARYPATH. "/systemassets/" . $value) )
+      if ( ! file_exists(LIBRARYPATH. "systemassets/" . $value) )
       {
         // Whoops, we don't have a page for that!
         show_404();
@@ -85,6 +85,12 @@ class Vzg_controller extends CI_Controller
     }
     $this->modules = explode(",",$config["systemcommon"]["modules"]);
     $_SESSION["config_system"] = $config;
+
+    // Check, if addition configuration is available
+    if ( file_exists(LIBRARYCODE . 'system.php') )
+    {
+      include(LIBRARYCODE . 'system.php');
+    }
   }
   
   private function load_check_general_config()
@@ -102,7 +108,7 @@ class Vzg_controller extends CI_Controller
     // Check if configured module files are avialable
     foreach ( $config["css"] as $value )
     {
-      if ( ! file_exists(LIBRARYPATH. "/assets/" . $value) )
+      if ( ! file_exists(LIBRARYPATH. "assets/" . $value) )
       {
         // Whoops, we don't have a page for that!
         show_404();
@@ -110,13 +116,19 @@ class Vzg_controller extends CI_Controller
     }
     foreach ( $config["js"] as $value )
     {
-      if ( ! file_exists(LIBRARYPATH. "/assets/" . $value) )
+      if ( ! file_exists(LIBRARYPATH. "assets/" . $value) )
       {
         // Whoops, we don't have a page for that!
         show_404();
       }
     }
     $_SESSION["config_general"]	= $config;
+
+    // Check, if addition configuration is available
+    if ( file_exists(LIBRARYCODE. 'general.php') )
+    {
+      include(LIBRARYCODE . 'general.php');
+    }
   }
 
   private function load_check_module_config($modul)
@@ -140,7 +152,7 @@ class Vzg_controller extends CI_Controller
     // Check if configured module files are avialable
     foreach ( $config["css"] as $value )
     {
-      if ( ! file_exists(LIBRARYPATH. "/assets/" . $value) )
+      if ( ! file_exists(LIBRARYPATH. "assets/" . $value) )
       {
         // Whoops, we don't have a page for that!
         show_404();
@@ -148,13 +160,19 @@ class Vzg_controller extends CI_Controller
     }
     foreach ( $config["js"] as $value )
     {
-      if ( ! file_exists(LIBRARYPATH. "/assets/" . $value) )
+      if ( ! file_exists(LIBRARYPATH. "assets/" . $value) )
       {
         // Whoops, we don't have a page for that!
         show_404();
       }
     }
     $_SESSION["config_" . $modul]	= $config;
+
+    // Check, if addition configuration is available
+    if ( file_exists(LIBRARYCODE . $modul.'.php') )
+    {
+      include(LIBRARYCODE . $modul.'.php');
+    }
   }
 
   private function load_languages()
@@ -178,7 +196,7 @@ class Vzg_controller extends CI_Controller
     {
       if ( $Interfaces != "" ) $Interfaces = array($Interfaces);
     }
-    if ( ! isset($_SESSION["interfaces"]) ) $_SESSION["interfaces"]  = array();
+    if ( ! isset($_SESSION["interfaces"]) || ! isset($this->modules) ) $_SESSION["interfaces"]  = array();
 
     // Remove already checked interfaces from desired interfaces
     $Interfaces = array_diff($Interfaces, array_keys($_SESSION["interfaces"]));
@@ -446,6 +464,7 @@ class Vzg_controller extends CI_Controller
       "time2kill" => (isset($_SESSION["config_general"]["lbs"]["time2kill"]) && $_SESSION["config_general"]["lbs"]["time2kill"] != "" ) ? $_SESSION["config_general"]["lbs"]["time2kill"]  : "",
       "discover" => isset($_SESSION["discover"]) ? $_SESSION["discover"] : true,
       "library" => isset($_SESSION["library"]) ? $_SESSION["library"] : false,
+      "library_name" => isset($_SESSION["library_name"]) ? $_SESSION["library_name"] : "",
       "producer" => isset($_SESSION["producer"]) ? $_SESSION["producer"] : false
     );
 
@@ -523,7 +542,7 @@ class Vzg_controller extends CI_Controller
     $this->email->reply_to($mailfrom);
 
     // Mail subject 
-    $this->email->subject('Empfehlung von ' . $username . ' für Sie!');
+    $this->email->subject('Empfehlung von ' . $username . ' für Sie! | Recommendation for you');
 
     // Mail body
     $message = "";
@@ -537,13 +556,22 @@ class Vzg_controller extends CI_Controller
       $fullbody  = preg_replace("/<\/a>/i", " ", $fullbody);
 
       $fullbody .= "<a style='color:blue;background-color:white;text-decoration:none;' href='" 
-                         . base_url("id%7Bcolon%7D".$ppn) . "'><b>Bitte klicken Sie hier, um diese Empfehlung zu öffnen</b></a>";
+                         . base_url("id%7Bcolon%7D".$ppn) . "'><b>Bitte klicken Sie hier, um diese Empfehlung zu öffnen | Please click here to open this recommendation</b></a>";
       $message  .= "<hr>" . $fullbody;
     }
 
-    $this->email->message(json_decode($username) . " (<a href='mailto:" . $mailfrom . "'>" . $mailfrom 
-                        . "</a>) hat diese Empfehlung(en) f&uuml;r Sie:" . "<br /><br />"
-                         . json_decode($msg) . "<br /><br />" . $message . "<hr>");
+    if ( count($ppnlist) > 1 )
+    {
+      $this->email->message(json_decode($username) . " (<a href='mailto:" . $mailfrom . "'>" . $mailfrom 
+                            . "</a>)<br />hat mehrere Empfehlungen f&uuml;r Sie. | has several recommendations for you.<hr>"
+                            . json_decode($msg) . $message);
+    }
+    else
+    {
+      $this->email->message(json_decode($username) . " (<a href='mailto:" . $mailfrom . "'>" . $mailfrom 
+                            . "</a>)<br />hat eine Empfehlung f&uuml;r Sie. | has a recommendation for you.<hr>"
+                            . json_decode($msg) . $message);
+    }
 
     // Send it away...
     $this->email->send();
@@ -980,6 +1008,20 @@ class Vzg_controller extends CI_Controller
     echo json_encode(0);
   }  
 
+  public function getdiscoverybibs()
+  {
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","database"));
+
+    if ( ! isset($_SESSION["DiscoveryBibs"]) || count($_SESSION["DiscoveryBibs"]) == 0 )
+    {
+      $_SESSION["DiscoveryBibs"] = $this->database->get_discovery_bibs();
+    }
+
+    // Invoke database driver
+    return $_SESSION["DiscoveryBibs"];
+  }
+
     
   // ********************************************
   // *********** LBS-Functions (AJAX) ***********
@@ -1166,13 +1208,13 @@ class Vzg_controller extends CI_Controller
     $container = $this->searchService->search($search, $package, $facets);
 
     // Store session data
-    $_SESSION["data"]["index_system"][$package]	= $container;
+    // $_SESSION["data"]["index_system"][$package]	= $container;
     
     // Invoke record format driver
     $container = $this->record_format->convert($container);
 
     // Store session data
-    $_SESSION["data"]["record_format"]	= $container;
+    // $_SESSION["data"]["record_format"]	= $container;
 
     // Merge und store loaded and converted data
     if ( !isset($_SESSION['data']['results']) ) $_SESSION['data']['results']  = array();
@@ -1205,15 +1247,25 @@ class Vzg_controller extends CI_Controller
     if ( $search == "" )                     return ($this->ajaxreturn("400","search is missing"));
     if ( $package == "" || $package == "0" ) return ($this->ajaxreturn("400","package is missing or 0"));
 
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","discover","theme"));
+
     // Set stats
     $this->stats("Search");
-
-    // Ensure required interfaces
-    $this->ensureInterface(array("config","theme"));
 
     // Set facet
     $_SESSION["filter"] = $facets;
     
+    // Erase session data when iln is changed
+    if ( isset($facets["iln"]) )
+    {
+      if ( !isset($_SESSION["iln"]) || ( isset($_SESSION["iln"]) && $_SESSION["iln"] != $facets["iln"] ) )
+      {
+        $_SESSION['data'] = array();
+        $_SESSION["iln"]  = $facets["iln"];
+      }
+    }
+
     // Invoke search engine
     $container = $this->dosearch($search,$package,true);
 
@@ -1488,6 +1540,10 @@ class Vzg_controller extends CI_Controller
     $param["modul"] = $this->module;
     $param["initsearch"] = $search;
     $param["initfacets"] = $facets;
+    if ( isset($_SESSION["library_name"]) && $_SESSION["library_name"] != "" )
+    {
+      $param["discoverybibs"] = $this->getdiscoverybibs();
+    }
 
     // Show Frontpage
     if ( isset($_SESSION["config_general"]["general"]["frontpage"]) && $_SESSION["config_general"]["general"]["frontpage"] == 1 
@@ -1516,13 +1572,21 @@ class Vzg_controller extends CI_Controller
       foreach ( $blocks as $block )
       {
         // Check, if block is available
-        if ( ! file_exists(KERNELBLOCKS . DIRECTORY_SEPARATOR . $block.'.php'))
+        if ( file_exists(LIBRARYCODE . $block.'.php'))
+        {
+          $param["blockpath"] = LIBRARYCODE . $block.'.php';
+          $this->load->library_view(LIBRARYCODE, $block, $param);
+        }
+        elseif ( file_exists(KERNELBLOCKS . $block.'.php'))
+        {
+          $param["blockpath"] = KERNELBLOCKS . $block.'.php';
+          $this->load->view(DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR . 'block', $param);
+        }
+        else
         {
           // Whoops, we don't have a page for that!
           show_404();
-        }
-        $param["blockpath"] = KERNELBLOCKS . DIRECTORY_SEPARATOR . $block.'.php';
-        $this->load->view(DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR . 'block', $param);
+        }     
       }
   
       // Load Footer

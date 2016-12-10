@@ -1,5 +1,26 @@
 # Changelog
-**15.11.2016
+**09.12.2016**
+* System
+    * Memory usage reduced
+
+**06.12.2016**
+* Search
+    * Support for GBV discovery added
+
+**04.12.2016**
+* Resolved bugs
+* English Volltext-Button added - full text
+
+**31.11.2016**
+* Recommendation mails
+    * Added english language
+* Flexibility
+    * Added possibility for library specific php files
+* Resolved bugs
+    * System reinitialized after session timeout
+    * Message displayed after mail recommendation
+
+**15.11.2016**
 * New Lukida Version with three elements x.y.z and without leading zeros
     * x Lukida Main Version
     * y Lukida Sub Version (new!)

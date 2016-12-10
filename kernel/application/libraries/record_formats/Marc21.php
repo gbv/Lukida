@@ -114,7 +114,26 @@ class Marc21 extends General
     }
     // $this->CI->printArray2File($this->contents);
   }
-  
+
+  private function SetProofOfPossession()
+  {
+    if ( ! isset($_SESSION["config_general"]["general"]["mode"]) || $_SESSION["config_general"]["general"]["mode"] != "BASED_ON_IP" ) return;
+
+    foreach ($this->marc->getFields("980") as $tag => $data)
+    {
+      if ( $data->isDataField() )
+      {
+        $Sub = array();
+        foreach ($data->getSubfields() as $code => $value)
+        {
+          $Sub[] = array($code => $value->getData());
+        }
+        $this->proofofpossession[] = $Sub;
+      }
+    }
+    // $this->CI->printArray2File($this->proofofpossession);
+  }
+
   private function SetMarcParents()
   {
     $Parents = array();
@@ -209,27 +228,29 @@ class Marc21 extends General
       $this->SetMarcParents();
       $this->SetMarcISBN();
       $this->SetMarcCatalogues();
+      $this->SetProofOfPossession();
 
       // Prepare reduced array
       $reduced = array
       (
-        "id" 		       => $one["id"],
-        "parents"      => $this->parents,
-        "leader"       => $this->leader,
-        "format"       => $this->format,
-        "ppnlink"      => $this->ppnlink,
-        "cover"        => $this->cover,
-        "isbn"         => $this->isbn,
-        "online"       => $this->online,
-        "catalogues"   => $this->catalogues,
-        "contents"     => $this->contents
+        "id" 		            => $one["id"],
+        "parents"           => $this->parents,
+        "leader"            => $this->leader,
+        "format"            => $this->format,
+        "ppnlink"           => $this->ppnlink,
+        "cover"             => $this->cover,
+        "isbn"              => $this->isbn,
+        "online"            => $this->online,
+        "catalogues"        => $this->catalogues,
+        "contents"          => $this->contents,
+        "proofofpossession" => $this->proofofpossession
       );
 
       $results_reduced[$one["id"]]	= $reduced + $this->SetContents("preview");
     }
     $container["results"] = $results_reduced;
 
-    // $this->CI->printArray2File($this->marc);
+    //$this->CI->printArray2File($this->proofofpossession);
 
     return ($container);
   }

@@ -157,17 +157,18 @@ class Bootstrap extends General
     if ( ! $this->FileExits(KERNELFORMATS . "fullview/" . $_SESSION["config_discover"]["fullview"]["fullview"] . ".php") ) return false;
 
     // Prepare variables for loaded code
-    $this->PPN        = $params['ppn'];
-    $this->dlgid      = $params['dlgid'];
-    $this->medium     = $_SESSION["data"]["results"][$this->PPN];
-    $this->contents   = $this->medium["contents"];
-    $this->leader     = $this->medium["leader"];
-    $this->format     = $this->medium["format"];
-    $this->online     = $this->medium["online"];
-    $this->ppnlink    = $this->medium["ppnlink"];
-    $this->cover      = $this->medium["cover"];
-    $this->catalogues = $this->medium["catalogues"];
-    $this->isbn       = $this->medium["isbn"];
+    $this->PPN               = $params['ppn'];
+    $this->dlgid             = $params['dlgid'];
+    $this->medium            = $_SESSION["data"]["results"][$this->PPN];
+    $this->contents          = $this->medium["contents"];
+    $this->proofofpossession = $this->medium["proofofpossession"];
+    $this->leader            = $this->medium["leader"];
+    $this->format            = $this->medium["format"];
+    $this->online            = $this->medium["online"];
+    $this->ppnlink           = $this->medium["ppnlink"];
+    $this->cover             = $this->medium["cover"];
+    $this->catalogues        = $this->medium["catalogues"];
+    $this->isbn              = $this->medium["isbn"];
     $_SESSION["data"]["results"][$this->PPN] += $this->SetContents("fullview");
     $this->pretty     = $_SESSION["data"]["results"][$this->PPN];
 
