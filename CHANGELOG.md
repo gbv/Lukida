@@ -1,4 +1,8 @@
 # Changelog
+**13.12.2016**
+* Updates
+    * NoUISLider 9.1.0
+
 **09.12.2016**
 * System
     * Memory usage reduced

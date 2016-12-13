@@ -364,6 +364,7 @@ class Mysql extends General
     $this->CI->db->reset_query();
     $this->CI->db->select('city');
     $this->CI->db->select('title');
+    $this->CI->db->select('title_short');
     $this->CI->db->select('iln');
     $this->CI->db->select('street');
     $this->CI->db->select('zip');
@@ -377,10 +378,11 @@ class Mysql extends General
 
     // Add all locations
     $Data[] = array(
-                  "city"   => $this->CI->database->code2text("ALL"), 
-                  "title"  => $this->CI->database->code2text("DATAPOOLGLOBAL"),
-                  "iln"    => "",
-                  "street" => ""
+                  "city"        => $this->CI->database->code2text("ALL"), 
+                  "title"       => $this->CI->database->code2text("DATAPOOLGLOBAL"),
+                  "title_short" => "",
+                  "iln"         => "",
+                  "street"      => ""
                  );
     foreach ($results->result_array() as $row)
     {

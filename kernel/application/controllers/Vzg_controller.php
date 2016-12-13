@@ -411,14 +411,16 @@ class Vzg_controller extends CI_Controller
         $Container[$key]	= $value;
       }
     }
-    $tmp = (isset($_SESSION["filter"]["datapool"])) ? $_SESSION["filter"]["datapool"] : "";
+    $dp = (isset($_SESSION["filter"]["datapool"])) ? $_SESSION["filter"]["datapool"] : "";
+    $iln = (isset($_SESSION["filter"]["iln"])) ? $_SESSION["filter"]["iln"] : "";
 
     // Clear session
     $this->session->sess_destroy();
     // session_unset();
     // session_start();
     $_SESSION += $Container;
-    $_SESSION["filter"]["datapool"] = $tmp;
+    if ( $dp != "" )  $_SESSION["filter"]["datapool"] = $dp;
+    if ( $iln != "" ) $_SESSION["filter"]["iln"]      = $iln;
 
     echo 0;
   }
@@ -1218,7 +1220,6 @@ class Vzg_controller extends CI_Controller
 
     // Merge und store loaded and converted data
     if ( !isset($_SESSION['data']['results']) ) $_SESSION['data']['results']  = array();
-
     if ($package != 1 )
     {
       $_SESSION['data']['results']	+= $container["results"];
@@ -1403,8 +1404,6 @@ class Vzg_controller extends CI_Controller
   public function fullview($PPN,$dlgid)
   {
     // Ajax Method => No view will be loaded, just data is returned
-
-    // Receive params
 
     // Check params
     if ( $PPN == "" )   return ($this->ajaxreturn("400","ppn is missing"));

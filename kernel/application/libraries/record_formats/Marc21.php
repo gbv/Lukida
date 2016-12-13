@@ -119,19 +119,22 @@ class Marc21 extends General
   {
     if ( ! isset($_SESSION["config_general"]["general"]["mode"]) || $_SESSION["config_general"]["general"]["mode"] != "BASED_ON_IP" ) return;
 
+    $ilns = array();
     foreach ($this->marc->getFields("980") as $tag => $data)
     {
       if ( $data->isDataField() )
       {
-        $Sub = array();
         foreach ($data->getSubfields() as $code => $value)
         {
-          $Sub[] = array($code => $value->getData());
+          if ( $code == "2" )
+          {
+            $ilns[] = $value->getData();
+          }
         }
-        $this->proofofpossession[] = $Sub;
       }
     }
-    // $this->CI->printArray2File($this->proofofpossession);
+    $this->proofofpossession = array_unique($ilns);
+            // $this->CI->printArray2File($this->proofofpossession);
   }
 
   private function SetMarcParents()
