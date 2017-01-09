@@ -365,8 +365,10 @@ class PaiaDaiaService implements ILSService
      */
     public function request($uri) {
         $doc = array("doc" => array(array("item" => $uri)));
+    //$this->CI->printArray2File($doc);        
         $response = $this->postAsArray($this->paia . '/core/' . $_SESSION["userlogin"] . '/request', $doc);
-        //$this->CI->printArray2File($response);
+    //$this->CI->printArray2File($this->paia . '/core/' . $_SESSION["userlogin"] . '/request');
+    //$this->CI->printArray2File($response);
         if (isset($response["doc"][0]["error"])) {
             return (array("status" => -2,
                 "error" => $response["doc"][0]["error"]));

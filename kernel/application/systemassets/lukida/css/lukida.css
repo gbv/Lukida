@@ -213,6 +213,12 @@ html {
   padding-left: 5px;
 }
 
+.search
+{
+  border: 1px solid #2F87e7;
+  border-radius: 4px;
+}
+
 .search_text
 {
   outline: none;
@@ -286,11 +292,15 @@ html {
 	margin-right: 10px;
 }
 
-.table-layout {
+.table-layout 
+{
     display:table;
     width:100%;
 }
-.table-layout .table-cell {
+
+.table-layout 
+.table-cell
+{
   display:table-cell;
   vertical-align: top;
   padding-top: 1px;

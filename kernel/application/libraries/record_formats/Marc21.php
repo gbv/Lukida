@@ -105,6 +105,7 @@ class Marc21 extends General
             if ($Tmp != $_SESSION["iln"])  continue;
           }
         }
+
         foreach ($data->getSubfields() as $code => $value)
         {
           $Sub[] = array($code => $value->getData());
@@ -134,7 +135,6 @@ class Marc21 extends General
       }
     }
     $this->proofofpossession = array_unique($ilns);
-            // $this->CI->printArray2File($this->proofofpossession);
   }
 
   private function SetMarcParents()

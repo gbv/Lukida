@@ -467,7 +467,8 @@ class Vzg_controller extends CI_Controller
       "discover" => isset($_SESSION["discover"]) ? $_SESSION["discover"] : true,
       "library" => isset($_SESSION["library"]) ? $_SESSION["library"] : false,
       "library_name" => isset($_SESSION["library_name"]) ? $_SESSION["library_name"] : "",
-      "producer" => isset($_SESSION["producer"]) ? $_SESSION["producer"] : false
+      "producer" => isset($_SESSION["producer"]) ? $_SESSION["producer"] : false,
+      "iln" => isset($_SESSION["iln"]) ? $_SESSION["iln"] : ""
     );
 
     // Set stats
@@ -801,7 +802,7 @@ class Vzg_controller extends CI_Controller
         {
           $_SESSION["internal"]["marc"]	= ( !isset($_SESSION["internal"]["marc"]) || $_SESSION["internal"]["marc"] == "0" ) ? "1" : "0";
           $_SESSION["internal"]["daia"]	= ( !isset($_SESSION["internal"]["daia"]) || $_SESSION["internal"]["daia"] == "0" ) ? "1" : "0";
-          $_SESSION["internal"]["paia"]	= ( !isset($_SESSION["internal"]["paia"]) || $_SESSION["internal"]["daia"] == "0" ) ? "1" : "0";
+          $_SESSION["internal"]["paia"]	= ( !isset($_SESSION["internal"]["paia"]) || $_SESSION["internal"]["paia"] == "0" ) ? "1" : "0";
         }
         else
         {
@@ -1258,7 +1259,7 @@ class Vzg_controller extends CI_Controller
     $_SESSION["filter"] = $facets;
     
     // Erase session data when iln is changed
-    if ( isset($facets["iln"]) )
+    if ( isset($facets["iln"]) && $facets["iln"] > "0" && $facets["iln"] != "" )
     {
       if ( !isset($_SESSION["iln"]) || ( isset($_SESSION["iln"]) && $_SESSION["iln"] != $facets["iln"] ) )
       {

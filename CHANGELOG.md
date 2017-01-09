@@ -1,4 +1,20 @@
 # Changelog
+
+**09.01.2017**
+* Search
+    * Marking of searched text more flexible
+    * Focus on buttons is removed after click 
+
+* PAIA
+    * Login form now closeable by pressing enter
+    * Readable PAIA tab page 
+
+* Updates
+    * Platform 1.3.3
+
+* Resolved bugs
+    * Internal commands 
+
 **13.12.2016**
 * Updates
     * NoUISLider 9.1.0
@@ -13,7 +29,7 @@
 
 **04.12.2016**
 * Resolved bugs
-* English Volltext-Button added - full text
+    * English Volltext-Button added - full text
 
 **31.11.2016**
 * Recommendation mails

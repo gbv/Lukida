@@ -251,7 +251,7 @@ class General
       /*** quote the text for regex ***/
       $Word = preg_quote($Word);
       /*** highlight the words ***/
-      $Text = preg_replace("/($Word)/i", '<span class="search">\1</span>', $Text);
+      $Text = preg_replace("/($Word)/i", '<span class="markfoundtext">\1</span>', $Text);
 
     }
 
