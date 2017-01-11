@@ -1,23 +1,30 @@
 <?php
 
-/**
- * Connects to the solr search index of the GBV.
- *
- * @author  Alexander Karim <Alexander.Karim@gbv.de>
- * @author  Richard Großer <richard.grosser@thulb.uni-jena.de>
- */
-class Findex extends AbstractSolrSearchService implements SearchService
+class Solr extends General
 {
   protected $CI;
   protected $search;
   protected $package;
   protected $facets;
   protected $result;
+  protected $config;
 
   public function __construct()
   {
     // Assign the CodeIgniter super-object
     $this->CI =& get_instance();
+
+    $this->config = array
+    (
+      'hostname'  => (isset($_SESSION["config_general"]["index_system"]["host"]) && $_SESSION["config_general"]["index_system"]["host"] != "" ) 
+                     ? $_SESSION["config_general"]["index_system"]["host"] : "findex.gbv.de",
+      'port'      => (isset($_SESSION["config_general"]["index_system"]["port"]) && $_SESSION["config_general"]["index_system"]["port"] != "" ) 
+                     ? $_SESSION["config_general"]["index_system"]["port"] : "80",
+      'path'      => (isset($_SESSION["config_general"]["index_system"]["path"]) && $_SESSION["config_general"]["index_system"]["path"] != "" ) 
+                     ? $_SESSION["config_general"]["index_system"]["path"] : "index/100",
+      'wt'        => 'json',
+    );
+
   }
 
   // ********************************************
@@ -25,12 +32,7 @@ class Findex extends AbstractSolrSearchService implements SearchService
   // ********************************************
   private function solr_before($search)
   {
-    //$search	= json_encode($search);
     $search	= str_replace("%20", " ", $search);
-    //$search	= preg_replace('/\s\s+/', ' ', $search);
-    //$search = SolrUtils::queryPhrase($search);
-    //$search = SolrUtils::escapeQueryChars($search);
-    //$search	= str_replace(" ", "+", $search);
     return ($search);
   }
 
@@ -442,7 +444,7 @@ class Findex extends AbstractSolrSearchService implements SearchService
   public function search($search, $package, $facets)
   {
     // Check params
-    if ( isset($params['search'] ) )	$search = $params['search'];
+    if ( isset($params['search'] ) )  $search = $params['search'];
     if ( $search == "" )
     {
       echo "Es ist ein Fehler passiert (NO_SEARCH) !";
@@ -450,7 +452,7 @@ class Findex extends AbstractSolrSearchService implements SearchService
     }
     $this->search = $search;
 
-    if ( isset($params['package'] ) )	$package = $params['package'];
+    if ( isset($params['package'] ) ) $package = $params['package'];
     if ( $package == "" )
     {
       echo "Es ist ein Fehler passiert (NO_PACKAGE) !";
@@ -458,7 +460,7 @@ class Findex extends AbstractSolrSearchService implements SearchService
     }
     $this->package = $package;        
     
-    if ( isset($params['facets'] ) )	$facets = $params['facets'];
+    if ( isset($params['facets'] ) )  $facets = $params['facets'];
     if ( $package == "" )
     {
       echo "Es ist ein Fehler passiert (NO_FACETS) !";
@@ -480,12 +482,6 @@ class Findex extends AbstractSolrSearchService implements SearchService
     return ( $container );
   }
 
-  /**
-   * Get an array of ppn of similar publications for a single ppn (pica production number)
-   * 
-   * @param string $ppn
-   * @return array|boolean
-   */
   public function getSimilarPublications($ppn)
   {
     // Check params

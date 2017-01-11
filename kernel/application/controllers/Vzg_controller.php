@@ -4,22 +4,7 @@ class Vzg_controller extends CI_Controller
 {
   private $module;
   private $modules;
-  
-  /**
-   * @var ServiceFactory
-   */
-  public $serviceFactory;
-  
-  /**
-   * @var ILSService|null
-   */
-  public $ilsService;
-  
-  /**
-   * @var SearchService|null
-   */
-  public $searchService;
-  
+    
   public function __construct()
   {
     parent::__construct();
@@ -34,8 +19,6 @@ class Vzg_controller extends CI_Controller
     $this->load->library('general');
 
     if ( ! isset($_SESSION["marked"]) )	$_SESSION["marked"]	= array();
-    
-    $this->load->library('ServiceFactory', NULL, 'serviceFactory');
   }
   
   // ********************************************
@@ -264,7 +247,8 @@ class Vzg_controller extends CI_Controller
         case "theme":
         {
           // Read theme config & load library
-          $Theme	= (isset($_SESSION["config_general"]["theme"]["type"]) && $_SESSION["config_general"]["theme"]["type"] != "" ) ? $_SESSION["config_general"]["theme"]["type"] : "bootstrap";
+          $Theme	= (isset($_SESSION["config_general"]["theme"]["type"]) && $_SESSION["config_general"]["theme"]["type"] != "" ) 
+                    ? $_SESSION["config_general"]["theme"]["type"] : "bootstrap";
           $this->load->library('themes/'.$Theme, "", "theme");
           break;
         }
@@ -272,25 +256,48 @@ class Vzg_controller extends CI_Controller
         case "database":
         {
           // Read database config & load library
-          $Database	= (isset($_SESSION["config_general"]["database"]["type"]) && $_SESSION["config_general"]["database"]["type"] != "" ) ? $_SESSION["config_general"]["database"]["type"] : "mysql";
+          $Database	= (isset($_SESSION["config_general"]["database"]["type"]) && $_SESSION["config_general"]["database"]["type"] != "" ) 
+                      ? $_SESSION["config_general"]["database"]["type"] : "mysql";
           $this->load->library('databases/'.$Database, "", "database");
           break;
         }
     
+        case "index_system":
+        {
+          // Read system type & load library and record format
+          $IS    = (isset($_SESSION["config_general"]["index_system"]["type"]) && $_SESSION["config_general"]["index_system"]["type"] != "" ) 
+                   ? $_SESSION["config_general"]["index_system"]["type"] : "solr";
+          $this->load->library('index_systems/'.$IS, "", "index_system");
+          break;
+        }
+
         case "record_format":
         {
           // Read record format & load library
-          $RF	= (isset($_SESSION["config_general"]["record_format"]["type"]) && $_SESSION["config_general"]["record_format"]["type"] != "" ) ? $_SESSION["config_general"]["record_format"]["type"] : "marc21";
+          $RF	= (isset($_SESSION["config_general"]["record_format"]["type"]) && $_SESSION["config_general"]["record_format"]["type"] != "" ) 
+                ? $_SESSION["config_general"]["record_format"]["type"] : "marc21";
           $this->load->library('record_formats/'.$RF, "", "record_format");
-          //$_SESSION["interfaces"]["record_format"] = 1;
           break;
         }
 
         case "export":
         {
           // Read export config & load library
-          $export	= (isset($_SESSION["config_general"]["export"]["type"]) && $_SESSION["config_general"]["export"]["type"] != "" ) ? $_SESSION["config_general"]["export"]["type"] : "standard";
+          $export	= (isset($_SESSION["config_general"]["export"]["type"]) && $_SESSION["config_general"]["export"]["type"] != "" ) 
+                    ? $_SESSION["config_general"]["export"]["type"] : "standard";
           $this->load->library('exports/'.$export, "", "export");
+          break;
+        }
+    
+        case "lbs":
+        {
+          // Read LBS config & load library - if it is available
+          if (isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] == "1" )
+          {
+            $LBS    = (isset($_SESSION["config_general"]["lbs"]["type"]) && $_SESSION["config_general"]["lbs"]["type"] != "" ) 
+                      ? $_SESSION["config_general"]["lbs"]["type"] : "paia_daia";
+            $this->load->library('lb_systems/'.$LBS, "", "lbs");
+          }
           break;
         }
       }
@@ -1046,11 +1053,10 @@ class Vzg_controller extends CI_Controller
     $this->stats("LBS_Login");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config"));
-    $this->serviceFactory->createILSService();
+    $this->ensureInterface(array("config","lbs"));
 
     // Login lbs & echo
-    echo json_encode($this->ilsService->login($user, $pw));
+    echo json_encode($this->lbs->login($user, $pw));
   }
 
   public function logout()
@@ -1062,8 +1068,7 @@ class Vzg_controller extends CI_Controller
     // Check params
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config"));
-    $this->serviceFactory->createILSService();
+    $this->ensureInterface(array("config","lbs"));
 
     // Set stats
     $this->stats("LBS_Logout");
@@ -1071,7 +1076,7 @@ class Vzg_controller extends CI_Controller
     if ( isset($_SESSION["userlogin"]) )
     {
       // Logout lbs & echo
-      echo  json_encode($this->ilsService->logout());
+      echo  json_encode($this->lbs->logout());
     }
     return (0);
   }
@@ -1083,14 +1088,13 @@ class Vzg_controller extends CI_Controller
     // Check params
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config"));
-    $this->serviceFactory->createILSService();
+    $this->ensureInterface(array("config","lbs"));
 
     // Set stats
     $this->stats("LBS_Document");
 
     // Call LBS
-    return $this->ilsService->document($PPN);
+    return $this->lbs->document($PPN);
   }
 
   public function request()
@@ -1105,11 +1109,10 @@ class Vzg_controller extends CI_Controller
     $this->stats("LBS_Request");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config"));
-    $this->serviceFactory->createILSService();
+    $this->ensureInterface(array("config","lbs"));
 
     // Call LBS
-    echo json_encode($this->ilsService->request($uri));
+    echo json_encode($this->lbs->request($uri));
   }  
   
   public function cancel()
@@ -1126,11 +1129,10 @@ class Vzg_controller extends CI_Controller
     $this->stats("LBS_Cancel");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config"));
-    $this->serviceFactory->createILSService();
+    $this->ensureInterface(array("config","lbs"));
 
     // Call LBS
-    echo json_encode($this->ilsService->cancel($uri));
+    echo json_encode($this->lbs->cancel($uri));
   }  
 
   public function renew()
@@ -1147,11 +1149,10 @@ class Vzg_controller extends CI_Controller
     $this->stats("LBS_Renew");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config"));
-    $this->serviceFactory->createILSService();
+    $this->ensureInterface(array("config","lbs"));
 
     // Call LBS
-    echo json_encode($this->ilsService->renew($uri));
+    echo json_encode($this->lbs->renew($uri));
   }  
 
   // ********************************************
@@ -1194,8 +1195,7 @@ class Vzg_controller extends CI_Controller
   private function dosearch($search, $package, $facets)
   {
     // Ensure required interfaces
-    $this->ensureInterface(array("config","database","record_format"));
-    $this->serviceFactory->createSearchService();
+    $this->ensureInterface(array("config","database","index_system","record_format"));
 
     // Store session data
     $_SESSION["data"]["search"]	= $search;
@@ -1208,7 +1208,7 @@ class Vzg_controller extends CI_Controller
     }
 
     // Invoke index system
-    $container = $this->searchService->search($search, $package, $facets);
+    $container = $this->index_system->search($search, $package, $facets);
 
     // Store session data
     // $_SESSION["data"]["index_system"][$package]	= $container;
@@ -1336,11 +1336,10 @@ class Vzg_controller extends CI_Controller
     try
     {
       // Ensure required interfaces
-      $this->ensureInterface(array("config","theme"));
-      $this->serviceFactory->createSearchService();
+      $this->ensureInterface(array("config","index_system","theme"));
 
       // Invoke index system to get simular pubs
-      $SimularPubs = $this->searchService->getSimilarPublications($PPN);
+      $SimularPubs = $this->index_system->getSimilarPublications($PPN);
 
       // Now invoke again to catch all data
       $container = $this->dosearch("id:(".implode(",",$SimularPubs).")","0",false);
@@ -1414,8 +1413,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("FullView");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","theme"));
-    $this->serviceFactory->createILSService();
+    $this->ensureInterface(array("config","theme","lbs"));
 
     // Ensure required ppn data
     if ( !$this->ensurePPN($PPN)) return ($this->ajaxreturn("400","ppn not found"));
@@ -1439,11 +1437,10 @@ class Vzg_controller extends CI_Controller
     $this->stats("UserView");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","theme","database"));
-    $this->serviceFactory->createILSService();
+    $this->ensureInterface(array("config","theme","database","lbs"));
 
     // Refresh data
-    $this->ilsService->userdata();
+    $this->lbs->userdata();
 
     // Load Stored search
     $_SESSION['searches'] = $this->database->load_user_search($_SESSION["userlogin"]);
@@ -1466,8 +1463,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("Assistant");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","theme"));
-    $this->serviceFactory->createILSService();
+    $this->ensureInterface(array("config","theme","lbs"));
 
     // Display view
     echo $this->theme->assistant(array('dlgid'=>$dlgid));

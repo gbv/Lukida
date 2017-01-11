@@ -1,5 +1,13 @@
 # Changelog
 
+**10.01.2017**
+* Updates
+    * CodeIgniter 3.1.3
+
+* System
+    * Interfaces removed
+    * Vagrant removed
+
 **09.01.2017**
 * Search
     * Marking of searched text more flexible

@@ -27,7 +27,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | 5. Custom config files
 | 6. Language files
 | 7. Models
-| 8. Interfaces
 |
 */
 
@@ -98,7 +97,7 @@ $autoload['helper'] = array();
 | config files.  Otherwise, leave it blank.
 |
 */
-$autoload['config'] = array('general');
+$autoload['config'] = array();
 
 /*
 | -------------------------------------------------------------------
@@ -128,13 +127,3 @@ $autoload['language'] = array();
 |	$autoload['model'] = array('first_model' => 'first');
 */
 $autoload['model'] = array();
-
-/*
-| -------------------------------------------------------------------
-|  Auto-load Interfaces
-| -------------------------------------------------------------------
-| Prototype:
-|
-|	$autoload['interface'] = array('first_interface', 'second_interface');
-*/
-$autoload['interface']  = array('ILSService', 'SearchService');
