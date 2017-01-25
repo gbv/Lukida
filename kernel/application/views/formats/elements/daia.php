@@ -16,7 +16,7 @@ if ( isset($DAIA["message"][0]["errno"]) )
   }
 }
 
-// $this->CI->printArray2Screen($DAIA["document"]);
+// $this->CI->printArray2Screen($DAIA);
 
 // Part Institution
 if ( array_key_exists("institution", $DAIA) )

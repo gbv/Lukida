@@ -22,14 +22,14 @@ class Mysql extends General
     {
       if ( array_key_exists($code,$_SESSION["translation_ger"]) )
       {
-        return $_SESSION["translation_ger"][$code];
+        return htmlentities($_SESSION["translation_ger"][$code], ENT_QUOTES);
       }
     }
     else
     {
       if ( array_key_exists($code,$_SESSION["translation_eng"]) )
       {
-        return $_SESSION["translation_eng"][$code];
+        return htmlentities($_SESSION["translation_eng"][$code], ENT_QUOTES);
       }
     }
 
@@ -58,13 +58,13 @@ class Mysql extends General
         {
           $Value = $results->row()->german;
           $_SESSION["translation_ger"][$code]	= $Value;
-          return ($Value);
+          return htmlentities($Value, ENT_QUOTES);
         }
         else
         {
           $Value = $results->row()->english;
           $_SESSION["translation_eng"][$code]	= $Value;
-          return ($Value);
+          return htmlentities($Value, ENT_QUOTES);
         }
       }
     }
@@ -92,13 +92,13 @@ class Mysql extends General
     {
       $Value = $results->row()->german;
       $_SESSION["translation_ger"][$code] = $Value;
-      return ($Value);
+      return htmlentities($Value, ENT_QUOTES);
     }
     else
     {
       $Value = $results->row()->english;
       $_SESSION["translation_eng"][$code] = $Value;
-      return ($Value);
+      return htmlentities($Value, ENT_QUOTES);
     }
   }
 

@@ -54,6 +54,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 // AJAX Calls (always using params)
 $route['ajax/search/(:any)']               = 'Vzg_controller/search/$1';
 $route['ajax/searchsimularpubs']           = 'Vzg_controller/searchsimularpubs';
+$route['ajax/searchrelatedpubs']           = 'Vzg_controller/searchrelatedpubs';
 $route['ajax/fullview/(:any)/(:any)']      = 'Vzg_controller/fullview/$1/$2';
 $route['ajax/userview/(:any)']             = 'Vzg_controller/userview/$1';
 $route['ajax/mailorderview/(:any)/(:any)'] = 'Vzg_controller/mailorderview/$1/$2';

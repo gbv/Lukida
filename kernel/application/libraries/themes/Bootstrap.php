@@ -149,6 +149,45 @@ class Bootstrap extends General
     return ( $container );
   }
   
+  public function includedview($container)
+  {
+    // Variablen initialisieren
+    $this->collgsize = 6;
+    $PPNList = true;
+    $BtnClass = "col-xs-12 col-sm-6 btn btn btn-default publication";
+
+    $Ausgabe = "";
+    foreach ( $container["results"] as $Erg )
+    {
+      $this->PPN      = $Erg["id"];
+      $this->contents = $Erg["contents"];
+      $this->format   = $Erg["format"];
+      $this->cover    = $Erg["cover"];
+      $this->isbn     = $Erg["isbn"];
+      $this->pretty   = $Erg;
+
+      $Action = "onclick='$.open_fullview(\"" . $this->PPN . "\"," . json_encode(array_keys($container["ppnlist"])) . ",\"publications\")'";
+      $Ausgabe .= "<button " . $Action . " class='" . $BtnClass . "'>";
+      $Ausgabe .= "<div id='related_" . $this->PPN . "'>";
+      $Ausgabe .= "<table><tr><td data-toggle='tooltip' title='" . $this->CI->database->code2text($this->format) . "' class='publication-icon'>";
+      $Ausgabe .= "<span class='gbvicon'>" . $this->cover . "</span>";
+      $Ausgabe .= "</td><td>";  
+      $Ausgabe .= $this->trim_text($this->pretty["title"],60);
+      if ( isset($this->pretty["publisher"]) && $this->pretty["publisher"] != "" )
+      {
+        $Ausgabe .= "<br /><small>" . $this->trim_text($this->pretty["publisher"],50) . "</small>";
+      }
+      $Ausgabe .= "</td></tr></table></div>";
+      $Ausgabe .= "</button>";
+    }
+
+    // Transport-Container beladen
+    $container["results"] = $Ausgabe;
+
+    // Transport-Container verschicken
+    return ( $container );
+  }
+
   public function fullview ( $params )
   {
     // Check params

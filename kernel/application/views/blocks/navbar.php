@@ -1,20 +1,5 @@
 <?php
 
-// Prefilled Values for DevMode
-$Value       = "";
-$DevMode  = false;
-if (isset($_SESSION["config_discover"]["discover"]["devmode"]) 
-       && $_SESSION["config_discover"]["discover"]["devmode"] == "1" )
-{
-  $DevMode  = true;
-  if (isset($_SESSION["config_discover"]["discover"]["devvalues"]) 
-         && $_SESSION["config_discover"]["discover"]["devvalues"] != "" )
-  {
-    $DevValues = explode(",",$_SESSION["config_discover"]["discover"]["devvalues"]);
-    $Value = trim($DevValues[array_rand($DevValues)]);
-  }
-}
-
 $FacetDataPool = (isset($_SESSION["config_" . $modul]["navbar"]["facet_datapool"]) 
                      && $_SESSION["config_" . $modul]["navbar"]["facet_datapool"] == "1" ) 
                ? true : false;
@@ -151,7 +136,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
             </div>
             <?php } ?>
             
-            <input type="text" id="searchtext_md" autocomplete="off" class="form-control input-lg search_text typeahead" placeholder="Deine Suche..." value="<?php echo $Value; ?>">
+            <input type="text" id="searchtext_md" autocomplete="off" class="form-control input-lg search_text typeahead" placeholder="Ihre Suche..." value="">
             <span class="input-group-btn" style="width:1%;">
               <button type="submit" class="startsearch btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Suche starten" data-container="body"><span class="glyphicon glyphicon-search"></span></button>
               <?php if ( $Assistant ) { ?>
@@ -293,7 +278,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
                 </div>
               </div>
               <?php } ?>
-              <input type="text" id='searchtext_xs' autocomplete="off" class="form-control input-lg typeahead search_text" placeholder="Deine Suche..." value="<?php echo $Value; ?>">
+              <input type="text" id='searchtext_xs' autocomplete="off" class="form-control input-lg typeahead search_text" placeholder="Deine Suche..." value="">
               <span class="input-group-btn" style="width:1%;">
                 <button type="submit" class="startsearch btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Suche starten" data-container="body"><span class="glyphicon glyphicon-search"></span></button>
                 <?php if ( $Assistant ) { ?>

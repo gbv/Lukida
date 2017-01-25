@@ -1,4 +1,40 @@
 # Changelog
+**23.01.2017**
+* Mail
+  * Now supporting multiple mails per library containing different subjects & adresses
+
+**20.01.2017**
+* Configuration
+  * System reinitialized after timeout
+  * Sitelinks Searchbox added
+
+* Updates
+  * NoUISLider 9.2.0
+
+* Search
+  * Class-Searches limited to local classes (library classes)
+
+**18.01.2017**
+* Configuration
+  * Added "Drop Table If Exists" entries in MySQL-Import-Scripts
+
+* Resolved bugs
+  * Added Auto_Increment to database tables
+  * Solr Driver reads correct index_system
+
+**13.01.2017**
+* Interfaces
+    * New PAIA2_DAIA2 driver
+
+* System
+    * Cleanup development mode
+
+* Resolved bugs
+    * User reservations
+
+**11.01.2017**
+* System
+    * Cleanup database
 
 **10.01.2017**
 * Updates

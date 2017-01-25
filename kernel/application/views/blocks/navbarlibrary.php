@@ -1,20 +1,5 @@
 <?php
 
-// Prefilled Values for DevMode
-$Value       = "";
-$DevMode  = false;
-if (isset($_SESSION["config_discover"]["discover"]["devmode"]) 
-       && $_SESSION["config_discover"]["discover"]["devmode"] == "1" )
-{
-  $DevMode  = true;
-  if (isset($_SESSION["config_discover"]["discover"]["devvalues"]) 
-         && $_SESSION["config_discover"]["discover"]["devvalues"] != "" )
-  {
-    $DevValues = explode(",",$_SESSION["config_discover"]["discover"]["devvalues"]);
-    $Value = trim($DevValues[array_rand($DevValues)]);
-  }
-}
-
 // Logo Settings
 $logotitle = $_SESSION["config_general"]["general"]["title"];
 $logocheck = true;

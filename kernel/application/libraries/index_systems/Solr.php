@@ -22,7 +22,8 @@ class Solr extends General
                      ? $_SESSION["config_general"]["index_system"]["port"] : "80",
       'path'      => (isset($_SESSION["config_general"]["index_system"]["path"]) && $_SESSION["config_general"]["index_system"]["path"] != "" ) 
                      ? $_SESSION["config_general"]["index_system"]["path"] : "index/100",
-      'wt'        => 'json',
+      'wt'        => (isset($_SESSION["config_general"]["index_system"]["wt"])   && $_SESSION["config_general"]["index_system"]["wt"] != "" ) 
+                     ? $_SESSION["config_general"]["index_system"]["wt"] : "json"
     );
 
   }
@@ -301,7 +302,7 @@ class Solr extends General
           case "sachgebiet":
           {
             $dismaxQuery
-            ->addQueryField("class",100);
+            ->addQueryField("class_local",100);
             break;
           }
           case "id":
@@ -386,8 +387,12 @@ class Solr extends General
           }
         }
       }
-      $dismaxQuery->setStats(true);
-      $dismaxQuery->addStatsField('publishDate');
+
+      if ( isset($matches[1][0]) && $matches[1][0] != "ppnlink" )
+      {
+        $dismaxQuery->setStats(true);
+        $dismaxQuery->addStatsField('publishDate');
+      }
     }    
 
     // Package start & end
@@ -404,7 +409,6 @@ class Solr extends General
 
     // Store query in session
     $_SESSION["query"] = $dismaxQuery;
-
 
     // Store query in file
     // $this->CI->appendFile("EDisMax.txt", "http://" . $this->config["hostname"] . "/" . $this->config["path"] . "/select?" . $dismaxQuery);

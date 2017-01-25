@@ -221,9 +221,9 @@ class Vzg_controller extends CI_Controller
 
           $this->load_check_module_config("discover");
 
-          if ( ! isset($_SESSION["internal"]["marc"]) )   $_SESSION["internal"]["marc"]   = (isset($_SESSION["config_discover"]["dev"]["devmode"]) && $_SESSION["config_discover"]["dev"]["devmode"] == "1" ) ? 1 : 0;
-          if ( ! isset($_SESSION["internal"]["daia"]) )   $_SESSION["internal"]["daia"]   = (isset($_SESSION["config_discover"]["dev"]["devmode"]) && $_SESSION["config_discover"]["dev"]["devmode"] == "1" ) ? 1 : 0;
-          if ( ! isset($_SESSION["internal"]["paia"]) )   $_SESSION["internal"]["paia"]   = (isset($_SESSION["config_discover"]["dev"]["devmode"]) && $_SESSION["config_discover"]["dev"]["devmode"] == "1" ) ? 1 : 0;
+          if ( ! isset($_SESSION["internal"]["marc"]) )   $_SESSION["internal"]["marc"]   = (strtolower(MODE) == "development") ? 1 : 0;
+          if ( ! isset($_SESSION["internal"]["daia"]) )   $_SESSION["internal"]["daia"]   = (strtolower(MODE) == "development") ? 1 : 0;
+          if ( ! isset($_SESSION["internal"]["paia"]) )   $_SESSION["internal"]["paia"]   = (strtolower(MODE) == "development") ? 1 : 0;
 
           if ( ! isset($_SESSION["filter"]["datapool"]) ) $_SESSION["filter"]["datapool"] = (isset($_SESSION["config_discover"]["discover"]["datapool"]) && $_SESSION["config_discover"]["discover"]["datapool"] != "" ) ? $_SESSION["config_discover"]["discover"]["datapool"] : "local";
 
@@ -297,6 +297,7 @@ class Vzg_controller extends CI_Controller
             $LBS    = (isset($_SESSION["config_general"]["lbs"]["type"]) && $_SESSION["config_general"]["lbs"]["type"] != "" ) 
                       ? $_SESSION["config_general"]["lbs"]["type"] : "paia_daia";
             $this->load->library('lb_systems/'.$LBS, "", "lbs");
+            $_SESSION["interfaces"]["lbs"] = 1;
           }
           break;
         }
@@ -452,12 +453,9 @@ class Vzg_controller extends CI_Controller
     // Collect some settings for javascript-clients
     $container = array
     (
-      "devmode"				  => (isset($_SESSION["config_discover"]["dev"]["devmode"])				 && $_SESSION["config_discover"]["dev"]["devmode"] != "" )  				? $_SESSION["config_discover"]["dev"]["devmode"]				  : "0",
-      "devuser"					=> (isset($_SESSION["config_discover"]["dev"]["devuser"])     		 && $_SESSION["config_discover"]["dev"]["devuser"] != "" )					? $_SESSION["config_discover"]["dev"]["devuser"]					: "",
-      "devpassword"			=> (isset($_SESSION["config_discover"]["dev"]["devpassword"]) 		 && $_SESSION["config_discover"]["dev"]["devpassword"] != "" )			? $_SESSION["config_discover"]["dev"]["devpassword"]			: "",
-      "devusername"			=> (isset($_SESSION["config_discover"]["dev"]["devusername"]) 		 && $_SESSION["config_discover"]["dev"]["devusername"] != "" )			? $_SESSION["config_discover"]["dev"]["devusername"]			: "",
-      "devusermail"			=> (isset($_SESSION["config_discover"]["dev"]["devusermail"]) 		 && $_SESSION["config_discover"]["dev"]["devusermail"] != "" )			? $_SESSION["config_discover"]["dev"]["devusermail"]			: "",
-      "devusermailtext" => (isset($_SESSION["config_discover"]["dev"]["devusermailtext"]) && $_SESSION["config_discover"]["dev"]["devusermailtext"] != "" )	? $_SESSION["config_discover"]["dev"]["devusermailtext"]	: "",
+      "devmode"				  => (strtolower(MODE) == "development") ? "1" : "0",
+      "devuser"					=> (isset($_SESSION["config_discover"]["development"]["devuser"]) 	  && $_SESSION["config_discover"]["development"]["devuser"] != "" )					? $_SESSION["config_discover"]["development"]["devuser"]					: "",
+      "devpassword"			=> (isset($_SESSION["config_discover"]["development"]["devpassword"]) && $_SESSION["config_discover"]["development"]["devpassword"] != "" )			? $_SESSION["config_discover"]["development"]["devpassword"]			: "",
       "button_checklist" => (isset($_SESSION["config_discover"]["fullview"]["checklist"]) && $_SESSION["config_discover"]["fullview"]["checklist"] == 1 ) ? true  : false,
       "button_export" => (isset($_SESSION["config_discover"]["fullview"]["export"]) && $_SESSION["config_discover"]["fullview"]["export"] == 1 ) ? true  : false,
       "button_mail" => (isset($_SESSION["config_discover"]["fullview"]["mail"]) && $_SESSION["config_discover"]["fullview"]["mail"] == 1 && isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] != "") ? true  : false,
@@ -595,12 +593,14 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $ppn				= $this->input->post('ppn');
-    $mailfrom		= $this->input->post('mailfrom');
-    $mailto			= $this->input->post('mailto');
-    $fullbody		= $this->input->post('fullbody');
-    $exemplar		= (array)json_decode($this->input->post('exemplar'));
-    $userinput  = (array)json_decode($this->input->post('userinput'));
+    $ppn				 = $this->input->post('ppn');
+    $mailfrom		 = $this->input->post('mailfrom');
+    $mailto			 = $this->input->post('mailto');
+    $fullbody		 = $this->input->post('fullbody');
+    $exemplar		 = (array)json_decode($this->input->post('exemplar'));
+    $userinput   = (array)json_decode($this->input->post('userinput'));
+    $mailtyp     = $this->input->post('mailtyp');
+    $mailsubject = $this->input->post('mailsubject');
 
     // Check params
     if ( $ppn == "" )      return ($this->ajaxreturn("400","ppn is missing"));
@@ -609,19 +609,17 @@ class Vzg_controller extends CI_Controller
     if ( $fullbody == "" ) return ($this->ajaxreturn("400","mailbody is missing"));
     if ( ! is_array($exemplar) || count($exemplar) == 0 ) return ($this->ajaxreturn("400","exemplar is missing"));
     if ( ! $this->isUserSessionAlive() ) return ($this->ajaxreturn("400","timeout user session"));
-
-    //$this->printArray2File($exemplar);
-    //echo json_encode($exemplar);
-    //return;
+    if ( $mailtyp == "" ) $mailtyp = "order";
+    if ( $mailsubject == "" ) $mailtyp = "Magazinbestellung";
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","database"));
+    $this->ensureInterface(array("config","discover","database"));
 
     // Ensure required ppn data
     if ( !$this->ensurePPN($ppn)) return ($this->ajaxreturn("400","ppn not found"));
 
     // Set stats
-    $this->stats("MailOrder");
+    $this->stats("Mail".ucfirst($mailtyp));
 
     // Load Mail Library
     $this->load->library('email');
@@ -637,11 +635,11 @@ class Vzg_controller extends CI_Controller
     $this->email->from($mailfrom);
     $this->email->reply_to($mailfrom);
 
-    if ( strtolower(MODE) == "development" && isset($_SESSION["config_discover"]["dev"]["mailto"]) 
-                                                 && $_SESSION["config_discover"]["dev"]["mailto"] != "" )
+    if ( strtolower(MODE) == "development" && isset($_SESSION["config_discover"]["development"]["mailto"]) 
+                                                 && $_SESSION["config_discover"]["development"]["mailto"] != "" )
     {
       // Development Mode
-      $this->email->to($_SESSION["config_discover"]["dev"]["mailto"]);
+      $this->email->to($_SESSION["config_discover"]["development"]["mailto"]);
     }
     else
     {
@@ -650,10 +648,10 @@ class Vzg_controller extends CI_Controller
     }
     
     // Username
-    $username = $_SESSION["login"]["firstname"]. " " . $_SESSION["login"]["lastname"];
+    $username = trim($_SESSION["login"]["firstname"] . " " . $_SESSION["login"]["lastname"]);
         
     // Mail subject
-    $this->email->subject('Magazinbestellung von ' . $username );
+    $this->email->subject($mailsubject . ' von ' . $username );
 
     // Remove Links from message body
     $fullbody=preg_replace("/<a[^>]+\>/i", " ", $fullbody);
@@ -674,7 +672,7 @@ class Vzg_controller extends CI_Controller
     $Mess .= "<table>";
     foreach ( $exemplar as $key => $value )
     {
-      if ( in_array($key, array("action","typ","form","case")) )  continue;
+      if ( in_array($key, array("action","typ","form","case","method")) )  continue;
       if ( substr($key,0,4) == "data" ) continue;
       $Mess .= "<tr><td>" . $value . "</td></tr>";
     }
@@ -700,7 +698,7 @@ class Vzg_controller extends CI_Controller
     // Body link part
     $Mess .= "<h3>Direkter Link</h3>"; 
     $Mess .= "<a style='color:blue;background-color:white;text-decoration:none;' href='" 
-          . base_url($ppn."/id") . "'><b>Bitte klicken Sie hier, um dieses bestellten Medium einzusehen</b></a>";
+          . base_url("id(".$ppn.")") . "'><b>Bitte klicken Sie hier, um dieses Medium einzusehen</b></a>";
     
     $this->email->message($Mess);
 
@@ -757,7 +755,7 @@ class Vzg_controller extends CI_Controller
     if ( $cmd == "" ) return ($this->ajaxreturn("400","cmd is missing"));
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config"));
+    $this->ensureInterface(array("config","discover"));
 
     // Set stats
     $this->stats("Command");
@@ -849,7 +847,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("Lanuguage_" . ucfirst($language));
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config"));
+    $this->ensureInterface(array("config","discover"));
 
     // Set Session Language
     $_SESSION["language"] = $language;
@@ -869,7 +867,7 @@ class Vzg_controller extends CI_Controller
     if ( $ppn == "" ) return ($this->ajaxreturn("400","PPN is missing"));
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","database","export"));
+    $this->ensureInterface(array("config","discover","database","export"));
 
     // Check link already resolved in database
     $Resolved = $this->database->get_resolved_link($ppn);
@@ -903,7 +901,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("Export_" . ucfirst($format));
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","export"));
+    $this->ensureInterface(array("config","discover","export"));
 
     // Call export & Return data in jsonformat
     $container = array();
@@ -923,7 +921,7 @@ class Vzg_controller extends CI_Controller
     if ( $ppn == "" || $format == "" ) return(-2);
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","export"));
+    $this->ensureInterface(array("config","discover","export"));
 
     // Ensure required ppn data
     if ( !$this->ensurePPN($ppn)) return(-2);
@@ -941,7 +939,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("Export_" . ucfirst($format));
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","export"));
+    $this->ensureInterface(array("config","discover","export"));
 
     // Ensure required ppn data
     if ( !$this->ensurePPN($ppn)) return(-2);
@@ -966,7 +964,7 @@ class Vzg_controller extends CI_Controller
     if ( $query == "" ) return ($this->ajaxreturn("400","query is missing"));
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","database"));
+    $this->ensureInterface(array("config","discover","database"));
 
     // Invoke database driver
     echo json_encode($this->database->get_words($query));
@@ -989,7 +987,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("StoreUserSearch");
     
     // Ensure required interfaces
-    $this->ensureInterface(array("config","database"));
+    $this->ensureInterface(array("config","discover","database"));
 
     // Invoke database driver
     echo json_encode($this->database->store_user_search($search, $user, $facets));
@@ -1021,7 +1019,7 @@ class Vzg_controller extends CI_Controller
   public function getdiscoverybibs()
   {
     // Ensure required interfaces
-    $this->ensureInterface(array("config","database"));
+    $this->ensureInterface(array("config","discover","database"));
 
     if ( ! isset($_SESSION["DiscoveryBibs"]) || count($_SESSION["DiscoveryBibs"]) == 0 )
     {
@@ -1053,7 +1051,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("LBS_Login");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","lbs"));
+    $this->ensureInterface(array("config","discover","lbs"));
 
     // Login lbs & echo
     echo json_encode($this->lbs->login($user, $pw));
@@ -1068,7 +1066,7 @@ class Vzg_controller extends CI_Controller
     // Check params
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","lbs"));
+    $this->ensureInterface(array("config","discover","lbs"));
 
     // Set stats
     $this->stats("LBS_Logout");
@@ -1088,7 +1086,7 @@ class Vzg_controller extends CI_Controller
     // Check params
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","lbs"));
+    $this->ensureInterface(array("config","discover","lbs"));
 
     // Set stats
     $this->stats("LBS_Document");
@@ -1109,7 +1107,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("LBS_Request");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","lbs"));
+    $this->ensureInterface(array("config","discover","lbs"));
 
     // Call LBS
     echo json_encode($this->lbs->request($uri));
@@ -1129,7 +1127,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("LBS_Cancel");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","lbs"));
+    $this->ensureInterface(array("config","discover","lbs"));
 
     // Call LBS
     echo json_encode($this->lbs->cancel($uri));
@@ -1149,7 +1147,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("LBS_Renew");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","lbs"));
+    $this->ensureInterface(array("config","discover","lbs"));
 
     // Call LBS
     echo json_encode($this->lbs->renew($uri));
@@ -1165,7 +1163,7 @@ class Vzg_controller extends CI_Controller
     if ( !isset($_SESSION["statistics"]) || ! $_SESSION["statistics"] ) return (-1);
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","database"));
+    $this->ensureInterface(array("config","discover","database"));
 
     return ($this->database->stats($name, $total));
   }
@@ -1176,7 +1174,7 @@ class Vzg_controller extends CI_Controller
     if ( $name == "" ) return (-1);
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","database"));
+    $this->ensureInterface(array("config","discover","database"));
 
     if ( $global ) 
     {
@@ -1195,7 +1193,7 @@ class Vzg_controller extends CI_Controller
   private function dosearch($search, $package, $facets)
   {
     // Ensure required interfaces
-    $this->ensureInterface(array("config","database","index_system","record_format"));
+    $this->ensureInterface(array("config","discover","database","index_system","record_format"));
 
     // Store session data
     $_SESSION["data"]["search"]	= $search;
@@ -1320,6 +1318,44 @@ class Vzg_controller extends CI_Controller
     return ($container);
   }
 
+  public function searchrelatedpubs()
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+    $PPNLink = $this->input->post('ppnlink');
+    $Search  = $this->input->post('search');
+
+    // Check params
+    if ( $PPNLink == "" ) return ($this->ajaxreturn("400","ppnlink is missing"));
+
+    // Set stats
+    $this->stats("Search_Related");
+
+    try
+    {
+      // Ensure required interfaces
+      $this->ensureInterface(array("config","discover","index_system","theme"));
+
+      // Now invoke again to catch all data
+      $Search = ( trim($Search) != "" )  ? "title:". trim($Search) : "";
+      $container = $this->dosearch($Search . " ppnlink:" . $PPNLink,"0",false);
+
+      // Create PPN list
+      $container["ppnlist"] = array_keys($container["results"]);
+
+      // Invoke theme format driver
+      $container = $this->theme->includedview($container);
+    
+      echo json_encode($container);
+    }
+    catch (Exception $e) 
+    {
+      // Fehler dokumentieren 
+      echo json_encode(array());
+    }
+  } 
+
   public function searchsimularpubs()
   {
     // Ajax Method => No view will be loaded, just data is returned
@@ -1336,7 +1372,7 @@ class Vzg_controller extends CI_Controller
     try
     {
       // Ensure required interfaces
-      $this->ensureInterface(array("config","index_system","theme"));
+      $this->ensureInterface(array("config","discover","index_system","theme"));
 
       // Invoke index system to get simular pubs
       $SimularPubs = $this->index_system->getSimilarPublications($PPN);
@@ -1382,7 +1418,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("Layout_" . (12 / $layout));
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config", "theme"));
+    $this->ensureInterface(array("config","discover", "theme"));
 
     // Set Session Layout
     $_SESSION["layout"] = $layout;
@@ -1413,7 +1449,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("FullView");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","theme","lbs"));
+    $this->ensureInterface(array("config","discover","index_system","theme","lbs"));
 
     // Ensure required ppn data
     if ( !$this->ensurePPN($PPN)) return ($this->ajaxreturn("400","ppn not found"));
@@ -1437,7 +1473,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("UserView");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","theme","database","lbs"));
+    $this->ensureInterface(array("config","discover","theme","database","lbs"));
 
     // Refresh data
     $this->lbs->userdata();
@@ -1463,7 +1499,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("Assistant");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","theme","lbs"));
+    $this->ensureInterface(array("config","discover","theme","lbs"));
 
     // Display view
     echo $this->theme->assistant(array('dlgid'=>$dlgid));
@@ -1484,7 +1520,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("MailOrderView");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","theme"));
+    $this->ensureInterface(array("config","discover","theme"));
 
     // Ensure required ppn and epn data
     if ( !$this->ensureEPN($PPN,$EPN)) return ($this->ajaxreturn("400","timeout exemplar data"));;
