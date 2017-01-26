@@ -5,8 +5,14 @@ Lukida-Homepage is [here](https://www.lukida.org/)
 
 ###Requirements
 1) Linux or Windows webserver with PHP, MySQL and ability to send mails
-2) if used with solr index-system
-   PHP PECL Solr Module https://pecl.php.net/package/solr
+
+2) if used with Solr index-system
+PHP PECL Solr Module https://pecl.php.net/package/solr
+
+3) pear class File_MARC with MARC record-system
+```
+pear install File_MARC
+```
 
 ###Installation
 
