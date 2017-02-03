@@ -19,38 +19,33 @@
 
     $configtheme = ( isset($_SESSION["config_general"]["theme"]["theme"]) && $_SESSION["config_general"]["theme"]["theme"] != "" ) ? $_SESSION["config_general"]["theme"]["theme"] : "";
 
-    $themeinfo = ($configtheme != "") ? array("customer", $configtheme) : array("system", "lukida");
-
-    // Laden der Systemmodule
+    // Laden der Systemlibraries
     $cssmodules = ( $front && isset($_SESSION["config_system"]["frontcss"]) ) ? $_SESSION["config_system"]["frontcss"] : $_SESSION["config_system"]["systemcss"];
     foreach ( $cssmodules as $value )
     {
-      if ( stripos($value, "bootstrap-theme.min.cs") !== false )
-      {
-     		if ( $themeinfo[0] == "customer" )
-    		{
-          $link = "/assets/css/" . $themeinfo[1] . ".css";
-		    }
-		    elseif ( $themeinfo[0] == "system" )
-    		{
-          $link = "/systemassets/lukida/css/" . $themeinfo[1] . ".css";
-		    }
-        echo "<link id='activetheme' rel='stylesheet' href='" . base_url($link) . "'>";
-      }
-      else
       {
         echo "<link rel='stylesheet' href='" . base_url("/systemassets/" . $value) . "'>";
       }
     }
 
-    // Laden der allgemeinen Kundenmodule
+    // Laden der Modullibraries
+    $cssmodules = $_SESSION["config_system"][$modul."css"];
+    foreach ( $cssmodules as $value )
+    {
+      {
+        echo "<link rel='stylesheet' href='" . base_url("/systemassets/" . $value) . "'>";
+      }
+    }
+
+    // Laden der allgemeinen Kundenlibraries
+    // Front
     $cssmodules = ( $front && isset($_SESSION["config_general"]["frontcss"]) ) ? $_SESSION["config_general"]["frontcss"] : $_SESSION["config_general"]["css"];
     foreach ( $cssmodules as $value )
     {
       echo "<link rel='stylesheet' href='" . base_url("/assets/" . $value) . "'>";
     }
 
-    // Laden des Kundenmoduls
+    // Modul
     foreach ( $_SESSION["config_". $modul]["css"] as $value )
     {
       echo "<link rel='stylesheet' href='" . base_url("/assets/" . $value) . "'>";

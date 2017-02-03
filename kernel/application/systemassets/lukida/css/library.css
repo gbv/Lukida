@@ -1,0 +1,26 @@
+a:link 		{ text-decoration: none !important;}
+a:visited { text-decoration: none !important;}
+a:hover 	{ text-decoration: none !important;}
+a:active 	{ text-decoration: none !important;}
+
+html {
+}
+
+@font-face 
+{
+  font-family: 'GBVIcons';
+  src: url('../fonts/gbv-webfont.eot');
+  src: url('../fonts/gbv-webfont.eot?#iefix') format('embedded-opentype'),
+       url('../fonts/gbv-webfont.woff2') format('woff2'),
+       url('../fonts/gbv-webfont.woff') format('woff'),
+       url('../fonts/gbv-webfont.ttf') format('truetype'),
+       url('../fonts/gbv-webfont.svg#GBVIcons') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.vertical-align 
+{
+    display: flex;
+    align-items: center;
+}

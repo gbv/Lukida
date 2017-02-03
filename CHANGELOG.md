@@ -1,4 +1,24 @@
 # Changelog
+**03.02.2017**
+* Library Module
+  * New!
+  * Two new charts created
+  
+**28.01.2017**
+* Search
+  * Text marks also available for searches phrases less than 3 characters
+  
+* Resolved bugs
+  * Search phrases like 'und' do not scamble output anymore
+  * Searches with colon character enabled
+
+**26.01.2017**
+* Configuration & Cleanup
+  * Multiple Modules enabled with dynamic loaded libraries
+  * Producer.ini removed
+  * bootstrap-theme.min.css removed
+  * Config.ini enhanced
+
 **23.01.2017**
 * Mail
   * Now supporting multiple mails per library containing different subjects & adresses

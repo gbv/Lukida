@@ -56,19 +56,25 @@ if ( $front )
 }
 else
 {
-  // Laden der Systemmodule
+  // Laden der Systemlibraries
   foreach ( $_SESSION["config_system"]["systemjs"] as $value )
   {
     echo "<script type='text/javascript' src='" . base_url("/systemassets/" . $value) . "'></script>";
   }
   
-  // Laden der allgemeinen Kundenmodule
+  // Laden der Systemmodullibraries
+  foreach ( $_SESSION["config_system"][$modul."js"] as $value )
+  {
+    echo "<script type='text/javascript' src='" . base_url("/systemassets/" . $value) . "'></script>";
+  }
+  
+  // Laden der allgemeinen Kundenlibraries
   foreach ( $_SESSION["config_general"]["js"] as $value )
   {
     echo "<script type='text/javascript' src='" . base_url("/assets/" . $value) . "'></script>";
   }
   
-  // Laden des Kundenmoduls
+  // Laden des Kunden-Modullibraries
   foreach ( $_SESSION["config_". $modul]["js"] as $value )
   {
     echo "<script type='text/javascript' src='" . base_url("/assets/" . $value) . "'></script>";

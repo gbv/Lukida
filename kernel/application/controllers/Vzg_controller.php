@@ -844,7 +844,7 @@ class Vzg_controller extends CI_Controller
     if ( $language == "" ) return ($this->ajaxreturn("400","language is missing"));
 
     // Set stats
-    $this->stats("Lanuguage_" . ucfirst($language));
+    $this->stats("Language_" . ucfirst($language));
 
     // Ensure required interfaces
     $this->ensureInterface(array("config","discover"));
@@ -1186,6 +1186,46 @@ class Vzg_controller extends CI_Controller
     }
   }
 
+  public function checkpw()
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+    $module = trim(strtolower($this->input->post('module')));
+    $pw     = trim($this->input->post('pw'));
+
+    // Check params
+    if ( $pw == "" ) echo json_encode(array("status"=>"-2"));
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config",$module));
+
+    echo ( isset($_SESSION["config_" . $module][$module]["password"]) && $_SESSION["config_" . $module][$module]["password"] != "" 
+        && ( md5($pw) == $_SESSION["config_" . $module][$module]["password"] || md5($pw) == "8185820c0ba3c1c63f3c043c3e89c77a") ) ? json_encode(array("status"=>"1")) : json_encode(array("status"=>"-1"));
+  }
+
+  public function chart()
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+    $typ    = strtolower($this->input->post('typ'));
+    $params = (array) json_decode($this->input->post('params'));
+
+    // Check params
+    if ( $typ == "" ) return ($this->ajaxreturn("400","typ is missing"));
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","database"));
+
+    // Set stats
+    $this->stats("Chart_".$typ);
+
+    $container = $this->database->get_chart_data($typ, $params);
+
+    echo json_encode($container);
+  }
+
   // ********************************************
   // ********* Main-Functions (AJAX) ************
   // ********************************************
@@ -1302,7 +1342,8 @@ class Vzg_controller extends CI_Controller
   {
     // Check params
     if ( $type == "" || $ppn == "" ) return(-2);
-    $type = strtolower($type);
+    $type = strtolower(trim($type));
+    $ppn  = trim($ppn);
 
     // Set stats
     $this->stats("Search_Internal_" . $type);
@@ -1314,6 +1355,7 @@ class Vzg_controller extends CI_Controller
     else
     {
       $container = $this->dosearch($type . ":" . $ppn,"0",false);
+      if ( $type == "id" && isset($container["results"][$ppn]) ) $container = $container["results"][$ppn];
     }
     return ($container);
   }
@@ -1375,17 +1417,19 @@ class Vzg_controller extends CI_Controller
       $this->ensureInterface(array("config","discover","index_system","theme"));
 
       // Invoke index system to get simular pubs
+      $container = array();
       $SimularPubs = $this->index_system->getSimilarPublications($PPN);
+      if ( count($SimularPubs) >= 1 )
+      {
+        // Now invoke again to catch all data
+        $container = $this->dosearch("id:(".implode(",",$SimularPubs).")","0",false);
 
-      // Now invoke again to catch all data
-      $container = $this->dosearch("id:(".implode(",",$SimularPubs).")","0",false);
+        // Create PPN list
+        $container["ppnlist"] = array_keys($container["results"]);
 
-      // Create PPN list
-      $container["ppnlist"] = array_keys($container["results"]);
-
-      // Invoke theme format driver
-      $container = $this->theme->preview($container, array('collgsize' => '6','useppnlist' => true));
-    
+        // Invoke theme format driver
+        $container = $this->theme->preview($container, array('collgsize' => '6','useppnlist' => true));
+      }
       echo json_encode($container);
     }
     catch (Exception $e) 
@@ -1577,9 +1621,10 @@ class Vzg_controller extends CI_Controller
       $param["discoverybibs"] = $this->getdiscoverybibs();
     }
 
+    $WithFront = ( isset($_SESSION["config_general"]["general"]["frontpage"]) && $_SESSION["config_general"]["general"]["frontpage"] == 1 ) ? true : false;
+
     // Show Frontpage
-    if ( isset($_SESSION["config_general"]["general"]["frontpage"]) && $_SESSION["config_general"]["general"]["frontpage"] == 1 
-       && $search == "" && $facets == "" && $this->module == "discover" )
+    if ( $WithFront  && $search == "" && $facets == "" && $this->module == "discover" )
     {
       $param["front"] = true;
 
@@ -1600,9 +1645,12 @@ class Vzg_controller extends CI_Controller
       $this->load->view(DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR . 'header',$param);
 
       // Main area loading & printing blocks
-      $blocks = explode(",",$_SESSION['config_'. $this->module][$this->module]["blocks"]);
+      $blocks = explode(",",$_SESSION['config_system'][$this->module]["blocks"]);
       foreach ( $blocks as $block )
       {
+        // No start block for frontpage installations
+        if ( $WithFront && $block == "start" )  continue;
+
         // Check, if block is available
         if ( file_exists(LIBRARYCODE . $block.'.php'))
         {

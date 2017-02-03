@@ -248,6 +248,9 @@ class General
       // Skip to small words
       if ( strlen($Word) < 3 )  continue;
 
+      // Skip words inside marked text
+      if ( stripos("span,class,markfoundtext", $Word) !== false ) continue;
+
       /*** quote the text for regex ***/
       $Word = preg_quote($Word);
       /*** highlight the words ***/

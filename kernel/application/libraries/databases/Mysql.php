@@ -22,14 +22,14 @@ class Mysql extends General
     {
       if ( array_key_exists($code,$_SESSION["translation_ger"]) )
       {
-        return htmlentities($_SESSION["translation_ger"][$code], ENT_QUOTES);
+        return htmlspecialchars ($_SESSION["translation_ger"][$code], ENT_QUOTES);
       }
     }
     else
     {
       if ( array_key_exists($code,$_SESSION["translation_eng"]) )
       {
-        return htmlentities($_SESSION["translation_eng"][$code], ENT_QUOTES);
+        return htmlspecialchars ($_SESSION["translation_eng"][$code], ENT_QUOTES);
       }
     }
 
@@ -58,13 +58,13 @@ class Mysql extends General
         {
           $Value = $results->row()->german;
           $_SESSION["translation_ger"][$code]	= $Value;
-          return htmlentities($Value, ENT_QUOTES);
+          return htmlspecialchars ($Value, ENT_QUOTES);
         }
         else
         {
           $Value = $results->row()->english;
           $_SESSION["translation_eng"][$code]	= $Value;
-          return htmlentities($Value, ENT_QUOTES);
+          return htmlspecialchars ($Value, ENT_QUOTES);
         }
       }
     }
@@ -389,5 +389,151 @@ class Mysql extends General
       $Data[] = $row;
     }
     return ($Data);
+  }
+
+  public function get_chart_data($typ, $params=array())
+  {
+    $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
+    $this->CI->db->reset_query();
+
+    // 6 defined Colors 
+    $backgroundColor = array('rgba(255, 99, 132, 0.2)','rgba(54, 162, 235, 0.2)','rgba(255, 206, 86, 0.2)','rgba(75, 192, 192, 0.2)','rgba(153, 102, 255, 0.2)','rgba(255, 159, 64, 0.2)');
+    $borderColor = array( 'rgba(255,99,132,1)','rgba(54, 162, 235, 1)','rgba(255, 206, 86, 1)','rgba(75, 192, 192, 1)','rgba(153, 102, 255, 1)','rgba(255, 159, 64, 1)');
+
+    switch ($typ)
+    {
+      case "searches":
+      {
+        $Labels = array();
+        $Values = array();
+        $ClBack = array();
+        $ClBord = array();
+        $Start  = ( isset($params["start"]) && $params["start"] != "" ) ? $params["start"] : "2017-01-01";
+        $End    = ( isset($params["end"])   && $params["end"]   != "" ) ? $params["end"]   : "2017-01-30";
+
+        // Create Range Area with 0
+        $begin    = new DateTime( $Start );
+        $end      = new DateTime( $End );
+        $end->add( new DateInterval( "P1D" ) );
+        $interval = DateInterval::createFromDateString('1 day');
+        $period   = new DatePeriod($begin, $interval, $end);
+        foreach ( $period as $dt )
+        {
+          $Labels[$dt->format("Y-m-d")] = $dt->format("d.m.Y");
+          $Values[$dt->format("Y-m-d")] = 0;
+          if ( $dt->format("w") == 0 || $dt->format("w") == 6 )
+          {
+            // Sa / So
+            $ClBack[$dt->format("Y-m-d")] = $backgroundColor[0];
+            $ClBord[$dt->format("Y-m-d")] = $borderColor[0];
+          }
+          else
+          {
+            // Mo - Fr
+            $ClBack[$dt->format("Y-m-d")] = $backgroundColor[1];
+            $ClBord[$dt->format("Y-m-d")] = $borderColor[1];
+          }
+        }
+
+        $query = $this->CI->db->query("select day, hour_00 + hour_01 + hour_02 + hour_03 + hour_04 + hour_05 + hour_06 + hour_07 + hour_08 + hour_09 + hour_10 + hour_11 + hour_12 + hour_13 + hour_14 + hour_15 + hour_16 + hour_17 + hour_18 + hour_19 + hour_20 + hour_21 + hour_22 + hour_23 as summe from stats_day_library where iln = " . $iln . " and area = 'Search' and day >= '" . $Start . "' and day <= '" . $End . "' order by day");
+        foreach ($query->result() as $row)
+        {
+          $Values[date("Y-m-d", strtotime($row->day))] = (integer) $row->summe;
+        }
+        $Data = array
+        (
+          "labels" => array_values($Labels),
+          "datasets" => array
+          (
+            array
+            (
+              "label"           => $this->code2text("SEARCHESDONE"),
+              "data"            => array_values($Values),
+              "borderWidth"     => 1,
+              "backgroundColor" => array_values($ClBack),
+              "borderColor"     => array_values($ClBord)
+            )
+          ),
+        );
+        $Replacements = array
+        (
+          "{start}" => date("d.m.Y", strtotime($Start)),
+          "{end}"   => date("d.m.Y", strtotime($End))
+        );
+        $Title = array
+        (
+          "display"  => true,
+          //"text"     => str_ireplace("{days}", 22, $this->code2text("USERSEARCHESDAYS")),
+          "text"     => strtr($this->code2text("USERSEARCHESPERIOD"), $Replacements),
+          "fontSize" => 24 
+        );
+        break;        
+      }
+      case "usage":
+      {
+        $Labels  = array();
+        $Values  = array();
+        $Start   = ( isset($params["start"]) && $params["start"] != "" ) ? $params["start"] : "2017-01-01";
+        $End     = ( isset($params["end"])   && $params["end"]   != "" ) ? $params["end"]   : "2017-01-30";
+        $Areas   = ( isset($params["areas"]) && $params["areas"] != "" ) ? explode(",",$params["areas"]) : array();
+
+        // Create Range Area with 0
+        $begin    = new DateTime( $Start );
+        $end      = new DateTime( $End );
+        $end->add( new DateInterval( "P1D" ) );
+        $interval = DateInterval::createFromDateString('1 day');
+        $period   = new DatePeriod($begin, $interval, $end);
+        foreach ( $period as $dt )
+        {
+          foreach ($Areas as $Area)
+          {
+            $Labels[$dt->format("Y-m-d")]        = $dt->format("d.m.Y");
+            $Values[$Area][$dt->format("Y-m-d")] = 0;
+          }
+        }
+
+        $query = $this->CI->db->query("select day, area, hour_00 + hour_01 + hour_02 + hour_03 + hour_04 + hour_05 + hour_06 + hour_07 + hour_08 + hour_09 + hour_10 + hour_11 + hour_12 + hour_13 + hour_14 + hour_15 + hour_16 + hour_17 + hour_18 + hour_19 + hour_20 + hour_21 + hour_22 + hour_23 as summe from stats_day_library where iln = " . $iln . " and area in ('" . implode("','", $Areas) . "') and day >= '" . $Start . "' and day <= '" . $End . "' order by day, area");
+        foreach ($query->result() as $row)
+        {
+          $Values[$row->area][date("Y-m-d", strtotime($row->day))] = (integer) $row->summe;
+        }
+
+        $Counter = -1;
+        foreach ($Areas as $Area) 
+        {
+          $Counter++;
+          if ( $Counter >= count($backgroundColor) ) $Counter = 0;
+          $Datasets[] = array
+          (
+            "type"            => "line",
+            "label"           => $Area, //this->code2text("SEARCHESDONE"),
+            "data"            => array_values($Values[$Area]),
+            "borderWidth"     => 1,
+            "backgroundColor" => $backgroundColor[$Counter],
+            "borderColor"     => $borderColor[$Counter]
+          );
+        }
+
+        $Data = array
+        (
+          "labels"   => array_values($Labels),
+          "datasets" => $Datasets,
+        );
+        $Replacements = array
+        (
+          "{start}" => date("d.m.Y", strtotime($Start)),
+          "{end}"   => date("d.m.Y", strtotime($End))
+        );
+        $Title = array
+        (
+          "display"  => true,
+          //"text"     => str_ireplace("{days}", 22, $this->code2text("USERSEARCHESDAYS")),
+          "text"     => strtr($this->code2text("USERUSAGEPERIOD"), $Replacements),
+          "fontSize" => 24 
+        );
+        break;                
+      }
+    }
+    return (array("data" => $Data, "title" => $Title));
   }
 }

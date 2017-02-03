@@ -95,8 +95,8 @@ class Solr extends General
       $CText = trim($matches[2][$index]);
 
       // Mask solr special characters
-      $CText = str_replace(array( '+', '-', '&', '|', '!', '(' ,')' ,'{', '}', '[', ']', '^', '~', '?'),
-                           array('\+','\-','\&','\|','\!','\(','\)','\{','\}','\[','\]','\^','\~','\?'),
+      $CText = str_replace(array( '+', '-', '&', '|', '!', '(' ,')' ,'{', '}', '[', ']', '^', '~', '?',':'),
+                           array('\+','\-','\&','\|','\!','\(','\)','\{','\}','\[','\]','\^','\~','\?',''),
                            $CText);
 
       //First get phrases in "" and remove them
@@ -321,7 +321,7 @@ class Solr extends General
     ->addField('fullrecord');
 
     if ( $search != "" || count(array_values($matches[0])) >  1 || 
-       ( count(array_values($matches[0])) == 1 && $matches[0][0] != "id" ) )
+       ( count(array_values($matches[0])) == 1 && $matches[1][0] != "id" ) )
     {
       // Facet fields (only for new searches (package=1), not for inkremential searches (package=0, package >=2)
       if ( $package == 1 && $facets )
@@ -527,7 +527,7 @@ class Solr extends General
     }    
 
     // Store query in file
-    // $this->CI->appendFile("EDisMax.txt", "http://" . $options["hostname"] . ":" . $options["port"] . "/". $options["path"] . "/select?" . $dismaxQuery);
+    // $this->CI->appendFile("EDisMax.txt", "http://" . $this->config["hostname"] . ":" . $this->config["port"] . "/". $this->config["path"] . "/select?" . $dismaxQuery);
 
     // Execute query
     $query_response = $client->query($dismaxQuery);
