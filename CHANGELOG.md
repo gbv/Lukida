@@ -1,8 +1,10 @@
 # Changelog
+**04.02.2017**
+* New Library Module
+
 **03.02.2017**
 * Library Module
-  * New!
-  * Two new charts created
+    * Two new charts created
   
 **28.01.2017**
 * Search
