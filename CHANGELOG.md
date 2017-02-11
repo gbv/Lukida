@@ -1,4 +1,16 @@
 # Changelog
+**10.02.2017**
+* Link Resolver
+  * Already cleared links Will be displayed directly when fullview is opened
+
+**08.02.2017**
+* Resolved bugs
+  * Frontpage trim searched values
+  * Local class seach corrected
+
+* Cleanup
+  * Removed CSS file from ini
+
 **04.02.2017**
 * New Library Module
 

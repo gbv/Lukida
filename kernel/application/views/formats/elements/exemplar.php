@@ -148,8 +148,40 @@ $this->CI->printArray2Screen(array(
 ));
 */
 
+// Set javascript variable
+$LinksResolved = array();
+if ( $LinkResolver )
+{
+  if ( ($LinksResolved=$this->CI->internal_linkresolver($this->PPN)) != "" )
+  {
+    if ( isset($LinksResolved["status"]) && $LinksResolved["status"] == 1 )
+    {
+      $LinkResolver  = false;
+    }
+    if ( isset($LinksResolved["links"]) )
+    {
+      if ( $LinksResolved["links"] == "[]" || $LinksResolved["links"] == "" || count($LinksResolved["links"]) == 0 )
+      {
+        $LinksResolved = array();
+      }
+      else
+      {
+        $LinksResolved = (array) json_decode($LinksResolved["links"],true);
+      }
+    }
+  }
+}
+if ( $LinkResolver )
+{
+  $Output .= "<script>linkresolver=true;</script>";
+}
+else
+{ 
+  $Output .= "<script>linkresolver=false;</script>";
+}
+
 // Create Access Buttons
-if ( count($Zugaenge) > 0 )
+if ( count($Zugaenge) > 0 ||  $LinkResolver || count($LinksResolved) > 0 )
 {
   $BtnClass     = "col-xs-12 col-sm-6 col-md-4 btn btn-default btn-exemplar";
   $EmptyClass   = "col-xs-12 col-sm-6 col-md-4 btn btn-default empty-exemplar";
@@ -178,14 +210,19 @@ if ( count($Zugaenge) > 0 )
     $Output .= "</button>";
   }
 
-  // LinkResolver Spaceholder for async js
-  if ( $LinkResolver )   $Output .= "<div id='linkresolver_" . $this->dlgid . "'></div>";
+  if ( count($LinksResolved) > 0 )
+  {
+    foreach ( $LinksResolved as $Solver => $Lk )
+    {
+      $Output .= "<button onclick='$.openLink(\"" . $Lk . "\")' class='". $BtnClass . "'>" . $this->CI->database->code2text("FULLTEXT") . " (" . $this->CI->database->code2text( $Solver)  . ")</button>";
+    }
+  }
+  elseif ( $LinkResolver )
+  {
+    // LinkResolver Spaceholder for async js
+    $Output .= "<div id='linkresolver_" . $this->dlgid . "'></div>";
+  }
   $Output .= "</div></div>";  
-}
-elseif ( $LinkResolver )
-{
-  // LinkResolver Spaceholder for async js
-  $Output .= "<div id='linkresolvercontainer_" . $this->dlgid . "'></div>";
 }
 
 // Create Exemplar Buttons
@@ -575,11 +612,9 @@ function BestandExemplare($CI, $Leader, $Contents, $Medium, $PPN)
 function BestandArtikel($CI, $Contents, $Medium)
 {
   // Get MARC Parent
-  $ParentMARC = ( isset($Medium["parents"][0]) ) ? $CI->internal_search("id",$Medium["parents"][0]) : array();
-
-  $ParentLeader = ( count($ParentMARC) > 0 && isset($ParentMARC["results"][$Medium["parents"][0]]["leader"])) ? $ParentMARC["results"][$Medium["parents"][0]]["leader"] : "";
-
-  $ParentContents = ( count($ParentMARC) > 0 && isset($ParentMARC["results"][$Medium["parents"][0]]["contents"])) ? $ParentMARC["results"][$Medium["parents"][0]]["contents"] : array();
+  $ParentMARC     = ( isset($Medium["parents"][0]) ) ? $CI->internal_search("id",$Medium["parents"][0]) : array();
+  $ParentLeader   = ( count($ParentMARC) > 0 && isset($ParentMARC["leader"])) ? $ParentMARC["leader"] : "";
+  $ParentContents = ( count($ParentMARC) > 0 && isset($ParentMARC["contents"])) ? $ParentMARC["contents"] : array();
 
   // Collect Parent 980
   $E980 = array();

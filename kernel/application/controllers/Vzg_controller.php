@@ -885,6 +885,22 @@ class Vzg_controller extends CI_Controller
     echo $Resolved["links"];
   }
 
+  public function internal_linkresolver($ppn)
+  {
+    // Check params
+    if ( $ppn == "" ) return (-2);
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","discover","database","export"));
+
+    // Check link already resolved in database
+    $Resolved = $this->database->get_resolved_link($ppn);
+
+    //  Return data
+    return $Resolved;
+  }
+
+
   public function exportlink()
   {
     // Ajax Method => No view will be loaded, just data is returned

@@ -171,11 +171,11 @@ class Bootstrap extends General
       $Ausgabe .= "<div id='related_" . $this->PPN . "'>";
       $Ausgabe .= "<table><tr><td data-toggle='tooltip' title='" . $this->CI->database->code2text($this->format) . "' class='publication-icon'>";
       $Ausgabe .= "<span class='gbvicon'>" . $this->cover . "</span>";
-      $Ausgabe .= "</td><td>";  
+      $Ausgabe .= "</td><td id='title'>";  
       $Ausgabe .= $this->trim_text($this->pretty["title"],60);
       if ( isset($this->pretty["publisher"]) && $this->pretty["publisher"] != "" )
       {
-        $Ausgabe .= "<br /><small>" . $this->trim_text($this->pretty["publisher"],50) . "</small>";
+        $Ausgabe .= "<br /><small id='date'>" . $this->trim_text($this->pretty["publisher"],50) . "</small>";
       }
       $Ausgabe .= "</td></tr></table></div>";
       $Ausgabe .= "</button>";

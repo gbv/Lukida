@@ -127,6 +127,9 @@ class Solr extends General
           case "schlagwort":
             $MainSearch .= "(topic:\"" . $Phrases[0] . "\" OR topic_unstemmed:\"" . $Phrases[0] . "\")";
             break;
+          case "class":
+            $MainSearch .= "(class_local:\"" . $Phrases[0] . "\" )";
+            break;
           case "isn":
             $MainSearch .= "(issn:\"" . $Phrases[0] . "\" OR isbn:\"" . $Phrases[0] . "\")";
             break;
@@ -160,6 +163,9 @@ class Solr extends General
           case "schlagwort":
             $MainSearch .= "(topic:\"" .           implode("\" OR topic:\"", $Phrases) . "\" OR "
                          . " topic_unstemmed:\"" . implode("\" OR topic_unstemmed:\"",$Phrases) . "\")";
+            break;
+          case "class":
+            $MainSearch .= "(class_local:\"" . implode("\" OR class_local:\"", $Phrases) . "\")";
             break;
           case "isn":
             $MainSearch .= "(issn:\"" . implode("\" OR issn:\"", $Phrases) . "\" OR "
