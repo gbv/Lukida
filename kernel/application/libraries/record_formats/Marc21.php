@@ -85,35 +85,58 @@ class Marc21 extends General
       {
         $Sub = array();
 
-        // 912-area keep only data for configured iln
-        if ( $tag == "912" && isset($_SESSION["iln"]) )
-        {
-          if ( $data->getSubField("a") )
-          {
-            $Tmp = $data->getSubField("a")->getData();
-            if ( substr($Tmp,0,8) == "GBV_ILN_" && $Tmp != ("GBV_ILN_" . $_SESSION["iln"]) )  continue;
-            if ( in_array($Tmp, array("SYSFLAG_1", "SYSFLAG_A", "GBV_GVK")) )  continue;
-          }
-        }
-
-        // 980-area keep only data for configured iln
-        if ( $tag >= "980" && isset($_SESSION["iln"]) )
-        {
-          if ( $data->getSubField("2") )
-          {
-            $Tmp = $data->getSubField("2")->getData();
-            if ($Tmp != $_SESSION["iln"])  continue;
-          }
-        }
-
+        // Get all subfields of record
         foreach ($data->getSubfields() as $code => $value)
         {
           $Sub[] = array($code => $value->getData());
         }
-        $this->contents[$tag][] = $Sub;
+
+        // Separate data in two arrays
+        if ( $tag != "912" && $tag < "980" )
+        {
+          $this->contents[$tag][] = $Sub;
+        }
+        else
+        {
+          // 912-area keep only data for configured iln
+          if ( $tag == "912" && isset($_SESSION["iln"]) )
+          {
+            if ( $data->getSubField("a") )
+            {
+              $Tmp = $data->getSubField("a")->getData();
+              if ( ( substr($Tmp,0,8) == "GBV_ILN_" && $Tmp == "GBV_ILN_" . $_SESSION["iln"] ) 
+                || ( substr($Tmp,0,8) != "GBV_ILN_" && ! in_array($Tmp, array("SYSFLAG_1", "SYSFLAG_A", "GBV_GVK")) ) ) 
+              {
+                $this->contents[$tag][] = $Sub;
+                continue;
+              }
+            }
+            if ( isset($_SESSION["internal"]["marcfull"]) && $_SESSION["internal"]["marcfull"] == "1" )
+            {
+              $this->contents["{". $tag."}"][] = $Sub;
+            }
+          }
+
+          // 980-area keep only data for configured iln
+          if ( $tag >= "980" && isset($_SESSION["iln"]) )
+          {
+            if ( $data->getSubField("2") )
+            {
+              $Tmp = $data->getSubField("2")->getData();
+              if ( $Tmp == $_SESSION["iln"] )
+              {
+                $this->contents[$tag][] = $Sub;
+                continue;
+              }
+            }
+            if ( isset($_SESSION["internal"]["marcfull"]) && $_SESSION["internal"]["marcfull"] == "1" )
+            {
+              $this->contents["{". $tag."}"][] = $Sub;
+            }
+          }
+        }
       }
     }
-    // $this->CI->printArray2File($this->contents);
   }
 
   private function SetProofOfPossession()

@@ -35,6 +35,7 @@ $TabGens = ( trim($Buttom) != "" )  ? explode(",",trim($Buttom)) : array();
 // Tabs Header
 $Tab = ( ( isset($_SESSION["internal"]["marc"]) && $_SESSION["internal"]["marc"] == "1" ) 
       || ( isset($_SESSION["internal"]["daia"]) && $_SESSION["internal"]["daia"] == "1" )
+      || ( isset($_SESSION["internal"]["marcfull"]) && $_SESSION["internal"]["marcfull"] == "1" )
       || $Tab2 ) 
       ? true : false;
 
@@ -47,7 +48,7 @@ if ( $Tab )
   {
     $Output .= "<li role='presentation'><a href='#tab2_" . $this->dlgid . "' aria-controls='tab2' role='tab' data-toggle='tab'>" . $this->CI->database->code2text('SIMULARPUBS') . "</a></li>";
   }
-  if ( isset($_SESSION["internal"]["marc"]) && $_SESSION["internal"]["marc"] == "1" )
+  if ( ( isset($_SESSION["internal"]["marc"]) && $_SESSION["internal"]["marc"] == "1" ) || ( isset($_SESSION["internal"]["marcfull"]) && $_SESSION["internal"]["marcfull"] == "1" ) )
   {
     $Output .= "<li role='presentation'><a href='#tab3_" . $this->dlgid . "' aria-controls='tab3' role='tab' data-toggle='tab'>" . $this->CI->database->code2text('RECORDMARC21') . "</a></li>";
   }
@@ -93,7 +94,7 @@ if ( $Tab2 )
 // ****** Ende Tab 2 ******
  
 // ****** Start Tab 3 ******
-if ( isset($_SESSION["internal"]["marc"]) && $_SESSION["internal"]["marc"] == "1" )
+if ( ( isset($_SESSION["internal"]["marc"]) && $_SESSION["internal"]["marc"] == "1" ) || ( isset($_SESSION["internal"]["marcfull"]) && $_SESSION["internal"]["marcfull"] == "1" ) )
 {
   $Output .= "<div role='tabpanel' class='tab-pane fade' id='tab3_" . $this->dlgid . "'>";
   $Output .= "<div class='table-responsive'><table class='table table-striped rowheight-reduced table-hover borderless small'><tbody>";

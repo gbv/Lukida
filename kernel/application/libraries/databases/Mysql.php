@@ -22,14 +22,14 @@ class Mysql extends General
     {
       if ( array_key_exists($code,$_SESSION["translation_ger"]) )
       {
-        return htmlspecialchars ($_SESSION["translation_ger"][$code], ENT_QUOTES);
+        return $_SESSION["translation_ger"][$code];
       }
     }
     else
     {
       if ( array_key_exists($code,$_SESSION["translation_eng"]) )
       {
-        return htmlspecialchars ($_SESSION["translation_eng"][$code], ENT_QUOTES);
+        return $_SESSION["translation_eng"][$code];
       }
     }
 
@@ -58,13 +58,13 @@ class Mysql extends General
         {
           $Value = $results->row()->german;
           $_SESSION["translation_ger"][$code]	= $Value;
-          return htmlspecialchars ($Value, ENT_QUOTES);
+          return $Value;
         }
         else
         {
           $Value = $results->row()->english;
           $_SESSION["translation_eng"][$code]	= $Value;
-          return htmlspecialchars ($Value, ENT_QUOTES);
+          return $Value;
         }
       }
     }
@@ -92,13 +92,13 @@ class Mysql extends General
     {
       $Value = $results->row()->german;
       $_SESSION["translation_ger"][$code] = $Value;
-      return htmlentities($Value, ENT_QUOTES);
+      return $Value;
     }
     else
     {
       $Value = $results->row()->english;
       $_SESSION["translation_eng"][$code] = $Value;
-      return htmlentities($Value, ENT_QUOTES);
+      return $Value;
     }
   }
 
@@ -338,6 +338,7 @@ class Mysql extends General
     $this->CI->db->from('links_resolved_library');
     $this->CI->db->where('iln',$iln);
     $this->CI->db->where('ppn',$ppn);
+    $this->CI->db->where('checkdate >=', date("Y-m-d", mktime(0, 0, 0, date("m")-3, date("d"),date("Y"))));
     $this->CI->db->limit(1);
     $results = $this->CI->db->get();
 
@@ -356,7 +357,7 @@ class Mysql extends General
     $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
     if ( $ppn == "" || $iln == "" )  return (-1);
 
-    $this->CI->db->query("insert into links_resolved_library (iln, ppn, resolved) values (" . $iln . ", '" . $ppn . "', '" .  $links . "')");
+    $this->CI->db->query("replace into links_resolved_library (iln, ppn, resolved,checkdate) values (" . $iln . ", '" . $ppn . "', '" .  $links . "','" . date("y-m-d") . "')");
   }
 
   public function get_discovery_bibs()

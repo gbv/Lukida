@@ -221,9 +221,10 @@ class Vzg_controller extends CI_Controller
 
           $this->load_check_module_config("discover");
 
-          if ( ! isset($_SESSION["internal"]["marc"]) )   $_SESSION["internal"]["marc"]   = (strtolower(MODE) == "development") ? 1 : 0;
-          if ( ! isset($_SESSION["internal"]["daia"]) )   $_SESSION["internal"]["daia"]   = (strtolower(MODE) == "development") ? 1 : 0;
-          if ( ! isset($_SESSION["internal"]["paia"]) )   $_SESSION["internal"]["paia"]   = (strtolower(MODE) == "development") ? 1 : 0;
+          if ( ! isset($_SESSION["internal"]["marc"]) )     $_SESSION["internal"]["marc"]     = (strtolower(MODE) == "development") ? 1 : 0;
+          if ( ! isset($_SESSION["internal"]["daia"]) )     $_SESSION["internal"]["daia"]     = (strtolower(MODE) == "development") ? 1 : 0;
+          if ( ! isset($_SESSION["internal"]["paia"]) )     $_SESSION["internal"]["paia"]     = (strtolower(MODE) == "development") ? 1 : 0;
+          if ( ! isset($_SESSION["internal"]["marcfull"]) ) $_SESSION["internal"]["marcfull"] = 0;
 
           if ( ! isset($_SESSION["filter"]["datapool"]) ) $_SESSION["filter"]["datapool"] = (isset($_SESSION["config_discover"]["discover"]["datapool"]) && $_SESSION["config_discover"]["discover"]["datapool"] != "" ) ? $_SESSION["config_discover"]["discover"]["datapool"] : "local";
 
@@ -460,7 +461,7 @@ class Vzg_controller extends CI_Controller
       "button_export" => (isset($_SESSION["config_discover"]["fullview"]["export"]) && $_SESSION["config_discover"]["fullview"]["export"] == 1 ) ? true  : false,
       "button_mail" => (isset($_SESSION["config_discover"]["fullview"]["mail"]) && $_SESSION["config_discover"]["fullview"]["mail"] == 1 && isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] != "") ? true  : false,
       "button_print" => (isset($_SESSION["config_discover"]["fullview"]["print"]) && $_SESSION["config_discover"]["fullview"]["print"] == 1 ) ? true  : false,
-
+      "simularpubs" => (isset($_SESSION["config_discover"]["fullview"]["tab2_available"]) && $_SESSION["config_discover"]["fullview"]["tab2_available"] == 1 ) ? true  : false,
       "librarytitle"		=> (isset($_SESSION["config_general"]["general"]["title"])        			 && $_SESSION["config_general"]["general"]["title"] != "" )        				? $_SESSION["config_general"]["general"]["title"]								: "",
       "softwarename"		=> (isset($_SESSION["config_general"]["general"]["softwarename"]) 			 && $_SESSION["config_general"]["general"]["softwarename"] != "" ) 				? $_SESSION["config_general"]["general"]["softwarename"]				: "GBV Discovery",
       "language"        => $_SESSION["language"],
@@ -805,15 +806,27 @@ class Vzg_controller extends CI_Controller
       {
         if ( ! isset($cmd[1] ) )
         {
-          $_SESSION["internal"]["marc"]	= ( !isset($_SESSION["internal"]["marc"]) || $_SESSION["internal"]["marc"] == "0" ) ? "1" : "0";
-          $_SESSION["internal"]["daia"]	= ( !isset($_SESSION["internal"]["daia"]) || $_SESSION["internal"]["daia"] == "0" ) ? "1" : "0";
-          $_SESSION["internal"]["paia"]	= ( !isset($_SESSION["internal"]["paia"]) || $_SESSION["internal"]["paia"] == "0" ) ? "1" : "0";
+          $_SESSION["internal"]["marc"] = ( !isset($_SESSION["internal"]["marc"]) || $_SESSION["internal"]["marc"] == "0" ) ? "1" : "0";
+          $_SESSION["internal"]["daia"] = ( !isset($_SESSION["internal"]["daia"]) || $_SESSION["internal"]["daia"] == "0" ) ? "1" : "0";
+          $_SESSION["internal"]["paia"] = ( !isset($_SESSION["internal"]["paia"]) || $_SESSION["internal"]["paia"] == "0" ) ? "1" : "0";
         }
         else
         {
-          $_SESSION["internal"]["marc"]	= ($cmd[1]== "off") ? "0" : "1";
-          $_SESSION["internal"]["daia"]	= ($cmd[1]== "off") ? "0" : "1";
-          $_SESSION["internal"]["paia"]	= ($cmd[1]== "off") ? "0" : "1";
+          $_SESSION["internal"]["marc"] = ($cmd[1]== "off") ? "0" : "1";
+          $_SESSION["internal"]["daia"] = ($cmd[1]== "off") ? "0" : "1";
+          $_SESSION["internal"]["paia"] = ($cmd[1]== "off") ? "0" : "1";
+        }
+        break;
+      }
+      case "marcfull":
+      {
+        if ( ! isset($cmd[1] ) )
+        {
+          $_SESSION["internal"]["marcfull"] = ( !isset($_SESSION["internal"]["marcfull"]) || $_SESSION["internal"]["marcfull"] == "0" ) ? "1" : "0";
+        }
+        else
+        {
+          $_SESSION["internal"]["marcfull"] = ($cmd[1]== "off") ? "0" : "1";
         }
         break;
       }

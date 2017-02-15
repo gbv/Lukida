@@ -1,7 +1,27 @@
 # Changelog
+**15.02.2017**
+* Link Resolver
+  * Resolved links will be refreshed every 3 months
+
+* Simular pubs 
+  * Can be switched off (display & search)
+
+* MARC
+  * Fullmarc Command added, after new search will display full marc record
+
+* Frontpage search
+  * Special characters have been removed
+
+* Resolved bugs
+  * Year period repaired 
+  
+**13.02.2017**
+* Resolved bugs
+  * Datapool facet is translated 
+
 **10.02.2017**
 * Link Resolver
-  * Already cleared links Will be displayed directly when fullview is opened
+  * Already cleared links will be displayed directly when fullview is opened
 
 **08.02.2017**
 * Resolved bugs

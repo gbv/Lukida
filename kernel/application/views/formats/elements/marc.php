@@ -1,13 +1,15 @@
 <?php
 
-//$this->CI->printArray2File($this->contents["contents"]);
-
 // Leader
 $Output .= "<tr><td>Leader</td><td>" .  formatLeader($this->leader) . "</td></tr>";
 
 foreach ($this->contents as $Field => $Record)
 {
-  $Output .= "<tr><td>" . $Field . "</td>";
+  if ( substr($Field, -1) == "}" && ( !isset($_SESSION["internal"]["marcfull"]) || $_SESSION["internal"]["marcfull"] == "0" ) ) continue;
+
+  $Output .= "<tr>";
+  $Output .= ( substr($Field, -1) == "}" ) ? "<td style='color:red'>" : "<td>"; 
+  $Output .= $Field . "</td>";
   $First = true;
   if ( ! is_array($Record ) )
   {

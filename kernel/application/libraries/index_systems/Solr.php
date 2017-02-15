@@ -33,39 +33,42 @@ class Solr extends General
   // ********************************************
   private function solr_before($search)
   {
-    $search	= str_replace("%20", " ", $search);
+    $search = str_replace("%20", " ", $search);
     return ($search);
   }
 
   private function solr_edismax($search,$package,$facets)
   {
+
     $client = new SolrClient($this->config);
 
     // Find complex search phrases and move them to $matches
+    // First: field(phrase)
     preg_match_all("/([A-Za-z0-9]+)\(([^)]+)\)/", $search, $matches);
     foreach ( $matches[0] as $one )
     {
       $search = str_replace($one, "", $search);
     }
 
+    // Second: field:(phrase)
     preg_match_all("/([A-Za-z0-9]+):\(([^)]+)\)/", $search, $matchescolon);
     foreach ( $matchescolon[0] as $one )
     {
       $search = str_replace($one, "", $search);
     }
-
-    preg_match_all("/([A-Za-z0-9]+):([A-Za-z0-9]+)/", $search, $matchescolon2);
-    foreach ( $matchescolon2[0] as $one )
-    {
-      $search = str_replace($one, "", $search);
-    }
-
     foreach ($matchescolon as $index => $one)
     {
       foreach ($one as $value)
       {
         $matches[$index][] = $value;
       }
+    }
+    
+    // Third: field:phrase
+    preg_match_all("/([A-Za-z0-9]+):([^\s]+)/", $search, $matchescolon2);
+    foreach ( $matchescolon2[0] as $one )
+    {
+      $search = str_replace($one, "", $search);
     }
     foreach ($matchescolon2 as $index => $one)
     {
@@ -74,7 +77,7 @@ class Solr extends General
         $matches[$index][] = $value;
       }
     }
-
+    
     // Remove not allowed complex phrases based on used key
     foreach ( $matches[1] as $index => $key )
     {
@@ -83,8 +86,9 @@ class Solr extends General
         unset($matches[0][$index]);
       }
     }
-    // $this->CI->printArray2File($matches);
     
+    // $this->CI->printArray2File($matches);
+
     // Now loop over complex search phrased and add simple search word
     // to build query string MainSearch
     $MainSearch = "";
@@ -94,11 +98,12 @@ class Solr extends General
       $CType = strtolower(trim($matches[1][$index]));
       $CText = trim($matches[2][$index]);
 
+/*
       // Mask solr special characters
-      $CText = str_replace(array( '+', '-', '&', '|', '!', '(' ,')' ,'{', '}', '[', ']', '^', '~', '?',':'),
-                           array('\+','\-','\&','\|','\!','\(','\)','\{','\}','\[','\]','\^','\~','\?',''),
-                           $CText);
-
+      $CText = str_replace(array( '+', '-', '&&', '||', '!', '(', ')', '{', '}', '[', ']', '^', '"', '~', ':'),
+                           array('\+','\-','\&&','\||','\!','\(','\)','\{','\}','\[','\]','\^','\"','\~','\:'),
+                           $CText); 
+*/
       //First get phrases in "" and remove them
       preg_match_all("/\"([^\"]+)\"/", $CText, $Cmatches);
       foreach ( $Cmatches[0] as $one )
@@ -135,7 +140,7 @@ class Solr extends General
             break;
           case "title":
           case "titel":
-            $MainSearch .= "(title_short:\"" . $Phrases[0] . "\" OR title_full_unstemmed:\"" . $Phrases[0] . "\" OR title_full:\"" . $Phrases[0] . "\" OR title:\"" . $Phrases[0] . "\")";
+            $MainSearch .= "(title_short:" . $Phrases[0] . " OR title_full_unstemmed:" . $Phrases[0] . " OR title_full:" . $Phrases[0] . " OR title:" . $Phrases[0] . ")";
             break;
           case "jahr":
           case "year":
@@ -394,7 +399,7 @@ class Solr extends General
         }
       }
 
-      if ( isset($matches[1][0]) && $matches[1][0] != "ppnlink" )
+      if ( ! isset($matches[1][0]) || ( isset($matches[1][0]) && $matches[1][0] != "ppnlink" ) )
       {
         $dismaxQuery->setStats(true);
         $dismaxQuery->addStatsField('publishDate');
