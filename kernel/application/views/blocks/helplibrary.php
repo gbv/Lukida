@@ -4,46 +4,50 @@
       <div class="col-sm-4">
         <div class="well searches">
           <p>Diagramm Suchen</p>
-          In diesem Diagramm werden Ihnen die durchgeführten Suchen von Benutzern in Lukida dargestellt. Wochenenden sind orange dargestellt. <br />
-          Die untere Achse stellt den gewählten Zeitraum dar und nach oben wird die entsprechende Häufigkeit dargestellt.
+          Dieses Diagramm stellt Ihnen die Anzahl der Recherchen pro Tag dar, die Nutzer mit Lukida durchgeführt haben.<br />Achse nach rechts: gewählter Zeitraum; Achse nach oben: Häufigkeit. Orangefarbene Säule: Recherchetag ist ein Samstag oder Sonntag.
         </div>
         <div class="well usage collapse">
           <p>Diagramm Nutzung</p>
-          In diesem Diagramm wird Ihnen die Benutzer-Nutzung von Lukida dargestellt. Welche Funktionen werden wie oft genutzt?<br />
-          Die untere Achse stellt den gewählten Zeitraum dar und nach oben wird die entsprechende Häufigkeit dargestellt.
+          Diese Diagramme stellen Ihnen dar, welche Lukida-Funktion wie oft genutzt wird.<br />Achse nach rechts: gewählter Zeitraum; Achse nach oben: Häufigkeit.
         </div>
       </div>
       <div class="col-sm-8">
         <div class="well usage searches">
           <p>Option Zeitraum</p>
-          Mit dem Zeitraum können Sie Ihnen Betrachtungszeitraum per Klappliste auswählen. Dabei werden Ihnen vordefinierte Zeiträume angeboten. Die unterste Auswahl ermöglicht Ihnen eine freien Zeitraum (von/bis-Datum) auszuwählen. Die maximale auswählbare Dauer sind 6 Monate.
+          Mit dieser Option können Sie das Zeitintervall per Klappliste auswählen. Entweder verwenden Sie einen der vordefinierten Zeiträume oder sie wählen einen eigenen Zeitraum, nicht größer als 6 Monate.
         </div>
         <div class="well usage collapse">
           <p>Option Indikatoren</p>
           Jede ausgewählte Indikatoren-Gruppe beinhaltet mehrere Parameter. 
           <ul>
           <li>Exporte<br />
-          Hier werden die verschiedenen genutzen Exportformate geezählt.</li>
+          Hier werden genutzte Exportformate gezählt.</li>
           <li>Facetten<br />
-          Die Indikatioren listen die Nutzung der Bestandsfacette (datapool), der Jahresauswahl (year), des Typs (typ) und des Formats (format).
-          </li>
+          Hier wird die Nutzung der Bestandsfacette (datapool), der Jahresauswahl (year), des Typs (typ) und des Formats (format) gezählt.</li>
           <li>Layouts<br />
-          Hier wird durch die Indikatoren Layout_1-4 angezeigt, wie oft der Nutzer anstelle der automatischen Spaltenanzahl die Spaltenanzahl gezielt auf 1-4 Spalten umgestellt hat.</li>
+          Hier wird durch die Indikatoren Layout_1-4 angezeigt, wie oft der Nutzer die Spaltenanzahl gezielt umgestellt hat.</li>
           <li>LBS<br />
-          Hier werden die Aktionen mit dem LBS-System dargestellt. Details siege DAIA- & PAIA-Dokumentation</li>
+          Hier wird die Kommunikation zwischen Lukida und LBS dargestellt, und zwar
+          <ul>
+            <li>LBS_Document: DAIA-Abfragen (D=Dokument)</li>
+            <li>LBS_Login: Anmeldung am LBS</li>
+            <li>LBS_Logout: Abmeldung vom LBS</li>
+            <li>LBS_Renew: Ausleihverlängerung</li>
+            <li>LBS_Request: LBS-Bestellung oder -Vormerkung</li>
+          </ul></li>
           <li>Mails
           Evtl. mehrere Indikatoren entsprechen den von Ihnen definierten Exemplar-Fällen. Die Weiterempfehlungsmail entspricht dem Wert "Mail".</li>
           <li>Sichten<br />
-          Der Indikator "Fullview" entsprecht der geöffneten großen Kachel eines Titels in der Bildschirmmitte. Der Indikator "Userview" entsprecht dem geöffneten Benutzerkontos.</li>
+          Der Indikator "Fullview" entsprecht der geöffneten großen Kachel eines Titels in der Bildschirmmitte. Der Indikator "Userview" entspricht dem geöffneten Benutzerkonto.</li>
           <li>Sprachen<br />
-          Bei den Sprach-Indikatoren (Language) entspricht Language_Ger der Deutschen und _Eng der englischen Sprache.</li>
+          Language_Ger entspricht gewählter deutscher und Language_Eng gewählter englischer Sprache.</li>
           <li>Bibliothek<br />
-          Der Indikator Command stellt die Nutzung interner Kommandos im Suchschlitz dar. StoreUserSearch entspricht der Anzahl der gespeicherten Suchvorgänge. LibrarySpecial ist ein Zähler für Sonderfunktionen einer Einrichtung.
+         Der Indikator Command stellt die Nutzung interner Kommandos im Suchschlitz dar. StoreUserSearch entspricht der Anzahl der gespeicherten Suchvorgänge. LibrarySpecial ist ein Zähler für Sonderfunktionen einer Einrichtung."
           </li>
         </div>
         <div class="well usage collapse">
           <p>Option Weiteres</p>
-          Dieser Paramter setzt die verschienden Linien übereinander. Die Bereiche werden aufeinander gestapelt und beginnen somit nicht bei 0, sondern beim Wert des unterhalb dargestellten Indikators.
+          Dieser Parameter setzt die einzelnen Indikatoren übereinander; die Häufigkeiten werden addiert. Der erste, am weitesten links stehende Indikator beginnt bei 0, alle weiteren Indikatoren beginnen beim Wert des Indikators vorher.
         </div>
       </div>
     </div>
