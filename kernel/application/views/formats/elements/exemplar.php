@@ -794,7 +794,9 @@ function GetDAIA($CI, $Medium, $PPN)
         foreach ( $Dok["item"] as $Exp )
         {
           $Services = array();
-          $ExpID = explode(":",$Exp["id"])[3];
+
+          // DAIA 1 & 2
+          $ExpID = (isset($Exp["temporary-hack-do-not-use"])) ? $Exp["temporary-hack-do-not-use"] : explode(":",$Exp["id"])[3];
 
           if ( isset($Exp["available"]) )
           {

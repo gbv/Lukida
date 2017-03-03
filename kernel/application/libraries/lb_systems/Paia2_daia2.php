@@ -25,6 +25,9 @@ class Paia2_daia2 extends General
     $this->daia	= (isset($_SESSION["config_general"]["lbs"]["daia"]) && $_SESSION["config_general"]["lbs"]["daia"] != "" ) ? $_SESSION["config_general"]["lbs"]["daia"] : "";
     if ( $this->daia == "" )	return false;
     $this->daia .= "/" . $this->isil . "/daia";
+
+    $this->maxrenewals = (isset($_SESSION["config_general"]["lbs"]["maxrenewals"]) && $_SESSION["config_general"]["lbs"]["maxrenewals"] != "" ) ? $_SESSION["config_general"]["lbs"]["maxrenewals"] : "0";
+    $this->maxrenewals = ( $this->maxrenewals >= "1" ) ? " / " . $this->maxrenewals : "";
   }
 
   // ********************************************
@@ -317,11 +320,24 @@ class Paia2_daia2 extends General
     if ( isset($response["doc"][0]["error"]) )
     {
       return (array("status" => -2,
-                    "error"  => $response["doc"][0]["error"]));
+        "error"  => $response["doc"][0]["error"]));
     }
     $this->userdata();
-    return (array("status" => 0));
+    return (array("status" => 0,
+      "endtime"  => date("d.m.Y",strtotime($response["doc"][0]["endtime"])),
+      "renewals" => $response["doc"][0]["renewals"] . $this->maxrenewals));
   }
-}
 
+  public function changepw($old, $new)
+  {
+    $post_data = array("patron" => $_SESSION["userlogin"], "username" => $_SESSION["userlogin"], "old_password" => $old, "new_password" => $new);
+    $change_response = json_decode($this->postit($this->paia.'/auth/change', $post_data, $_SESSION['paiaToken']),true);
+    if ( isset($change_response["error_description"]) )
+    {
+      return (array("status" => -2,
+        "error"  => $change_response["error_description"]));
+    }
+    return (array("status" => 0));
+  }  
+}
 ?>

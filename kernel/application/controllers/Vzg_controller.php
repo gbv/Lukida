@@ -1108,6 +1108,32 @@ class Vzg_controller extends CI_Controller
     return (0);
   }
 
+  public function changepw()
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+    $old = trim($this->input->post('old'));
+    $new = trim($this->input->post('new'));
+
+    // Check params
+    if ( $old == "" ) echo json_encode(array("status"=>"-2"));
+    if ( $new == "" ) echo json_encode(array("status"=>"-2"));
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","discover","lbs"));
+
+    // Set stats
+    $this->stats("LBS_Change");
+
+    if ( isset($_SESSION["userlogin"]) )
+    {
+      // Logout lbs & echo
+      echo  json_encode($this->lbs->changepw($old,$new));
+    }
+    return (0);
+  }
+
   public function GetLBS($PPN)
   {
     // Receive params

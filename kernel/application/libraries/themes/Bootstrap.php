@@ -208,7 +208,7 @@ class Bootstrap extends General
     $this->cover             = $this->medium["cover"];
     $this->catalogues        = $this->medium["catalogues"];
     $this->isbn              = $this->medium["isbn"];
-    $_SESSION["data"]["results"][$this->PPN] += $this->SetContents("fullview");
+    $_SESSION["data"]["results"][$this->PPN] = array_merge($_SESSION["data"]["results"][$this->PPN],$this->SetContents("fullview"));
     $this->pretty     = $_SESSION["data"]["results"][$this->PPN];
 
     // $this->CI->printArray2File($_SESSION["data"]["results"][$this->PPN]);

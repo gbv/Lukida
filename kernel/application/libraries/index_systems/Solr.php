@@ -223,6 +223,7 @@ class Solr extends General
         ->addQueryField("genre",300)
         ->addQueryField("allfields_unstemmed",10)
         ->addQueryField("fulltext_unstemmed",10)
+        ->addQueryField("allfields_whitespace",10)
         ->addQueryField("allfields")
         ->addQueryField("fulltext")
         ->addQueryField("description")
@@ -519,11 +520,17 @@ class Solr extends General
     ->addField('id');
 
     $dismaxQuery
+    ->addMltField("topic")
+    ->addMltField("abstract")
+    ->addMltField("fulltext")
     ->addMltField("title")
     ->addMltField("title_short")
+    ->addMltQueryField("topic",300)
+    ->addMltQueryField("abstract",200)
+    ->addMltQueryField("fulltext",200)
     ->addMltQueryField("title",75)
     ->addMltQueryField("title_short",100);
-          //topic^300%20language^30%20author^75%20publishDate
+
     $dismaxQuery
     ->setMlt(true)
     ->setMltBoost(true)

@@ -64,6 +64,7 @@ $route['ajax/chart']                       = 'Vzg_controller/chart';
 $route['ajax/clear']                       = 'Vzg_controller/clear';
 $route['ajax/command']                     = 'Vzg_controller/command';
 $route['ajax/config']                      = 'Vzg_controller/config';
+$route['ajax/changepw']                    = 'Vzg_controller/changepw';
 $route['ajax/checkpw']                     = 'Vzg_controller/checkpw';
 $route['ajax/exportlink']                  = 'Vzg_controller/exportlink';
 $route['ajax/facet']                       = 'Vzg_controller/facet';

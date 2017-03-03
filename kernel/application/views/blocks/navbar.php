@@ -93,6 +93,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
           <ul class="dropdown-menu" role="menu">
             <li><a class="myarea2" href="javascript:$.open_user('userrentals')"><i class="fa fa-user"></i> Mein Bereich</a></li>
             <li class="divider"></li>
+            <li><a class="usercollectables" href="javascript:$.open_user('usercollectables')">Abholbare Medien</a></li>
             <li><a class="userrentals" href="javascript:$.open_user('userrentals')">Ausleihen</a></li>
             <li><a class="userorders" href="javascript:$.open_user('userorders')">Bestellungen</a></li>
             <li><a class="userreservations" href="javascript:$.open_user('userreservations')">Vormerkungen</a></li>
@@ -181,6 +182,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
             <ul class="dropdown-menu" role="menu">
               <li><a class="myarea2" href="javascript:$.open_user('userrentals')"><i class="fa fa-user"></i> Mein Bereich</a></li>
               <li class="divider"></li>
+              <li><a class="usercollectables" href="javascript:$.open_user('usercollectables')">Abholbare Medien</a></li>
               <li><a class="userrentals" href="javascript:$.open_user('userrentals')">Ausleihen</a></li>
               <li><a class="userorders" href="javascript:$.open_user('userorders')">Bestellungen</a></li>
               <li><a class="userreservations" href="javascript:$.open_user('userreservations')">Vormerkungen</a></li>

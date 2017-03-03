@@ -473,10 +473,8 @@ class General
             {
               foreach ( $Subrecord as $Key => $Value )
               {
-                //$this->CI->appendFile("k.txt", $Key . " ? "  . $Sub);
                 if ( (string)$Key == (string)$Sub )
                 {
-                  //$this->CI->appendFile("k.txt", "Yes!");
                   if ( ! in_array($Value, $Tmp) )
                   {
                     // New value

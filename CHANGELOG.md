@@ -1,4 +1,23 @@
 # Changelog
+**01.03.2017**
+* Search
+  * Improved search for terme containing special characteds like -,#, etc.
+  * Better simular publications
+
+**28.02.2017**
+* New user module
+  * User rentals redesigned (new layout, multiple renews)
+  * Separate collectables tab
+  * Integrated Change Password
+
+**24.02.2017**
+* Search
+  * Keyword suggestion without AutoSelect
+
+* Updates
+  * Chart.js 2.5.0
+  * Typeahead 4.0.2
+
 **15.02.2017**
 * Link Resolver
   * Resolved links will be refreshed every 3 months

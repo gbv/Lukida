@@ -34,18 +34,13 @@ if ( $TabGen != "" )
   // Show general area element above all user tabs
   $Output .= $this->LoadElement($TabGen);
 }
-if ( isset($Add["usercollectables"]) )
-{
-  $Output .= "<div class='col-xs-12 search'>" . $this->CI->database->code2text("Collectableremark") . "</div>";
-  $Add["userreservations"] = (isset($Add["userreservations"])) ?  $Add["userreservations"] + $Add["usercollectables"] : $Add["usercollectables"];
-}
 
 // Tabs Header
 $Output .= "<ul class='nav nav-tabs' role='tablist'>";
 foreach ( $Tabs as $Tab )
 {
   $Output .= "<li role='presentation'";
-  if ( $Action == $Tab )	$Output .= " class='active'";
+  $Output .= ( $Action == $Tab ) ? " class='active small'" : " class='small'";
   $Output .= "><a href='#" . $Tab . "' aria-controls='general' role='tab' data-toggle='tab'>" . $this->CI->database->code2text($Tab);
   $Output .= (isset($Add[$Tab])) ? " <span class='badge'>" . $Add[$Tab] : "</span>";
   $Output .= "</a></li>";
@@ -54,7 +49,7 @@ foreach ( $TabsOpt as $Tab )
 {
   if ( isset($_SESSION["internal"][$Tab]) && $_SESSION["internal"][$Tab] == "1" )
   {
-    $Output .= "<li role='presentation'><a href='#" . $Tab . "' aria-controls='general' role='tab' data-toggle='tab'>" . $this->CI->database->code2text("record" . $Tab) . "</a></li>";
+    $Output .= "<li class='small' role='presentation'><a href='#" . $Tab . "' aria-controls='general' role='tab' data-toggle='tab'>" . $this->CI->database->code2text("record" . $Tab) . "</a></li>";
   }
 }
 $Output .= "</ul>";

@@ -148,13 +148,32 @@ class Marc21 extends General
     {
       if ( $data->isDataField() )
       {
+        $iln  = "";
+        $eln  = "";
+        $ins  = "";
+        $getx = "";
         foreach ($data->getSubfields() as $code => $value)
         {
-          if ( $code == "2" )
+          // ILN
+          if ( $code == "2" ) $iln = $value->getData();
+          // ELN/ILN
+          if ( $code == "x" ) $getx = $value->getData();
+        }
+        if ( $getx != "" )
+        {
+          $Tmp = explode("/",$getx);
+          if ( count($Tmp) == 1 )
           {
-            $ilns[] = $value->getData();
+            $eln = str_pad ($Tmp[0],4,"0", STR_PAD_LEFT);
+          }
+          elseif ( count($Tmp) == 2) 
+          {
+            $eln = str_pad ($Tmp[0],4,"0", STR_PAD_LEFT);
+            $ins = str_pad ($Tmp[1],4,"0", STR_PAD_LEFT);
           }
         }
+
+        $ilns[] = rtrim($iln."/".$eln."/".$ins,"/");
       }
     }
     $this->proofofpossession = array_unique($ilns);
