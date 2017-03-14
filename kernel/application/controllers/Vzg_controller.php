@@ -474,7 +474,8 @@ class Vzg_controller extends CI_Controller
       "library" => isset($_SESSION["library"]) ? $_SESSION["library"] : false,
       "library_name" => isset($_SESSION["library_name"]) ? $_SESSION["library_name"] : "",
       "producer" => isset($_SESSION["producer"]) ? $_SESSION["producer"] : false,
-      "iln" => isset($_SESSION["iln"]) ? $_SESSION["iln"] : ""
+      "iln" => isset($_SESSION["iln"]) ? $_SESSION["iln"] : "",
+      "maxrenewals" => (isset($_SESSION["config_general"]["lbs"]["maxrenewals"]) && $_SESSION["config_general"]["lbs"]["maxrenewals"] != "" ) ? $_SESSION["config_general"]["lbs"]["maxrenewals"]  : "0"
     );
 
     // Set stats
@@ -612,6 +613,13 @@ class Vzg_controller extends CI_Controller
     if ( ! $this->isUserSessionAlive() ) return ($this->ajaxreturn("400","timeout user session"));
     if ( $mailtyp == "" ) $mailtyp = "order";
     if ( $mailsubject == "" ) $mailtyp = "Magazinbestellung";
+    if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] >= "1" )
+    {
+      echo json_encode(array(
+        "status" => -3,
+        "error"  => ( isset($_SESSION["userstatus"]["message"]) && $_SESSION["userstatus"]["message"] == true && isset($_SESSION["userstatus"]["messagetext"])) ? $_SESSION["userstatus"]["messagetext"] : "Error" ));
+      return(0);
+    }
 
     // Ensure required interfaces
     $this->ensureInterface(array("config","discover","database"));
@@ -707,7 +715,7 @@ class Vzg_controller extends CI_Controller
     $this->email->send();
 
     // Return data
-    echo "0";
+    echo json_encode(array("status" => "0"));
   }
 
   /**
@@ -1080,7 +1088,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("LBS_Login");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","discover","lbs"));
+    $this->ensureInterface(array("config","discover","lbs","database"));
 
     // Login lbs & echo
     echo json_encode($this->lbs->login($user, $pw));
@@ -1393,7 +1401,7 @@ class Vzg_controller extends CI_Controller
   }
 
   // Search media data (invoked by system without optical stuff and includes caching)
-  public function internal_search($type, $ppn)
+  public function internal_search($type, $ppn, $format="")
   {
     // Check params
     if ( $type == "" || $ppn == "" ) return(-2);
@@ -1409,7 +1417,14 @@ class Vzg_controller extends CI_Controller
     }
     else
     {
-      $container = $this->dosearch($type . ":" . $ppn,"0",false);
+      if ( $format == "" )
+      {
+        $container = $this->dosearch($type . ":" . $ppn,"0",false);
+      }
+      else
+      {
+        $container = $this->dosearch($type . ":" . $ppn . " format:" . $format,"0",false);
+      }
       if ( $type == "id" && isset($container["results"][$ppn]) ) $container = $container["results"][$ppn];
     }
     return ($container);
@@ -1744,7 +1759,7 @@ class Vzg_controller extends CI_Controller
     $search = str_replace("{colon}", ":", $search);
     
     // Call main method with parameters
-    $this->view("discover",$search,$facets);    
+    $this->view("discover",$search,$facets);
   }  
 
 }

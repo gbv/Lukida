@@ -25,9 +25,6 @@ class Paia2_daia2 extends General
     $this->daia	= (isset($_SESSION["config_general"]["lbs"]["daia"]) && $_SESSION["config_general"]["lbs"]["daia"] != "" ) ? $_SESSION["config_general"]["lbs"]["daia"] : "";
     if ( $this->daia == "" )	return false;
     $this->daia .= "/" . $this->isil . "/daia";
-
-    $this->maxrenewals = (isset($_SESSION["config_general"]["lbs"]["maxrenewals"]) && $_SESSION["config_general"]["lbs"]["maxrenewals"] != "" ) ? $_SESSION["config_general"]["lbs"]["maxrenewals"] : "0";
-    $this->maxrenewals = ( $this->maxrenewals >= "1" ) ? " / " . $this->maxrenewals : "";
   }
 
   // ********************************************
@@ -160,16 +157,19 @@ class Paia2_daia2 extends General
     
     $user = array();
     $user['username'] = $_SESSION["userlogin"];
-    $nameArr = explode(',', $user_response['name']);
-    if ( count($nameArr) == 2 )
+    if ( isset($user_response['name']) )
     {
-      $user['firstname'] = $nameArr[1];
-      $user['lastname'] = $nameArr[0];
-    }
-    else
-    {
-      $user['firstname'] = "";
-      $user['lastname'] = $user_response['name'];
+      $nameArr = explode(',', $user_response['name']);
+      if ( count($nameArr) == 2 )
+      {
+        $user['firstname'] = $nameArr[1];
+        $user['lastname'] = $nameArr[0];
+      }
+      else
+      {
+        $user['firstname'] = "";
+        $user['lastname'] = $user_response['name'];
+      }
     }
     $user['email'] = isset($user_response['email']) ? $user_response['email'] : "";
     $user['address'] = isset($user_response['address']) ? $user_response['address'] : "";
@@ -187,8 +187,39 @@ class Paia2_daia2 extends General
   private function getUserFees()
   {
     $fees_response = $this->getAsArray($this->paia.'/core/'.$_SESSION["userlogin"].'/fees');
-    //$this->CI->printArray2File($fees_response);
     return $fees_response;
+  }
+
+  private function calcUserStatus()
+  {
+    $MsgText  = "";
+    $Blocked  = false;
+
+    // Check for collectable items
+    if ( isset($_SESSION["items"]) )
+    {
+      $Found = false;
+      $Reminder = false;
+      foreach ( $_SESSION["items"] as $Item )
+      {
+        if ( isset($Item["status"]) && $Item["status"] == "4" )      $Found = true;
+        if ( isset($Item["reminder"]) && $Item["reminder"] >= "3" )  $Reminder = true;
+      }
+    }
+
+    if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] == "0" && $Reminder )  {$Blocked = true; $MsgText .= $this->CI->database->code2text("ACCOUNTREMINDER"); $_SESSION["login"]["status"] = "5";}
+    if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] == "1" && !$Reminder ) {$Blocked = true; $MsgText .= $this->CI->database->code2text("ACCOUNTINACTIVE");}
+    if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] == "1" && $Reminder )  {$Blocked = true; $MsgText .= $this->CI->database->code2text("ACCOUNTREMINDER");}
+    if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] == "2" )               {$Blocked = true; $MsgText .= $this->CI->database->code2text("ACCOUNTEXPIRED");}
+    if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] == "3" && !$Reminder ) {$Blocked = true; $MsgText .= $this->CI->database->code2text("ACCOUNTFEES");}
+    if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] == "3" && $Reminder )  {$Blocked = true; $MsgText .= $this->CI->database->code2text("ACCOUNTREMINDERFEES");}
+    if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] == "4" )               {$Blocked = true; $MsgText .= $this->CI->database->code2text("ACCOUNTEXPIREDFEES");}
+
+    if ( $Found ) $MsgText .= "<br />" . $this->CI->database->code2text("COLLECTABLEREMARK");
+
+    return array ( "blocked" => $Blocked, 
+                   "message" => ($MsgText != "") ? true : false, 
+                   "messagetext" => $MsgText );
   }
 
   // ********************************************
@@ -199,8 +230,6 @@ class Paia2_daia2 extends General
   {
     $post_data = array("username" => $user, "password" => $pw, "grant_type" => "password", "scope" => "read_patron read_fees read_items write_items change_password");
     $login_response = $this->postit($this->paia.'/auth/login', $post_data);
-    //$this->CI->printArray2File($login_response);
-    //$this->CI->printArray2File($this->paia.'/auth/login');
     $json_start = strpos($login_response, '{');
     $json_response = substr($login_response, $json_start);
     $array_response = json_decode($json_response, true);
@@ -211,19 +240,11 @@ class Paia2_daia2 extends General
       {
         $_SESSION["userlogin"]		= $user;
         $_SESSION["userpassword"]	= $pw;
-        $_SESSION["login"] 				= $this->getUserDetails();
-        $_SESSION["items"] 				= $this->getUserItems();
-        $_SESSION["fees"] 				= $this->getUserFees();
-        //$this->CI->printArray2File($_SESSION["login"]);
-
-        // Check for collectable items
-        $Found = false;
-        foreach ( $_SESSION["items"] as $Item )
-        {
-          if ( $Item["status"] == "4" ) { $Found = true; break;}
-        }
-        $Container = ( $Found ) ? $_SESSION["login"] + array("collectable" => true) : $_SESSION["login"] + array("collectable" => false);
-        return $Container;
+        $_SESSION["login"]        = $this->getUserDetails();
+        $_SESSION["items"]        = $this->getUserItems();
+        $_SESSION["fees"]         = $this->getUserFees();
+        $_SESSION["userstatus"]   = $this->calcUserStatus();
+        return $_SESSION["login"] + $_SESSION["userstatus"];
       }
     }
     else
@@ -234,6 +255,7 @@ class Paia2_daia2 extends General
       unset ($_SESSION["userpassword"]);
       unset ($_SESSION["items"]);
       unset ($_SESSION["fees"]);
+      unset ($_SESSION["userstatus"]);
     }
     return "-1";
   }
@@ -245,7 +267,7 @@ class Paia2_daia2 extends General
       $_SESSION["login"] 				= $this->getUserDetails();
       $_SESSION["items"] 				= $this->getUserItems();
       $_SESSION["fees"] 				= $this->getUserFees();
-      //$this->CI->printArray2File($_SESSION["items"]);
+      $_SESSION["userstatus"]   = $this->calcUserStatus();
       return $_SESSION["login"];
     }
     return "-1";
@@ -253,13 +275,11 @@ class Paia2_daia2 extends General
 
   public function logout ( )
   {
-    //$this->CI->printArray2File($_SESSION);
     $post_data = array("patron" => $_SESSION["userlogin"]);
     $logout_response = $this->postit($this->paia.'/auth/logout', $post_data, $_SESSION['paiaToken']);
     $json_start = strpos($logout_response, '{');
     $json_response = substr($logout_response, $json_start);
     $array_response = json_decode($json_response, true);
-    //$this->CI->printArray2File($array_response);
 
     if (array_key_exists('patron', $array_response))
     {
@@ -277,8 +297,6 @@ class Paia2_daia2 extends General
   public function document($ppn)
   {
     $response = $this->getit($this->daia."?id=ppn:".$ppn."&format=json","");
-    //$this->CI->printArray2File($this->daia."?id=ppn:".$ppn."&format=json");
-    //$this->CI->printArray2File($response);
     $json_start = strpos($response, '{');
     $json_response = substr($response, $json_start);
     $array_response = json_decode($json_response, true);
@@ -287,6 +305,12 @@ class Paia2_daia2 extends General
 
   public function request($uri)
   {
+    if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] >= "1" )
+    {
+      return (array("status" => -3,
+                    "error"  => ( isset($_SESSION["userstatus"]["message"]) && $_SESSION["userstatus"]["message"] == true && isset($_SESSION["userstatus"]["messagetext"])) ? $_SESSION["userstatus"]["messagetext"] : "Error" ));
+    }
+
     $doc = array("doc" => array(array("item" => $uri)));
     $response = $this->postAsArray($this->paia.'/core/' . $_SESSION["userlogin"] .'/request', $doc);
     //$this->CI->printArray2File($response);
@@ -302,6 +326,12 @@ class Paia2_daia2 extends General
 
   public function cancel($uri)
   {
+    if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] >= "1" )
+    {
+      return (array("status" => -3,
+                    "error"  => ( isset($_SESSION["userstatus"]["message"]) && $_SESSION["userstatus"]["message"] == true && isset($_SESSION["userstatus"]["messagetext"])) ? $_SESSION["userstatus"]["messagetext"] : "Error" ));
+    }
+
     $doc = array("doc" => array(array("item" => $uri)));
     $response = $this->postAsArray($this->paia.'/core/' . $_SESSION["userlogin"] .'/cancel', $doc);
     //$this->CI->printArray2File($response);
@@ -315,6 +345,12 @@ class Paia2_daia2 extends General
 
   public function renew($uri)
   {
+    if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] >= "1" )
+    {
+      return (array("status" => -3,
+                    "error"  => ( isset($_SESSION["userstatus"]["message"]) && $_SESSION["userstatus"]["message"] == true && isset($_SESSION["userstatus"]["messagetext"])) ? $_SESSION["userstatus"]["messagetext"] : "Error" ));
+    }
+
     $doc = array("doc" => array(array("item" => $uri)));
     $response = $this->postAsArray($this->paia.'/core/' . $_SESSION["userlogin"] .'/renew', $doc);
     if ( isset($response["doc"][0]["error"]) )
@@ -322,14 +358,19 @@ class Paia2_daia2 extends General
       return (array("status" => -2,
         "error"  => $response["doc"][0]["error"]));
     }
-    $this->userdata();
     return (array("status" => 0,
       "endtime"  => date("d.m.Y",strtotime($response["doc"][0]["endtime"])),
-      "renewals" => $response["doc"][0]["renewals"] . $this->maxrenewals));
+      "renewals" => $response["doc"][0]["renewals"]));
   }
 
   public function changepw($old, $new)
   {
+    if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] >= "1" )
+    {
+      return (array("status" => -3,
+                    "error"  => ( isset($_SESSION["userstatus"]["message"]) && $_SESSION["userstatus"]["message"] == true && isset($_SESSION["userstatus"]["messagetext"])) ? $_SESSION["userstatus"]["messagetext"] : "Error" ));
+    }
+
     $post_data = array("patron" => $_SESSION["userlogin"], "username" => $_SESSION["userlogin"], "old_password" => $old, "new_password" => $new);
     $change_response = json_decode($this->postit($this->paia.'/auth/change', $post_data, $_SESSION['paiaToken']),true);
     if ( isset($change_response["error_description"]) )

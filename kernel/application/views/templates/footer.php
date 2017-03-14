@@ -82,36 +82,26 @@ else
 }
 
 // Check if $User is still logged in
-if ( isset($_SESSION["login"]) && $_SESSION["login"] != "" )
-{
-  echo "<script>";
-  echo "usrconfig=" . json_encode($_SESSION["login"]) . ";";
-  echo "</script>";
-}
-
-// Load language settings
 echo "<script>";
-echo "configlang=" . json_encode($_SESSION['language_'.$_SESSION["language"]]) . ";";
-echo "</script>";
+if ( isset($_SESSION["login"]) && $_SESSION["login"] != "" ) echo "\nusrconfig=" . json_encode($_SESSION["login"]) . ";";
+if ( isset($_SESSION["language"]) && $_SESSION["language"] != "" ) 
+{
+  if ( isset($_SESSION['language_'.$_SESSION["language"]]) )  echo "\nconfiglang=" . json_encode($_SESSION['language_'.$_SESSION["language"]]) . ";";
+}
   
 if ( ! $front )
 {
   // Check if internal commands or intitial searches habe been issued
   if ( isset($initsearch) && $initsearch != "" )
   {
-    echo "\n<script>";
     echo "\nsearchvals.inittext = '" . str_replace("'", "\'", $initsearch) . "';";
-    echo "\n</script>";
   }
   if ( isset($initfacets) && $initfacets != "" )
   {
-    echo "\n<script>";
-    echo "\nvar urldata = JSON.parse(decodeURIComponent(escape(window.atob('" . $initfacets . "'))));";
-    echo "\nstatevals=urldata.statevals;";
-    echo "\nsearchvals.initfacets=urldata.facetvals;";
-    echo "\n</script>";
+    echo "\n$.init_client(\"" . $initfacets . "\");";
   }
 }
+echo "</script>";
 
 // Sitelinks Searchbox
 echo "<script type='application/ld+json'>";

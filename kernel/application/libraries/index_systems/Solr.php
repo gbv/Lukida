@@ -81,12 +81,12 @@ class Solr extends General
     // Remove not allowed complex phrases based on used key
     foreach ( $matches[1] as $index => $key )
     {
-      if ( ! in_array(strtolower(trim($key)), array("author","autor","id","isn","subject","schlagwort","title","titel","series","reihe","publisher","verlag","year","jahr","contents","inhalt","class","sachgebiet","ppnlink")) )
+      if ( ! in_array(strtolower(trim($key)), array("author","autor","id","isn","subject","schlagwort","title","titel","series","reihe","publisher","verlag","year","jahr","contents","inhalt","class","sachgebiet","ppnlink","format")) )
       {
         unset($matches[0][$index]);
       }
     }
-    
+
     // $this->CI->printArray2File($matches);
 
     // Now loop over complex search phrased and add simple search word
@@ -98,12 +98,6 @@ class Solr extends General
       $CType = strtolower(trim($matches[1][$index]));
       $CText = trim($matches[2][$index]);
 
-/*
-      // Mask solr special characters
-      $CText = str_replace(array( '+', '-', '&&', '||', '!', '(', ')', '{', '}', '[', ']', '^', '"', '~', ':'),
-                           array('\+','\-','\&&','\||','\!','\(','\)','\{','\}','\[','\]','\^','\"','\~','\:'),
-                           $CText); 
-*/
       //First get phrases in "" and remove them
       preg_match_all("/\"([^\"]+)\"/", $CText, $Cmatches);
       foreach ( $Cmatches[0] as $one )
@@ -137,6 +131,8 @@ class Solr extends General
             break;
           case "isn":
             $MainSearch .= "(issn:\"" . $Phrases[0] . "\" OR isbn:\"" . $Phrases[0] . "\")";
+          case "format":
+            $MainSearch .= "(format_phy_str_mv:\"" . $Phrases[0] . "\" )";
             break;
           case "title":
           case "titel":
@@ -175,6 +171,9 @@ class Solr extends General
           case "isn":
             $MainSearch .= "(issn:\"" . implode("\" OR issn:\"", $Phrases) . "\" OR "
                          . " ibsn:\"" . implode("\" OR ibsn:\"",$Phrases) . "\")";
+            break;
+          case "format":
+            $MainSearch .= "(format_phy_str_mv:\"" . implode("\" OR format_phy_str_mv:\"", $Phrases) . "\")";
             break;
           case "title":
           case "titel":
@@ -411,7 +410,7 @@ class Solr extends General
     if ( $package == 0 )
     {
       $dismaxQuery->setStart(0);
-      $dismaxQuery->setRows(1000);
+      $dismaxQuery->setRows(100);
     }
     else
     {

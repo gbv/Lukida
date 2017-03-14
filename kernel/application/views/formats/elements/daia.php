@@ -16,7 +16,14 @@ if ( isset($DAIA["message"][0]["errno"]) )
   }
 }
 
+if (!is_array($DAIA)) return;
+
 // $this->CI->printArray2Screen($DAIA);
+
+// Part Lukida Driver & Host
+$Driver = (isset($_SESSION["config_general"]["lbs"]["type"]) && $_SESSION["config_general"]["lbs"]["type"] != "" ) ? $_SESSION["config_general"]["lbs"]["type"] : "";
+$Host = (isset($_SESSION["config_general"]["lbs"]["daia"]) && $_SESSION["config_general"]["lbs"]["daia"] != "" ) ? $_SESSION["config_general"]["lbs"]["daia"] : "";
+$Output .= "<tr><td class='tabcell'>driver <i class='fa fa-arrow-right' aria-hidden='true'></i> host</td><td class='tabcell'><font color='red'>" . $Driver . " <i class='fa fa-arrow-right' aria-hidden='true'></i> " . $Host . "</font></td></tr>";
 
 // Part Institution
 if ( array_key_exists("institution", $DAIA) )

@@ -1,4 +1,30 @@
 # Changelog
+**14.03.2017**
+* General
+  * New url transports layout columns, speech & facets filter
+
+**09.03.2017**
+* User module
+  * Fee view updated
+
+* General
+  * URL has new syntax (shortened)
+  * Permanet URL is shown on fullview
+
+**07.03.2017**
+* User module
+  * Improved MaxRenewals with paia1&2 drivers
+  * New Library switch for renewals after end of period
+
+* Internal
+  * Added driver- and hostname to DAIA and PAIA page.
+
+* Search
+  * Included media optimized
+
+* Resolved Bugs
+  * Improved link to upper media
+
 **01.03.2017**
 * Search
   * Improved search for terme containing special characteds like -,#, etc.

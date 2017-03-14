@@ -34,8 +34,8 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
           <!-- Sprache -->
           <div class="btn-group dropdown">
             <button type='button' class='selectlanguage btn dropdown-toggle navbar-button-color' data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Sprache ausw&auml;hlen" data-container="body">
-              <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Deutsch' : 'German'; ?>" class="lang_ger<?php if ( $_SESSION["language"]!="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/ger.png' />
-              <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Englisch' : 'English'; ?>" class="lang_eng<?php if ( $_SESSION["language"]=="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/eng.png' />
+              <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Deutsch' : 'German'; ?>" class="showger<?php if ( $_SESSION["language"]!="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/ger.png' />
+              <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Englisch' : 'English'; ?>" class="showeng<?php if ( $_SESSION["language"]=="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/eng.png' />
               <span class="caret"></span>
               <span class="sr-only">Toggle Dropdown</span>
             </button>
@@ -212,8 +212,8 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
             <!-- Sprache -->
             <div class="btn-group dropdown">
               <button type='button' class='selectlanguage btn dropdown-toggle navbar-button-color' data-toggle="dropdown"  data-tooltip="tooltip" data-placement="left" title="Sprache ausw&auml;hlen" data-container="body">
-                <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Englisch' : 'English'; ?>" class="lang_ger<?php if ( $_SESSION["language"]!="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/ger.png' />
-                <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Deutsch' : 'German'; ?>" class="lang_eng<?php if ( $_SESSION["language"]=="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/eng.png' />
+                <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Englisch' : 'English'; ?>" class="showger<?php if ( $_SESSION["language"]!="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/ger.png' />
+                <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Deutsch' : 'German'; ?>" class="showeng<?php if ( $_SESSION["language"]=="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/eng.png' />
                 <span class="caret"></span>
                 <span class="sr-only">Toggle Dropdown</span>
               </button>
