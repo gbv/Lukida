@@ -11,6 +11,9 @@
   * URL has new syntax (shortened)
   * Permanet URL is shown on fullview
 
+* Resolved bugs
+  * Reservations & Orders error messages
+
 **07.03.2017**
 * User module
   * Improved MaxRenewals with paia1&2 drivers

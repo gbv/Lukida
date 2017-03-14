@@ -215,7 +215,7 @@ class Paia2_daia2 extends General
     if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] == "3" && $Reminder )  {$Blocked = true; $MsgText .= $this->CI->database->code2text("ACCOUNTREMINDERFEES");}
     if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] == "4" )               {$Blocked = true; $MsgText .= $this->CI->database->code2text("ACCOUNTEXPIREDFEES");}
 
-    if ( $Found ) $MsgText .= "<br />" . $this->CI->database->code2text("COLLECTABLEREMARK");
+    if ( $Found ) $MsgText .= ( $MsgText != "" ) ? "<br />" . $this->CI->database->code2text("COLLECTABLEREMARK") : $this->CI->database->code2text("COLLECTABLEREMARK");
 
     return array ( "blocked" => $Blocked, 
                    "message" => ($MsgText != "") ? true : false, 
