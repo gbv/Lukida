@@ -1,4 +1,8 @@
 # Changelog
+**15.03.2017**
+* Resolved bugs
+  * URL update during fullview scrolling
+
 **14.03.2017**
 * General
   * New url transports layout columns, speech & facets filter
