@@ -1,4 +1,16 @@
 # Changelog
+**21.03.2017**
+* Search
+  * Direct search - even if keyword suggestion window is open
+
+* Updates
+  * CodeIgniter 3.1.4
+
+**20.03.2017**
+Library extensions
+* Added qrcode permanent link
+* Added OpenStreetMap
+
 **15.03.2017**
 * Resolved bugs
   * URL update during fullview scrolling

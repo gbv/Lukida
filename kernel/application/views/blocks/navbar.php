@@ -114,7 +114,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
       </div>
 
       <!-- Such-Tripple-Feld -->
-      <form class="navbar-form" role="search" method="get" action="javascript:$.navbar_search('#searchtext_md');">
+      <div class="navbar-form">
         <div class="form-group" style="display:inline;">
           <div class="input-group" style="display:table;">
             
@@ -147,7 +147,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
 
           </div>
         </div>
-      </form>
+      </div>
 
     </div><!--/.nav-collapse -->
   </div>
@@ -261,7 +261,8 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
       <div class="col-xs-12">
 
         <!-- Such-Tripple-Feld -->
-        <form class="navbar-form" role="search" method="get" action="javascript:$.navbar_search('#searchtext_xs');">
+        <div class="navbar-form">
+        <!--<form class="navbar-form" role="search" method="get" action="javascript:$.navbar_search('#searchtext_xs');">-->
           <div class="form-group" style="display:inline;">
             <div class="input-group" style="display:table;">
 
@@ -290,7 +291,8 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
 
             </div>
           </div>
-        </form>
+        <!--</form>-->
+        </div>
 
       </div>
     </div>

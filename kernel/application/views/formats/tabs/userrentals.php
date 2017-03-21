@@ -2,6 +2,7 @@
 
 $MaxRenewals = (isset($_SESSION["config_general"]["lbs"]["maxrenewals"]) && $_SESSION["config_general"]["lbs"]["maxrenewals"] != "" ) ? (integer) $_SESSION["config_general"]["lbs"]["maxrenewals"] : 0;
 $AllowAfterTime = (isset($_SESSION["config_general"]["lbs"]["allowrenewalaftertime"]) && $_SESSION["config_general"]["lbs"]["allowrenewalaftertime"] == "1" ) ? true : false;
+$Count  = 0;
 
 $Output .= "<tr>";
 $Output .= "<td class='tablemiddle' align='center'><button class='btn btn-tiny navbar-panel-color btn-check-all' onClick='javascript:$.mark_check(\"renew\");'>" . $this->CI->database->code2text("ALL") . "</button></td>";
@@ -26,7 +27,11 @@ foreach ( $_SESSION["items"] as $Item )
 
   // Checkbox
   $Output .= "<td class='tablemiddle' align='center' id='checkbox_renew_" . $Bar . "'>";
-  $Output .= ( ( ( !$InTime && $AllowAfterTime) or $InTime ) && ! $Queue && ( ( $Item["renewals"] < $MaxRenewals && $MaxRenewals > 0) || $MaxRenewals == 0 ) ) ?  "<input type='checkbox' class='check_renew' data-item='" . $Item["item"] . "' value=''>" : "";
+  if ( ( ( !$InTime && $AllowAfterTime) or $InTime ) && ! $Queue && ( ( $Item["renewals"] < $MaxRenewals && $MaxRenewals > 0) || $MaxRenewals == 0 ) )
+  {
+    $Count++;
+    $Output .=  "<input type='checkbox' class='check_renew' data-item='" . $Item["item"] . "' value=''>";
+  }
   $Output .= "</td>";
 
   // Titel
@@ -56,6 +61,6 @@ foreach ( $_SESSION["items"] as $Item )
   $Output .= "</tr>";
 }
 
-$Output .= "<tr><td></td><td></td><td></td><td class='tablemiddle' align='center'><button onClick='$.renew()' class='btn fullview-button-color btn-renew'>" . $this->CI->database->code2text("RENEW") . "</button></td><td></td></tr>";
+if ( $Count > 0 ) $Output .= "<tr><td class='tablemiddle' align='center'><button onClick='$.renew()' class='btn fullview-button-color btn-renew'>" . $this->CI->database->code2text("RENEW") . "</button></td><td></td><td></td><td></td><td></td></tr>";
 
 ?>

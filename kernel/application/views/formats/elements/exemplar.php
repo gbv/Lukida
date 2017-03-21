@@ -455,6 +455,7 @@ function BestandExemplare($CI, $Leader, $Contents, $Medium, $PPN)
 {
   // Parse MARC records
   $E980 = array();
+  $X    = 0;
   if ( array_key_exists("980", $Contents) )
   {
     foreach ( $Contents["980"] as $Record )

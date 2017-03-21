@@ -459,6 +459,7 @@ class Vzg_controller extends CI_Controller
       "devpassword"			=> (isset($_SESSION["config_discover"]["development"]["devpassword"]) && $_SESSION["config_discover"]["development"]["devpassword"] != "" )			? $_SESSION["config_discover"]["development"]["devpassword"]			: "",
       "button_checklist" => (isset($_SESSION["config_discover"]["fullview"]["checklist"]) && $_SESSION["config_discover"]["fullview"]["checklist"] == 1 ) ? true  : false,
       "button_export" => (isset($_SESSION["config_discover"]["fullview"]["export"]) && $_SESSION["config_discover"]["fullview"]["export"] == 1 ) ? true  : false,
+      "button_qrcode" => (isset($_SESSION["config_discover"]["fullview"]["qrcode"]) && $_SESSION["config_discover"]["fullview"]["qrcode"] == 1 ) ? true  : false,
       "button_mail" => (isset($_SESSION["config_discover"]["fullview"]["mail"]) && $_SESSION["config_discover"]["fullview"]["mail"] == 1 && isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] != "") ? true  : false,
       "button_print" => (isset($_SESSION["config_discover"]["fullview"]["print"]) && $_SESSION["config_discover"]["fullview"]["print"] == 1 ) ? true  : false,
       "simularpubs" => (isset($_SESSION["config_discover"]["fullview"]["tab2_available"]) && $_SESSION["config_discover"]["fullview"]["tab2_available"] == 1 ) ? true  : false,
