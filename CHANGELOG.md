@@ -1,4 +1,8 @@
 # Changelog
+**22.03.2017**
+* Search
+  * Enhanced Mouse usage
+
 **21.03.2017**
 * Search
   * Direct search - even if keyword suggestion window is open
