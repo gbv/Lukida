@@ -1,4 +1,17 @@
 # Changelog
+**24.03.2017**
+* User module
+  * User stored search removed (will be replaced by new automatic search module)
+
+* Full view
+  * Added ISMN
+
+* General
+  * Added QR-Code module to kernel
+  
+* Assistant
+  * Optimized for smaller displays
+
 **22.03.2017**
 * Search
   * Enhanced Mouse usage

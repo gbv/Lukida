@@ -221,7 +221,7 @@ class Paia_daia extends General
                    "message" => ($MsgText != "") ? true : false, 
                    "messagetext" => $MsgText );
   }
-  
+
   // ********************************************
   // ************** Main-Functions **************
   // ********************************************
@@ -259,6 +259,7 @@ class Paia_daia extends General
     }
     return "-1";
   }
+
   public function userdata ()
   {
     if ( isset($_SESSION['paiaToken']) && isset($_SESSION["userlogin"]) )

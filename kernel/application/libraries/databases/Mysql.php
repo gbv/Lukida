@@ -187,33 +187,6 @@ class Mysql extends General
     return ($Data);
   }
   
-  public function store_user_search($search,$user,$facets)
-  {
-    $this->CI->db->reset_query();
-    $this->CI->db->query("insert into search_user (suche, user, datumzeit,facetten) values ('" . $this->CI->db->escape_str($search) . "', '" . $user . "',now(),'" . $facets . "')");
-    return array("status" => 0);
-  }
-
-  public function load_user_search($user)
-  {
-    $this->CI->db->reset_query();
-    $this->CI->db->select('suche');
-    $this->CI->db->select('datumzeit');
-    $this->CI->db->select('facetten');
-    $this->CI->db->from('search_user');
-    $this->CI->db->where('user', $user);
-    $this->CI->db->order_by('datumzeit', 'DESC');
-    ;$this->CI->db->limit(6);
-    $results = $this->CI->db->get();
-
-    $Data = array();
-    foreach ($results->result_array() as $row)
-    {
-      $Data[] = $row;
-    }
-    return ($Data);
-  }
-
   public function store_words($words)
   {      
     $this->CI->db->reset_query();

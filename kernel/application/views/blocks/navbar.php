@@ -98,13 +98,6 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
             <li><a class="userorders" href="javascript:$.open_user('userorders')">Bestellungen</a></li>
             <li><a class="userreservations" href="javascript:$.open_user('userreservations')">Vormerkungen</a></li>
             <li><a class="userfees" href="javascript:$.open_user('userfees')">Geb&uuml;hren</a></li>
-            <li><a class="usersearches" href="javascript:$.open_user('usersearches')">Gespeicherte Suchen</a></li>
-
-            <?php if ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] != "" ) { ?>
-            <li class="divider"></li>
-            <li><a class="userstore" href="javascript:$.store_search()"><i class="glyphicon glyphicon-save"></i> Suche speichern</a></li>
-            <?php } ?>
-
             <li class="divider"></li>
             <li><a href="javascript:$.logout()"><i class="glyphicon glyphicon-log-out"></i> Logout</a></li>
           </ul>
@@ -187,11 +180,6 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
               <li><a class="userorders" href="javascript:$.open_user('userorders')">Bestellungen</a></li>
               <li><a class="userreservations" href="javascript:$.open_user('userreservations')">Vormerkungen</a></li>
               <li><a class="userfees" href="javascript:$.open_user('userfees')">Geb&uuml;hren</a></li>
-              <li><a class="usersearches" href="javascript:$.open_user('usersearches')">Gespeicherte Suchen</a></li>
-              <?php if ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] != "" ) { ?>
-                <li class="divider"></li>
-                <li><a class="userstore" href="javascript:$.store_search()"><i class="glyphicon glyphicon-save"></i> Suche speichern</a></li>
-              <?php } ?>
               <li class="divider"></li>
               <li><a href="javascript:$.logout()"><i class="glyphicon glyphicon-log-out"></i> Logout</a></li>
             </ul>

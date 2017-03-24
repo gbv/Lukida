@@ -446,6 +446,8 @@ class General
 
       $pretty["issn"]                = $this->PrettyFields(array("022" => array("a" => " | "),
                                                                  "773" => array("x" => " | ")));
+
+      $pretty["ismn"]                = $this->PrettyFields(array("024" => array("a" => " | ")));
     }
 
     if ( $type == "export" )

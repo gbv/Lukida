@@ -31,61 +31,61 @@ $Output .= "<div class='tab-content'>";
 
 // ****** Start Tab 1 ******
 $Output .= "<div role='tabpanel' class='tab-pane fade in active' id='title_" . $this->dlgid . "'>";
-$Output .= "<textarea class='form-control' rows='5'></textarea>";
+$Output .= "<textarea class='form-control' rows='3'></textarea>";
 $Output .= "</div>";
 // ****** Ende Tab 1 ******
 
 // ****** Start Tab 2 ******
 $Output .= "<div role='tabpanel' class='tab-pane fade' id='author_" . $this->dlgid . "'>";
-$Output .= "<textarea class='form-control' rows='5'></textarea>";
+$Output .= "<textarea class='form-control' rows='3'></textarea>";
 $Output .= "</div>";
 // ****** Ende Tab 2 ******
  
 // ****** Start Tab 3 ******
 $Output .= "<div role='tabpanel' class='tab-pane fade' id='subject_" . $this->dlgid . "'>";
-$Output .= "<textarea class='form-control' rows='5'></textarea>";
+$Output .= "<textarea class='form-control' rows='3'></textarea>";
 $Output .= "</div>";
 // ****** Ende Tab 3 ******
 
 // ****** Start Tab 4 ******
 $Output .= "<div role='tabpanel' class='tab-pane fade' id='class_" . $this->dlgid . "'>";
-$Output .= "<textarea class='form-control' rows='5'></textarea>";
+$Output .= "<textarea class='form-control' rows='3'></textarea>";
 $Output .= "</div>";
 // ****** Ende Tab 4 ******
 
 // ****** Start Tab 5 ******
 $Output .= "<div role='tabpanel' class='tab-pane fade' id='contents_" . $this->dlgid . "'>";
-$Output .= "<textarea class='form-control' rows='5'></textarea>";
+$Output .= "<textarea class='form-control' rows='3'></textarea>";
 $Output .= "</div>";
 // ****** Ende Tab 5 ******
 // 
 // // ****** Start Tab 6 ******
 $Output .= "<div role='tabpanel' class='tab-pane fade' id='year_" . $this->dlgid . "'>";
-$Output .= "<textarea class='form-control' rows='5'></textarea>";
+$Output .= "<textarea class='form-control' rows='3'></textarea>";
 $Output .= "</div>";
 // ****** Ende Tab 6 ******
 
 // ****** Start Tab 7 ******
 $Output .= "<div role='tabpanel' class='tab-pane fade' id='publisher_" . $this->dlgid . "'>";
-$Output .= "<textarea class='form-control' rows='5'></textarea>";
+$Output .= "<textarea class='form-control' rows='3'></textarea>";
 $Output .= "</div>";
 // ****** Ende Tab 7 ******
 
 // ****** Start Tab 8 ******
 $Output .= "<div role='tabpanel' class='tab-pane fade' id='isn_" . $this->dlgid . "'>";
-$Output .= "<textarea class='form-control' rows='5'></textarea>";
+$Output .= "<textarea class='form-control' rows='3'></textarea>";
 $Output .= "</div>";
 // ****** Ende Tab 8 ******  
  
 // ****** Start Tab 9 ******
 $Output .= "<div role='tabpanel' class='tab-pane fade' id='series_" . $this->dlgid . "'>";
-$Output .= "<textarea class='form-control' rows='5'></textarea>";
+$Output .= "<textarea class='form-control' rows='3'></textarea>";
 $Output .= "</div>";
 // ****** Ende Tab 9 ******  
 
 // ****** Start Tab 10 ******
 $Output .= "<div role='tabpanel' class='tab-pane fade' id='id_" . $this->dlgid . "'>";
-$Output .= "<textarea class='form-control' rows='5'></textarea>";
+$Output .= "<textarea class='form-control' rows='3'></textarea>";
 $Output .= "</div>";
 // ****** Ende Tab 10 ******
 

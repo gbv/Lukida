@@ -1008,29 +1008,6 @@ class Vzg_controller extends CI_Controller
     echo json_encode($this->database->get_words($query));
   }
 
-  public function storeusersearch()
-  {
-    // Ajax Method => No view will be loaded, just data is returned
-
-    // Receive params
-    $search		= $this->input->post('search');
-    $user 		= $this->input->post('user');
-    $facets   = $this->input->post('facets');
-
-    // Check params
-    if ( $search == "" )  return ($this->ajaxreturn("400","search is missing"));
-    if ( $user == "" )    return ($this->ajaxreturn("400","user is missing"));
-
-    // Set stats
-    $this->stats("StoreUserSearch");
-    
-    // Ensure required interfaces
-    $this->ensureInterface(array("config","discover","database"));
-
-    // Invoke database driver
-    echo json_encode($this->database->store_user_search($search, $user, $facets));
-  }
-
   public function statsclient()
   {
     // Ajax Method => No view will be loaded, just data is returned
@@ -1592,9 +1569,6 @@ class Vzg_controller extends CI_Controller
 
     // Refresh data
     $this->lbs->userdata();
-
-    // Load Stored search
-    $_SESSION['searches'] = $this->database->load_user_search($_SESSION["userlogin"]);
 
     // Display view
     echo $this->theme->userview(array('action'=>$Action));

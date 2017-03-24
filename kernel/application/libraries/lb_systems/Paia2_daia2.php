@@ -154,7 +154,7 @@ class Paia2_daia2 extends General
     $json_start = strpos($pure_response, '{');
     $json_response = substr($pure_response, $json_start);
     $user_response = json_decode($json_response, true);
-    
+
     $user = array();
     $user['username'] = $_SESSION["userlogin"];
     if ( isset($user_response['name']) )
@@ -193,13 +193,13 @@ class Paia2_daia2 extends General
   private function calcUserStatus()
   {
     $MsgText  = "";
+    $Reminder = false;
     $Blocked  = false;
 
     // Check for collectable items
     if ( isset($_SESSION["items"]) )
     {
       $Found = false;
-      $Reminder = false;
       foreach ( $_SESSION["items"] as $Item )
       {
         if ( isset($Item["status"]) && $Item["status"] == "4" )      $Found = true;

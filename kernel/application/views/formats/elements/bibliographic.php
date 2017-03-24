@@ -342,6 +342,15 @@ if ( $this->pretty["isbn"] != "" )
   $Output .=  "</tr>";
 }
 
+// ISMN
+if ( $this->pretty["ismn"] != "" )
+{
+  $Output .=  "<tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("ismn") . "</td>";
+  $Output .=  "<td>" . $this->pretty["ismn"] . "</td>";
+  $Output .=  "</tr>";
+}
+
 // Summary
 if ( $this->pretty["summary"] != "" )
 {
