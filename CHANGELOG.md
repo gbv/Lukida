@@ -1,4 +1,8 @@
 # Changelog
+**11.04.2017**
+* Cleanup
+  * Database configuration moved from kernel to library/general.ini
+
 **10.04.2017**
 * Updates
   * jQuery 3.20
