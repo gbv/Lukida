@@ -83,11 +83,19 @@ class Marc21 extends General
       }
       if ( $data->isDataField() )
       {
+        // Init 
         $Sub = array();
+
+        // Indicators
+        $Tmp = $data->getIndicator(1);
+        if ( trim($Tmp) != "") $Sub[] = array("I1" => trim($Tmp));
+        $Tmp = $data->getIndicator(2);
+        if ( trim($Tmp) != "") $Sub[] = array("I2" => trim($Tmp));
 
         // Get all subfields of record
         foreach ($data->getSubfields() as $code => $value)
         {
+          if ( trim($code) == "0" )  $code=" 0";
           $Sub[] = array($code => $value->getData());
         }
 

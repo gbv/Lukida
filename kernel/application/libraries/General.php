@@ -462,21 +462,31 @@ class General
   protected function PrettyFields($Filter)
   {
     $Output = "";
-    $Tmp = array();
+    $Tmp    = array();
     foreach ( $Filter as $Field => $Subfields )
     {
       if ( array_key_exists($Field, $this->contents) )
       {
         foreach ($this->contents[$Field] as $Record)
         {
+          $Indys  = array();
           foreach ( $Record as $Subrecord )
           {
             foreach ( $Subfields as $Sub => $Separator )
             {
               foreach ( $Subrecord as $Key => $Value )
               {
+                if ( $Key == "I1" || $Key == "I2" )
+                {
+                  $Indys[$Key] = $Value;
+                  continue;
+                }
+
                 if ( (string)$Key == (string)$Sub )
                 {
+                  // M024a = only ISMN if first indicator == "2"
+                  if (  $Field == "024" && (string)$Key == "a" && isset($Indys["I1"]) && $Indys["I1"] != "2" ) continue;
+
                   if ( ! in_array($Value, $Tmp) )
                   {
                     // New value

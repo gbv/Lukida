@@ -1,4 +1,19 @@
 # Changelog
+**10.04.2017**
+* Updates
+  * jQuery 3.20
+  * Dialog 1.35.4
+  * Platform 1.3.4
+  * Moment 2.18.1
+
+* Full view
+  * Removed wrong ISMNs by checking indicators
+  * MARC view enhanced by indicators
+
+* Cleanup
+  * Removed pear folder
+    (Pear class File_MARC is still required and will be accessed from php central pear repository)
+
 **24.03.2017**
 * User module
   * User stored search removed (will be replaced by new automatic search module)

@@ -208,7 +208,7 @@ class Paia_daia extends General
     }
 
     if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] == "0" && $Reminder )  {$Blocked = true; $MsgText .= $this->CI->database->code2text("ACCOUNTREMINDER"); $_SESSION["login"]["status"] = "5";}
-    if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] == "1" && !$Reminder ) {$Blocked = true; $MsgText .= $this->CI->database->code2text("ACCOUNTINACTIVE");}
+    if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] == "1" && !$Reminder ) {$Blocked = true; $MsgText .= $this->CI->database->code2text("ACCOUNTLOCKED");}
     if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] == "1" && $Reminder )  {$Blocked = true; $MsgText .= $this->CI->database->code2text("ACCOUNTREMINDER");}
     if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] == "2" )               {$Blocked = true; $MsgText .= $this->CI->database->code2text("ACCOUNTEXPIRED");}
     if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] == "3" && !$Reminder ) {$Blocked = true; $MsgText .= $this->CI->database->code2text("ACCOUNTFEES");}

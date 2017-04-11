@@ -1,7 +1,7 @@
 <?php
 
 // Leader
-$Output .= "<tr><td>Leader</td><td>" .  formatLeader($this->leader) . "</td></tr>";
+$Output .= "<tr><td>Lead</td><td>" .  formatLeader($this->leader) . "</td></tr>";
 
 foreach ($this->contents as $Field => $Record)
 {
@@ -21,23 +21,36 @@ foreach ($this->contents as $Field => $Record)
   {
     // Counts
     $SubList = array();
+    $Indys   = array();
+    $Count   = -1;
     foreach ( $Record as $Subrecord )
     {
+      $Count++;
       foreach ( $Subrecord as $Subfieldrecord )
       {
         foreach ( $Subfieldrecord as $Key => $Value )
         {
-          if ( !in_array($Key, $SubList) )  $SubList[] = (string) $Key;
+          if ( $Key == "I1" || $Key == "I2" )
+          {
+            $Indys[$Count][$Key] = $Value;
+            continue;
+          }
+          if ( !in_array($Key, $SubList))  $SubList[] = (string) $Key;
         }
       }
     }
 
     // Output
     $Output .= "<td valign='top'><table class='table' style='background-color: inherit !important;  white-space: nowrap; width: 1%'>";
+    $Count = -1;
     foreach ( $Record as $Subrecord )
     {
+      $Count++;
       $Output .= "<tr>";
       $Cols = count(array_values(array_values($Subrecord)));
+
+      $Output .= "<td style='line-height:1;min-width:12px;'>" . ((isset($Indys[$Count]["I1"])) ? $Indys[$Count]["I1"] : "&nbsp;") . "</td>";
+      $Output .= "<td style='line-height:1;min-width:12px;'>" . ((isset($Indys[$Count]["I2"])) ? $Indys[$Count]["I2"] : "&nbsp;") . "</td>";
 
       foreach ($SubList as $SortKey)
       {
