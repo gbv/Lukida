@@ -57,8 +57,7 @@ There is a .htaccess file located in this folder, which is neccessary.
 In order to get it running you need to customize your library (.../lukida/libraries/lukida_newlibrary/...) to your needs:
 
 1) Customize the .../lukida/libraries/lukida_newlibrary/general.ini
-
-  1) Configure the general settings
+   1) Configure the general settings
 
     ```
     [general]
@@ -75,7 +74,7 @@ In order to get it running you need to customize your library (.../lukida/librar
     mailfrom=
     ```
 
-  2) Enter the remembered URL 
+   2) Enter the remembered URL 
 
     if development or test mode (without protocol)
     ```
@@ -89,7 +88,7 @@ In order to get it running you need to customize your library (.../lukida/librar
     produrl=http://lukida.domain.tld
     ```
 
-  3) Enter the remembered database connection
+   3) Enter the remembered database connection
 
     ```
     [database]
@@ -100,7 +99,7 @@ In order to get it running you need to customize your library (.../lukida/librar
     database=lukida_newlibrary
     ```
 
-  4) Configure the other sections as well
+   4) Configure the other sections as well
 
 2) Customize the .../lukida/libraries/lukida_newlibrary/discover.ini
 3) Place your logo and other assets into your empty assets structure. 
