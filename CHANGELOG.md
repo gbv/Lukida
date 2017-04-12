@@ -1,4 +1,8 @@
 # Changelog
+**12.04.2017**
+* General
+  * Readme update
+
 **11.04.2017**
 * Cleanup
   * Database configuration moved from kernel to library/general.ini
