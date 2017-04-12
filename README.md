@@ -49,57 +49,57 @@ This is the main software
 
     Remember the URL to access lukida (e.g. http://lukida.domain.tld)
 
-**Important**
-There is a .htaccess file located in this folder, which is neccessary.
+    **Important**
+    There is a .htaccess file located in this folder, which is neccessary.
 
 ## Customization
 
 In order to get it running you need to customize your library (.../lukida/libraries/lukida_newlibrary/...) to your needs:
 
 1) Customize the .../lukida/libraries/lukida_newlibrary/general.ini
-   1) Configure the general settings
+   - Configure the general settings
 
-    ```
-    [general]
-    title=Lukida Library
-    softwarename=Lukida
-    language=ger
-    iln=<your iln>
-    isil=<your isil>
-    frontpage=false
-    frontpagewithoutlinks=false
-    frontpagewithoutlukida=false
-    imprint=http://somewhere
-    ;about=
-    mailfrom=
-    ```
+        ```
+        [general]
+        title=Lukida Library
+        softwarename=Lukida
+        language=ger
+        iln=<your iln>
+        isil=<your isil>
+        frontpage=false
+        frontpagewithoutlinks=false
+        frontpagewithoutlukida=false
+        imprint=http://somewhere
+        ;about=
+        mailfrom=
+        ```
 
-   2) Enter the remembered URL 
+   - Enter the remembered URL 
 
-    if development or test mode (without protocol)
-    ```
-    ; Multiple Develpment URLs (separated by , without protocol)
-    devurl=lukida.domain.tld
-    ```
+        if development or test mode (without protocol)
+        ```
+        ; Multiple Develpment URLs (separated by , without protocol)
+        devurl=lukida.domain.tld
+        ```
 
-    if production mode (with protocol)
-    ```
-    ; One Production URL (with protocol)
-    produrl=http://lukida.domain.tld
-    ```
+        if production mode (with protocol)
+        ```
+        ; One Production URL (with protocol)
+        produrl=http://lukida.domain.tld
+        ```
 
-   3) Enter the remembered database connection
+   - Enter the remembered database connection
 
-    ```
-    [database]
-    type=mysql
-    hostname=localhost
-    username=lukida_newlibrary
-    password=lukida_newlibrary
-    database=lukida_newlibrary
-    ```
+        ```
+        [database]
+        type=mysql
+        hostname=localhost
+        username=lukida_newlibrary
+        password=lukida_newlibrary
+        database=lukida_newlibrary
+        ```
 
-   4) Configure the other sections as well
+   - Configure the other sections as well
 
 2) Customize the .../lukida/libraries/lukida_newlibrary/discover.ini
 3) Place your logo and other assets into your empty assets structure. 
