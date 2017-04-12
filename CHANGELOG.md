@@ -1,5 +1,9 @@
 # Changelog
 **12.04.2017**
+* Updates
+  * jQuery 3.2.1
+  * Daterangepicker correctly named
+
 * General
   * Readme update
 
@@ -9,11 +13,11 @@
 
 **10.04.2017**
 * Updates
-  * jQuery 3.20
+  * jQuery 3.2.0
   * Dialog 1.35.4
   * Platform 1.3.4
   * Moment 2.18.1
-
+  
 * Full view
   * Removed wrong ISMNs by checking indicators
   * MARC view enhanced by indicators
