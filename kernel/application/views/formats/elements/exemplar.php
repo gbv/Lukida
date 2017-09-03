@@ -48,7 +48,10 @@ if ( isset($this->contents[912]) && isset($_SESSION["iln"]) && $_SESSION["iln"] 
   // Bibliotheks eigener-Bestand
   if ( ( substr($this->medium["leader"],6,2) == "ma"
   || substr($this->medium["leader"],6,2) == "mm"
-  || substr($this->medium["leader"],6,2) == "ms" )
+  || substr($this->medium["leader"],6,2) == "ms" 
+  || substr($this->medium["leader"],6,2) == "aa" 
+  || substr($this->medium["leader"],6,2) == "am" 
+  || substr($this->medium["leader"],6,2) == "as" )
   && substr(Get007($this->contents),0,2) == "cr" )
   {
     // Bibliotheks eigener Online Bestand
@@ -93,7 +96,10 @@ else
   // Fremdbestand
   if ( ( substr($this->medium["leader"],6,2) == "ma"
   || substr($this->medium["leader"],6,2) == "mm"
-  || substr($this->medium["leader"],6,2) == "ms" )
+  || substr($this->medium["leader"],6,2) == "ms" 
+  || substr($this->medium["leader"],6,2) == "aa" 
+  || substr($this->medium["leader"],6,2) == "am" 
+  || substr($this->medium["leader"],6,2) == "as" )
   && substr(Get007($this->contents),0,2) == "cr" )
   {
     // Online Fremdbestand
@@ -136,7 +142,6 @@ else
 //*************************************
 //***** S T A R T   O U T P U T *******
 //*************************************
-
 
 /*
 $this->CI->printArray2Screen(array(
@@ -300,7 +305,7 @@ if ( count($RelatedPubs) > 0 )
   if ( count($Zugaenge) > 0 || count($Exemplare) > 0 || count($Lizenzen) > 0 )  $Output .= "<div class='space_buttons'></div>";
 
   $Output .= "<div>" . $this->CI->database->code2text("RELATEDPUBLICATIONS") . "</div>";
-  $Output .= "<div class='container-fluid'><div class='row'>";
+  $Output .= "<div class='container-fluid'><div id='relatedpubscontent_" . $this->dlgid . "' class='row'>";
 
   // Generate Buttons
   foreach ( $RelatedPubs as $PPN => $Exemplar )
@@ -310,9 +315,9 @@ if ( count($RelatedPubs) > 0 )
     $Output .= "<div id='related_" . $PPN . "'>";
     $Output .= "<table><tr><td data-toggle='tooltip' title='" . $this->CI->database->code2text($Exemplar["format"]) . "' class='publication-icon'>";
     $Output .= "<span class='gbvicon'>" . $Exemplar["cover"] . "</span>";
-    $Output .= "</td><td>";
+    $Output .= "</td><td id='title'>";
     $Output .= $this->trim_text($Exemplar["title"],60);
-    $Output .= "<br /><small>" . $this->trim_text($Exemplar["publisher"],50) . "</small>";
+    $Output .= "<br /><small id='date'>" . $this->trim_text($Exemplar["publisher"],50) . "</small>";
     $Output .= "</td></tr></table></div>";
     $Output .= "</button>";
   }
@@ -328,7 +333,7 @@ if ( count($IncJournals) > 0 )
   if ( count($Zugaenge) > 0 || count($Exemplare) > 0 || count($Lizenzen) > 0 )  $Output .= "<div class='space_buttons'></div>";
 
   $Output .= "<div>" . $this->CI->database->code2text("RelatedJournals") . "</div>";
-  $Output .= "<div class='container-fluid'><div class='row'>";
+  $Output .= "<div class='container-fluid'><div id='relatedjournalscontent_" . $this->dlgid . "' class='row'>";
 
   // Generate Buttons
   foreach ( $IncJournals as $PPN => $Exemplar )
@@ -338,9 +343,9 @@ if ( count($IncJournals) > 0 )
     $Output .= "<div id='related_" . $PPN . "'>";
     $Output .= "<table><tr><td data-toggle='tooltip' title='" . $this->CI->database->code2text($Exemplar["format"]) . "' class='publication-icon'>";
     $Output .= "<span class='gbvicon'>" . $Exemplar["cover"] . "</span>";
-    $Output .= "</td><td>";
+    $Output .= "</td><td id='title'>";
     $Output .= $this->trim_text($Exemplar["title"],60);
-    $Output .= "<br /><small>" . $this->trim_text($Exemplar["publisher"],50) . "</small>";
+    $Output .= "<br /><small id='date'>" . $this->trim_text($Exemplar["publisher"],50) . "</small>";
     $Output .= "</td></tr></table></div>";
     $Output .= "</button>";
   }
@@ -356,7 +361,7 @@ if ( count($IncArticles) > 0 )
   if ( count($Zugaenge) > 0 || count($Exemplare) > 0 || count($Lizenzen) > 0 )  $Output .= "<div class='space_buttons'></div>";
 
   $Output .= "<div>" . $this->CI->database->code2text("RelatedArticles") . "</div>";
-  $Output .= "<div class='container-fluid'><div class='row'>";
+  $Output .= "<div class='container-fluid'><div id='relatedarticlescontent_" . $this->dlgid . "' class='row'>";
 
   // Generate Buttons
   foreach ( $IncArticles as $PPN => $Exemplar )
@@ -366,9 +371,12 @@ if ( count($IncArticles) > 0 )
     $Output .= "<div id='related_" . $PPN . "'>";
     $Output .= "<table><tr><td data-toggle='tooltip' title='" . $this->CI->database->code2text($Exemplar["format"]) . "' class='publication-icon'>";
     $Output .= "<span class='gbvicon'>" . $Exemplar["cover"] . "</span>";
-    $Output .= "</td><td>";
+    $Output .= "</td><td id='title'>";
     $Output .= $this->trim_text($Exemplar["title"],60);
-    $Output .= "<br /><small>" . $this->trim_text($Exemplar["publisher"],50) . "</small>";
+    if ( isset($Exemplar["publisher"]) && $Exemplar["publisher"] != "" )
+    {
+      $Output .= "<br /><small id='date'>" . $this->trim_text($Exemplar["publisher"],50) . "</small>";
+    }
     $Output .= "</td></tr></table></div>";
     $Output .= "</button>";
   }
@@ -776,7 +784,7 @@ function GetIncludedPubs($CI, $T, $PPN)
       "format"    => $One["format"],
       "cover"     => $One["cover"],
       "title"     => Get245ab($One["contents"]),
-      "publisher" => Get260c($One["contents"])
+      "publisher" => Get952j($One["contents"])
       );
     }
   }
@@ -1077,6 +1085,25 @@ function Get856($Area, $CI)
     $ExemplarOnline[] = $Link;
   }
   return $ExemplarOnline;
+}
+
+function Get952j($Contents)
+{
+  $Jahr = "";
+  if ( array_key_exists("952", $Contents) )
+  {
+    foreach ( $Contents["952"] as $Record )
+    {
+      foreach ( $Record as $Subrecord )
+      {
+        foreach ( $Subrecord as $Key => $Value )
+        {
+          if ( $Key == "j" )    $Jahr .= ($Jahr != "" ) ? " | " . $Value : $Value;
+        }
+      }
+    }
+  }
+  return ($Jahr);
 }
 
 function Get980($Contents,$Subfield)

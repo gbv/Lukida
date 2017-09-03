@@ -7,7 +7,7 @@
 // Bereits verfügbare Parameter
 // $this->PPN					          PPN des Mediums
 // $this->contents			        Komplettes Array des Mediums
-// $this->contents[""format]  	Format des Mediums (internes Format)
+// $this->contents["format"]  	Format des Mediums (internes Format)
 
 // Parameter aus INI-Datei einlesen
 $Tab2 = (isset($_SESSION["config_discover"]["fullview"]["tab2_available"])   

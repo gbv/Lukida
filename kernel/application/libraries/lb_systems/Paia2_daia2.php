@@ -319,9 +319,10 @@ class Paia2_daia2 extends General
       return (array("status" => -2,
                     "error"  => $response["doc"][0]["error"]));
     }
-    return (array("status"    => $response["doc"][0]["status"],
-                  "label"     => $response["doc"][0]["label"],
-                  "starttime" => date("d.m.Y",strtotime($response["doc"][0]["starttime"]))));
+    return (array("status"    => (isset($response["doc"][0]["status"]))    ? $response["doc"][0]["status"] : "0",
+                  "label"     => (isset($response["doc"][0]["label"]))     ? $response["doc"][0]["label"] : "",
+                  "storage"   => (isset($response["doc"][0]["storage"]))   ? $response["doc"][0]["storage"] : "",
+                  "starttime" => (isset($response["doc"][0]["starttime"])) ? date("d.m.Y",strtotime($response["doc"][0]["starttime"])) : ""));
   }
 
   public function cancel($uri)

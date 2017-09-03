@@ -510,7 +510,178 @@ class Mysql extends General
         );
         break;                
       }
+      case "devicescreens":
+      {
+        $Year   = ( isset($params["year"]) && $params["year"] != "" ) ? $params["year"] : date("Y");
+
+        $query = $this->CI->db->query("select substring(area,8,20) as Screen, month_01 + month_02 + month_03 + month_04 + month_05 + month_06 + month_07 + month_08 + month_09 + month_10 + month_11 + month_12 as Summe FROM stats_year_library  where iln = " . $iln . " and area like 'Screen_%' and year = '" . $Year . "'");
+        foreach ($query->result() as $row)
+        {
+          $Tmp = explode("x",$row->Screen);
+          $X   = $Tmp[0]; 
+          $Y   = $Tmp[1]; 
+
+          if ( $row->Summe > 5000)
+          { 
+            $Col = 0;
+            $Rad = 20;
+          }
+          else
+          {
+            if ( $row->Summe > 1000)
+            { 
+              $Col = 1;
+              $Rad = 15;
+            }
+            else
+            {
+              if ( $row->Summe > 100)
+              { 
+                $Col = 2;
+                $Rad = 10;
+              }
+              else
+              {
+                $Col = 3;
+                $Rad = 5;
+              }
+            }
+          }
+
+          $Datasets[] = array
+          (
+            "label"           => ($X)."x".($Y) . " Screen: " . $row->Summe,
+            "data"            => array(array('x' => $X,'y' => $Y, 'r' => $Rad)),
+            "backgroundColor" => $backgroundColor[$Col],
+            "borderColor"     => $borderColor[$Col]
+          );
+        }
+
+        $Data = array
+        (
+          "datasets" => $Datasets,
+        );
+
+
+        $Title = array
+        (
+          "display"  => true,
+          "text"     => $this->code2text("DEVICESCREEN") . " " . $Year,
+          "fontSize" => 24 
+        );
+        break;        
+      }
     }
     return (array("data" => $Data, "title" => $Title));
+  }
+
+  public function store_settings($userid, $name, $settings)
+  {      
+    $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
+    if ( $userid == "" ||  $name == "" || $iln == "" )  return (-1);
+
+    $this->CI->db->reset_query();
+    $this->CI->db->query("replace into settings_library (iln, userid, name, settings, created) values ('" . $iln . "', '" . md5($userid) . "', '" . $this->CI->db->escape_str($name) . "', '" . serialize($settings) . "', now())");
+  
+    return 0;
+  }
+
+  public function load_settings($userid, $id)
+  {      
+    $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
+    if ( $userid == "" ||  $id == "" || $iln == "" )  return (-1);
+
+    $this->CI->db->reset_query();
+    $this->CI->db->select('settings');
+    $this->CI->db->from('settings_library');
+    $this->CI->db->where('id',$id);
+    $this->CI->db->where('iln',$iln);
+    $results = $this->CI->db->get();
+    if($results->num_rows() == 1)
+    {
+        return array('settings' => unserialize($results->row()->settings));
+    }
+  }
+
+  public function list_settings($userid)
+  {      
+    $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
+    if ( $userid == "" || $iln == "" )  return (-1);
+
+    $this->CI->db->reset_query();
+    $this->CI->db->select('id');
+    $this->CI->db->select('name');    
+    $this->CI->db->select('created');
+    $this->CI->db->from('settings_library');
+    $this->CI->db->where('iln',$iln);
+    $this->CI->db->where('userid',md5($userid));
+    $this->CI->db->order_by('name');
+    $results = $this->CI->db->get();
+
+    $Data = array();
+    foreach ($results->result_array() as $row)
+    {
+      $Data[] = $row;
+    }
+    return ($Data);
+  }  
+
+  public function delete_settings($userid, $ids)
+  {      
+    $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
+    if ( $userid == "" ||  $ids == "" || $iln == "" )  return (-1);
+
+    $this->CI->db->reset_query();
+    $this->CI->db->from('settings_library');
+    $this->CI->db->where_in('id', $ids);
+    $this->CI->db->where('iln',$iln);
+    if ( ! $this->CI->db->delete() )
+    {
+      return ($this->db->error());
+    }
+    return (0);
+  }
+
+  public function store_logs($header, $body="", $userid="", $ppn="")
+  {      
+    $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
+    if ( $header == "" || $iln == "" )  return (-1);
+
+    $this->CI->db->reset_query();
+    $this->CI->db->query("replace into logs_library (iln, userid, ppn, header, body, created) values ('" . $iln . "', '" . md5($userid) . "','" . $ppn . "', '" . $this->CI->db->escape_str($header) . "', '" . $this->CI->db->escape_str($body) . "', now())");
+  
+    return 0;
+  }
+
+  public function get_log_data($params=array())
+  {
+    $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
+    if ( $iln == "" )  return (-1);
+
+    $Start  = ( isset($params["start"]) && $params["start"] != "" ) ? $params["start"] : "2017-01-01";
+    $End    = ( isset($params["end"])   && $params["end"]   != "" ) ? $params["end"]   : "2017-01-30";
+    $End    = new DateTime($End);
+    $End    = $End->modify('+1 day')->format("Y-m-d");
+
+    $this->CI->db->reset_query();
+    $this->CI->db->select('id');
+    $this->CI->db->select('DATE_FORMAT(created, "%d.%m.%Y %H:%i:%s") as Zeitpunkt');    
+    $this->CI->db->select('header as Bezeichnung');    
+    $this->CI->db->select('body as Details');
+    $this->CI->db->select('ppn as PPN');
+    $this->CI->db->from('logs_library');
+    $this->CI->db->where('iln',$iln);
+    $this->CI->db->where('created >=',$Start);
+    $this->CI->db->where('created <',$End);
+    $this->CI->db->order_by('created desc');
+    //$query = $this->CI->db->get_compiled_select('logs_library', false );
+    $results = $this->CI->db->get();
+
+    $Data = array();
+    foreach ($results->result_array() as $row)
+    {
+      $Data[] = $row;
+    }
+    return (array("data" => $Data, "status" => 0));
   }
 }

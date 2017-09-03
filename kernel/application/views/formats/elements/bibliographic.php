@@ -1,7 +1,10 @@
 <?php
 
+// PPN
+$Output .=  "<tr><td>ID</td><td>" . $this->PPN . "</td></tr>";
+
 // Title
-if ( $this->pretty["title"] != "" )
+if ( isset($this->pretty["title"]) && $this->pretty["title"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("title") . "</td>";
@@ -10,7 +13,7 @@ if ( $this->pretty["title"] != "" )
 }
 
 // Uniform Title
-if ( $this->pretty["uniformtitle"] != "" )
+if ( isset($this->pretty["uniformtitle"]) && $this->pretty["uniformtitle"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("uniformtitle") . "</td>";
@@ -19,7 +22,7 @@ if ( $this->pretty["uniformtitle"] != "" )
 }
 
 // Part
-if ( $this->pretty["part"] != "" )
+if ( isset($this->pretty["part"]) && $this->pretty["part"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("part") . "</td>";
@@ -28,7 +31,7 @@ if ( $this->pretty["part"] != "" )
 }
 
 // Author
-if ( count($this->pretty["author"]) > 0 )
+if ( isset($this->pretty["author"]) && count($this->pretty["author"]) > 0 )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("author") . "</td>";
@@ -44,7 +47,7 @@ if ( count($this->pretty["author"]) > 0 )
 }
 
 // Associates
-if ( count($this->pretty["associates"]) > 0 )
+if ( isset($this->pretty["associates"]) && count($this->pretty["associates"]) > 0 )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("associates") . "</td>";
@@ -86,7 +89,7 @@ if ( $this->format != "" )
 }  
 
 // Corporation
-if ( $this->pretty["corporation"] != "" )
+if ( isset($this->pretty["corporation"]) && $this->pretty["corporation"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("corporation") . "</td>";
@@ -95,7 +98,7 @@ if ( $this->pretty["corporation"] != "" )
 }
 
 // Series
-if ( count($this->pretty["serial"]) > 0 )
+if ( isset($this->pretty["serial"]) && count($this->pretty["serial"]) > 0 )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("serial") . "</td>";
@@ -115,7 +118,7 @@ if ( count($this->pretty["serial"]) > 0 )
 }
 
 // In (830 sonst 800)
-if ( count($this->pretty["in830"]) > 0 )
+if ( isset($this->pretty["in830"]) && count($this->pretty["in830"]) > 0 )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("in") . "</td>";
@@ -142,7 +145,7 @@ if ( count($this->pretty["in830"]) > 0 )
 }
 else
 {
-  if ( count($this->pretty["in800"]) > 0 )
+  if ( isset($this->pretty["in800"]) && count($this->pretty["in800"]) > 0 )
   {
     $Output .=  "<tr>";
     $Output .=  "<td>" . $this->CI->database->code2text("in") . "</td>";
@@ -169,7 +172,7 @@ else
 }
 
 // Edition & Reproduction
-if ( $this->pretty["edition"] != "" )
+if ( isset($this->pretty["edition"]) && $this->pretty["edition"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("edition") . "</td>";
@@ -195,7 +198,7 @@ if ( $this->pretty["edition"] != "" )
 }
 
 // Published
-if ( count($this->pretty["publisherarticle"]) > 0 )
+if ( isset($this->pretty["publisherarticle"]) && count($this->pretty["publisherarticle"]) > 0 )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("published") . "</td>";
@@ -226,7 +229,7 @@ if ( count($this->pretty["publisherarticle"]) > 0 )
 }
 else
 {
-  if ( count($this->pretty["publisher"]) > 0 )
+  if ( isset($this->pretty["publisher"]) && count($this->pretty["publisher"]) > 0 )
   {
     $Output .=  "<tr>";
     $Output .=  "<td>" . $this->CI->database->code2text("published") . "</td>";
@@ -246,15 +249,31 @@ else
 }
 
 // Language
-if ( $this->pretty["language"] != "" )
+if ( isset($this->pretty["language"]) && count($this->pretty["language"]) > 0 )
 {
   $Output .=  "<tr>";
-  $Output .=  "<td>" . $this->CI->database->code2text("language") . "</td>";
+  $Output .=  "<td>" . $this->CI->database->code2text("LANGUAGE") . "</td>";
   $Output .=  "<td>";
   $First = true;
   foreach ( $this->pretty["language"] as $one)
   {
-    if ( !$First )  $Output .= " | ";
+    if ( !$First ) $Output .= " | ";
+    $Output .=  $this->CI->database->english_countrycode2speech($one);
+    $First = false;
+  }
+  $Output .=  "</td></tr>";
+}
+
+// Language Origin
+if ( isset($this->pretty["languageorigin"]) && count($this->pretty["languageorigin"]) > 0 )
+{
+  $Output .=  "<tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("LANGUAGEORIGINAL") . "</td>";
+  $Output .=  "<td>";
+  $First = true;
+  foreach ( $this->pretty["languageorigin"] as $one)
+  {
+    if ( !$First ) $Output .= " | ";
     $Output .=  $this->CI->database->english_countrycode2speech($one);
     $First = false;
   }
@@ -262,7 +281,7 @@ if ( $this->pretty["language"] != "" )
 }
 
 // Physical description
-if ( $this->pretty["physicaldescription"] != "" )
+if ( isset($this->pretty["physicaldescription"]) && $this->pretty["physicaldescription"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("physicaldescription") . "</td>";
@@ -271,7 +290,7 @@ if ( $this->pretty["physicaldescription"] != "" )
 }
 
 // Notes
-if ( $this->pretty["notes"] != "" )
+if ( isset($this->pretty["notes"]) && $this->pretty["notes"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("notes") . "</td>";
@@ -280,7 +299,7 @@ if ( $this->pretty["notes"] != "" )
 }
 
 // Language Notes
-if ( $this->pretty["languagenotes"] != "" )
+if ( isset($this->pretty["languagenotes"]) && $this->pretty["languagenotes"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("languagenotes") . "</td>";
@@ -289,7 +308,7 @@ if ( $this->pretty["languagenotes"] != "" )
 }
 
 // Dissertation
-if ( $this->pretty["dissertation"] != "" )
+if ( isset($this->pretty["dissertation"]) && $this->pretty["dissertation"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("dissertation") . "</td>";
@@ -298,7 +317,7 @@ if ( $this->pretty["dissertation"] != "" )
 }
 
 // Citation
-if ( $this->pretty["citation"] != "" )
+if ( isset($this->pretty["citation"]) && $this->pretty["citation"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("citation") . "</td>";
@@ -307,7 +326,7 @@ if ( $this->pretty["citation"] != "" )
 }
 
 // Computer File
-if ( $this->pretty["computerfile"] != "" )
+if ( isset($this->pretty["computerfile"]) && $this->pretty["computerfile"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("computerfile") . "</td>";
@@ -316,7 +335,7 @@ if ( $this->pretty["computerfile"] != "" )
 }
 
 // System Details
-if ( $this->pretty["systemdetails"] != "" )
+if ( isset($this->pretty["systemdetails"]) && $this->pretty["systemdetails"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("systemdetails") . "</td>";
@@ -325,7 +344,7 @@ if ( $this->pretty["systemdetails"] != "" )
 }
 
 // ISSN
-if ( $this->pretty["issn"] != "" )
+if ( isset($this->pretty["issn"]) && $this->pretty["issn"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("issn") . "</td>";
@@ -334,7 +353,7 @@ if ( $this->pretty["issn"] != "" )
 }
 
 // ISBN
-if ( $this->pretty["isbn"] != "" )
+if ( isset($this->pretty["isbn"]) && $this->pretty["isbn"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("isbn") . "</td>";
@@ -343,7 +362,7 @@ if ( $this->pretty["isbn"] != "" )
 }
 
 // ISMN
-if ( $this->pretty["ismn"] != "" )
+if ( isset($this->pretty["ismn"]) && $this->pretty["ismn"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("ismn") . "</td>";
@@ -352,7 +371,7 @@ if ( $this->pretty["ismn"] != "" )
 }
 
 // Summary
-if ( $this->pretty["summary"] != "" )
+if ( isset($this->pretty["summary"]) && $this->pretty["summary"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("summary") . "</td>";
@@ -361,7 +380,7 @@ if ( $this->pretty["summary"] != "" )
 }
 
 // Additionalinfo
-if ( count($this->pretty["additionalinfo"]) > 0 )
+if ( isset($this->pretty["additionalinfo"]) && count($this->pretty["additionalinfo"]) > 0 )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("additionalinformations") . "<d>";
@@ -409,7 +428,7 @@ if ( count($this->pretty["additionalinfo"]) > 0 )
 }
 
 // Subject
-if ( count($this->pretty["subject"]) > 0 )
+if ( isset($this->pretty["subject"]) && count($this->pretty["subject"]) > 0 )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("subject") . "</td>";
@@ -425,7 +444,7 @@ if ( count($this->pretty["subject"]) > 0 )
 }
 
 // Classification
-if ( $this->pretty["classification"] != "" )
+if ( isset($this->pretty["classification"]) && $this->pretty["classification"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("classification") . "</td>";
@@ -451,7 +470,7 @@ if ( count($this->catalogues) > 1 || ( count($this->catalogues) == 1 && isset($_
 }
 
 // Class
-if ( count($this->pretty["class"]) > 0 )
+if ( isset($this->pretty["class"]) && count($this->pretty["class"]) > 0 )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("class") . "</td>";
@@ -464,6 +483,58 @@ if ( count($this->pretty["class"]) > 0 )
     $First = false;
   }
   $Output .=  "</td></tr>";
+}
+
+// Bibliographic context
+if ( isset($this->pretty["siblings"]) && count($this->pretty["siblings"]) > 0 )
+{
+  $Found = false;
+  foreach ( $this->pretty["siblings"] as $one)
+  {
+    if ( ( ( isset($one["i"]) && $one["i"] != "" ) || ( isset($one["n"]) && $one["n"] != "" ) ) 
+          && isset($one["w"]) && $one["w"] != "" && substr($one["w"],0,8) == "(DE-601)" )  $Found = true;
+  }
+
+  if ( $Found )
+  {
+    $Output .=  "<tr>";
+    $Output .=  "<td>" . $this->CI->database->code2text("BIBLIOGRAPHICCONTEXT") . "</td>";
+    $Output .=  "<td>";
+    $First = true;
+    foreach ( $this->pretty["siblings"] as $one)
+    {
+      if ( !$First ) $Output .= " | ";
+      
+      if ( isset($one["n"]) && $one["n"] != "" )
+      {
+      	$Text = $one["n"];
+      }
+      else
+      {
+	      if ( isset($one["i"]) && $one["i"] != "" )
+      	{
+          if ( stripos($one["i"],"von") !== false && isset($one["t"]) && $one["t"] != "" )
+          {
+            $Text = $one["t"];
+          }
+          else
+          {
+            $Text = $this->CI->database->code2text($one["i"]);
+          }
+       	}
+       	else
+       	{
+       		$Text = "";
+       	}
+      }
+      if ( $Text != "" && isset($one["w"]) && $one["w"] != "" && substr($one["w"],0,8) == "(DE-601)" )
+      {
+        $Output .= $this->link("id", trim(substr($one["w"],8)),$Text);
+        $First = false;
+      }
+    }
+    $Output .=  "</td></tr>";
+  }
 }
 
 ?>

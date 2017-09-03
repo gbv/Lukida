@@ -10,6 +10,11 @@
           <p>Diagramm Nutzung</p>
           Diese Diagramme stellen Ihnen dar, welche Lukida-Funktion wie oft genutzt wird.<br />Achse nach rechts: gewählter Zeitraum; Achse nach oben: Häufigkeit.
         </div>
+        <div class="well devicescreens collapse">
+          <p>Diagramm Geräte-Auflösungen</p>
+          Dieses Diagramm stellt Ihnen die genutzen Geräte in Form der Display-Auflösung im angegebenen Zeitraum dar. <br />
+          Dabei werden die Auflösungen auf 100 Pixel zusammengefasst. Auf den Achsen werden die Pixel angezeigt; die Größe der Blasen richtig sich nach der Häufigkeit des Einsatz von Geräten dieser Auflösung.
+        </div>
       </div>
       <div class="col-sm-8">
         <div class="well usage searches">

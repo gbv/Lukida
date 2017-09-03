@@ -40,6 +40,9 @@ class Marc21 extends General
 
     if     ( $Pos6 == "a" && $Pos7 == "m" && $Pos19 == "a" )                    { $Cover = "R"; $Online = 0; $PPNLink = 1; $Name = "multivolumework"; }
     elseif ( $Pos6 == "a" && $Pos7 == "m" && $F007_0 == "h" )                   { $Cover = "I"; $Online = 0; $PPNLink = 0; $Name = "microform"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "a" && $F007_0 == "c" )                   { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "earticle"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "m" && $F007_0 == "c" )                   { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "s" && $F007_0 == "c" )                   { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
     elseif ( $Pos6 == "a" && $Pos7 == "m" )                                     { $Cover = "B"; $Online = 0; $PPNLink = 0; $Name = "book"; }
     elseif ( $Pos6 == "a" && $Pos7 == "a" )                                     { $Cover = "A"; $Online = 0; $PPNLink = 0; $Name = "article"; }
     elseif ( $Pos6 == "a" && $Pos7 == "d" )                                     { $Cover = "F"; $Online = 0; $PPNLink = 0; $Name = "journal"; }
@@ -52,10 +55,20 @@ class Marc21 extends General
     elseif ( $Pos6 == "j" && $Pos7 == "a" )                                     { $Cover = "P"; $Online = 0; $PPNLink = 0; $Name = "audiocarrieradditionalmaterial"; }
     elseif ( $Pos6 == "j"                 )                                     { $Cover = "C"; $Online = 0; $PPNLink = 0; $Name = "audiocarrier"; }
     elseif ( $Pos6 == "m" && $Pos7 == "m" && $F007_0_2 == "cu" )                { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datacarrier"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "m" )                                     { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "a" )                                     { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "earticle"; }
     elseif ( $Pos6 == "m" && $Pos7 == "d" && $F007_0_2 == "cu" )                { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datacarrier"; }
+    
+    // The following line can be removed >= Q2/2018
+    // Old ebook format mm -> new format is "am" + L007_0=c (see above)
+    elseif ( $Pos6 == "m" && $Pos7 == "m" )                                     { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
+
+    // The following line can be removed >= Q2/2018
+    // Old earticle format ma -> new format is "aa" + L007_0=c (see above)
+    elseif ( $Pos6 == "m" && $Pos7 == "a" )                                     { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "earticle"; }
+
+    // The following line can be removed >= Q2/2018
+    // Old ejournal format ms -> new format is "as" + L007_0=c (see above)
     elseif ( $Pos6 == "m" && $Pos7 == "s" )                                     { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
+
     elseif ( $Pos6 == "p" && $Pos7 == "m" )                                     { $Cover = "P"; $Online = 0; $PPNLink = 1; $Name = "mixedmaterials"; }
     elseif ( $Pos6 == "r" && $Pos7 == "m" )                                     { $Cover = "O"; $Online = 0; $PPNLink = 0; $Name = "game"; }
     elseif ( $Pos6 == "r" && $Pos7 == "a" )                                     { $Cover = "K"; $Online = 0; $PPNLink = 0; $Name = "picture"; }
@@ -112,8 +125,8 @@ class Marc21 extends General
             if ( $data->getSubField("a") )
             {
               $Tmp = $data->getSubField("a")->getData();
-              if ( ( substr($Tmp,0,8) == "GBV_ILN_" && $Tmp == "GBV_ILN_" . $_SESSION["iln"] ) 
-                || ( substr($Tmp,0,8) != "GBV_ILN_" && ! in_array($Tmp, array("SYSFLAG_1", "SYSFLAG_A", "GBV_GVK")) ) ) 
+              if ( ( $Tmp == "GBV_ILN_" . $_SESSION["iln"] ) 
+                || ( substr($Tmp,0,8) != "GBV_ILN_" && ! in_array($Tmp, array("SYSFLAG_1", "SYSFLAG_A")) ) ) 
               {
                 $this->contents[$tag][] = $Sub;
                 continue;

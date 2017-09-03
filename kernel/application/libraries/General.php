@@ -2,22 +2,22 @@
 
 class General
 {
-  protected $catalogues = array();
-  protected $collgsize  = "";
-  protected $contents   = array();
-  protected $cover      = "";
-  protected $exemplar   = array();
-  protected $format     = "";
-  protected $isbn       = "";
-  protected $leader     = "";
-  protected $marc       = "";
-  protected $medium     = array();
-  protected $online     = "";
-  protected $parents    = array();
-  protected $PPN        = "";
-  protected $ppnlink    = "";
-  protected $pretty     = array();
-  protected $words      = "";
+  protected $catalogues        = array();
+  protected $collgsize         = "";
+  protected $contents          = array();
+  protected $cover             = "";
+  protected $exemplar          = array();
+  protected $format            = "";
+  protected $isbn              = "";
+  protected $leader            = "";
+  protected $marc              = "";
+  protected $medium            = array();
+  protected $online            = "";
+  protected $parents           = array();
+  protected $PPN               = "";
+  protected $ppnlink           = "";
+  protected $pretty            = array();
+  protected $words             = "";
   protected $proofofpossession = array();
 
   protected function SessionExits()
@@ -366,6 +366,10 @@ class General
   
       $pretty["pv_publishershort"]= $this->PrettyFields(array("250" => array("a" => "~."),
                                                               "260" => array("c" => ", ")));
+	  if ( $pretty["pv_publishershort"] == "" )
+      {
+		$pretty["pv_publishershort"]= $this->PrettyFields(array("952" => array("j" => "~.")));
+	  }
   
       $pretty["pv_pubarticle"]    = $this->PrettyFields(array("773" => array("i" => " ",
                                                                              "t" => " ",
@@ -382,6 +386,8 @@ class General
                                                                                 "b" => ", ",
                                                                                 "c" => ", ",
                                                                                 "e" => ", ")));
+      // Add original characters 
+      $pretty = $this->AddOriginalCharacters($pretty,"preview");
     }
 
     if ( $type == "fullview" )
@@ -422,9 +428,9 @@ class General
       $pretty["dissertation"]        = $this->PrettyFields(array("502" => array("a" => " | ")));
       
       
-      $pretty["language"]            = $this->GetSimpleArray(array("041" => array("a"),
-                                                                   "040" => array("b")));
+      $pretty["language"]            = $this->GetSimpleArray(array("041" => array("a")));
 
+      $pretty["languageorigin"]      = $this->GetSimpleArray(array("041" => array("h")));
 
       $pretty["classification"]      = $this->PrettyFields(array("084" => array("a" => " - ",
                                                                                 "9" => " - ")));
@@ -448,14 +454,27 @@ class General
                                                                  "773" => array("x" => " | ")));
 
       $pretty["ismn"]                = $this->PrettyFields(array("024" => array("a" => " | ")));
+
+      $pretty["siblings"]     = $this->GetArray(array("787" => array("i","n","t","w")));
+
+      // Add original characters 
+      $pretty = $this->AddOriginalCharacters($pretty,"fullview");
     }
 
     if ( $type == "export" )
     {
-      $pretty["zdbid"] = $this->PrettyFields(array("016" => array("a" => " | ")));
-
+	    $field016 = $this->GetArray(array("016" => array("a","2")));
+	    foreach ($field016 as $One)
+      {
+        if ( isset($One["a"]) && $One["a"] != "" && isset($One["2"]) && $One["2"] == "DE-600" )
+        {	
+          $pretty["zdbid"] = $One["a"];
+          break;
+        }
+      }
       $pretty["details"] = $this->GetArray(array("952" => array("a","e","d","h","j")));
     }
+
     return $pretty;
   }
 
@@ -607,6 +626,97 @@ class General
     return $Output;
   }
   
+  protected function AddOriginalCharacters($pretty, $area)
+  {
+    $origin = $this->GetArray(array("880" => array("6","a","b","c")));
+
+    foreach($origin as $rec)
+    { 
+      if ( $area == "preview" )
+      {
+        // Title
+        if ( isset($rec["6"]) && substr($rec["6"],0,3) == "245" )
+        {
+          if ( isset($rec["a"]) && $rec["a"] != "" && isset($rec["b"]) && $rec["b"] != "" )
+          {
+            $pretty["title"] .= ( isset($pretty["title"]) && $pretty["title"] != "" ) ? " | " . $rec["a"] . " : " . $rec["b"] : $rec["a"] . " : " . $rec["b"];
+          }
+          if ( isset($rec["a"]) && $rec["a"] != "" && (!isset($rec["b"]) || $rec["b"] == "" ) )
+          {
+            $pretty["title"] .= ( isset($pretty["title"]) && $pretty["title"] != "" ) ? " | " . $rec["a"] : $rec["a"];
+          }
+          if ( ( !isset($rec["a"]) || $rec["a"] == "" ) && isset($rec["b"]) && $rec["b"] != "" )
+          {
+            $pretty["title"] .= ( isset($pretty["title"]) && $pretty["title"] != "" ) ? " | " . $rec["b"] : $rec["b"];
+          }
+        }
+
+        // Author
+        if ( isset($rec["6"]) && substr($rec["6"],0,3) == "100" )
+        {
+          if ( isset($rec["a"]) && $rec["a"] != "" )
+          {
+            if ( isset($pretty["author"]) )
+            {
+              if ( !in_array($rec["a"],$pretty["author"]) )
+              {
+                array_push($pretty["author"],$rec["a"]);
+              }
+            }
+            else
+            {
+              $pretty["author"] = array($rec["a"]);
+            }
+          }
+        }
+
+        // Serial
+        if ( isset($rec["6"]) && substr($rec["6"],0,3) == "490" )
+        {
+          $Tmp = array();
+          if ( isset($rec["a"]) && $rec["a"] != "" )  $Tmp["a"] = $rec["a"];
+          if ( isset($rec["v"]) && $rec["v"] != "" )  $Tmp["v"] = $rec["v"];
+          if ( isset($pretty["serial"]) )
+          {
+            if ( !in_array($Tmp,$pretty["serial"]) )
+            {
+              array_push($pretty["serial"],$Tmp);
+            }
+            else
+            {
+              $pretty["serial"] = array($Tmp);
+            }
+          }
+        }
+      }
+
+      if ( $area == "fullview" )
+      {
+        // Publisher
+        if ( isset($rec["6"]) && substr($rec["6"],0,3) == "260" )
+        {
+          $Tmp = array();
+          if ( isset($rec["a"]) && $rec["a"] != "" )  $Tmp["a"] = $rec["a"];
+          if ( isset($rec["b"]) && $rec["b"] != "" )  $Tmp["b"] = $rec["b"];
+          if ( isset($rec["c"]) && $rec["c"] != "" )  $Tmp["c"] = $rec["c"];
+          if ( isset($pretty["publisher"]) )
+          {
+            if ( !in_array($Tmp,$pretty["publisher"]) )
+            {
+              array_push($pretty["publisher"],$Tmp);
+            }
+            else
+            {
+              $pretty["publisher"] = array($Tmp);
+            }
+          }
+        }
+      }
+    }
+    return $pretty;
+  }
+
+
   protected function SetCover($type = "preview")
   {
     $ExternalCover = ( isset($_SESSION["config_discover"]["cover"]["covermode"]) && $_SESSION["config_discover"]["cover"]["covermode"] == "1" ) ? true : false;

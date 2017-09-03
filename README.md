@@ -37,20 +37,40 @@ This is the main software
    1) Create an empty mysql database and an user who has full access to that new database
    2) Import the mysql_import.sql file into that database
    3) Remember the database connection
-5) Point your webbrowser's document_root to .../lukida/libaries/lukida_newlibrary. Add to environment settings
+5) Point your webbrowser's document_root to the correct path by replacing /var/www/html/lukida/libaries/lukida_newlibrary and use the rewrite lines from this **Example VirtualHost**
 
     ```
-    # Name of library
-    SetEnv LIBRARY "newlibrary"
-     
-    # Mode (development, test, production)
-    SetEnv MODE "development"
+    <VirtualHost *:80>
+        # Server Name
+        ServerName lukida.domain.tld
+
+        # Path to your new library 
+        DocumentRoot /var/www/html/lukida/libaries/lukida_newlibrary
+        
+        # Name of library
+        SetEnv LIBRARY "New Library"
+        
+        # Mode (development, test, production)
+        SetEnv MODE "development"
+        
+        # Path to your new library 
+        <Directory /var/www/html/lukida/libaries/lukida_newlibrary>
+            DirectoryIndex index.php
+            AllowOverride All
+            Require all granted
+            RewriteEngine On
+            RewriteRule ^\.htaccess$ - [F]
+            RewriteRule ^.*ini$ / [R,L]
+            RewriteCond %{REQUEST_FILENAME} !-f
+            RewriteCond %{REQUEST_FILENAME} !-d
+            RewriteCond %{REQUEST_URI} !robots.txt
+            RewriteCond %{REQUEST_URI} !favicon.ico
+            RewriteRule ^(.*)$ index.php/$1 [L]
+        </Directory>
+    </VirtualHost>
     ```
 
-    Remember the URL to access lukida (e.g. http://lukida.domain.tld)
-
-    **Important**
-    There is a .htaccess file located in this folder, which is neccessary.
+    Remember the URL (ServerName) to access lukida (e.g. http://lukida.domain.tld)
 
 ## Customization
 

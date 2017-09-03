@@ -28,6 +28,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
   04.11.2015 AKa Code neu eingeführt für CI Version 3.0.3, welche Security
                  Issues behoben hat.
                  https://www.codeigniter.com/user_guide/installation/upgrade_303.html
+  22.06.2017 AKa https Protocol erkennbar anhand HTTP_X_FORWARDED_PROTO
 */
 
 // Step 0: Load general config
@@ -51,7 +52,7 @@ if ( isset($general["general"]["devurl"]) && $general["general"]["devurl"] != ""
             $host = strtok($delimiter);
             continue;
         }
-        $config['base_url'] = empty($_SERVER['HTTPS'])
+        $config['base_url'] = empty($_SERVER['HTTP_X_FORWARDED_PROTO'])
             ? 'http://'  . $host
             : 'https://' . $host;
         break;
@@ -209,7 +210,7 @@ $config['composer_autoload'] = FALSE;
 | DO NOT CHANGE THIS UNLESS YOU FULLY UNDERSTAND THE REPERCUSSIONS!!
 |
 */
-$config['permitted_uri_chars'] = "a-z 0-9={}()&'+~%.:_\-,";
+$config['permitted_uri_chars'] = "a-z 0-9={}()<>&+~%.:_\-,'";
 
 
 /*

@@ -105,16 +105,17 @@ echo "</script>";
 
 // Sitelinks Searchbox
 echo "<script type='application/ld+json'>";
-echo "{";
-echo "'@type': 'WebSite',";
-echo "'url': '" . base_url() . "',";
-echo "'potentialAction': ";
-echo "{";
-echo "'@type': 'SearchAction',";
-echo "'target': '" . base_url() . "{search_term_string}',";
-echo "'query-input': 'required name=search_term_string'";
-echo "}";
-echo "}";
+echo '{';
+echo '"@context": "http://www.schema.org",';
+echo '"@type": "WebSite",';
+echo '"url": "' . base_url() . '",';
+echo '"potentialAction": ';
+echo '{';
+echo '"@type": "SearchAction",';
+echo '"target": "' . base_url() . '{search_term_string}",';
+echo '"query-input": "required name=search_term_string"';
+echo '}';
+echo '}';
 echo "</script>";
 
 ?>

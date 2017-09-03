@@ -173,7 +173,7 @@ class Vzg_controller extends CI_Controller
   // *********** Interface-Functions ************
   // ********************************************
   
-  private function ensureInterface($Interfaces)
+  protected function ensureInterface($Interfaces)
   {
     if ( ! is_array($Interfaces) )
     {
@@ -306,7 +306,7 @@ class Vzg_controller extends CI_Controller
     }
   }
 
-  private function ensurePPN($PPN)
+  protected function ensurePPN($PPN)
   {
     if ( $PPN == "" ) return false;
 
@@ -381,6 +381,12 @@ class Vzg_controller extends CI_Controller
   {
     $Tmp = strtotime($Date);
     return  date("d.m.Y",$Tmp);
+  }
+
+  public function datetime2german($DateTime) 
+  {
+    $Tmp = strtotime($DateTime);
+    return  date("d.m.Y H:i",$Tmp);
   }
   
   /**
@@ -467,7 +473,7 @@ class Vzg_controller extends CI_Controller
       "softwarename"		=> (isset($_SESSION["config_general"]["general"]["softwarename"]) 			 && $_SESSION["config_general"]["general"]["softwarename"] != "" ) 				? $_SESSION["config_general"]["general"]["softwarename"]				: "GBV Discovery",
       "language"        => $_SESSION["language"],
       "layout"          => $_SESSION["layout"],
-      "datapool"        => $_SESSION["filter"]["datapool"],
+      "datapool"        => (isset($_SESSION["config_discover"]["discover"]["datapool"]) && $_SESSION["config_discover"]["discover"]["datapool"] != "" )     ? $_SESSION["config_discover"]["discover"]["datapool"]      : "local",
       "datapoolicons"  => isset($_SESSION["config_discover"]["datapoolicons"]) ? $_SESSION["config_discover"]["datapoolicons"] : array(),
       "time2warn" => (isset($_SESSION["config_general"]["lbs"]["time2warn"]) && $_SESSION["config_general"]["lbs"]["time2warn"] != "" ) ? $_SESSION["config_general"]["lbs"]["time2warn"]  : "",
       "time2kill" => (isset($_SESSION["config_general"]["lbs"]["time2kill"]) && $_SESSION["config_general"]["lbs"]["time2kill"] != "" ) ? $_SESSION["config_general"]["lbs"]["time2kill"]  : "",
@@ -476,7 +482,8 @@ class Vzg_controller extends CI_Controller
       "library_name" => isset($_SESSION["library_name"]) ? $_SESSION["library_name"] : "",
       "producer" => isset($_SESSION["producer"]) ? $_SESSION["producer"] : false,
       "iln" => isset($_SESSION["iln"]) ? $_SESSION["iln"] : "",
-      "maxrenewals" => (isset($_SESSION["config_general"]["lbs"]["maxrenewals"]) && $_SESSION["config_general"]["lbs"]["maxrenewals"] != "" ) ? $_SESSION["config_general"]["lbs"]["maxrenewals"]  : "0"
+      "maxrenewals" => (isset($_SESSION["config_general"]["lbs"]["maxrenewals"]) && $_SESSION["config_general"]["lbs"]["maxrenewals"] != "" ) ? $_SESSION["config_general"]["lbs"]["maxrenewals"]  : "0",
+      "lbs" => (isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] == 1 ) ? true : false
     );
 
     // Set stats
@@ -544,13 +551,15 @@ class Vzg_controller extends CI_Controller
     $this->email->initialize($config);
 
     // Mail Adresses
-    $FromName = (isset($_SESSION["config_general"]["general"]["softwarename"]) 
-              && isset($_SESSION["config_general"]["general"]["title"])) 
-          ? $_SESSION["config_general"]["general"]["softwarename"] . " | " . $_SESSION["config_general"]["general"]["title"] 
-          : "";
-    $this->email->from($_SESSION["config_general"]["general"]["mailfrom"], iconv('UTF-8', 'ASCII//TRANSLIT', $FromName));
+    $FromName = (isset($_SESSION["config_general"]["general"]["softwarename"]) && $_SESSION["config_general"]["general"]["softwarename"] != "" ) 
+                ? $_SESSION["config_general"]["general"]["softwarename"] : "";
+    if (isset($_SESSION["config_general"]["general"]["title"]) && $_SESSION["config_general"]["general"]["title"] != "" )
+    {
+      $FromName .= ( $FromName != "" ) ? " - " . $_SESSION["config_general"]["general"]["title"] : $_SESSION["config_general"]["general"]["title"];
+    }
+    $this->email->from($_SESSION["config_general"]["general"]["mailfrom"], $FromName);
+    $this->email->reply_to($_SESSION["config_general"]["general"]["mailfrom"], $FromName);
     $this->email->to($mailto);
-    $this->email->reply_to($mailfrom);
 
     // Mail subject 
     $this->email->subject('Empfehlung von ' . $username . ' für Sie! | Recommendation for you');
@@ -640,10 +649,14 @@ class Vzg_controller extends CI_Controller
     $this->email->initialize($config);
 
     // Mail Adresses
-    $FromName = (isset($_SESSION["config_general"]["general"]["softwarename"])       &&  isset($_SESSION["config_general"]["general"]["title"])) 
-         ? $_SESSION["config_general"]["general"]["softwarename"] . "@" . $_SESSION["config_general"]["general"]["title"] : "";
-    $this->email->from($mailfrom);
-    $this->email->reply_to($mailfrom);
+    $FromName = (isset($_SESSION["config_general"]["general"]["softwarename"]) && $_SESSION["config_general"]["general"]["softwarename"] != "" ) 
+                ? $_SESSION["config_general"]["general"]["softwarename"] : "";
+    if (isset($_SESSION["config_general"]["general"]["title"]) && $_SESSION["config_general"]["general"]["title"] != "" )
+    {
+      $FromName .= ( $FromName != "" ) ? " - " . $_SESSION["config_general"]["general"]["title"] : $_SESSION["config_general"]["general"]["title"];
+    }
+    $this->email->from($_SESSION["config_general"]["general"]["mailfrom"], $FromName);
+    $this->email->reply_to($_SESSION["config_general"]["general"]["mailfrom"], $FromName);
 
     if ( strtolower(MODE) == "development" && isset($_SESSION["config_discover"]["development"]["mailto"]) 
                                                  && $_SESSION["config_discover"]["development"]["mailto"] != "" )
@@ -667,8 +680,15 @@ class Vzg_controller extends CI_Controller
     $fullbody=preg_replace("/<a[^>]+\>/i", " ", $fullbody);
     $fullbody=preg_replace("/<\/a>/i", " ", $fullbody);
 
+
+    // Body receipient part
+    $Mess = "<h3>Empfänger</h3>"; 
+    $Mess .= "<table>";
+    $Mess .= "<tr><td>" . $this->database->code2text("MAIL") . "</td><td>" . $mailto . "</td></tr>";
+    $Mess .= "</table>";
+
     // Body user part
-    $Mess = "<h3>Benutzer</h3>"; 
+    $Mess .= "<h3>Benutzer</h3>"; 
     $Mess .= "<table>";
     foreach ( $_SESSION["login"] as $key => $value )
     {
@@ -714,6 +734,9 @@ class Vzg_controller extends CI_Controller
 
     // Send it away...
     $this->email->send();
+
+    // Set logs
+    $this->database->store_logs($mailsubject . ' von ' . $username, $Mess, $_SESSION["userlogin"], $ppn);
 
     // Return data
     echo json_encode(array("status" => "0"));
@@ -922,7 +945,6 @@ class Vzg_controller extends CI_Controller
     return $Resolved;
   }
 
-
   public function exportlink()
   {
     // Ajax Method => No view will be loaded, just data is returned
@@ -991,12 +1013,42 @@ class Vzg_controller extends CI_Controller
     force_download($name, $data);
   }
   
+  public function exportfilelist($ppnlist, $format)
+  {
+	  // Receive params
+    $ppnlistarray = explode(',',$ppnlist);
+	
+    // Check params
+    //if ( $ppnlist == "" || $format == "" ) return(-2);
+
+    // Set stats
+    $this->stats("Export_" . ucfirst($format));
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","discover","export"));
+
+    // Load helper
+    $this->load->helper('download');
+
+    // Call export
+	  foreach ($ppnlistarray as $ppn ) 
+    {
+  		// Ensure required ppn data
+	  	if ( $this->ensurePPN($ppn)) 
+		  	$data .= $this->export->exportfile($_SESSION["data"]["results"][$ppn],$format, $ppn) . "\r\n\r\n";
+		  else
+			  $data .= "no data for this ppn: " .$ppn . "\r\n\r\n";
+	  }
+	  $name = $format . " " . $ppnlist . ".txt";
+    force_download($name, $data);
+  }
+  
   public function getwords()
   {
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $query		= $this->input->get('query');
+    $query		= json_decode($this->input->get('query'));
 
     // Check params
     if ( $query == "" ) return ($this->ajaxreturn("400","query is missing"));
@@ -1267,6 +1319,94 @@ class Vzg_controller extends CI_Controller
     echo json_encode($container);
   }
 
+  public function log()
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+    $params = (array) json_decode($this->input->post('params'));
+
+    // Check params
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","database"));
+
+    // Set stats
+    $this->stats("Log");
+
+    $container = $this->database->get_log_data($params);
+
+    echo json_encode($container);
+  }
+
+  public function settingsstore()
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+    $name     = (string) json_decode($this->input->post('name'));
+    $settings = (array) json_decode($this->input->post('settings'));
+
+    // Check params
+    if ( $name == "" ) return ($this->ajaxreturn("400","name is missing"));
+    if ( ! isset($_SESSION["userlogin"]) || $_SESSION["userlogin"] == "" ) return ($this->ajaxreturn("400","login is missing"));
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","database"));
+
+    // Set stats
+    $this->stats("SettingsStore");
+
+    $container = $this->database->store_settings($_SESSION["userlogin"], $name, $settings);
+
+    echo json_encode($container);
+  }
+
+  public function settingsload()
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+    $id     = $this->input->post('id');
+
+    // Check params
+    if ( $id == "" ) return ($this->ajaxreturn("400","id is missing"));
+    if ( ! isset($_SESSION["userlogin"]) || $_SESSION["userlogin"] == "" ) return ($this->ajaxreturn("400","login is missing"));
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","database"));
+
+    // Set stats
+    $this->stats("SettingsStore");
+
+    $container = $this->database->load_settings($_SESSION["userlogin"], $id);
+
+    echo json_encode($container);
+  }
+
+  public function settingsdelete()
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+    $ids     = (array) json_decode($this->input->post('ids'));
+
+    // Check params
+    if ( $ids == "" ) return ($this->ajaxreturn("400","ids are missing"));
+    if ( ! isset($_SESSION["userlogin"]) || $_SESSION["userlogin"] == "" ) return ($this->ajaxreturn("400","login is missing"));
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","database"));
+
+    // Set stats
+    $this->stats("SettingsDelete");
+
+    $container = $this->database->delete_settings($_SESSION["userlogin"], $ids);
+
+    echo json_encode($container);
+  }
+
+
   // ********************************************
   // ********* Main-Functions (AJAX) ************
   // ********************************************
@@ -1286,8 +1426,11 @@ class Vzg_controller extends CI_Controller
       $this->stats("Search_" . $search,"month");
     }
 
+    $params = array();
+    if ( isset($_SESSION["filter"]["phonetic"]) )   $params["phonetic"] = $_SESSION["filter"]["phonetic"];
+  
     // Invoke index system
-    $container = $this->index_system->search($search, $package, $facets);
+    $container = $this->index_system->search($search, $package, $facets, $params);
 
     // Store session data
     // $_SESSION["data"]["index_system"][$package]	= $container;
@@ -1329,7 +1472,7 @@ class Vzg_controller extends CI_Controller
     if ( $package == "" || $package == "0" ) return ($this->ajaxreturn("400","package is missing or 0"));
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","discover","theme"));
+    $this->ensureInterface(array("config","discover","database","theme"));
 
     // Set stats
     $this->stats("Search");
@@ -1351,7 +1494,7 @@ class Vzg_controller extends CI_Controller
     $container = $this->dosearch($search,$package,true);
 
     // Transfer records to file
-    //$this->printArray2File($container["results"]);
+    // $this->printArray2File($container["results"]);
 
     // Create PPN list
     $container["ppnlist"] = array_keys($container["results"]);
@@ -1359,7 +1502,7 @@ class Vzg_controller extends CI_Controller
     // Invoke theme format driver
     $container = $this->theme->preview($container, array('collgsize' => $_SESSION['layout']));
 
-    // Invoke database, store search phrases 
+    // Invoke database, store word suggestions 
     if ( isset($container["words"]) )
     {
       if ( trim($container["words"]) != "" )
@@ -1428,8 +1571,8 @@ class Vzg_controller extends CI_Controller
       $this->ensureInterface(array("config","discover","index_system","theme"));
 
       // Now invoke again to catch all data
-      $Search = ( trim($Search) != "" )  ? "title:". trim($Search) : "";
-      $container = $this->dosearch($Search . " ppnlink:" . $PPNLink,"0",false);
+      // $Search = ( trim($Search) != "" )  ? "title:". trim($Search) : "";
+      $container = $this->dosearch(trim($Search) . " ppnlink:" . $PPNLink,"0",false);
 
       // Create PPN list
       $container["ppnlist"] = array_keys($container["results"]);
@@ -1574,8 +1717,8 @@ class Vzg_controller extends CI_Controller
     echo $this->theme->userview(array('action'=>$Action));
   }
 
-  // Show user data large 
-  public function assistant($dlgid)
+  // Show settings data large 
+  public function settings($dlgid)
   {
     // Ajax Method => No view will be loaded, just data is returned
 
@@ -1585,16 +1728,39 @@ class Vzg_controller extends CI_Controller
     // Check params
 
     // Set stats
-    $this->stats("Assistant");
+    $this->stats("Settings");
 
     // Ensure required interfaces
     $this->ensureInterface(array("config","discover","theme","lbs"));
 
     // Display view
-    echo $this->theme->assistant(array('dlgid'=>$dlgid));
+    echo $this->theme->settings(array('dlgid'=>$dlgid));
   }
-  
-  // Show user data large 
+
+  // Show stored settings large 
+  public function settingsview()
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+
+    // Check params
+    if ( ! isset($_SESSION["userlogin"]) || $_SESSION["userlogin"] == "" ) return ($this->ajaxreturn("400","login is missing"));
+
+    // Set stats
+    $this->stats("SettingsView");
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","discover","database","theme"));
+
+    // Get available settings
+    $settings = $this->database->list_settings($_SESSION["userlogin"]);
+
+    // Display view
+    echo $this->theme->settingsview(array('settings'=>$settings));
+  }
+
+  // Show mail order large 
   public function mailorderview($PPN,$EPN)
   {
     // Ajax Method => No view will be loaded, just data is returned
@@ -1727,11 +1893,13 @@ class Vzg_controller extends CI_Controller
     // Check params
 
     // Convert characters
-    $search = ( urldecode($search) == "{star}" ) ? "*" : urldecode($search);
+    $search = urldecode($search);
+    $search = str_replace("%22", "\"", $search);
     $search = str_replace("{slash}", "/", $search);
     $search = str_replace("{st}", "<", $search);
     $search = str_replace("{gt}", ">", $search);
     $search = str_replace("{colon}", ":", $search);
+    $search = str_replace("{star}", "*", $search);
     
     // Call main method with parameters
     $this->view("discover",$search,$facets);

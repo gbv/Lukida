@@ -1,11 +1,139 @@
 # Changelog
+**23.08.2017**
+* Full view
+  * ID / PPN added to bibliographic data
+  * Siblings improved
+
+**23.08.2017**
+* Full view
+  * Mobile Buttons adjusted
+
+**17.08.2017**
+* Library Module
+    * New chart created: device resolutions
+
+**09.08.2017**
+* Actions
+  * MailOrders will be written to a logfile
+
+* Library Module
+  * Add features logs to view and filter the logfile
+  * Add search and filter components for log file
+
+**31.07.2017**
+* Settings
+  * Load/Save Buttons only visible with configured lbs
+
+* Updates
+  * NoUISLider 10.1.0
+
+**28.07.2017**
+* Full view
+  * Search, filter & sort in related medias improved
+
+**25.07.2017**
+* General
+  * Comfirmed HTML Markup Validation by validator.w3.org
+  * Cross-Browser-Tests
+
+* Full view
+  * Added cross links from print to online media and backwards
+  
+**19.07.2017**
+* Optical
+  * Minor corrections based on new layout
+
+* Full view
+  * Search, filter & sort in related medias
+
+* Link Resolver
+  * Interfaces improved  
+
+**27.06.2017**
+* General
+  * .htaccess removed, rewrite lines added to VirtualHost
+  * Mobile devices: Focus on search field removed
+  * Mobile devices: New layout
+  * Usage of URL with facettes improved
+
+**23.06.2017**
+* Updates
+  * NoUISLider 10.0.0
+  * Chart.js 2.6.0
+
+**22.06.2017**
+* General
+  * https support recognized by HTTP_X_FORWARDED_PROTO variable
+
+**20.06.2017**
+* Updates
+  * Code Igniter 3.1.5
+
+**16.06.2017**
+* Interfaces
+  * PAIA2_DAIA2 supports response storage
+  * MySQL user settings storage with hashed userid
+
+**06.06.2017**
+* Resolved bugs
+  * Search based on ID using shards
+
+**30.05.2017**
+* Search
+  * Improved word suggestions
+  * JSON-LD updated
+
+**26.05.2017**
+* Search
+  * Access collection / collection_details
+
+* Full view
+  * Original language / characters added
+
+* General
+  * Prevent unauthorized ini access
+
+**20.05.2017**
+* Search
+  * Storing and loading basic search added
+  
+**16.05.2017**
+* Search
+  * Yearrange adjusted
+
+**11.05.2017**
+* General
+  * Search options group togehter and moved to toggable option area
+  * New navigation bar layout
+  * New material switches
+  * Improved usage for mobile devices
+  
+* Search
+  * Two phased search added
+  * Phonetic search added
+  * Added sharding support
+
+* Full view
+  * Language code only taken from M041a (M040b removed)
+  * Original language added
+  * Multiple languages added
+
+* Link Resolver
+  * Journals Online & Print (JOP) interface improved
+
+* Updates
+  * Editable 1.5.1 added
+
 **12.04.2017**
 * Updates
   * jQuery 3.2.1
-  * Daterangepicker correctly named
+  * Daterangepicker correctly named & minimized
 
 * General
   * Readme update
+
+* Link Resolver
+  * Improved JOP linking
 
 **11.04.2017**
 * Cleanup

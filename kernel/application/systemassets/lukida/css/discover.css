@@ -27,6 +27,31 @@ html {
   font-style: normal;
 }
 
+.NoLeftMargin
+{
+  margin-left: 0px !important;
+}
+
+@media (max-width:767px)
+{
+  .LeftOffset1, .LeftOffset2
+  {
+    margin-left: 0px !important;
+  }
+}
+@media (min-width:768px) and (max-width:991px)
+{
+  .LeftOffset1
+  {
+    margin-left: 8.3% !important;
+  }
+
+  .LeftOffset2
+  {
+    margin-left: 16.6% !important;
+  }
+}
+
 .gbvicon
 {
     font-family: 'GBVIcons';
@@ -219,6 +244,18 @@ html {
   border-radius: 4px;
 }
 
+.input-lg
+{
+  border-top: 1px solid #fff !important;
+  border-bottom: 1px solid #fff !important;
+  margin-top: 1px !important;
+}
+
+.settings
+{
+  border: 1px solid #fff !important;
+}
+
 .search_text
 {
   outline: none;
@@ -228,6 +265,16 @@ html {
   box-shadow: none !important;
   -webkit-overflow-scrolling: touch;
   -webkit-transform: translateZ(0px);  
+}
+
+.startsearch
+{
+  border: 1px solid #fff !important;
+}
+
+.mobilefacets
+{
+  border: 1px solid #fff !important;
 }
 
 .button-left-round
@@ -553,9 +600,108 @@ html {
     };
 }
 
+input[type="search"]::-ms-clear {  display: none; width : 0; height: 0; }
+input[type="search"]::-ms-reveal {  display: none; width : 0; height: 0; }
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration { display: none; }
 
+.search_clear 
+{
+  position: absolute;
+  right: 5px;
+  top: 3px;
+  bottom: 0px;
+  cursor: pointer;
+  z-index: 20;
+  color: red;
+}
 
-/*  Bootstrap Clearfix */
+.material-switch > input[type="checkbox"] {
+    display: none;   
+}
+
+.material-switch > label {
+    cursor: pointer;
+    height: 0px;
+    position: relative; 
+    width: 40px;  
+}
+
+.material-switch > label::before {
+    background: rgb(0, 0, 0);
+    box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    content: '';
+    height: 16px;
+    margin-top: -8px;
+    position:absolute;
+    opacity: 0.3;
+    transition: all 0.4s ease-in-out;
+    width: 40px;
+}
+.material-switch > label::after {
+    background: rgb(255, 255, 255);
+    border-radius: 16px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+    content: '';
+    height: 24px;
+    left: -4px;
+    margin-top: -8px;
+    position: absolute;
+    top: -4px;
+    transition: all 0.3s ease-in-out;
+    width: 24px;
+}
+.material-switch > input[type="checkbox"]:checked + label::before {
+    background: inherit;
+    opacity: 0.5;
+}
+.material-switch > input[type="checkbox"]:checked + label::after {
+    background: inherit;
+    left: 20px;
+}
+
+.editbutton
+{
+  width: 40px;
+  margin-bottom: 5px;
+}
+.clear-left 
+{
+  clear: left
+}
+.clear-right 
+{
+  clear: right
+}
+.editul 
+{
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.editli 
+{
+  padding: 10px;
+  list-style-type: none;
+}
+.editempty
+{
+  color: black;
+  font-style: italic;
+  font-size: 90%;
+}
+
+.yearinput
+{
+  width: 100px !important;
+}
+
+.notify-text
+{ 
+  margin-top: .3em; 
+}
 
 /*  Tablet  */
 @media (min-width:767px){

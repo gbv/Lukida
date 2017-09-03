@@ -8,6 +8,7 @@
           <div class="panel-heading navbar-panel-color">
             <span class="TOTALRECS"></span>
             <span class="RESULTFILTER">Ergebnisse eingrenzen</span>
+
           </div>
 
           <div id="facetbody" class="panel-collapse collapse in">
@@ -15,25 +16,24 @@
 
               <div class="FACETYEARTOTAL">
                 <div class="well">
-                  <input type="hidden" id="hiddenyearstart" />
-                  <input type="hidden" id="hiddenyearend" />
                   <span class="FACETYEAR">Zeitraum </span> 
-                  <span class="yearstart inlineedit"> </span> - <span class="yearend inlineedit"> </span>
-                  <div class="navbar-form" id="pubyear"></div>
+                  <span class='yearstart editable' data-type='number' data-mode='popup' data-container='body' data-placement='top' data-inputclass='yearinput'> </span> - 
+                  <span class='yearend editable' data-type='number' data-mode='popup' data-container='body' data-placement='top' data-inputclass='yearinput'> </span>
+                  <div class="navbar-form" id="pubyear1"></div>
                 </div>
               </div>
 
-              <div id="FACETTYPTOTAL">
+              <div class="FACETTYPTOTAL">
                 <div class="well">
                   <div class="FACETTYP">Typ</div>
-                  <div id="onlines"></div>
+                  <div class="onlines" id="onlines1"></div>
                 </div>
               </div>
 
-              <div id="FACETFORMATTOTAL">
+              <div class="FACETFORMATTOTAL">
                 <div class="well">
                   <div class="FACETFORMAT">Formate </div>
-                  <div id="formats"></div>
+                  <div class="formats" id="formats1"></div>
                 </div>
               </div>
             </div>

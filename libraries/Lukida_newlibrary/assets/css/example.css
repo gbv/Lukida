@@ -59,13 +59,13 @@ body {
 {
 	background: #013ADF;
 	color: #fff;
-	border: 1px solid #ffffff;
+	border: 1px solid #fff;
 }
 .navbar-button-color:hover 
 {
 	background: grey;
 	color: #fff;
-	border: 1px solid #ffffff;
+	border: 1px solid #fff;
 }
 
 .navbar-panel-color
@@ -95,17 +95,44 @@ body {
   border-radius: 1px;
 }
 
+.search_clear 
+{
+  color: #013ADF;
+}
+
+.input-lg
+{
+  margin-top: 0px !important;
+  border-top: 1px solid #fff !important;
+  border-bottom: 1px solid #fff !important;
+  height: 46px !important;
+}
+
+.settings
+{
+  border: 1px solid #fff !important;
+}
+
 .search_text, 
 .search_text:hover,
 .search_text:focus,
 .search_text:active
 {
-	border: 1px solid #013ADF;
-	border-radius: 4px;
-  line-height: 22px;
 }
 
-.carousel-inner img {
+.startsearch
+{
+  margin-left: 0px !important;
+  border: 1px solid #fff !important;
+}
+
+.mobilefacets
+{
+  border: 1px solid #fff !important;
+}
+
+.carousel-inner img 
+{
   margin: auto;
 }
 
@@ -161,7 +188,7 @@ body {
 
 .preview-text
 {
-  color: #000000;
+  color: #000;
 	padding: 2px 2px;
 }
 
@@ -204,14 +231,14 @@ body {
 .fullview-button-color
 {
 	background: #013ADF;
-	color: #ffffff;
+	color: #fff;
 }
 
 .dropdown-menu>.active>a, 
 .dropdown-menu>.active>a:focus, 
 .dropdown-menu>.active>a:hover 
 {
-    color: #ffffff !important;
+    color: #fff !important;
     text-decoration: none;
     background-color: #013ADF;
     outline: 0;

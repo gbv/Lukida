@@ -1,11 +1,11 @@
 <?php
 
 $FacetDataPool = (isset($_SESSION["config_" . $modul]["navbar"]["facet_datapool"]) 
-                     && $_SESSION["config_" . $modul]["navbar"]["facet_datapool"] == "1" ) 
-               ? true : false;
+ && $_SESSION["config_" . $modul]["navbar"]["facet_datapool"] == "1" ) 
+? true : false;
 $Assistant     = (isset($_SESSION["config_" . $modul]["navbar"]["assistant"]) 
-                     && $_SESSION["config_" . $modul]["navbar"]["assistant"] == "1" ) 
-               ? true : false;
+ && $_SESSION["config_" . $modul]["navbar"]["assistant"] == "1" ) 
+? true : false;
 
 // Logo Settings
 $logotitle = $_SESSION["config_general"]["general"]["title"];
@@ -20,6 +20,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
 
 <nav class="navbar navbar-default navbar-fixed-top hidden-xs hidden-sm">
   <div class="container-fluid">
+
     <div class="navbar-header">
       <a class="navbar-brand" href="<?php echo base_url(); ?>" data-tooltip="tooltip" data-placement="buttom" title="<?php echo $logotitle ?>" data-container="body"></a>
     </div>
@@ -71,7 +72,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
 
         <!-- Favorites -->
         <div class="btn-group">
-          <button type="button" onClick="javascript:$.open_favors()" class="favorites btn navbar-button-color dropdown-toggle" data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Merkliste" data-container="body">
+          <button type="button" onClick="javascript:$.open_favors()" class="favorites btn navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Merkliste" data-container="body">
             <i class="fa fa-star"></i>
           </button>
         </div>
@@ -103,46 +104,34 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
           </ul>
         </div>
         <?php } ?>
-
       </div>
 
       <!-- Such-Tripple-Feld -->
       <div class="navbar-form">
-        <div class="form-group" style="display:inline;">
-          <div class="input-group" style="display:table;">
-            
-            <?php if ( $FacetDataPool ) { ?>
-            <div class="input-group-btn" style="width:1%;">
-              <div class="btn-group dropdown">
-                <button type='button' class='selectdatapool btn btn-lg dropdown-toggle navbar-button-color' data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Bestand ausw&auml;hlen" data-container="body">
 
-                  <?php 
-                    echo "<span class='icon_datapool'><i class='" . $_SESSION["config_discover"]["datapoolicons"][$_SESSION["filter"]["datapool"]] . "'></i> </span>";
-                    echo "<span class='lang_datapool'>" . $_SESSION["language_".$_SESSION["language"]]["DATAPOOL" . strtoupper($_SESSION["filter"]["datapool"])] . "</span>";
-                  ?>
-                  <span class="caret"></span>
-                  <span class="sr-only">Toggle Dropdown</span>
+        <div style="display:table;" class="input-group">
 
-                </button>
-                <ul class="dropdown-menu facetpool" role="menu">
-                </ul>
-              </div>
-            </div>
-            <?php } ?>
-            
-            <input type="text" id="searchtext_md" autocomplete="off" class="form-control input-lg search_text typeahead" placeholder="Ihre Suche..." value="">
-            <span class="input-group-btn" style="width:1%;">
-              <button type="button" onClick="javascript:$.new_search('init',$('#searchtext_md').val());" class="startsearch btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Suche starten" data-container="body"><span class="glyphicon glyphicon-search"></span></button>
-              <?php if ( $Assistant ) { ?>
-                <button onClick="javascript:$.open_assistant();" class="btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" type="button" title="Assistent" data-container="body"><span class="glyphicon glyphicon-question-sign"></span></button>
-              <?php } ?>
-            </span>
-
+          <!-- Einstellungen -->
+          <span class="input-group-btn" style="width:1%;">
+            <button type="button" onClick="javascript:$.open_settings()" class="settings btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Einstellungen" data-container="body">
+              <i class="fa fa-sliders" aria-hidden="true"></i> <span class='countSettings' data-toggle="tooltip" data-placement="bottom" data-title="Aktive Einstellungen" data-trigger="hover manual"> </span>
+            </button>
+          </span>
+          <!-- Suchfeld -->
+          <div class="btn-group form-control input-lg ">
+            <input type="search" id="searchtext_md" autofocus="autofocus" autocomplete="off" class="search_text typeahead" placeholder="Ihre Suche..." value="" style="width:99% !important;">
+            <span class="search_clear" style="display: none"><i class="fa fa-times fa-2x" aria-hidden="true"></i></span>
           </div>
+          <!-- Lupe -->
+          <span class="input-group-btn" style="width:1%;">
+            <button type="button" onClick="javascript:$.new_search('init',$('#searchtext_md').val());" class="startsearch btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Suche starten" data-container="body">
+              <i class="fa fa-search" aria-hidden="true"></i>
+            </button>
+          </span>
         </div>
       </div>
+    </div>
 
-    </div><!--/.nav-collapse -->
   </div>
 </nav>
 
@@ -157,6 +146,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
         </div>
       </div>
       <div class="col-xs-9">
+        <div class="navbar-form navbar-right">      
           <?php if ( $lbs ) { ?>
 
           <!-- User NOT Login -->
@@ -235,55 +225,78 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
             </div>
           </div>
 
-          <!-- Facetts -->
-          <div id="btn_facets" class="btn-group pull-right hidden-sm hidden-xs">
-            <button id="FACETTS" onClick="javascript:$.open_facets()" type="button" class="filterresults btn navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Ergebnisse eingrenzen" data-container="body">
-              <i class="fa fa-filter"></i>
-            </button>
-          </div>
-
+        </div>
       </div>
     </div>
 
     <div class="row">
       <div class="col-xs-12">
 
-        <!-- Such-Tripple-Feld -->
         <div class="navbar-form">
-        <!--<form class="navbar-form" role="search" method="get" action="javascript:$.navbar_search('#searchtext_xs');">-->
-          <div class="form-group" style="display:inline;">
-            <div class="input-group" style="display:table;">
 
-              <?php if ( $FacetDataPool ) { ?>
-              <div class="input-group-btn" style="width:1%;">
-                <div class="btn-group dropdown">
-                  <button type='button' class='selectdatapool btn btn-lg dropdown-toggle navbar-button-color' data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Bestand ausw&auml;hlen" data-container="body">
-
-                  <?php 
-                    echo "<span class='icon_datapool'><i class='" . $_SESSION["config_discover"]["datapoolicons"][$_SESSION["filter"]["datapool"]] . "'></i> ";
-                  ?>
-
-                  </button>
-                  <ul class="dropdown-menu facetpool" role="menu">
-                  </ul>
-                </div>
-              </div>
-              <?php } ?>
-              <input type="text" id='searchtext_xs' autocomplete="off" class="form-control input-lg typeahead search_text" placeholder="Deine Suche..." value="">
-              <span class="input-group-btn" style="width:1%;">
-                <button type="button" onClick="javascript:$.new_search('init',$('#searchtext_xs').val());" class="startsearch btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Suche starten" data-container="body"><span class="glyphicon glyphicon-search"></span></button>
-                <?php if ( $Assistant ) { ?>
-                  <button onClick="javascript:$.open_assistant();" class="btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" type="button" title="Assistent" data-container="body"><span class="glyphicon glyphicon-question-sign"></span></button>
-                <?php } ?>
-              </span>
-
+          <div style="display:table;" class="input-group">
+            <span class="input-group-btn" style="width:1%;">
+              <button type="button" onClick="javascript:$.open_settings()" class="settings btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Einstellungen" data-container="body">
+                <i class="fa fa-sliders" aria-hidden="true"></i> <span class='countSettings' data-toggle="tooltip" data-placement="bottom" data-title="Aktive Einstellungen" data-trigger="hover manual"> </span>
+              </button>
+            </span>
+            <div class="btn-group form-control input-lg ">
+              <input type="search" id="searchtext_xs" autocomplete="off" class="search_text typeahead" placeholder="Ihre Suche..." value="" style="width:99% !important;">
+              <span class="search_clear" style="display: none"><i class="fa fa-times fa-2x" aria-hidden="true"></i></span>
             </div>
+            <span class="input-group-btn" style="width:1%;">
+              <button type="button" onClick="javascript:$.new_search('init',$('#searchtext_xs').val());" class="startsearch btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Suche starten" data-container="body">
+                <i class="fa fa-search" aria-hidden="true"></i>
+              </button>
+              <button type="button" onClick="javascript:$.toggle_area('facets');" class="btn btn-lg navbar-button-color hidden-sm mobilefacets" data-tooltip="tooltip" data-placement="left" title="Facetten" data-container="body">
+                <span class="facetsdown"><i class="fa fa-angle-double-down" aria-hidden="true"></i></span>
+                <span class="facetsup collapse"><i class="fa fa-angle-double-up" aria-hidden="true"></i></span>
+              </button>
+            </span>
           </div>
-        <!--</form>-->
+
         </div>
 
       </div>
     </div>
 
+    <div class="row discoverfacets collapse hidden-sm">
+      <div class="col-xs-12">
+        <div class="panel">
+          <ul class='nav nav-tabs' role='tablist'>
+            <li role='presentation' class='active'><a href='#tab1' aria-controls='tab1' role='tab' data-toggle='tab'>Zeitraum</a></li>
+            <li role='presentation'><a href='#tab2' aria-controls='tab2' role='tab' data-toggle='tab'>Typ</a></li>
+            <li role='presentation'><a href='#tab3' aria-controls='tab3' role='tab' data-toggle='tab'>Formate</a></li>
+          </ul>
+          <div class='tab-content'>
+
+            <div role='tabpanel' class='tab-pane fade in active' id='tab1'>
+              <div class="FACETYEARTOTAL">
+                <div class="well">
+                  <span class="FACETYEAR">Zeitraum </span> 
+                  <span class='yearstart editable' data-type='number' data-mode='popup' data-container='body' data-placement='top' data-inputclass='yearinput'> </span> - 
+                  <span class='yearend editable' data-type='number' data-mode='popup' data-container='body' data-placement='top' data-inputclass='yearinput'> </span>
+                  <div id="pubyear2"></div>
+                </div>
+              </div>
+            </div>
+            <div role='tabpanel' class='tab-pane' id='tab2'>
+            <div class="FACETTYPTOTAL">
+                <div class="well">
+                  <div class="onlines" id="onlines2"></div>
+                </div>
+              </div>
+            </div>
+            <div role='tabpanel' class='tab-pane' id='tab3'>
+              <div class="FACETFORMATTOTAL">
+                <div class="well">
+                  <div class="formats" id="formats2"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>    
+      </div>
+    </div>
   </div>
 </nav>

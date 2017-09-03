@@ -122,27 +122,11 @@ class Bootstrap extends General
         $Count += 2;
       }
 
-      // Jahr
-      //$Count = 0;
-      //while ( isset($container["facets"]["publishDate"][$Count] ) )
-      //{
-      //  if ( ( $MinJahr == "" || $MinJahr > $container["facets"]["publishDate"][$Count] ) && ( $container["facets"]["publishDate"][$Count+1] > 0 ) )
-      //  {
-      //    $MinJahr = $container["facets"]["publishDate"][$Count];
-      //  }
-      //  if ( ( $MaxJahr == "" || $MaxJahr < $container["facets"]["publishDate"][$Count] ) && ( $container["facets"]["publishDate"][$Count+1] > 0 ) )
-      //  {
-      //    $MaxJahr = $container["facets"]["publishDate"][$Count];
-      //  }
-      //  $Count += 2;
-      //}
-
       // Facetten für Anzeige vorbereiten
-      $container["yearmin"] = isset($container["stats"]["publishDate"]["min"]) ? $container["stats"]["publishDate"]["min"] : "1900";
-      $container["yearmax"] = isset($container["stats"]["publishDate"]["max"]) ? $container["stats"]["publishDate"]["max"] : date("Y");
+      $container["yearmin"] = isset($container["stats"]["publishDateSort"]["min"]) ? $container["stats"]["publishDateSort"]["min"] : "1900";
+      $container["yearmax"] = (isset($container["stats"]["publishDateSort"]["max"]) && $container["stats"]["publishDateSort"]["max"] <= date("Y")) ? $container["stats"]["publishDateSort"]["max"] : date("Y");
       $container["online"]  = (isset($Filter["online"])) ? $Filter["online"] : "";
       $container["formats"] = (isset($Filter["format"])) ? $Filter["format"] : "";
-
     }
 
     // Transport-Container verschicken
@@ -173,9 +157,9 @@ class Bootstrap extends General
       $Ausgabe .= "<span class='gbvicon'>" . $this->cover . "</span>";
       $Ausgabe .= "</td><td id='title'>";  
       $Ausgabe .= $this->trim_text($this->pretty["title"],60);
-      if ( isset($this->pretty["publisher"]) && $this->pretty["publisher"] != "" )
+      if ( isset($this->pretty["pv_publishershort"]) && $this->pretty["pv_publishershort"] != "" )
       {
-        $Ausgabe .= "<br /><small id='date'>" . $this->trim_text($this->pretty["publisher"],50) . "</small>";
+        $Ausgabe .= "<br /><small id='date'>" . trim($this->pretty["pv_publishershort"]) . "</small>";
       }
       $Ausgabe .= "</td></tr></table></div>";
       $Ausgabe .= "</button>";
@@ -253,11 +237,11 @@ class Bootstrap extends General
     return ( $Output );
   }
 
-  public function assistant( $params )
+  public function settings( $params )
   {
     // Check Session & Parameters
-    if ( ! $this->ParamExits("_SESSION[config_discover][assistant][assistant]",$_SESSION,"config_discover","userview","userview") ) return false;
-    if ( ! $this->FileExits(KERNELFORMATS . "assistant/" . $_SESSION["config_discover"]["assistant"]["assistant"] . ".php") ) return false;
+    if ( ! $this->ParamExits("_SESSION[config_discover][settings][settings]",$_SESSION,"config_discover","settings","settings") ) return false;
+    if ( ! $this->FileExits(KERNELFORMATS . "settings/" . $_SESSION["config_discover"]["settings"]["settings"] . ".php") ) return false;
     if ( ! $this->ParamExits("param[dlgid]", $params,"dlgid") ) return false;
 
     // Prepare variables for loaded code
@@ -267,8 +251,32 @@ class Bootstrap extends General
     $Output = $this->header();
 
     // Load module inside div
-    $Output = "<div id='assistant'>";
-    include(KERNELFORMATS . "assistant/" . $_SESSION["config_discover"]["assistant"]["assistant"] .'.php');
+    $Output = "<div id='settings'>";
+    include(KERNELFORMATS . "settings/" . $_SESSION["config_discover"]["settings"]["settings"] .'.php');
+    $Output .= "</div>";
+
+    // End Output
+    $Output .= $this->footer();
+
+    // Return Output
+    return ( $Output );
+  }
+
+  public function settingsview($params)
+  {
+    // Check Session & Parameters
+    if ( ! $this->ParamExits("_SESSION[config_discover][settings][settingsview]",$_SESSION,"config_discover","settings","settingsview") ) return false;
+    if ( ! $this->FileExits(KERNELFORMATS . "settingsview/" . $_SESSION["config_discover"]["settings"]["settingsview"] . ".php") ) return false;
+
+    // Prepare variables for loaded code
+    $settings = $params['settings'];
+
+    // Start Output
+    $Output = $this->header();
+
+    // Load module inside div
+    $Output = "<div id='settingsview'>";
+    include(KERNELFORMATS . "settingsview/" . $_SESSION["config_discover"]["settings"]["settingsview"] .'.php');
     $Output .= "</div>";
 
     // End Output

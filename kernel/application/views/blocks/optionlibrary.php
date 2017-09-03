@@ -63,5 +63,21 @@
         </div>
       </div>
     </div>
+    <div class="row">
+      <div class="col-xs-6 col-sm-2">
+        <div class="well devicescreens">
+          <p>Jahr</p>
+          <div class="input-group number-spinner">
+            <span class="input-group-btn">
+              <a class="btn btn-danger" data-dir="dwn"><span class="glyphicon glyphicon-minus"></span></a>
+            </span>
+            <input type="text" disabled id="year" class="form-control text-center" value="2017" max=2049 min=2016>
+            <span class="input-group-btn">
+              <a class="btn btn-info" data-dir="up"><span class="glyphicon glyphicon-plus"></span></a>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

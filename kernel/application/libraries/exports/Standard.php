@@ -23,7 +23,7 @@ class Standard extends General
     $linkarray = array();
 
     // LinkResolver SFX
-    if ($_SESSION["config_general"]["export"]["sfxlink"] != false)
+    if ($_SESSION["config_general"]["export"]["sfxlink"] == "1")
     {
       if ( ( $Link = $this->getSFX_Link($this->contents) ) != "")
       {
@@ -32,11 +32,12 @@ class Standard extends General
     }
 
     // LinkResolver Journals Online & Print
-    if ( $_SESSION["config_general"]["export"]["joplink"] != false )
+    if ( $_SESSION["config_general"]["export"]["joplink"] == "1" )
     {
       if ( ( $Link = $this->getEZB_Link($this->contents) ) != "")
       {
-        $linkarray["jop"] = $Link;
+		//An quot in the URL caused errors when writing to the database table "links_resolved library":
+		$linkarray["jop"] = str_replace(array(chr(39),chr(32)), array("%27","%22"), $Link);
       }
     }
 	
@@ -84,10 +85,10 @@ class Standard extends General
     
     switch ($format) 
     {
-      case "refworks"     : if ($_SESSION["config_general"]["export"]["refworks"] != false)
+      case "refworks"     : if ($_SESSION["config_general"]["export"]["refworks"] == "1")
 								$openurlBase = "https://www.refworks.com/express/expressimport.asp";
         break;
-      case "zotero"       : if ($_SESSION["config_general"]["export"]["zotero"] != false)
+      case "zotero"       : if ($_SESSION["config_general"]["export"]["zotero"] == "1")
 								$openurlBase = "ctx_ver=Z39.88-2004";
         break;
     }
@@ -98,17 +99,14 @@ class Standard extends General
                                 $_SESSION["config_general"]["export"]["openurlreferer"] != "") 
                               ? $_SESSION["config_general"]["export"]["openurlreferer"] : "Lukida";
 
-      $isil            = (isset($_SESSION["config_general"]["general"]["isil"]) &&
-                                $_SESSION["config_general"]["general"]["isil"] != "") 
-                                ? $_SESSION["config_general"]["general"]["isil"] : null;
-
       $openurlEntry    = $openurlBase . ($format == "zotero" ? "&" : "?") . 
                           "sid=GBV&ctx_enc=info:ofi/enc:UTF-8&rfr_id=info:sid/gbv.de:" . $openurlReferer .
                           ($format == "zotero" ? ("&rft_val_fmt=info:ofi/fmt:kev:mtx:" .                        
                           ((isset($data["format"]) && (strpos($data["format"], 'article') !== false ||
-						                               strpos($data["format"], 'journal') !== false)) ? "journal" : "book")) : "");
+						                               strpos($data["format"], 'journal') !== false)) ? "journal" : "book")) : "") . 
+						  ($format == "zotero" ? ("&rft_id=" . base_url() . "id%7Bcolon%7D" . $data["id"]) : "");
 
-      $openurlMetadata = $this->getOpenURLmetaData($data);
+      $openurlMetadata = $this->getOpenURLmetaData($data,$format);
 
       $link            = $openurlEntry . (($format == "refworks") ? str_replace("&rft.","&",$openurlMetadata) : $openurlMetadata);
     }
@@ -126,12 +124,33 @@ class Standard extends General
 */ 
   protected function getEZB_Link($data)
   {
-    if (isset($data["issn"])  && $data["issn"] != "" )
+	$zdbid		= "";
+	if ( empty($metadataISSN) && !empty($data["contents"]["016"]))
+	{
+		foreach ( $data["contents"]["016"] as $subArray016 )
+		{
+			if ( isset($subArray016["1"]["a"]) && $subArray016["1"]["a"] != "" && isset($subArray016["2"]["2"]) && $subArray016["2"]["2"] == "DE-600" )
+			{	
+				$zdbid = $subArray016["1"]["a"];
+				break;
+			}
+		}
+	}
+	$ezbLink	= "";
+	
+	if ( (isset($data["issn"]) && $data["issn"] != "") || !empty($zdbid) )			
     {
+      $ezbbibid			= (isset($_SESSION["config_general"]["general"]["ezbbibid"]) &&
+                                 $_SESSION["config_general"]["general"]["ezbbibid"] != "") 
+						  ? $_SESSION["config_general"]["general"]["ezbbibid"] 
+						  : null;
+
       $isil             = (isset($_SESSION["config_general"]["general"]["isil"]) &&
                                  $_SESSION["config_general"]["general"]["isil"] != "") 
                           ? $_SESSION["config_general"]["general"]["isil"] 
                           : null;
+						  
+	  $bibparam			= utf8_encode(isset($ezbbibid) ? ("bibid%3D" . $ezbbibid) : (isset($isil) ? ("%26isil%3D" . $isil) : ""));
 
       $openurlReferer   = (isset($_SESSION["config_general"]["export"]["openurlreferer"]) &&
                                  $_SESSION["config_general"]["export"]["openurlreferer"] != "") 
@@ -141,11 +160,12 @@ class Standard extends General
       $openurlMetadata  = $this->getEZB_Meta($data);
 
       $ezbLinkExtension = "sid=GBV:" . $openurlReferer . $openurlMetadata .
-                          ("&pid=" . (isset($isil) ? ("isil%3D" . $isil) : ""));
+                          ("&pid=" . $bibparam . (!empty($zdbid) ? ("%26zdbid%3D" . $zdbid) : ""));
+						  
+      $ezbLink          = "https://services.dnb.de/fize-service/gvr/full.xml?" . $ezbLinkExtension;
 
-      $ezbLink          = "https://services.dnb.de/fize-service/gvr/html-service.htm?" . $ezbLinkExtension;
-
-      if ( $this->getEZB_Full($ezbLink) )   return $ezbLink;
+      $ezbTarget        = $this->getEZB_Full(urlencode($ezbLink), str_replace('%3D', '=', $bibparam));	
+      if ( $ezbTarget )   return $ezbTarget;
     }
     return "";
   }
@@ -155,8 +175,7 @@ class Standard extends General
     $metadataOU = "";
     if (isset($data["format"])) 
     {
-      $metadataOU = "&genre=" . ((strpos(strtolower($data["format"]),"article") !== false) ? "article" :
-      ((strpos(strtolower($data["format"]),"journal") !== false) ? "journal" : $data["format"]));
+      $metadataOU = "&genre=" . ((strpos(strtolower($data["format"]),"article") !== false) ? "article" : "journal");
     }
     if (isset($data["issn"])) 
     {
@@ -179,45 +198,117 @@ class Standard extends General
     {
       $metadataOU .= "&edition=" . $data["edition"];
     }
-    if (isset($data["details"][0]["a"]) && $data["details"][0]["a"] != "") 
-    {
-      $metadataOU .= "&part=" . $data["details"][0]["a"];
-    }
-    if (isset($data["details"][0]["d"]) && $data["details"][0]["d"] != "") 
-    {
-      $metadataOU .= "&volume=" . $data["details"][0]["d"];
-    }
-    if (isset($data["details"][0]["e"]) && $data["details"][0]["e"] != "") 
-    {
-      $metadataOU .= "&issue=" . $data["details"][0]["e"];
-    }
-    if (isset($data["details"][0]["h"]) && $data["details"][0]["h"] != "") 
-    {
-      $metadataOU .= "&pages=" . $data["details"][0]["h"];
-      if ( strpos($data["details"][0]["h"], "-") !== false ) 
-      {
-        $metadataOU .= "&spage=" . strstr($data["details"][0]["h"], '-', true);
-        $metadataOU .= "&epage=" . substr(strstr($data["details"][0]["h"], "-"), 1);
-      }
-    }
+	if (!empty($data["contents"]["952"][0]))
+	{
+		foreach($data["contents"]["952"][0] as $detailValue) {
+			foreach($detailValue as $dKey=>$dValue) 
+			{
+				switch ($dKey)
+				{
+				case "j":
+					$metadataOU .= "&date=" . $dValue;
+					break;
+				case "a":
+					$metadataOU .= "&part=" . $dValue;
+					break;
+				case "d":
+					$metadataOU .= "&volume=" . $dValue;
+					break;
+				case "e":
+					$metadataOU .= "&issue=" . $dValue;
+					break;
+				case "h":
+					if ( strpos($dValue, "-") !== false ) 
+					{
+						 $metadataOU .= "&spage=" . strstr($dValue, '-', true);
+						 $metadataOU .= "&epage=" . substr(strstr($dValue, "-"), 1);
+					}
+					else $metadataOU .= "&pages=" . $dValue;
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		if (!empty($data["in830"][0]["v"]))
+		{
+			$metadataOU .= "&volume=" . $data["in830"][0]["v"];
+		}
+		if (!empty($data["publisherarticle"][0]["g"]))
+		{ 
+			if (preg_match("#\((.*?)\)#", $data["publisherarticle"][0]["g"], $year))
+				$metadataOU .= "&date=" . $year[1];
+		}
+		elseif (isset($data["publisher"][0]["c"]) && $data["publisher"][0]["c"] != "") 
+		{
+			$metadataOU .= "&date=" . $data["publisher"][0]["c"];
+		}
+		elseif (ctype_digit(substr($this->contents["008"],7,4))) 
+		{
+			$metadataOU .= "&date=" . substr($this->contents["008"],7,4);
+		}
+	}
+
     return $metadataOU;
   }
 
-  protected function getEZB_Full($link)
-  {
-    $returnValue = "";
-
-    //Get the xml answer
-    $url_header = get_headers($link);
-
-    //Get the xml answer
-    if (strpos($url_header[0],"200") !== false)
+  protected function getEZB_Full($link, $bibparam)
+  {	  
+	$returnValue = "";
+	$joponlyfulltext = (isset($_SESSION["config_general"]["export"]["joponlyfulltext"]) &&
+                       $_SESSION["config_general"]["export"]["joponlyfulltext"] == "1") 
+                       ? true : null;
+	if ($ezb_xml = simplexml_load_file($link))
     {
-      $data     = file_get_contents($link);
-      if ( stripos($data,"Zum Artikel") !== false ||
-		stripos($data,"Zur Zeitschrift") !== false ) return true;
+      if (!isset($ezb_xml->Full->Error))
+      {
+		$ref = ""; $refUrl = ""; $refUrl = "";
+
+		if ( $ezb_xml && isset($ezb_xml->Full->ElectronicData->References->Reference[0]) && 
+			 $ref = $ezb_xml->Full->ElectronicData->References->Reference[0] )
+		{
+			//EZB-website to the title with other possible links:
+			$refUrl   = isset($ref->URL) ? $ref->URL : "";
+			$refLabel = isset($ref->Label) ? $ref->Label : "";
+		}
+		if ( $ezb_xml && isset($ezb_xml->Full->ElectronicData->ResultList->Result) &&
+			 $ezb_xml_result = $ezb_xml->Full->ElectronicData->ResultList->Result )	
+		{
+			$resultStatus = "";  $accessLevel  = "";
+			$resultStatus = json_decode($ezb_xml->Full->ElectronicData->ResultList->Result['state']);
+			$accessLevel  =  $ezb_xml_result->AccessLevel;
+		}
+		//Get the results and select AccessURL. 
+		//State "4" = "not on-licence".
+		//AccessLevel "homepage" = no a good accurate result.
+		if ( $ezb_xml_result && $resultStatus != "" && $resultStatus != "4" && $accessLevel != "homepage" )
+		{
+			if ( isset($ezb_xml_result->AccessURL) && $ezb_xml_result->AccessURL != "" )
+			{
+				//Link to the full text
+				$returnValue = $ezb_xml_result->AccessURL;
+			}
+			elseif ( !isset($joponlyfulltext) && $refUrl != "" && $refLabel == "EZB-Opac" )
+			{
+				//EZB-website to the title with other possible links:
+				$returnValue = $refUrl . "&" . $bibparam;
+			}
+			elseif ( !isset($joponlyfulltext) && isset($ezb_xml_result->JournalURL) && $ezb_xml_result->JournalURL != "" )
+			{
+				//link to the Journal
+				$returnValue = $ezb_xml_result->JournalURL;
+			}
+		} 
+		elseif ( !isset($joponlyfulltext) && $refUrl != "" && $refLabel == "EZB-Opac" )
+		{
+			//EZB-website to the title with other possible links:
+			$returnValue = $refUrl . "&" . $bibparam;
+		}
+	  }
+	  return array_values((array)$returnValue)[0];		
     }
-    return false;
+	return false;
   }  
 /*
 *****************************
@@ -226,16 +317,13 @@ class Standard extends General
 */
   protected function getSFX_Link($data)
   {
-    if (isset($data["issn"])  && $data["issn"] != "" )
+    if ((isset($_SESSION["config_general"]["export"]["sfxalsowithoutissn"]) &&
+               $_SESSION["config_general"]["export"]["sfxalsowithoutissn"] == "1") ||
+			  (isset($data["issn"]) && $data["issn"] != "" ))
     {
       $openurlBase = (isset($_SESSION["config_general"]["export"]["sfxbase"]) &&
                             $_SESSION["config_general"]["export"]["sfxbase"] != "") 
                           ? $_SESSION["config_general"]["export"]["sfxbase"] : null;
-
-      $isil             = (isset($_SESSION["config_general"]["general"]["isil"]) &&
-                                 $_SESSION["config_general"]["general"]["isil"] != "") 
-                          ? $_SESSION["config_general"]["general"]["isil"] 
-                          : null;
 
       $openurlReferer   = (isset($_SESSION["config_general"]["export"]["openurlreferer"]) &&
                                  $_SESSION["config_general"]["export"]["openurlreferer"] != "") 
@@ -246,12 +334,12 @@ class Standard extends General
                          . "?sid=GBV&ctx_enc=info:ofi/enc:UTF-8&rfr_id=info:sid/gbv.de:" 
                          . $openurlReferer;
 
-      $openurlMetadata  = $this->getOpenURLmetaData($data);
+      $openurlMetadata  = $this->getOpenURLmetaData($data, "sfx");
 
       $sfxlink          = $openurlEntry . $openurlMetadata;
 
       if (isset($_SESSION["config_general"]["export"]["sfxonlyfulltext"]) &&
-                $_SESSION["config_general"]["export"]["sfxonlyfulltext"] == true)
+                $_SESSION["config_general"]["export"]["sfxonlyfulltext"] == "1")
       {
         $sfxFullUrl = $this->getSFX_Full($sfxlink);
         if ( $sfxFullUrl != "")
@@ -259,7 +347,8 @@ class Standard extends General
           return $sfxFullUrl;
         }
       }
-    }
+	  else { return $sfxlink; }
+	}
     return "";
   }
 
@@ -275,30 +364,35 @@ class Standard extends General
     //Get the xml answer
     if (strpos($sfx_xml_url_header[0],"200") !== false)
     {
-      $sfx_xml     = simplexml_load_file($sfx_xml_url);
+	  if ($sfx_xml = @simplexml_load_file($sfx_xml_url)) 
+	  {
+        //Go on xml tag 'targets'
+		if (isset($sfx_xml->targets)) 
+		{
+			$sfx_xml_targets = $sfx_xml->targets;
 
-      //Go on xml tag 'targets'
-      $sfx_xml_targets = $sfx_xml->targets;
-
-      //Loop through results and select target_url for service_type 'getFullTxt'
-      foreach ($sfx_xml_targets->target as $target)
-      {
-        if ($target->target_name == 'MESSAGE_NO_FULLTXT')
-        {
-          break;
-        }
-        elseif ($target->service_type == 'getFullTxt')
-        {
-          if (!empty($target->target_url))
-          {
-            $returnValue = $target->target_url;
-            break;
-          }
-        }
-      }
-    }
+			//Loop through results and select target_url for service_type 'getFullTxt'
+			foreach ($sfx_xml_targets->target as $target)
+			{
+				if ($target->target_name == 'MESSAGE_NO_FULLTXT')
+				{
+					break;
+				}
+				elseif ($target->service_type == 'getFullTxt')
+				{
+					if (!empty($target->target_url))
+					{
+						$returnValue = $target->target_url;
+						break;
+					}
+				}
+			}
+		}
+	  }
+    }	
     return array_values((array)$returnValue)[0];
   }
+  
 /*  
 *****************************
  * METADATA                *
@@ -320,7 +414,7 @@ class Standard extends General
       $pretty["publisherOnly"]    "773" => array("d" => " | ")
  */
  
-  public function getOpenURLmetaData($data)
+  public function getOpenURLmetaData($data,$exportformat)
   {
     $metadataOU = "";
     if (isset($data["format"])) 
@@ -356,7 +450,7 @@ class Standard extends General
         $metadataOU .= "&rft.title=" . $data["title"];
       }
     }
-    if (isset($data["serial"])) 
+    if ($exportformat != "sfx" && isset($data["serial"])) 
     {
       if (is_array($data["serial"])) 
       {
@@ -380,35 +474,6 @@ class Standard extends General
       elseif ($data["serial"] != "") 
       {
         $metadataOU .= "&rft.series=" . ((stripos($data["serial"], "in:") !== false) ? trim(substr($data["serial"],stripos($data["serial"], "in:") + 3)) : $data["serial"]);
-      }
-    }
-    if (isset($data["author"]))
-    {
-      if (is_array($data["author"])) 
-      {
-        if (count($data["author"]) >= 1) 
-        {
-          $aNr = 0;
-          foreach($data["author"] as $author) 
-          {
-            $aNr += 1;
-            $metadataOU .= "&rft.author=" . $author;
-            if ($aNr == 1 && !empty($author) && strpos($author, ', ') !== false) 
-            {
-              $metadataOU .= "&rft.aulast=" . strstr($author, ', ', true);
-              $metadataOU .= "&rft.aufirst=" . substr(strstr($author, ", "), 2);
-            }
-          }
-        }
-      }
-      elseif ($data["author"] != "") 
-      {
-        $metadataOU .= "&rft.author=" . $data["author"];
-        if (strpos($data["author"], ", ")) 
-        {
-          $metadataOU .= "&rft.aulast=" . strstr($data["author"], ', ', true);
-          $metadataOU .= "&rft.aufirst=" . substr(strstr($data["author"], ", "), 2);
-        }
       }
     }
     if (isset($data["isbn"])) 
@@ -481,46 +546,128 @@ class Standard extends General
         $metadataOU .= "&rft.issn=" . $metadataISSN;
       }
     }
-
-    if (isset($data["edition"]) && $data["edition"] != "") 
+    if ($exportformat != "sfx" && isset($data["edition"]) && $data["edition"] != "") 
     {
       $metadataOU .= "&rft.edition=" . $data["edition"];
-    }
-    if (isset($data["details"][0]["a"]) && $data["details"][0]["a"] != "") 
+    }	
+	if (!empty($data["contents"]["952"][0]))
+	{
+		foreach($data["contents"]["952"][0] as $detailValue) {
+			foreach($detailValue as $dKey=>$dValue) 
+			{
+				switch ($dKey)
+				{
+				case "j":
+					$metadataOU .= "&rft.date=" . $dValue;
+					break;
+				case "a":
+					$metadataOU .= "&rft.part=" . $dValue;
+					break;
+				case "d":
+					$metadataOU .= "&rft.volume=" . $dValue;
+					break;
+				case "e":
+					$metadataOU .= "&rft.issue=" . $dValue;
+					break;
+				case "h":
+					if ( strpos($dValue, "-") !== false ) 
+					{
+						 $metadataOU .= "&rft.spage=" . strstr($dValue, '-', true);
+						 $metadataOU .= "&rft.epage=" . substr(strstr($dValue, "-"), 1);
+					}
+					else $metadataOU .= "&rft.pages=" . $dValue;
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		if (!empty($data["in830"][0]["v"]))
+		{
+			$metadataOU .= "&rft.volume=" . $data["in830"][0]["v"];
+		}
+		if (!empty($data["publisherarticle"][0]["g"]))
+		{ 
+			if (preg_match("#\((.*?)\)#", $data["publisherarticle"][0]["g"], $year))
+				$metadataOU .= "&rft.date=" . $year[1];
+		}
+		elseif (isset($data["publisher"][0]["c"]) && $data["publisher"][0]["c"] != "") 
+		{
+			$metadataOU .= "&rft.date=" . $data["publisher"][0]["c"];
+		}	
+		elseif (ctype_digit(substr($this->contents["008"],7,4))) 
+		{
+			$metadataOU .= "&rft.date=" . substr($this->contents["008"],7,4);
+		}
+	}
+    if ($exportformat != "sfx" && isset($data["author"]))
     {
-      $metadataOU .= "&rft.part=" . $data["details"][0]["a"];
-    }
-    if (isset($data["details"][0]["j"]) && $data["details"][0]["j"] != "") 
-    {
-      $metadataOU .= "&rft.date=" . $data["details"][0]["j"];
-    }
-    if (isset($data["details"][0]["d"]) && $data["details"][0]["d"] != "") 
-    {
-      $metadataOU .= "&rft.volume=" . $data["details"][0]["d"];
-    }
-    if (isset($data["details"][0]["e"]) && $data["details"][0]["e"] != "") {
-      $metadataOU .= "&rft.issue=" . $data["details"][0]["e"];
-    }
-    if (isset($data["details"][0]["h"]) && $data["details"][0]["h"] != "") 
-    {
-      $metadataOU .= "&rft.pages=" . $data["details"][0]["h"];
-      if ( strpos($data["details"][0]["h"], "-") !== false ) 
+      if (is_array($data["author"])) 
       {
-        $metadataOU .= "&rft.spage=" . strstr($data["details"][0]["h"], '-', true);
-        $metadataOU .= "&rft.epage=" . substr(strstr($data["details"][0]["h"], "-"), 1);
+        if (count($data["author"]) >= 1) 
+        {
+          $aNr = 0;
+          foreach($data["author"] as $author) 
+          {
+            $aNr += 1;
+            $metadataOU .= "&rft.author=" . $author;
+            if ($aNr == 1 && !empty($author) && strpos($author, ', ') !== false) 
+            {
+              $metadataOU .= "&rft.aulast=" . strstr($author, ', ', true);
+              $metadataOU .= "&rft.aufirst=" . substr(strstr($author, ", "), 2);
+            }
+          }
+        }
+      }
+      elseif ($data["author"] != "") 
+      {
+        $metadataOU .= "&rft.author=" . $data["author"];
+        if (strpos($data["author"], ", ")) 
+        {
+          $metadataOU .= "&rft.aulast=" . strstr($data["author"], ', ', true);
+          $metadataOU .= "&rft.aufirst=" . substr(strstr($data["author"], ", "), 2);
+        }
       }
     }
-    if (isset($data["publisher"][0]["a"]) && $data["publisher"][0]["a"] != "") 
+	if ($exportformat != "sfx" && isset($data["publisher"][0]) && $data["publisher"][0] != "") 
     {
-      $metadataOU .= "&rft.place=" . $data["publisher"][0]["a"];
+	  foreach($data["publisher"][0] as $publisherKey => $publisherValue)
+	  {
+		if ($publisherKey == "a") 
+		{ 
+			$metadataOU .= "&rft.place=" . $data["publisher"][0]["a"];
+		}
+		elseif ($publisherKey == "b") 
+		{ 
+			$metadataOU .= "&rft.pub=" . $data["publisher"][0]["b"];
+		} 
+	  }
     }
-    if (isset($data["publisher"][0]["b"]) && $data["publisher"][0]["b"] != "") 
+	elseif ($exportformat != "sfx" && isset($data["publisherarticle"][0]["d"]) && $data["publisherarticle"][0]["d"] != "") 
     {
-      $metadataOU .= "&pub=" . $data["publisher"][0]["b"];
+		$tmp = explode(" : ", $data["publisherarticle"][0]["d"]);
+		if (isset($tmp[0]) && $tmp[0] != "")
+		{
+			$metadataOU .= "&rft.place=" . $tmp[0];
+		}
+		if (isset($tmp[1]) && $tmp[1] != "")
+		{
+			$metadataOU .= "&rft.pub=" . $tmp[1];
+		}		
     }
+	if ($exportformat == "zotero" && !empty($data["language"][0]))
+	{
+		$metadataOU .= "&rft.language=" . $data["language"][0];
+	}
     return $metadataOU;
   }
-
+  
+/*  
+*****************************
+ * CITAVI                *
+*****************************
+*/
   public function getCitaviMetaData($data)
   {
     $metadataOU = "";
@@ -556,6 +703,9 @@ class Standard extends General
     }
 	if (isset($data["contents"]["240"][0][0]["a"]) && $data["contents"]["240"][0][0]["a"] != "") {
 	  $metadataOU .= "T2  - " . $data["contents"]["240"][0][0]["a"] . "\r\n";
+	}
+	elseif (isset($data["contents"]["246"][0][1]["a"]) && $data["contents"]["246"][0][1]["a"] != "") {
+	  $metadataOU .= "T2  - " . $data["contents"]["246"][0][1]["a"] . "\r\n";
 	}
     if (isset($data["serial"])) 
     {
@@ -603,6 +753,10 @@ class Standard extends General
         $metadataOU .= "A1  - " . $data["author"] . "\r\n";
       }
     }
+	if (!empty($data["language"][0]))
+	{
+		$metadataOU .= "LA  - " . $data["language"][0] . "\r\n";
+	}
     if (isset($data["notes"]) && $data["notes"] != "") 
     {
       if (strpos($data["notes"]," | ")!==false) 
@@ -614,6 +768,14 @@ class Standard extends General
       }
       else { $metadataOU .= "N1  - " . $data["notes"] . "\r\n";
       }
+    }
+	if (isset($data["dissertation"]) && $data["dissertation"] != "")
+    {
+		$metadataOU .= "N1  - " . $data["dissertation"] . "\r\n";
+    }
+	if (isset($data["summary"]) && $data["summary"] != "")
+    {
+		$metadataOU .= "N2  - " . $data["summary"] . "\r\n";
     }
 	if (isset($data["associates"])) 
     {
@@ -634,6 +796,10 @@ class Standard extends General
         $metadataOU .= "A2  - " . $data["associates"][a] . "\r\n";
       }
     }
+	if (isset($data["computerfile"]) && $data["computerfile"] != "")
+	{
+		$metadataOU .= "N1  - " . $data["computerfile"] . "\r\n";
+	}
     if (!empty($data["isbn"])) 
     {
       if (is_array($data["isbn"])) 
@@ -644,7 +810,7 @@ class Standard extends General
           {
             if ($isbn != "") 
             {
-              $metadataOU .= "BN  - " . $isbn . "\r\n";
+              $metadataOU .= "SN  - " . $isbn . "\r\n";
               break;
             }
           }
@@ -652,7 +818,7 @@ class Standard extends General
       }
       elseif ($data["isbn"] != "") 
       {
-        $metadataOU .= "BN  - " . $data["isbn"] . "\r\n";
+        $metadataOU .= "SN  - " . $data["isbn"] . "\r\n";
       }
     }
 	elseif (!empty($data["contents"]["020"][0])) {
@@ -693,6 +859,10 @@ class Standard extends General
     {
       $metadataOU .= "ED  - " . $data["edition"] . "\r\n";
     }
+	if (isset($data["physicaldescription"]) && $data["physicaldescription"] != "") 
+    {
+      $metadataOU .= "U1  - " . $data["physicaldescription"] . "\r\n";
+    }
     if (isset($data["publisher"][0]) && $data["publisher"][0] != "") 
     {
 	  foreach($data["publisher"][0] as $publisherKey => $publisherValue)
@@ -707,13 +877,22 @@ class Standard extends General
 		} 
 	  }
     }
-	elseif (isset($data["contents"]["300"][0][0]["a"]) && $data["contents"]["300"][0][0]["a"] != "") 
-	{
-	  $metadataOU .= "PB  - " . $data["contents"]["300"][0][0]["a"] . "\r\n";
-	}
+	elseif (isset($data["publisherarticle"][0]["d"]) && $data["publisherarticle"][0]["d"] != "") 
+    {
+		$tmp = explode(" : ", $data["publisherarticle"][0]["d"]);
+		if (isset($tmp[0]) && $tmp[0] != "")
+		{
+			"CY  - " . $tmp[0] . "\r\n";
+		}
+		if (isset($tmp[1]) && $tmp[1] != "")
+		{
+			"PB  - " . $tmp[1] . "\r\n";
+		}
+    }
 	if (!empty($data["contents"]["952"][0]))
 	{
-		foreach($data["contents"]["952"][0] as $detailValue) {
+		foreach($data["contents"]["952"][0] as $detailValue) 
+		{
 			foreach($detailValue as $dKey=>$dValue) 
 			{
 				switch ($dKey)
@@ -741,6 +920,10 @@ class Standard extends General
 	}
 	else
 	{
+		if (!empty($data["in830"][0]["v"]))
+		{
+			$metadataOU .= "VL  - " . $data["in830"][0]["v"] . "\r\n";
+		}
 		if (!empty($data["publisherarticle"][0]["g"]))
 		{ 
 			if (preg_match("#\((.*?)\)#", $data["publisherarticle"][0]["g"], $year))
@@ -750,18 +933,40 @@ class Standard extends General
 		{
 			$metadataOU .= "PY  - " . $data["publisher"][0]["c"] . "\r\n";
 		}
+		elseif (ctype_digit(substr($this->contents["008"],7,4))) 
+		{
+			$metadataOU .= "PY  - " . substr($this->contents["008"],7,4) . "\r\n";
+		}
 	}
+	if (isset($data["subject"][0]) && $data["subject"][0] != "") 
+    {
+		$metadataOU .= "KW  - ";
+		foreach($data["subject"] as $aSubjectKey => $aSubject) 
+        {
+			if ($aSubject != "") 
+			{
+			$metadataOU .= $aSubject . ((count($data["subject"]) > 1 && $aSubjectKey < count($data["subject"]) - 1) ? " / " : "" );
+            }
+        }
+		$metadataOU .= "\r\n";
+    }
 	if (isset($data["additionalinfo"][0]["u"]) && $data["additionalinfo"][0]["u"] != "") 
     {
       $metadataOU .= "UR  - " . $data["additionalinfo"][0]["u"] . "\r\n";
     }
     $metadataOU .= "S1  - Gemeinsamer Bibliotheksverbund (GBV) / Verbundzentrale des GBV (VZG)\r\n";
-    $metadataOU .= "S2  - OPAC Magdeburg\r\n";
-    $metadataOU .= "S3  - Lukida.ub_md\r\n";
-    $metadataOU .= "L3  - " . base_url() . $data["id"] . "/id\r\n";
+    $metadataOU .= "S2  - " . $_SESSION["config_general"]["general"]["title"] . "\r\n";
+    $metadataOU .= "S3  - " . $_SESSION["config_general"]["export"]["openurlreferer"] . "\r\n";
+    $metadataOU .= "L3  - " . base_url() . "id%7Bcolon%7D" . $data["id"] . "\r\n";
+	$metadataOU .= "ER  - ";
     return $metadataOU;
   }
 
+/*  
+*****************************
+ * ENDNOTE                *
+*****************************
+*/
   public function getEndnoteMetaData($data)
   {
     $metadataOU = "";
@@ -799,6 +1004,9 @@ class Standard extends General
 	if (isset($data["contents"]["240"][0][0]["a"]) && $data["contents"]["240"][0][0]["a"] != "") 
 	{
 	  $metadataOU .= "%Q " . $data["contents"]["240"][0][0]["a"] . "\r\n";
+	}
+	elseif (isset($data["contents"]["246"][0][1]["a"]) && $data["contents"]["246"][0][1]["a"] != "") {
+	  $metadataOU .= "%Q " . $data["contents"]["246"][0][1]["a"] . "\r\n";
 	}
     if (isset($data["serial"])) 
     {
@@ -843,6 +1051,10 @@ class Standard extends General
         $metadataOU .= "%A " . $data["author"] . "\r\n";
       }
     }
+	if (!empty($data["language"][0]))
+	{
+		$metadataOU .= "%G " . $data["language"][0] . "\r\n";
+	}
 	if (isset($data["associates"])) 
     {
       if (is_array($data["associates"])) 
@@ -861,6 +1073,14 @@ class Standard extends General
       {
         $metadataOU .= "%A " . $data["associates"][a] . "\r\n";
       }
+    }
+	if (isset($data["computerfile"]) && $data["computerfile"] != "")
+	{
+		$metadataOU .= "%Z " . $data["computerfile"] . "\r\n";
+	}
+	if (isset($data["summary"]) && $data["summary"] != "")
+    {
+		$metadataOU .= "%X " . $data["summary"] . "\r\n";
     }
     if (!empty($data["isbn"])) 
     {
@@ -883,7 +1103,8 @@ class Standard extends General
         $metadataOU .= "%@ " . $data["isbn"] . "\r\n";
       }
     }
-	elseif (!empty($data["contents"]["020"][0])) {
+	elseif (!empty($data["contents"]["020"][0])) 
+	{
 		foreach($data["contents"]["020"][0] as $isbnGroup) 
 		{
 			foreach($isbnGroup as $isbnKey => $isbnValue) 
@@ -921,6 +1142,10 @@ class Standard extends General
     {
       $metadataOU .= "%7 " . $data["edition"] . "\r\n";
     }
+	if (isset($data["physicaldescription"]) && $data["physicaldescription"] != "") 
+    {
+      $metadataOU .= "%P " . $data["physicaldescription"] . "\r\n";
+    }
     if (isset($data["publisher"][0]) && $data["publisher"][0] != "") 
     {
 	  foreach($data["publisher"][0] as $publisherKey => $publisherValue)
@@ -934,6 +1159,18 @@ class Standard extends General
 			$metadataOU .= "%I " . $publisherValue . "\r\n";
 		} 
 	  }
+    }
+	elseif (isset($data["publisherarticle"][0]["d"]) && $data["publisherarticle"][0]["d"] != "") 
+    {
+		$tmp = explode(" : ", $data["publisherarticle"][0]["d"]);
+		if (isset($tmp[0]) && $tmp[0] != "")
+		{
+			$metadataOU .= "%C " . $tmp[0] . "\r\n";
+		}
+		if (isset($tmp[1]) && $tmp[1] != "")
+		{
+			$metadataOU .= "%I " . $tmp[1] . "\r\n";
+		}
     }
 	if (!empty($data["contents"]["952"][0]))
 	{
@@ -960,6 +1197,10 @@ class Standard extends General
 	}
 	else
 	{
+		if (!empty($data["in830"][0]["v"]))
+		{
+			$metadataOU .= "%V " . $data["in830"][0]["v"] . "\r\n";
+		}
 		if (!empty($data["publisherarticle"][0]["g"]))
 		{ 
 			if (preg_match("#\((.*?)\)#", $data["publisherarticle"][0]["g"], $year))
@@ -969,9 +1210,9 @@ class Standard extends General
 		{
 			$metadataOU .= "%D " . $data["publisher"][0]["c"] . "\r\n";
 		}
-		if (isset($data["contents"]["300"][0][0]["a"]) && $data["contents"]["300"][0][0]["a"] != "") 
+		elseif (ctype_digit(substr($this->contents["008"],7,4))) 
 		{
-			$metadataOU .= "%P " . $data["contents"]["300"][0][0]["a"] . "\r\n";
+			$metadataOU .= "%D " . substr($this->contents["008"],7,4) . "\r\n";
 		}
 	}
 	if (isset($data["notes"]) && $data["notes"] != "") 
@@ -987,15 +1228,37 @@ class Standard extends General
 		{ $metadataOU .= "%Z " . $data["notes"] . "\r\n";
 		}
 	}
+	if (isset($data["dissertation"]) && $data["dissertation"] != "")
+    {
+		$metadataOU .= "%Z " . $data["dissertation"] . "\r\n";
+    }
+	if (isset($data["subject"][0]) && $data["subject"][0] != "") 
+    {
+		$metadataOU .= "%K ";
+		foreach($data["subject"] as $aSubjectKey => $aSubject) 
+        {
+			if ($aSubject != "") 
+			{
+			$metadataOU .= $aSubject . ((count($data["subject"]) > 1 && $aSubjectKey < count($data["subject"]) - 1) ? " / " : "" );
+            }
+        }
+		$metadataOU .= "\r\n";
+    }
 	if (isset($data["additionalinfo"][0]["u"]) && $data["additionalinfo"][0]["u"] != "") 
     {
       $metadataOU .= "%U " . $data["additionalinfo"][0]["u"] . "\r\n";
     }
-    $metadataOU .= "%U " . base_url() . $data["id"] . "/id\r\n";
+    $metadataOU .= "%U " . base_url() . "id%7Bcolon%7D" . $data["id"] . "\r\n";
 	$metadataOU .= "%W Gemeinsamer Bibliotheksverbund (GBV) / Verbundzentrale des GBV (VZG)\r\n";
+	$metadataOU .= "%~ " . $_SESSION["config_general"]["general"]["title"];
     return $metadataOU;
   }
-
+  
+/*  
+*****************************
+ * BIBTEX                *
+*****************************
+*/
   public function getBibtexMetaData($data)
   {
     $metadataOU = "";
@@ -1030,6 +1293,12 @@ class Standard extends General
         $publisherarticle) . "},\r\n";
       }
     }
+	if (isset($data["contents"]["240"][0][0]["a"]) && $data["contents"]["240"][0][0]["a"] != "") {
+	  $metadataOU .= "\tnote = {" . $data["contents"]["240"][0][0]["a"] . "}\r\n";
+	}
+	elseif (isset($data["contents"]["246"][0][1]["a"]) && $data["contents"]["246"][0][1]["a"] != "") {
+	  $metadataOU .= "\tnote = {" . $data["contents"]["246"][0][1]["a"] . "}\r\n";
+	}
     if (isset($data["serial"])) 
     {
       if (is_array($data["serial"])) 
@@ -1076,6 +1345,10 @@ class Standard extends General
         $metadataOU .= "\tauthor = {" . $data["author"] . "},\r\n";
       }
     }
+	if (!empty($data["language"][0]))
+	{
+		$metadataOU .= "\tlanguage = {" . $data["language"][0] . "},\r\n";
+	}
 	if (isset($data["associates"])) 
     {
       if (is_array($data["associates"])) 
@@ -1096,6 +1369,10 @@ class Standard extends General
         $metadataOU .= "\teditor = {" . $data["associates"][a] . "},\r\n";
       }
     }
+	if (isset($data["computerfile"]) && $data["computerfile"] != "")
+	{
+		$metadataOU .= "\tnote = {" . $data["computerfile"] . "},\r\n";
+	}
     if (isset($data["edition"]) && $data["edition"] != "") 
     {
       $metadataOU .= "\tedition = {" . $data["edition"] . "},\r\n";
@@ -1114,9 +1391,22 @@ class Standard extends General
 		} 
 	  }
     }
+	elseif (isset($data["publisherarticle"][0]["d"]) && $data["publisherarticle"][0]["d"] != "") 
+    {
+		$tmp = explode(" : ", $data["publisherarticle"][0]["d"]);
+		if (isset($tmp[0]) && $tmp[0] != "")
+		{
+			$metadataOU .= "\taddress = {" . $tmp[0] . "},\r\n";
+		}
+		if (isset($tmp[1]) && $tmp[1] != "")
+		{
+			$metadataOU .= "\tpublisher = {" . $tmp[1] . "},\r\n";
+		}
+    }
 	if (!empty($data["contents"]["952"][0]))
 	{
-		foreach($data["contents"]["952"][0] as $detailValue) {
+		foreach($data["contents"]["952"][0] as $detailValue) 
+		{
 			foreach($detailValue as $dKey=>$dValue) 
 			{
 				switch ($dKey)
@@ -1139,6 +1429,10 @@ class Standard extends General
 	}
 	else
 	{
+		if (!empty($data["in830"][0]["v"]))
+		{
+			$metadataOU .= "\tvolume = {" . $data["in830"][0]["v"] . "},\r\n";
+		}
 		if (!empty($data["publisherarticle"][0]["g"]))
 		{ 
 			if (preg_match("#\((.*?)\)#", $data["publisherarticle"][0]["g"], $year))
@@ -1147,10 +1441,14 @@ class Standard extends General
 		elseif (isset($data["publisher"][0]["c"]) && $data["publisher"][0]["c"] != "") 
 		{
 			$metadataOU .= "\tyear = {" . $data["publisher"][0]["c"] . "},\r\n";
-		}
-		if (isset($data["contents"]["300"][0][0]["a"]) && $data["contents"]["300"][0][0]["a"] != "") 
+		}	
+		elseif (ctype_digit(substr($this->contents["008"],7,4))) 
 		{
-			$metadataOU .= "\tpages = {" . $data["contents"]["300"][0][0]["a"] . "}\r\n";
+			$metadataOU .= "\tyear = {" . substr($this->contents["008"],7,4) . "},\r\n";
+		}		
+		if (isset($data["physicaldescription"]) && $data["physicaldescription"] != "") 
+		{
+		  $metadataOU .= "\tpages = {" . $data["physicaldescription"] . "}\r\n";
 		}
 	}
     if (isset($data["notes"]) && $data["notes"] != "") 
@@ -1165,6 +1463,10 @@ class Standard extends General
       else { $metadataOU .= "\tnote = {" . $data["notes"] . "}\r\n";
       }
     }
+	if (isset($data["dissertation"]) && $data["dissertation"] != "")
+    {
+		$metadataOU .= "\tschool = {" . $data["dissertation"] . "}\r\n";
+    }		
     $metadataOU .= "}";
     return $metadataOU;
   }

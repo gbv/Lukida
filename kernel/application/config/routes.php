@@ -49,16 +49,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | Examples:  my-controller/index  -> my_controller/index
 |    my-controller/my-method  -> my_controller/my_method
 */
-//$route['search/(:any)'] = 'Vzg_controller/search/$1';
 
 // AJAX Calls (always using params)
-$route['ajax/search/(:any)']               = 'Vzg_controller/search/$1';
-$route['ajax/searchsimularpubs']           = 'Vzg_controller/searchsimularpubs';
-$route['ajax/searchrelatedpubs']           = 'Vzg_controller/searchrelatedpubs';
-$route['ajax/fullview/(:any)/(:any)']      = 'Vzg_controller/fullview/$1/$2';
-$route['ajax/userview/(:any)']             = 'Vzg_controller/userview/$1';
-$route['ajax/mailorderview/(:any)/(:any)'] = 'Vzg_controller/mailorderview/$1/$2';
-$route['ajax/assistant/(:any)']            = 'Vzg_controller/assistant/$1';
 $route['ajax/cancel']                      = 'Vzg_controller/cancel';
 $route['ajax/chart']                       = 'Vzg_controller/chart';
 $route['ajax/clear']                       = 'Vzg_controller/clear';
@@ -68,23 +60,36 @@ $route['ajax/changepw']                    = 'Vzg_controller/changepw';
 $route['ajax/checkpw']                     = 'Vzg_controller/checkpw';
 $route['ajax/exportlink']                  = 'Vzg_controller/exportlink';
 $route['ajax/facet']                       = 'Vzg_controller/facet';
+$route['ajax/fullview/(:any)/(:any)']      = 'Vzg_controller/fullview/$1/$2';
+$route['ajax/getwords']                    = 'Vzg_controller/getwords';
 $route['ajax/language']                    = 'Vzg_controller/language';
 $route['ajax/layout']                      = 'Vzg_controller/layout';
 $route['ajax/libraryspecial']              = 'Vzg_controller/libraryspecial';
 $route['ajax/linkresolver']                = 'Vzg_controller/linkresolver';
 $route['ajax/login']                       = 'Vzg_controller/login';
+$route['ajax/log']                         = 'Vzg_controller/log';
 $route['ajax/logout']                      = 'Vzg_controller/logout';
 $route['ajax/mailorderto']                 = 'Vzg_controller/mailorderto';
+$route['ajax/mailorderview/(:any)/(:any)'] = 'Vzg_controller/mailorderview/$1/$2';
 $route['ajax/mailto']                      = 'Vzg_controller/mailto';
-$route['ajax/getwords']                    = 'Vzg_controller/getwords';
 $route['ajax/renew']                       = 'Vzg_controller/renew';
 $route['ajax/request']                     = 'Vzg_controller/request';
+$route['ajax/search/(:any)']               = 'Vzg_controller/search/$1';
+$route['ajax/searchsimularpubs']           = 'Vzg_controller/searchsimularpubs';
+$route['ajax/searchrelatedpubs']           = 'Vzg_controller/searchrelatedpubs';
+$route['ajax/settingsload']                = 'Vzg_controller/settingsload';
+$route['ajax/settingsstore']               = 'Vzg_controller/settingsstore';
+$route['ajax/settingsdelete']              = 'Vzg_controller/settingsdelete';
+$route['ajax/settingsview']                = 'Vzg_controller/settingsview';
 $route['ajax/sessclear']                   = 'Vzg_controller/sessclear';
+$route['ajax/settings/(:any)']             = 'Vzg_controller/settings/$1';
 $route['ajax/statsclient']                 = 'Vzg_controller/statsclient';
+$route['ajax/userview/(:any)']             = 'Vzg_controller/userview/$1';
 $route['ajax/(:any)']                      = 'Vzg_controller/search/$1';
                                            
 // Downloads                               
 $route['exportfile/(:any)/(:any)']         = 'Vzg_controller/exportfile/$1/$2';
+$route['exportfilelist/(:any)/(:any)']     = 'Vzg_controller/exportfilelist/$1/$2';
 
 // NoJavaScript                               
 $route['nojavascript']                     = 'Vzg_controller/nojavascript';

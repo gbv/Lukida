@@ -15,6 +15,10 @@ $logocheck = true;
         <a class="navbar-brand" href="<?php echo base_url(); ?>" data-tooltip="tooltip" data-placement="buttom" title="<?php echo $logotitle ?>" data-container="body"></a>
       </div><!--
     --><div class="col-xs-3 col-sm-3 col-md-2">
+      <button type='button' class='btn dropdown-toggle navbar-button-color' data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Log ausw&auml;hlen" data-container="body" onClick='javascript:$.set_log()'>
+        Log
+      </button>
+
     <div class="btn-group dropdown">
       <button type='button' class='btn dropdown-toggle navbar-button-color' data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Chart ausw&auml;hlen" data-container="body">
         Charts
@@ -24,15 +28,13 @@ $logocheck = true;
         <li class="dropdown-header">Benutzer</li>
         <li><a href="javascript:void(0)" data-value="searches"><i class="fa fa-bar-chart" aria-hidden="true"></i> Suchen</a></li>
         <li><a href="javascript:void(0)" data-value="usage"><i class="fa fa-line-chart" aria-hidden="true"></i> Nutzung</a></li>
-                <!--
-                <li role="separator" class="divider"></li>
-                <li class="dropdown-header">System</li>
-                <li><a href="javascript:void(0)" data-value="devices">Spass</a></li>
-              -->
-            </ul>
-          </div>
-      </div><!--
-    --><div class="col-xs-7 col-sm-5 col-md-7 text-right">
+        <li role="separator" class="divider"></li>
+        <li class="dropdown-header">Geräte</li>
+        <li><a href="javascript:void(0)" data-value="devicescreens"><i class="fa fa-mobile" aria-hidden="true"></i> Auflösungen</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="col-xs-7 col-sm-5 col-md-7 text-right">
 
         <!-- Optionen -->
         <div class="btn-group">
