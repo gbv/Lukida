@@ -1,4 +1,8 @@
 # Changelog
+**04.09.2018**
+* Compatibility
+    * IOs Safari support 
+  
 **23.08.2017**
 * Full view
   * ID / PPN added to bibliographic data
