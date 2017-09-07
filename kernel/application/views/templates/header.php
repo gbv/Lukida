@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
   <head>
-    <noscript><meta http-equiv="refresh" content="0; url=nojavascript" /></noscript>
     <title><?php echo $_SESSION["config_general"]['general']['title']; ?></title>
     <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon">
     <meta charset="utf-8">

@@ -647,8 +647,9 @@ class Mysql extends General
     $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
     if ( $header == "" || $iln == "" )  return (-1);
 
+    $User = ($userid != "") ? md5($userid) : "";
     $this->CI->db->reset_query();
-    $this->CI->db->query("replace into logs_library (iln, userid, ppn, header, body, created) values ('" . $iln . "', '" . md5($userid) . "','" . $ppn . "', '" . $this->CI->db->escape_str($header) . "', '" . $this->CI->db->escape_str($body) . "', now())");
+    $this->CI->db->query("replace into logs_library (iln, userid, ppn, header, body, created) values ('" . $iln . "', '" . $User . "','" . $ppn . "', '" . $this->CI->db->escape_str($header) . "', '" . $this->CI->db->escape_str($body) . "', now())");
   
     return 0;
   }

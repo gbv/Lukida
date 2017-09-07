@@ -1,4 +1,14 @@
 # Changelog
+**07.09.2018**
+* Generell
+  * W3C Validation Check (https://validator.w3.org/)
+  * Wave Check (http://wave.webaim.org/)
+
+**05.09.2018**
+* Cleanup
+  * Renamed example.css to new_library.css
+  * Log: Empty userid not crypted
+
 **04.09.2018**
 * Compatibility
     * IOs Safari support 

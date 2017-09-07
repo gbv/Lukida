@@ -22,7 +22,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
   <div class="container-fluid">
 
     <div class="navbar-header">
-      <a class="navbar-brand" href="<?php echo base_url(); ?>" data-tooltip="tooltip" data-placement="buttom" title="<?php echo $logotitle ?>" data-container="body"></a>
+      <a class="navbar-brand" href="<?php echo base_url(); ?>" data-tooltip="tooltip" data-placement="buttom" title="<?php echo $logotitle ?>" data-container="body"> <span class="hidden"> Start </span></a>
     </div>
 
     <div class="navbar-collapse collapse searchbar">
@@ -35,20 +35,20 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
           <!-- Sprache -->
           <div class="btn-group dropdown">
             <button type='button' class='selectlanguage btn dropdown-toggle navbar-button-color' data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Sprache ausw&auml;hlen" data-container="body">
-              <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Deutsch' : 'German'; ?>" class="showger<?php if ( $_SESSION["language"]!="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/ger.png' />
-              <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Englisch' : 'English'; ?>" class="showeng<?php if ( $_SESSION["language"]=="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/eng.png' />
+              <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Spr. Deutsch' : 'Language German'; ?>" class="showger<?php if ( $_SESSION["language"]!="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/ger.png' />
+              <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Spr. Englisch' : 'Language English'; ?>" class="showeng<?php if ( $_SESSION["language"]=="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/eng.png' />
               <span class="caret"></span>
-              <span class="sr-only">Toggle Dropdown</span>
+              <span class="sr-only">Sprache ausw&auml;hlen</span>
             </button>
             <ul class="dropdown-menu lang" role="menu">
               <li>
                 <a href="javascript:void(0)" data-width='15px' data-src="/systemassets/lukida/img/ger.png" data-text="" data-value="ger">
-                  <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Deutsch' : 'German'; ?>" width='20' src='/systemassets/lukida/img/ger.png' /> <span class="ger"></span>
+                  <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Sprache Deutsch' : 'Language German'; ?>" width='20' src='/systemassets/lukida/img/ger.png' /> <span class="ger"></span>
                 </a>
               </li>
               <li>
                 <a href="javascript:void(0)" data-width='15px' data-src="/systemassets/lukida/img/eng.png" data-text="" data-value="eng">
-                  <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Englisch' : 'English'; ?>" width='20' src='/systemassets/lukida/img/eng.png' /> <span class="eng"></span>
+                  <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Sprache Englisch' : 'Language English'; ?>" width='20' src='/systemassets/lukida/img/eng.png' /> <span class="eng"></span>
                 </a>
               </li>
             </ul>
@@ -59,7 +59,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
             <button type='button' class='selectview btn dropdown-toggle navbar-button-color' data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Ansicht ausw&auml;hlen" data-container="body">
               <i class="fa fa-th-large"></i>
               <span class="caret"></span>
-              <span class="sr-only">Toggle Dropdown</span>
+              <span class="sr-only">Ansicht ausw&auml;hlen</span>
             </button>
             <ul class="dropdown-menu layout" role="menu">
               <li class="">                   <a class="col1" href="javascript:void(0)" data-value="12"> </a></li>
@@ -73,7 +73,8 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
         <!-- Favorites -->
         <div class="btn-group">
           <button type="button" onClick="javascript:$.open_favors()" class="favorites btn navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Merkliste" data-container="body">
-            <i class="fa fa-star"></i>
+            <i class="fa fa-star" title="Merkliste"></i>
+            <span class="sr-only">Merkliste</span>
           </button>
         </div>
         
@@ -81,15 +82,17 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
         <!-- User NOT Login -->
         <div class="nologinarea btn-group<?php if ($Login) echo " hide";?>">
           <button onClick="javascript:$.loginonly('')" type="button" class="btn navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Login" data-container="body">
-            <i class="fa fa-user"></i>
+            <i class="fa fa-user" title="Login"></i>
+            <span class="sr-only">Login</span>
           </button>
         </div>
 
         <!-- User Already Logged in -->
         <div class="loginarea btn-group<?php if (!$Login) echo " hide";?>">
           <button type="button" class="myarea btn navbar-button-color dropdown-toggle" data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Mein Bereich" data-container="body">
-            <i class="fa fa-user"></i>
+            <i class="fa fa-user" title="Mein Bereich"></i>
             <span class="caret"></span>
+            <span class="sr-only">Mein Bereich</span>
           </button>
           <ul class="dropdown-menu" role="menu">
             <li><a class="myarea2" href="javascript:$.open_user('userrentals')"><i class="fa fa-user"></i> Mein Bereich</a></li>
@@ -114,18 +117,22 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
           <!-- Einstellungen -->
           <span class="input-group-btn" style="width:1%;">
             <button type="button" onClick="javascript:$.open_settings()" class="settings btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Einstellungen" data-container="body">
-              <i class="fa fa-sliders" aria-hidden="true"></i> <span class='countSettings' data-toggle="tooltip" data-placement="bottom" data-title="Aktive Einstellungen" data-trigger="hover manual"> </span>
+              <i class="fa fa-sliders"></i> 
+              <span class='countSettings' data-toggle="tooltip" data-placement="bottom" data-title="Aktive Einstellungen" data-trigger="hover manual"> </span>
+              <span class="sr-only">Einstellungen</span>
             </button>
           </span>
           <!-- Suchfeld -->
           <div class="btn-group form-control input-lg ">
+            <label class="sr-only" for="searchtext_md">Ihre Suche...</label>
             <input type="search" id="searchtext_md" autofocus="autofocus" autocomplete="off" class="search_text typeahead" placeholder="Ihre Suche..." value="" style="width:99% !important;">
-            <span class="search_clear" style="display: none"><i class="fa fa-times fa-2x" aria-hidden="true"></i></span>
+            <span class="search_clear" style="display: none"><i class="fa fa-times fa-2x"></i></span>
           </div>
           <!-- Lupe -->
           <span class="input-group-btn" style="width:1%;">
-            <button type="button" onClick="javascript:$.new_search('init',$('#searchtext_md').val());" class="startsearch btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Suche starten" data-container="body">
-              <i class="fa fa-search" aria-hidden="true"></i>
+            <button type="button" onClick="javascript:$.new_search('init',$('#searchtext_md').val());" class="startsearch btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Suche starten" value="Suche starten" data-container="body">
+              <i class="fa fa-search"></i>
+              <span class="sr-only">Suche starten</span>
             </button>
           </span>
         </div>
@@ -142,7 +149,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
     <div class="row">
       <div class="col-xs-3">
         <div class="navbar-header">
-          <a class="navbar-brand" href="<?php echo base_url(); ?>" data-tooltip="tooltip" data-placement="buttom" title="<?php echo $logotitle ?>" data-container="body"></a>
+          <a class="navbar-brand" href="<?php echo base_url(); ?>" data-tooltip="tooltip" data-placement="buttom" title="<?php echo $logotitle ?>" data-container="body"> <span class="hidden"> Start </span> </a>
         </div>
       </div>
       <div class="col-xs-9">
@@ -153,6 +160,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
           <div class="nologinarea btn-group pull-right left-padding<?php if ($Login) echo " hide";?>">
             <button onClick="javascript:$.loginonly()" type="button" class="btn  navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Login" data-container="body">
               <i class="fa fa-user"></i>
+              <span class="sr-only">Login</span>
             </button>
           </div>
 
@@ -161,6 +169,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
             <button type="button" class="myarea btn navbar-button-color dropdown-toggle" data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Mein Bereich">
               <i class="fa fa-user"></i>
               <span class="caret"></span>
+              <span class="sr-only">Mein Bereich</span>
             </button>
             <ul class="dropdown-menu" role="menu">
               <li><a class="myarea2" href="javascript:$.open_user('userrentals')"><i class="fa fa-user"></i> Mein Bereich</a></li>
@@ -181,6 +190,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
           <div class="btn-group pull-right left-padding">
             <button type="button" onClick="javascript:$.open_favors()" class="favorites btn navbar-button-color dropdown-toggle" data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Merkliste" data-container="body">
               <i class="fa fa-star"></i>
+              <span class="sr-only">Merkliste</span>
             </button>
           </div>
 
@@ -190,20 +200,20 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
             <!-- Sprache -->
             <div class="btn-group dropdown">
               <button type='button' class='selectlanguage btn dropdown-toggle navbar-button-color' data-toggle="dropdown"  data-tooltip="tooltip" data-placement="left" title="Sprache ausw&auml;hlen" data-container="body">
-                <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Englisch' : 'English'; ?>" class="showger<?php if ( $_SESSION["language"]!="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/ger.png' />
-                <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Deutsch' : 'German'; ?>" class="showeng<?php if ( $_SESSION["language"]=="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/eng.png' />
+                <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Spr. Englisch' : 'Language English'; ?>" class="showger<?php if ( $_SESSION["language"]!="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/ger.png' />
+                <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Spr. Deutsch' : 'Language German'; ?>" class="showeng<?php if ( $_SESSION["language"]=="ger" ) echo " hide"; ?>" height='15' src='/systemassets/lukida/img/eng.png' />
                 <span class="caret"></span>
                 <span class="sr-only">Toggle Dropdown</span>
               </button>
               <ul class="dropdown-menu lang" role="menu">
                 <li>
                   <a href="javascript:void(0)" data-width='15px' data-src="/systemassets/lukida/img/ger.png" data-text="" data-value="ger">
-                    <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Deutsch' : 'German'; ?>" width='20' src='/systemassets/lukida/img/ger.png' /> <span class="ger"></span>
+                    <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Sprache Deutsch' : 'Language German'; ?>" width='20' src='/systemassets/lukida/img/ger.png' /> <span class="ger"></span>
                   </a>
                 </li>
                 <li>
                   <a href="javascript:void(0)" data-width='15px' data-src="/systemassets/lukida/img/eng.png" data-text="" data-value="eng">
-                    <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Englisch' : 'English'; ?>" width='20' src='/systemassets/lukida/img/eng.png' /> <span class="eng"></span>
+                    <img alt="<?php echo ( $_SESSION['language']=='ger' ) ? 'Sprache Englisch' : 'Language English'; ?>" width='20' src='/systemassets/lukida/img/eng.png' /> <span class="eng"></span>
                   </a>
                 </li>
               </ul>
@@ -214,7 +224,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
               <button type='button' class='selecttview btn dropdown-toggle navbar-button-color' data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Ansicht ausw&auml;hlen" data-container="body">
                 <i class="fa fa-th-large"></i>
                 <span class="caret"></span>
-                <span class="sr-only">Toggle Dropdown</span>
+                <span class="sr-only">Ansicht ausw&auml;hlen</span>
               </button>
               <ul class="dropdown-menu layout" role="menu">
                 <li class="">                   <a class="col1" href="javascript:void(0)" data-value="12"> </a></li>
@@ -237,20 +247,24 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
           <div style="display:table;" class="input-group">
             <span class="input-group-btn" style="width:1%;">
               <button type="button" onClick="javascript:$.open_settings()" class="settings btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Einstellungen" data-container="body">
-                <i class="fa fa-sliders" aria-hidden="true"></i> <span class='countSettings' data-toggle="tooltip" data-placement="bottom" data-title="Aktive Einstellungen" data-trigger="hover manual"> </span>
+                <i class="fa fa-sliders"></i> <span class='countSettings' data-toggle="tooltip" data-placement="bottom" data-title="Aktive Einstellungen" data-trigger="hover manual"> </span>
+                <span class="sr-only">Einstellungen</span>
               </button>
             </span>
             <div class="btn-group form-control input-lg ">
+              <label class="sr-only" for="searchtext_xs">Ihre Suche...</label>
               <input type="search" id="searchtext_xs" autocomplete="off" class="search_text typeahead" placeholder="Ihre Suche..." value="" style="width:99% !important;">
-              <span class="search_clear" style="display: none"><i class="fa fa-times fa-2x" aria-hidden="true"></i></span>
+              <span class="search_clear" style="display: none"><i class="fa fa-times fa-2x"></i></span>
             </div>
             <span class="input-group-btn" style="width:1%;">
               <button type="button" onClick="javascript:$.new_search('init',$('#searchtext_xs').val());" class="startsearch btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Suche starten" data-container="body">
-                <i class="fa fa-search" aria-hidden="true"></i>
+                <i class="fa fa-search"></i>
+                <span class="sr-only">Suche starten</span>
               </button>
               <button type="button" onClick="javascript:$.toggle_area('facets');" class="btn btn-lg navbar-button-color hidden-sm mobilefacets" data-tooltip="tooltip" data-placement="left" title="Facetten" data-container="body">
-                <span class="facetsdown"><i class="fa fa-angle-double-down" aria-hidden="true"></i></span>
-                <span class="facetsup collapse"><i class="fa fa-angle-double-up" aria-hidden="true"></i></span>
+                <span class="facetsdown"><i class="fa fa-angle-double-down"></i></span>
+                <span class="facetsup collapse"><i class="fa fa-angle-double-up"></i></span>
+                <span class="sr-only">Facetten</span>
               </button>
             </span>
           </div>
