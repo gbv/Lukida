@@ -26,6 +26,15 @@ $Buttom	= (isset($_SESSION["config_discover"]["fullview"]["buttomelement"])
                ? $_SESSION["config_discover"]["fullview"]["buttomelement"] : "";
 $TabGens = ( trim($Buttom) != "" )  ? explode(",",trim($Buttom)) : array();
 
+$GoogleCover= (isset($_SESSION["config_discover"]["fullview"]["googlecover"]) 
+                     && $_SESSION["config_discover"]["fullview"]["googlecover"] == 1 ) 
+                       ? true  : false;
+
+$GooglePreview = (isset($_SESSION["config_discover"]["fullview"]["googlepreview"]) 
+                     && $_SESSION["config_discover"]["fullview"]["googlepreview"] == 1 ) 
+                       ? true  : false;
+
+
 // *****************************************************
 // ************ Section TWO: Create Output *************
 // *****************************************************
@@ -65,12 +74,48 @@ if ( $Tab )
 
 // ****** Start Tab 1 ******
 $Output .= "<div role='tabpanel' class='tab-pane fade in active' id='tab1_" . $this->dlgid . "'>";
-$Output .= "<table id='mail_" . $this->dlgid . "' class='table rowheight-reduced table-hover borderless small'><tbody>";
 
-// Show elements based on ini-file
-$Output .= $this->LoadTabElements("tab1_elements");
+$Output .=  "<div class='row'>";
 
-$Output .= "</tbody></table>";
+if ( $GoogleCover || $GooglePreview )
+{
+  $Output .=  "<div class='col-md-10'>";
+
+    $Output .= "<table id='mail_" . $this->dlgid . "' class='table rowheight-reduced table-hover borderless small'><tbody>";
+
+    // Show elements based on ini-file
+    $Output .= $this->LoadTabElements("tab1_elements");
+
+    $Output .= "</tbody></table>";
+
+  $Output .=  "</div>";
+  $Output .=  "<div class='col-md-2'>";
+
+  $Tmp = explode("|", $this->pretty["isbn"]);
+  foreach ($Tmp as $index => &$T) 
+  {
+    $T = preg_replace('/[^\dxX]/', '', trim($T));
+  }
+  $Tmp = implode(" ", array_unique($Tmp));
+  $Output .=  "<div class='text-center' id='isbn_" . $this->dlgid . "' data-isbn='". $Tmp . "'></div>";
+  
+  $Output .=  "</div>";
+}
+else
+{
+  $Output .=  "<div class='col-md-12'>";
+
+    $Output .= "<table id='mail_" . $this->dlgid . "' class='table rowheight-reduced table-hover borderless small'><tbody>";
+
+    // Show elements based on ini-file
+    $Output .= $this->LoadTabElements("tab1_elements");
+
+    $Output .= "</tbody></table>";
+
+  $Output .=  "</div>";
+}
+$Output .=  "</div>";
+
 
 // Final Block
 foreach ( $TabGens as $TabGen )

@@ -248,6 +248,15 @@ else
   }
 }
 
+// OriginalYear
+if ( isset($this->pretty["originalyear"]) && $this->pretty["originalyear"] != "" )
+{
+  $Output .=  "<tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("originalyear") . "</td>";
+  $Output .=  "<td>" . $this->pretty["originalyear"] . "</td>";
+  $Output .=  "</tr>";
+}
+
 // Language
 if ( isset($this->pretty["language"]) && count($this->pretty["language"]) > 0 )
 {
@@ -290,13 +299,162 @@ if ( isset($this->pretty["physicaldescription"]) && $this->pretty["physicaldescr
 }
 
 // Notes
-if ( isset($this->pretty["notes"]) && $this->pretty["notes"] != "" )
+if ( isset($this->pretty["notes"]) && count($this->pretty["notes"]) > 0 )
 {
   $Output .=  "<tr>";
-  $Output .=  "<td>" . $this->CI->database->code2text("notes") . "</td>";
-  $Output .=  "<td>" . $this->pretty["notes"] . "</td>";
+  $Output .=  "<td>" . $this->CI->database->code2text("NOTES") . "</td>";
+  $Output .=  "<td>";
+  $First = true;
+  foreach ( $this->pretty["notes"] as $one)
+  {
+    if ( !$First ) $Output .= "<br />";
+    $Output .=  $one;
+    $First = false;
+  }
+  $Output .=  "</td></tr>";
+}
+
+// Includes
+if ( isset($this->pretty["includes"]) && $this->pretty["includes"] != "" )
+{
+  $Output .=  "<tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("includes") . "</td>";
+  $Output .=  "<td>" . $this->pretty["includes"] . "</td>";
   $Output .=  "</tr>";
 }
+
+// PublishedJournal
+if ( isset($this->pretty["publishedjournal"]) && $this->pretty["publishedjournal"] != "" )
+{
+  $Output .=  "<tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("publishedjournal") . "</td>";
+  $Output .=  "<td>" . $this->pretty["publishedjournal"] . "</td>";
+  $Output .=  "</tr>";
+}
+
+// Footnote
+if ( isset($this->pretty["footnote"]) && $this->pretty["footnote"] != "" )
+{
+  $Output .=  "<tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("footnote") . "</td>";
+  $Output .=  "<td>" . $this->pretty["footnote"] . "</td>";
+  $Output .=  "</tr>";
+}
+
+/*
+
+// Other editions
+if ( isset($this->pretty["othereditions"]) && count($this->pretty["othereditions"]) > 0 )
+{
+  $Count     = 0;
+  foreach ( $this->pretty["othereditions"] as $record)
+  {
+    $FoundText = "";
+    $FoundLink = "";
+    foreach ( $record as $key => $onesubfield )
+    {
+      foreach ( $onesubfield as $value )
+      {
+        if ( $key == "i" && trim($value) != "" )  $FoundText .= trim($value);
+        if ( $key == "t" && trim($value) != "" )  $FoundText .= ( $FoundText != "" ) ? ": " . trim($value) : trim($value);
+        if ( $key == "w" && substr(trim($value),0,8) == "(DE-600)" )  $FoundLink = trim($value);
+      }
+    }
+
+    if ( $FoundText != "" && $FoundLink != "" )
+    {
+      $Count++;
+      if ( $Count == 1 )
+      {
+        $Output .=  "<tr>";
+        $Output .=  "<td>" . $this->CI->database->code2text("EarlierLater") . "</td>";
+        $Output .=  "<td>";
+      }
+      else
+      {
+        $Output .=  "<br />";
+      }
+      $Output .= $this->link("foreignid", $FoundLink, $FoundText);
+    }
+  }
+  if ( $Count > 0 ) $Output .=  "</td></tr>";
+}
+
+// Remarks
+if ( isset($this->pretty["remarks"]) && count($this->pretty["remarks"]) > 0 )
+{
+  $Count     = 0;
+  foreach ( $this->pretty["remarks"] as $record)
+  {
+    $FoundText = "";
+    $FoundLink = "";
+    foreach ( $record as $key => $onesubfield )
+    {
+      foreach ( $onesubfield as $value )
+      {
+        if ( $key == "i" && trim($value) != "" )  $FoundText .= trim($value);
+        if ( $key == "t" && trim($value) != "" )  $FoundText .= ( $FoundText != "" ) ? ": " . trim($value) : trim($value);
+        if ( $key == "w" && substr(trim($value),0,8) == "(DE-600)" )  $FoundLink = trim($value);
+      }
+    }
+
+    if ( $FoundText != "" && $FoundLink != "" )
+    {
+      $Count++;
+      if ( $Count == 1 )
+      {
+        $Output .=  "<tr>";
+        $Output .=  "<td>" . $this->CI->database->code2text("remarks") . "</td>";
+        $Output .=  "<td>";
+      }
+      else
+      {
+        $Output .=  "<br />";
+      }
+      $Output .= $this->link("foreignid", $FoundLink, $FoundText);
+    }
+  }
+  if ( $Count > 0 ) $Output .=  "</td></tr>";
+}
+
+// See also
+if ( isset($this->pretty["seealso"]) && count($this->pretty["seealso"]) > 0 )
+{
+  $Count     = 0;
+  foreach ( $this->pretty["seealso"] as $record)
+  {
+    $FoundText = "";
+    $FoundLink = "";
+    foreach ( $record as $key => $onesubfield )
+    {
+      foreach ( $onesubfield as $value )
+      {
+        if ( $key == "i" && trim($value) != "" )  $FoundText .= trim($value);
+        if ( $key == "t" && trim($value) != "" )  $FoundText .= ( $FoundText != "" ) ? ": " . trim($value) : trim($value);
+        if ( $key == "w" && substr(trim($value),0,8) == "(DE-600)" )  $FoundLink = trim($value);
+      }
+    }
+
+    if ( $FoundText != "" && $FoundLink != "" )
+    {
+      $Count++;
+      if ( $Count == 1 )
+      {
+        $Output .=  "<tr>";
+        $Output .=  "<td>" . $this->CI->database->code2text("seealso") . "</td>";
+        $Output .=  "<td>";
+      }
+      else
+      {
+        $Output .=  "<br />";
+      }
+      $Output .= $this->link("foreignid", $FoundLink, $FoundText);
+    }
+  }
+  if ( $Count > 0 ) $Output .=  "</td></tr>";
+}
+
+*/
 
 // Language Notes
 if ( isset($this->pretty["languagenotes"]) && $this->pretty["languagenotes"] != "" )

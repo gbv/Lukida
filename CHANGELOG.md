@@ -1,18 +1,102 @@
 # Changelog
-**07.09.2018**
+
+**15.11.2017**
+* Fullview
+  * Google Cover switch added
+  * Google Preview switch added
+
+**07.11.2017**
+* Start
+  * Picture Slider (Startpage) can contain texts and could by delayed
+
+###V45
+
+**03.11.2017**
+* Search
+  * Suggestions added (Did you mean?)
+
+* Fullview
+  * Google Cover added
+  * Google Preview added
+
+**01.11.2017**
+* Updates
+  * Chart.js 2.7.1
+  * Moment 2.19.1
+
+* Exports
+  * File extension improved
+
+* Mail
+  * Texts language dependent
+
+* Print
+  * Logo added
+
+**17.10.2017**
+* Exports
+  * Added Signature (export, print, mail)
+  * Improved exported fields
+
+* Full view
+  * Added original date
+
+**26.09.2017**
+* Updates
+  * Code Igniter 3.1.6
+
+* Search
+  * Support for external key search added
+
+**22.09.2017**
+* Search
+  * Sort-Buttons without well and headline
+
+* Export
+  * Improved fields for Citavi, Endnote, Bibtex
+
+* Drivers
+  * PAIA2-Driver token renewed after password change
+
+**20.09.2017**
+* Full view
+  * Journal specific data added to bibliographic data
+
+* Search
+  * Internal ppnlink search added
+
+**19.09.2017**
+* Search
+  * sorting moved to top position
+  * settings tooltip yellow  
+  * sorting keeps format numbers
+
+**12.09.2017**
+* Search
+  * query command added to show solr query 
+  * sorting added
+
+**11.09.2017**
+* Updates
+  * Editable 1.5.3
+  * Chart.js 2.7.0
+
+**07.09.2017**
 * Generell
   * W3C Validation Check (https://validator.w3.org/)
   * Wave Check (http://wave.webaim.org/)
 
-**05.09.2018**
+**05.09.2017**
 * Cleanup
   * Renamed example.css to new_library.css
   * Log: Empty userid not crypted
 
-**04.09.2018**
+**04.09.2017**
 * Compatibility
     * IOs Safari support 
   
+###V44
+
 **23.08.2017**
 * Full view
   * ID / PPN added to bibliographic data

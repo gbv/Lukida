@@ -468,6 +468,8 @@ class Vzg_controller extends CI_Controller
       "button_qrcode" => (isset($_SESSION["config_discover"]["fullview"]["qrcode"]) && $_SESSION["config_discover"]["fullview"]["qrcode"] == 1 ) ? true  : false,
       "button_mail" => (isset($_SESSION["config_discover"]["fullview"]["mail"]) && $_SESSION["config_discover"]["fullview"]["mail"] == 1 && isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] != "") ? true  : false,
       "button_print" => (isset($_SESSION["config_discover"]["fullview"]["print"]) && $_SESSION["config_discover"]["fullview"]["print"] == 1 ) ? true  : false,
+      "googlecover" => (isset($_SESSION["config_discover"]["fullview"]["googlecover"]) && $_SESSION["config_discover"]["fullview"]["googlecover"] == 1 ) ? true  : false,
+      "googlepreview" => (isset($_SESSION["config_discover"]["fullview"]["googlepreview"]) && $_SESSION["config_discover"]["fullview"]["googlepreview"] == 1 ) ? true  : false,
       "simularpubs" => (isset($_SESSION["config_discover"]["fullview"]["tab2_available"]) && $_SESSION["config_discover"]["fullview"]["tab2_available"] == 1 ) ? true  : false,
       "librarytitle"		=> (isset($_SESSION["config_general"]["general"]["title"])        			 && $_SESSION["config_general"]["general"]["title"] != "" )        				? $_SESSION["config_general"]["general"]["title"]								: "",
       "softwarename"		=> (isset($_SESSION["config_general"]["general"]["softwarename"]) 			 && $_SESSION["config_general"]["general"]["softwarename"] != "" ) 				? $_SESSION["config_general"]["general"]["softwarename"]				: "GBV Discovery",
@@ -483,7 +485,8 @@ class Vzg_controller extends CI_Controller
       "producer" => isset($_SESSION["producer"]) ? $_SESSION["producer"] : false,
       "iln" => isset($_SESSION["iln"]) ? $_SESSION["iln"] : "",
       "maxrenewals" => (isset($_SESSION["config_general"]["lbs"]["maxrenewals"]) && $_SESSION["config_general"]["lbs"]["maxrenewals"] != "" ) ? $_SESSION["config_general"]["lbs"]["maxrenewals"]  : "0",
-      "lbs" => (isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] == 1 ) ? true : false
+      "lbs" => (isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] == 1 ) ? true : false,
+	     "printlogo" => (isset($_SESSION["config_general"]["general"]["printlogo"]) && $_SESSION["config_general"]["general"]["printlogo"] != "" ) ? $_SESSION["config_general"]["general"]["printlogo"] : ""
     );
 
     // Set stats
@@ -551,21 +554,30 @@ class Vzg_controller extends CI_Controller
     $this->email->initialize($config);
 
     // Mail Adresses
-    $FromName = (isset($_SESSION["config_general"]["general"]["softwarename"]) && $_SESSION["config_general"]["general"]["softwarename"] != "" ) 
+    $SoftwareName = (isset($_SESSION["config_general"]["general"]["softwarename"]) && $_SESSION["config_general"]["general"]["softwarename"] != "" ) 
                 ? $_SESSION["config_general"]["general"]["softwarename"] : "";
-    if (isset($_SESSION["config_general"]["general"]["title"]) && $_SESSION["config_general"]["general"]["title"] != "" )
+	$LibraryName  = (isset($_SESSION["config_general"]["general"]["title"]) && $_SESSION["config_general"]["general"]["title"] != "" ) 
+                ? $_SESSION["config_general"]["general"]["title"] : "";
+    if ( $LibraryName != "" )
     {
-      $FromName .= ( $FromName != "" ) ? " - " . $_SESSION["config_general"]["general"]["title"] : $_SESSION["config_general"]["general"]["title"];
+      $FromName = ( $SoftwareName != "" ) ? $SoftwareName . " - " . $LibraryName : $LibraryName;
     }
+	else
+	{
+	  $FromName = $SoftwareName;
+	}
+	
     $this->email->from($_SESSION["config_general"]["general"]["mailfrom"], $FromName);
     $this->email->reply_to($_SESSION["config_general"]["general"]["mailfrom"], $FromName);
     $this->email->to($mailto);
 
     // Mail subject 
-    $this->email->subject('Empfehlung von ' . $username . ' für Sie! | Recommendation for you');
+    $this->email->subject($this->database->code2text("RECOMMENDATIONFROM") . ' ' . $username);
 
     // Mail body
-    $message = "";
+	$message = "<hr>";
+	//$message .= (isset($_SESSION["config_general"]["general"]["printlogo"]) && $_SESSION["config_general"]["general"]["printlogo"] != "" ) ? "<img src='" . base_url() . "/" . $_SESSION["config_general"]["general"]["printlogo"] . "'></img>" : "";
+    $message .= "<p><b>" . $LibraryName . "</b>: <a href='" . base_url() . "'>" . ( $SoftwareName != "" ? $SoftwareName  : base_url() ) . "</a></p>";	
     foreach ( $fullbodylist as $ppn  => $fullbody)
     {
       if ( ! in_array($ppn, $ppnlist))  continue;
@@ -575,21 +587,21 @@ class Vzg_controller extends CI_Controller
       $fullbody  = preg_replace("/<a[^>]+\>/i", " ", $fullbody);
       $fullbody  = preg_replace("/<\/a>/i", " ", $fullbody);
 
-      $fullbody .= "<a style='color:blue;background-color:white;text-decoration:none;' href='" 
-                         . base_url("id%7Bcolon%7D".$ppn) . "'><b>Bitte klicken Sie hier, um diese Empfehlung zu öffnen | Please click here to open this recommendation</b></a>";
-      $message  .= "<hr>" . $fullbody;
+      $fullbody .= "<sub><a style='color:blue;background-color:white;text-decoration:none;font-size:21px;' href='" 
+                         . base_url("id%7Bcolon%7D".$ppn) . "'><b>" . $this->database->code2text("CLICKTOOPEN") . "</b></a></sub>";
+      $message  .= $fullbody . ( next($fullbodylist) == true ? "<hr>" : "" );
     }
 
     if ( count($ppnlist) > 1 )
     {
       $this->email->message(json_decode($username) . " (<a href='mailto:" . $mailfrom . "'>" . $mailfrom 
-                            . "</a>)<br />hat mehrere Empfehlungen f&uuml;r Sie. | has several recommendations for you.<hr>"
+                            . "</a>) " . $this->database->code2text("HASRECOMMENDATIONS") . ".<hr>"
                             . json_decode($msg) . $message);
     }
     else
     {
       $this->email->message(json_decode($username) . " (<a href='mailto:" . $mailfrom . "'>" . $mailfrom 
-                            . "</a>)<br />hat eine Empfehlung f&uuml;r Sie. | has a recommendation for you.<hr>"
+                            . "</a>) " . $this->database->code2text("HASRECOMMENDATION") . ".<hr>"
                             . json_decode($msg) . $message);
     }
 
@@ -770,7 +782,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("LibrarySpecial");
 
     // Load Special Library of Library
-    $this->load->library('/special/special', NULL, 'special');
+    $this->load->library('special/special', NULL, 'special');
     $container = $this->special->$action($ppnlist, $fields);
 
     // Return data
@@ -1008,8 +1020,8 @@ class Vzg_controller extends CI_Controller
     $this->load->helper('download');
 
     // Call export
-    $data = $this->export->exportfile($_SESSION["data"]["results"][$ppn],$format, $ppn);
-    $name = $format . "-" . $ppn . ".txt";
+    $data = $this->export->exportfile($_SESSION["data"]["results"][$ppn],$format);
+    $name = $format . "-" . $ppn . "." . ( $format == "citavi" ? "ris" : ( $format == "endnote" ? "enw" : ( $format == "bibtex" ? "bib" : "txt")));
     force_download($name, $data);
   }
   
@@ -1035,11 +1047,11 @@ class Vzg_controller extends CI_Controller
     {
   		// Ensure required ppn data
 	  	if ( $this->ensurePPN($ppn)) 
-		  	$data .= $this->export->exportfile($_SESSION["data"]["results"][$ppn],$format, $ppn) . "\r\n\r\n";
+		  	$data .= $this->export->exportfile($_SESSION["data"]["results"][$ppn],$format) . "\r\n\r\n";
 		  else
 			  $data .= "no data for this ppn: " .$ppn . "\r\n\r\n";
 	  }
-	  $name = $format . " " . $ppnlist . ".txt";
+	  $name = $format . " " . $ppnlist . "." . ( $format == "citavi" ? "ris" : ( $format == "endnote" ? "enw" : ( $format == "bibtex" ? "bib" : "txt")));
     force_download($name, $data);
   }
   

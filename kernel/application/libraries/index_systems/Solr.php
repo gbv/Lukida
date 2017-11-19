@@ -41,57 +41,82 @@ class Solr extends General
     return ($search);
   }
 
+  private function CleanForeignID($string)
+  {
+    $string = trim($string, " '\"");
+    return substr($string,0,8) . preg_replace("/[^A-Za-z0-9]/", "", substr($string,8));
+  }
+
   private function solr_edismax($search,$package,$facets)
   {
 
     $client = new SolrClient($this->config);
 
-    // Find complex search phrases and move them to $matches
-    // First: field(phrase)
-    preg_match_all("/([A-Za-z0-9]+)\(([^)]+)\)/", $search, $matches);
-    foreach ( $matches[0] as $one )
+    $search = trim($search);
+    if ( substr($search,0,10) == "foreignid(" && substr($search,strlen($search)-1,1) == ")" )
     {
-      $search = str_replace($one, "", $search);
+      $Tmp = explode(",",substr($search, 10, strlen($search)-11));
+      foreach ($Tmp as &$One) 
+      {
+        $One = $this->CleanForeignID($One);
+      }
+      $matches = array
+      (
+        array($search),
+        array("foreignid"),
+        array(implode(",",$Tmp))
+      );
+      $search = "";
+    }
+    else
+    {
+      // Find complex search phrases and move them to $matches
+      // First: field(phrase)
+      preg_match_all("/([A-Za-z0-9]+)\(([^))]+)\)/", $search, $matches);
+      foreach ( $matches[0] as $one )
+      {
+        $search = str_replace($one, "", $search);
+      }
+  
+      // Second: field:(phrase)
+      preg_match_all("/([A-Za-z0-9]+):\(([^))]+)\)/", $search, $matchescolon);
+      foreach ( $matchescolon[0] as $one )
+      {
+        $search = str_replace($one, "", $search);
+      }
+      foreach ($matchescolon as $index => $one)
+      {
+        foreach ($one as $value)
+        {
+          $matches[$index][] = $value;
+        }
+      }
+      
+      // Third: field:phrase
+      preg_match_all("/([A-Za-z0-9]+):([^\s]+)/", $search, $matchescolon2);
+      foreach ( $matchescolon2[0] as $one )
+      {
+        $search = str_replace($one, "", $search);
+      }
+      foreach ($matchescolon2 as $index => $one)
+      {
+        foreach ($one as $value)
+        {
+          $matches[$index][] = $value;
+        }
+      }
     }
 
-    // Second: field:(phrase)
-    preg_match_all("/([A-Za-z0-9]+):\(([^)]+)\)/", $search, $matchescolon);
-    foreach ( $matchescolon[0] as $one )
-    {
-      $search = str_replace($one, "", $search);
-    }
-    foreach ($matchescolon as $index => $one)
-    {
-      foreach ($one as $value)
-      {
-        $matches[$index][] = $value;
-      }
-    }
-    
-    // Third: field:phrase
-    preg_match_all("/([A-Za-z0-9]+):([^\s]+)/", $search, $matchescolon2);
-    foreach ( $matchescolon2[0] as $one )
-    {
-      $search = str_replace($one, "", $search);
-    }
-    foreach ($matchescolon2 as $index => $one)
-    {
-      foreach ($one as $value)
-      {
-        $matches[$index][] = $value;
-      }
-    }
-    
+    //$this->CI->printArray2File($matches);
+
     // Remove not allowed complex phrases based on used key
     foreach ( $matches[1] as $index => $key )
     {
-      if ( ! in_array(strtolower(trim($key)), array("author","autor","collection", "collection_details","id","isn","subject","schlagwort","title","titel","series","reihe","publisher","verlag","year","jahr","contents","inhalt","class","sachgebiet","ppnlink","format")) )
+      if ( ! in_array(strtolower(trim($key)), array("author","autor","collection", "collection_details","foreignid","id","isn","subject","schlagwort","title","titel","series","reihe","publisher","verlag","year","jahr","contents","inhalt","class","sachgebiet","ppnlink","format")) )
       {
         unset($matches[0][$index]);
       }
     }
-
-    // $this->CI->printArray2File($matches);
 
     // Now loop over complex search phrased and add simple search word
     // to build query string MainSearch
@@ -128,6 +153,9 @@ class Solr extends General
             {
               $MainSearch .= "(author:\"" . $Phrases[0] . "\" OR author2:\"" . $Phrases[0] . "\")";
             }
+            break;
+          case "foreignid":
+            $MainSearch .= "(foreign_ids_str_mv:\"" . $Phrases[0] . "\")";
             break;
           case "series":
           case "reihe":
@@ -187,6 +215,9 @@ class Solr extends General
             }
 
             break;
+          case "foreignid":
+            $MainSearch .= "(foreign_ids_str_mv:\"" . implode("\" OR foreign_ids_str_mv:\"", $Phrases) . "\")";
+            break;
           case "series":
           case "reihe":
             $MainSearch .= "(series:\"" .  implode("\" OR series:\"", $Phrases) . "\" OR "
@@ -237,7 +268,7 @@ class Solr extends General
       }
     }
 
-    $MainSearch .= ( trim($MainSearch) != "" && trim($search) != "" ) ? " AND " . $search : $search;
+    $MainSearch .= ( trim($MainSearch) != "" && trim($search) != "" && trim($search) != "*" ) ? " AND " . $search : $search;
 
     // Initialize Client
     $dismaxQuery = new SolrDisMaxQuery($MainSearch);
@@ -417,7 +448,12 @@ class Solr extends General
         $dismaxQuery
         ->addFacetField('remote_bool')
         ->addFacetField('format_phy_str_mv');
-        $dismaxQuery->setFacetLimit(20);
+        $dismaxQuery
+        ->setFacetLimit(20);
+
+        $dismaxQuery
+        ->setParam('spellcheck','true')
+        ->setParam('shards.qt','/spell');
       }
 
       // Filter 
@@ -472,6 +508,19 @@ class Solr extends General
               ->addFilterQuery('format_phy_str_mv:("' . implode('" OR "', array_keys((array)$value)) . '")');
             }
           }
+          case "sort":
+          {
+            if ( $value == "yearasc" )
+            {
+              $dismaxQuery
+              ->addSortField('publishDateSort', SolrQuery::ORDER_ASC);
+            }
+            if ( $value == "yeardesc" )
+            {
+              $dismaxQuery
+              ->addSortField('publishDateSort', SolrQuery::ORDER_DESC);
+            }
+          }
         }
       }
 
@@ -497,17 +546,11 @@ class Solr extends General
     // Store query in session
     $_SESSION["query"] = $dismaxQuery;
 
-    // Store query in file
-    // $this->CI->appendFile("EDisMax.txt", "http://" . $this->config["hostname"] . "/" . $this->config["path"] . "/select?" . $dismaxQuery);
-
     // Execute query
     $query_response = $client->query($dismaxQuery);
 
-    // Store answer in file
-    // $this->CI->printArray2File($query_response);
-
     // Store answer
-    return ($query_response->getResponse());
+    return (array_merge((array) $query_response->getResponse(), array("query"=>"http://" . $this->config["hostname"] . "/" . $this->config["path"] . "/select?" . $dismaxQuery)));
   }
 
   private function solr_after($result,$package)
@@ -515,13 +558,15 @@ class Solr extends General
     // fill container
     $container = array
     (
-      "results" => $result["response"]["docs"],
-      "qtime"   => str_replace(".", ",",round($result["responseHeader"]["QTime"] / 1000,2)),
-      "hits"    => $result["response"]["numFound"],
+      "results" => isset($result["response"]["docs"]) ? $result["response"]["docs"] : array(),
+      "qtime"   => isset($result["responseHeader"]["QTime"]) ? str_replace(".", ",",round($result["responseHeader"]["QTime"] / 1000,2)) : "",
+      "hits"    => isset($result["response"]["numFound"]) ? $result["response"]["numFound"] : "0",
       "hitspack"=> count($result["response"]["docs"]),
-      "facets"  => $result["facet_counts"]["facet_fields"],
-      "stats"   => $result["stats"]["stats_fields"],
+      "facets"  => isset($result["facet_counts"]["facet_fields"]) ? $result["facet_counts"]["facet_fields"] : "",
+      "stats"   => isset($result["stats"]["stats_fields"]) ? $result["stats"]["stats_fields"] : "",
       "start"   => ($package != 0 ) ? ($package-1)*50 : 0,
+      "query"   => isset($result["query"]) ? htmlentities($result["query"]) : "",
+      "spell"   => isset($result["spellcheck"]["suggestions"]) ? $result["spellcheck"]["suggestions"] : ""
     );
 
     // return container
@@ -617,9 +662,6 @@ class Solr extends General
       ->addFilterQuery('collection_details:GBV_ILN_' . $_SESSION['iln']);
     }    
 
-    // Store query in file
-    // $this->CI->appendFile("EDisMax.txt", "http://" . $this->config["hostname"] . ":" . $this->config["port"] . "/". $this->config["path"] . "/select?" . $dismaxQuery);
-
     // Execute query
     $query_response = $client->query($dismaxQuery);
 
@@ -638,9 +680,6 @@ class Solr extends General
         $PPNList[]  = $one["id"];
       }
     }
-
-    // Store PPNList in file
-    //$this->CI->printArray2File($PPNList);
 
     // Return Data
     return ( $PPNList );

@@ -120,6 +120,13 @@ html {
   }
 }
 
+.tooltip-arrow,
+.countSettings + .tooltip > .tooltip-inner 
+{
+  background-color: yellow;
+  color: black;
+}
+
 .publication-icon
 {
   font-size: 50px;
@@ -136,6 +143,13 @@ html {
 .text-top
 {
   vertical-align: top;
+}
+
+.query
+{
+  background: #d9edf7;
+  border: 1px solid black;
+  word-break: break-word;
 }
 
 @media (max-width:991px)

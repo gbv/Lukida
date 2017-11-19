@@ -366,10 +366,10 @@ class General
   
       $pretty["pv_publishershort"]= $this->PrettyFields(array("250" => array("a" => "~."),
                                                               "260" => array("c" => ", ")));
-	  if ( $pretty["pv_publishershort"] == "" )
+      if ( $pretty["pv_publishershort"] == "" )
       {
-		$pretty["pv_publishershort"]= $this->PrettyFields(array("952" => array("j" => "~.")));
-	  }
+        $pretty["pv_publishershort"]= $this->PrettyFields(array("952" => array("j" => "~.")));
+      }
   
       $pretty["pv_pubarticle"]    = $this->PrettyFields(array("773" => array("i" => " ",
                                                                              "t" => " ",
@@ -421,7 +421,21 @@ class General
                                                                  "711" => array("a" => " ",
                                                                                 "b" => " ")));
   
-      $pretty["notes"]               = $this->PrettyFields(array("500" => array("a" => " | ")));
+      $pretty["notes"]               = $this->GetSimpleArray(array("500" => array("a")));
+
+      $pretty["includes"]            = $this->PrettyFields(array("501" => array("a" => " | ")));
+
+      $pretty["publishedjournal"]    = $this->PrettyFields(array("515" => array("a" => " | ")));
+
+      $pretty["footnote"]            = $this->PrettyFields(array("533" => array("a" => " ",
+                                                                                "n" => ": ")));
+
+      $pretty["othereditions"]       = $this->GetCompleteArray(array("780" => array("i","t","w")));
+
+      $pretty["remarks"]             = $this->GetCompleteArray(array("770" => array("i","t","w"),
+                                                                     "785" => array("i","t","w") ));
+
+      $pretty["seealso"]             = $this->GetCompleteArray(array("787" => array("i","t","w")));
 
       $pretty["languagenotes"]       = $this->PrettyFields(array("546" => array("a" => " | ")));
       
@@ -455,7 +469,9 @@ class General
 
       $pretty["ismn"]                = $this->PrettyFields(array("024" => array("a" => " | ")));
 
-      $pretty["siblings"]     = $this->GetArray(array("787" => array("i","n","t","w")));
+      $pretty["siblings"]            = $this->GetArray(array("787" => array("i","n","t","w")));
+
+      $pretty["originalyear"]        = $this->GetOriginalYear();
 
       // Add original characters 
       $pretty = $this->AddOriginalCharacters($pretty,"fullview");
@@ -463,11 +479,11 @@ class General
 
     if ( $type == "export" )
     {
-	    $field016 = $this->GetArray(array("016" => array("a","2")));
-	    foreach ($field016 as $One)
+      $field016 = $this->GetArray(array("016" => array("a","2")));
+      foreach ($field016 as $One)
       {
         if ( isset($One["a"]) && $One["a"] != "" && isset($One["2"]) && $One["2"] == "DE-600" )
-        {	
+        { 
           $pretty["zdbid"] = $One["a"];
           break;
         }
@@ -625,6 +641,36 @@ class General
     }
     return $Output;
   }
+
+  protected function GetCompleteArray($Filter)
+  {
+    $Output = array();
+    foreach ( $Filter as $Field => $Subfields )
+    {
+      if ( array_key_exists($Field, $this->contents) )
+      {
+        foreach ($this->contents[$Field] as $Record)
+        {
+          $Tmp = array();
+          foreach ( $Record as $Subrecord )
+          {
+            foreach ( $Subfields as $Sub )
+            {
+              foreach ( $Subrecord as $Key => $Value )
+              {
+                if ( (string)$Key == (string)$Sub )
+                {
+                  $Tmp[$Sub][] = htmlspecialchars($Value);
+                }
+              }
+            }
+          }
+          $Output[] = $Tmp;
+        }
+      }
+    }
+    return $Output;
+  }
   
   protected function AddOriginalCharacters($pretty, $area)
   {
@@ -716,6 +762,15 @@ class General
     return $pretty;
   }
 
+  protected function GetOriginalYear()
+  {
+    $OriginalYear = "";
+    if ( array_key_exists("008", $this->contents) )
+    {
+      $OriginalYear = (substr($this->contents["008"],6,1) == "r") ? substr($this->contents["008"],11,4) : "";
+    }
+    return $OriginalYear;
+}
 
   protected function SetCover($type = "preview")
   {
@@ -745,7 +800,7 @@ class General
 
   protected function Link($Typ, $Value, $Text="")
   {
-    if ( in_array($Typ,array("id","author","class","series","publisher","subject","year")) )
+    if ( in_array($Typ,array("id","author","class","series","foreignid","publisher","subject","year")) )
     {
       // Internal links
       return "<a href='javascript:$.link_search(\"" . $Typ . "\",\"" . $Value . "\")'>" . (($Text=="") ? $Value : $Text). " <span class='fa fa-link'></span></a>";

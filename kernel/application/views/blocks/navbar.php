@@ -278,13 +278,31 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
       <div class="col-xs-12">
         <div class="panel">
           <ul class='nav nav-tabs' role='tablist'>
-            <li role='presentation' class='active'><a href='#tab1' aria-controls='tab1' role='tab' data-toggle='tab'>Zeitraum</a></li>
-            <li role='presentation'><a href='#tab2' aria-controls='tab2' role='tab' data-toggle='tab'>Typ</a></li>
-            <li role='presentation'><a href='#tab3' aria-controls='tab3' role='tab' data-toggle='tab'>Formate</a></li>
+            <li role='presentation' class='active'><a href='#tab1' class='lbl_sorting' aria-controls='tab4' role='tab' data-toggle='tab'>Sortierung</a></li>
+            <li role='presentation'><a href='#tab2' class='lbl_facetyear' aria-controls='tab1' role='tab' data-toggle='tab'>Zeitraum</a></li>
+            <li role='presentation'><a href='#tab3' class='lbl_facettyp' aria-controls='tab2' role='tab' data-toggle='tab'>Typ</a></li>
+            <li role='presentation'><a href='#tab4' class='lbl_facetformat' aria-controls='tab3' role='tab' data-toggle='tab'>Formate</a></li>
           </ul>
           <div class='tab-content'>
 
             <div role='tabpanel' class='tab-pane fade in active' id='tab1'>
+              <div class="FACETSORTINGTOTAL">
+                <div class="well">
+                  <div class="btn-group btn-group-justified" role="group" aria-label="Sortierung">
+                    <div class="btn-group">
+                      <button type="button" onclick="javascript:$.set_sort('scoredesc')" class="btn navbar-button-color sortscoredesc"><span class="lbl_score">Relevanz</span> <i class="fa fa-arrow-down" aria-hidden="true"></i></button>
+                    </div>
+                    <div class="btn-group">
+                      <button type="button" onclick="javascript:$.set_sort('yeardesc')" class="btn btn-default sortyeardesc"><span class="lbl_year">Jahr</span> <i class="fa fa-arrow-down" aria-hidden="true"></i></button>
+                    </div>
+                    <div class="btn-group">
+                      <button type="button" onclick="javascript:$.set_sort('yearasc')" class="btn btn-default sortyearasc"><span class="lbl_year">Jahr</span> <i class="fa fa-arrow-up" aria-hidden="true"></i></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div role='tabpanel' class='tab-pane' id='tab2'>
               <div class="FACETYEARTOTAL">
                 <div class="well">
                   <span class="FACETYEAR">Zeitraum </span> 
@@ -294,14 +312,14 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
                 </div>
               </div>
             </div>
-            <div role='tabpanel' class='tab-pane' id='tab2'>
-            <div class="FACETTYPTOTAL">
+            <div role='tabpanel' class='tab-pane' id='tab3'>
+              <div class="FACETTYPTOTAL">
                 <div class="well">
                   <div class="onlines" id="onlines2"></div>
                 </div>
               </div>
             </div>
-            <div role='tabpanel' class='tab-pane' id='tab3'>
+            <div role='tabpanel' class='tab-pane' id='tab4'>
               <div class="FACETFORMATTOTAL">
                 <div class="well">
                   <div class="formats" id="formats2"></div>

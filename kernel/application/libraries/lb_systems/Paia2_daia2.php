@@ -379,6 +379,9 @@ class Paia2_daia2 extends General
       return (array("status" => -2,
         "error"  => $change_response["error_description"]));
     }
+
+    $this->login($_SESSION["userlogin"], $new);
+
     return (array("status" => 0));
   }  
 }
