@@ -1915,6 +1915,7 @@ class Vzg_controller extends CI_Controller
     $search = str_replace("{gt}", ">", $search);
     $search = str_replace("{colon}", ":", $search);
     $search = str_replace("{star}", "*", $search);
+    if ( $search == "{no}" )  $search = "";
     
     // Call main method with parameters
     $this->view("discover",$search,$facets);

@@ -1,4 +1,8 @@
 # Changelog
+**26.02.2018**
+* Search
+  * Added empty search
+
 **13.02.2018**
 * Updates
   * Platform 1.3.5
