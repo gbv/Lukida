@@ -217,8 +217,9 @@ class Bootstrap extends General
     // Check Session & Parameters
     if ( ! $this->ParamExits("param[action]", $params,"action") ) return false;
     if ( ! $this->ParamExits("_SESSION[config_discover][userview][userview]",$_SESSION,"config_discover","userview","userview") ) return false;
-    if ( ! $this->FileExits(KERNELFORMATS . "userview/" . $_SESSION["config_discover"]["userview"]["userview"] . ".php") ) return false;
-
+    if ( ! file_exists(KERNELFORMATS . "userview/" . $_SESSION["config_discover"]["userview"]["userview"] . ".php") 
+      && ! file_exists(LIBRARYCODE . $_SESSION["config_discover"]["userview"]["userview"] . ".php") )       return false;
+    
     // Prepare variables for loaded code
     $Action = $params['action'];
 
@@ -227,7 +228,14 @@ class Bootstrap extends General
 
     // Load module inside div
     $Output = "<div id='userview'>";
-    include(KERNELFORMATS . "userview/" . $_SESSION["config_discover"]["userview"]["userview"] .'.php');
+    if ( file_exists(LIBRARYCODE . $_SESSION["config_discover"]["userview"]["userview"] . ".php") )
+    {
+      include(LIBRARYCODE . $_SESSION["config_discover"]["userview"]["userview"] .'.php');
+    }
+    else
+    {
+      include(KERNELFORMATS . "userview/" . $_SESSION["config_discover"]["userview"]["userview"] .'.php');
+    }
     $Output .= "</div>";
 
     // End Output

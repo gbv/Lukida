@@ -333,41 +333,6 @@ class Mysql extends General
     $this->CI->db->query("replace into links_resolved_library (iln, ppn, resolved,checkdate) values (" . $iln . ", '" . $ppn . "', '" .  $links . "','" . date("y-m-d") . "')");
   }
 
-  public function get_discovery_bibs()
-  {
-    $this->CI->db->reset_query();
-    $this->CI->db->select('id');
-    $this->CI->db->select('city');
-    $this->CI->db->select('title');
-    $this->CI->db->select('title_short');
-    $this->CI->db->select('iln');
-    $this->CI->db->select('street');
-    $this->CI->db->select('zip');
-    $this->CI->db->from('discovery_bibs');
-    $this->CI->db->where('iln > 0');
-    $this->CI->db->order_by('city');
-    $this->CI->db->order_by('title');
-    $results = $this->CI->db->get();
-
-    $Data = array();
-
-    // Add all locations
-    $Data[] = array(
-                  "id"          => "", 
-                  "city"        => $this->CI->database->code2text("ALL"), 
-                  "title"       => $this->CI->database->code2text("DATAPOOLGLOBAL"),
-                  "title_short" => "",
-                  "iln"         => "",
-                  "street"      => "",
-                  "zip"         => ""
-                 );
-    foreach ($results->result_array() as $row)
-    {
-      $Data[] = $row;
-    }
-    return ($Data);
-  }
-
   public function get_chart_data($typ, $params=array())
   {
     $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";

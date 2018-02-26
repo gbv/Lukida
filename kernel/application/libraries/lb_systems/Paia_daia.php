@@ -303,7 +303,7 @@ class Paia_daia extends General
     return ( $array_response );
   }
 
-  public function request($uri)
+  public function request($uri, $conditions=array())
   {
     if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] >= "1" )
     {

@@ -10,8 +10,13 @@ foreach ( $_SESSION["login"] as $key => $value )
   // Avoid empty entries
   if ( $value == "" )	continue;
 
+  // Do not show user type
+  if ( $key == "type" ) continue;
+
   // Format Date
   if ( $key == "expires" )  $value =  $this->CI->date2german($value);
+
+  // Output
   $Output .="<tr><td>" . $this->CI->database->code2text($key) . "</td><td>" . $value . "</td></tr>";
 }
 

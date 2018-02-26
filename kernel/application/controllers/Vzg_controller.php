@@ -476,12 +476,12 @@ class Vzg_controller extends CI_Controller
       "language"        => $_SESSION["language"],
       "layout"          => $_SESSION["layout"],
       "datapool"        => (isset($_SESSION["config_discover"]["discover"]["datapool"]) && $_SESSION["config_discover"]["discover"]["datapool"] != "" )     ? $_SESSION["config_discover"]["discover"]["datapool"]      : "local",
-      "datapoolicons"  => isset($_SESSION["config_discover"]["datapoolicons"]) ? $_SESSION["config_discover"]["datapoolicons"] : array(),
       "time2warn" => (isset($_SESSION["config_general"]["lbs"]["time2warn"]) && $_SESSION["config_general"]["lbs"]["time2warn"] != "" ) ? $_SESSION["config_general"]["lbs"]["time2warn"]  : "",
       "time2kill" => (isset($_SESSION["config_general"]["lbs"]["time2kill"]) && $_SESSION["config_general"]["lbs"]["time2kill"] != "" ) ? $_SESSION["config_general"]["lbs"]["time2kill"]  : "",
+      "counterselection" => (isset($_SESSION["config_general"]["lbs"]["counterselection"]) && $_SESSION["config_general"]["lbs"]["counterselection"] == 1 ) ? true : false,
       "discover" => isset($_SESSION["discover"]) ? $_SESSION["discover"] : true,
       "library" => isset($_SESSION["library"]) ? $_SESSION["library"] : false,
-      "library_name" => isset($_SESSION["library_name"]) ? $_SESSION["library_name"] : "",
+      "library_name" => (defined("LIBRARY")) ? LIBRARY : "",
       "producer" => isset($_SESSION["producer"]) ? $_SESSION["producer"] : false,
       "iln" => isset($_SESSION["iln"]) ? $_SESSION["iln"] : "",
       "maxrenewals" => (isset($_SESSION["config_general"]["lbs"]["maxrenewals"]) && $_SESSION["config_general"]["lbs"]["maxrenewals"] != "" ) ? $_SESSION["config_general"]["lbs"]["maxrenewals"]  : "0",
@@ -705,6 +705,7 @@ class Vzg_controller extends CI_Controller
     foreach ( $_SESSION["login"] as $key => $value )
     {
       if ( $value == "" )  continue;
+      if ( !in_array($key,array("username","lastname","firstname")) ) continue;
       $Mess .= "<tr><td>" . $this->database->code2text($key) . "</td><td>" . $value . "</td></tr>";
     }
     $Mess .= "</table>";
@@ -1094,22 +1095,7 @@ class Vzg_controller extends CI_Controller
     // Return 
     echo json_encode(0);
   }  
-
-  public function getdiscoverybibs()
-  {
-    // Ensure required interfaces
-    $this->ensureInterface(array("config","discover","database"));
-
-    if ( ! isset($_SESSION["DiscoveryBibs"]) || count($_SESSION["DiscoveryBibs"]) == 0 )
-    {
-      $_SESSION["DiscoveryBibs"] = $this->database->get_discovery_bibs();
-    }
-
-    // Invoke database driver
-    return $_SESSION["DiscoveryBibs"];
-  }
-
-    
+  
   // ********************************************
   // *********** LBS-Functions (AJAX) ***********
   // ********************************************
@@ -1203,7 +1189,8 @@ class Vzg_controller extends CI_Controller
   public function request()
   {
     // Receive params
-    $uri	= $this->input->post('uri');
+    $uri  = $this->input->post('uri');
+    $desk = $this->input->post('desk');
 
     // Check params
     if ( $uri == "" )    return ($this->ajaxreturn("400","uri is missing"));
@@ -1211,11 +1198,18 @@ class Vzg_controller extends CI_Controller
     // Set stats
     $this->stats("LBS_Request");
 
+    $feeusertypes = ( isset($_SESSION["config_general"]["lbs"]["usertypesconfirmfeecondition"]) 
+                  && $_SESSION["config_general"]["lbs"]["usertypesconfirmfeecondition"] != "" ) 
+                  ? explode(",",$_SESSION["config_general"]["lbs"]["usertypesconfirmfeecondition"]) : array();
+
     // Ensure required interfaces
     $this->ensureInterface(array("config","discover","lbs"));
 
     // Call LBS
-    echo json_encode($this->lbs->request($uri));
+    echo json_encode($this->lbs->request($uri, array(
+                                                      "desk" => $desk,
+                                                      "feeusertypes" => $feeusertypes
+                                                    )));
   }  
   
   public function cancel()
@@ -1444,24 +1438,27 @@ class Vzg_controller extends CI_Controller
     // Invoke index system
     $container = $this->index_system->search($search, $package, $facets, $params);
 
-    // Store session data
-    // $_SESSION["data"]["index_system"][$package]	= $container;
+    if ( isset($container["status"]) && $container["status"] == "0" )
+    {
+      // Store session data
+      // $_SESSION["data"]["index_system"][$package]	= $container;
     
-    // Invoke record format driver
-    $container = $this->record_format->convert($container);
+      // Invoke record format driver
+      $container = $this->record_format->convert($container);
 
-    // Store session data
-    // $_SESSION["data"]["record_format"]	= $container;
+      // Store session data
+      // $_SESSION["data"]["record_format"]	= $container;
 
-    // Merge und store loaded and converted data
-    if ( !isset($_SESSION['data']['results']) ) $_SESSION['data']['results']  = array();
-    if ($package != 1 )
-    {
-      $_SESSION['data']['results']	+= $container["results"];
-    }
-    else
-    {
-      $_SESSION['data']['results']	= $container["results"];
+      // Merge und store loaded and converted data
+      if ( !isset($_SESSION['data']['results']) ) $_SESSION['data']['results']  = array();
+      if ($package != 1 )
+      {
+        $_SESSION['data']['results']	+= $container["results"];
+      }
+      else
+      {
+        $_SESSION['data']['results']	= $container["results"];
+      }
     }
 
     // Return data
@@ -1505,31 +1502,34 @@ class Vzg_controller extends CI_Controller
     // Invoke search engine
     $container = $this->dosearch($search,$package,true);
 
-    // Transfer records to file
-    // $this->printArray2File($container["results"]);
-
-    // Create PPN list
-    $container["ppnlist"] = array_keys($container["results"]);
-
-    // Invoke theme format driver
-    $container = $this->theme->preview($container, array('collgsize' => $_SESSION['layout']));
-
-    // Invoke database, store word suggestions 
-    if ( isset($container["words"]) )
+    // Check errors
+    if ( isset($container["status"]) && $container["status"] == "0" )
     {
-      if ( trim($container["words"]) != "" )
-      {
-        $this->database->store_words($container["words"]);
-      }
-      unset($container["words"]);
-    }
-   
-    // Store session data
-    $_SESSION["data"]["theme"]	= $container;
-    
-    // Transfer records to file
-    //$this->printArray2File($container);      
+      // Transfer records to file
+      // $this->printArray2File($container["results"]);
 
+      // Create PPN list
+      $container["ppnlist"] = array_keys($container["results"]);
+
+      // Invoke theme format driver
+      $container = $this->theme->preview($container, array('collgsize' => $_SESSION['layout']));
+
+      // Invoke database, store word suggestions 
+      if ( isset($container["words"]) )
+      {
+        if ( trim($container["words"]) != "" )
+        {
+          $this->database->store_words($container["words"]);
+        }
+        unset($container["words"]);
+      }
+
+      // Store session data
+      $_SESSION["data"]["theme"]  = $container;
+
+      // Transfer records to file
+      //$this->printArray2File($container);      
+    }
     echo json_encode($container);
   }
 
@@ -1558,7 +1558,11 @@ class Vzg_controller extends CI_Controller
       {
         $container = $this->dosearch($type . ":" . $ppn . " format:" . $format,"0",false);
       }
-      if ( $type == "id" && isset($container["results"][$ppn]) ) $container = $container["results"][$ppn];
+      // Check errors
+      if ( isset($container["status"]) && $container["status"] == "0" )
+      {
+        if ( $type == "id" && isset($container["results"][$ppn]) ) $container = $container["results"][$ppn];
+      }
     }
     return ($container);
   }
@@ -1586,12 +1590,15 @@ class Vzg_controller extends CI_Controller
       // $Search = ( trim($Search) != "" )  ? "title:". trim($Search) : "";
       $container = $this->dosearch(trim($Search) . " ppnlink:" . $PPNLink,"0",false);
 
-      // Create PPN list
-      $container["ppnlist"] = array_keys($container["results"]);
+      // Check errors
+      if ( isset($container["status"]) && $container["status"] == "0" )
+      {
+        // Create PPN list
+        $container["ppnlist"] = array_keys($container["results"]);
 
-      // Invoke theme format driver
-      $container = $this->theme->includedview($container);
-    
+        // Invoke theme format driver
+        $container = $this->theme->includedview($container);
+      }
       echo json_encode($container);
     }
     catch (Exception $e) 
@@ -1839,10 +1846,6 @@ class Vzg_controller extends CI_Controller
     $param["modul"] = $this->module;
     $param["initsearch"] = $search;
     $param["initfacets"] = $facets;
-    if ( isset($_SESSION["library_name"]) && $_SESSION["library_name"] != "" )
-    {
-      $param["discoverybibs"] = $this->getdiscoverybibs();
-    }
 
     $WithFront = ( isset($_SESSION["config_general"]["general"]["frontpage"]) && $_SESSION["config_general"]["general"]["frontpage"] == 1 ) ? true : false;
 

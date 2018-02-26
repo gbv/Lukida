@@ -1,5 +1,0 @@
-User-agent: *
-Disallow: /systemassets/
-Disallow: /assets/
-Disallow: /ajax/
-Disallow: /nojavascript/

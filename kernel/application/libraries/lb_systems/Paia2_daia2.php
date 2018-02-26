@@ -1,5 +1,7 @@
 <?php
 
+//$this->CI->printArray2File($response);
+
 class Paia2_daia2 extends General
 {
   protected $CI;
@@ -51,7 +53,6 @@ class Paia2_daia2 extends General
   {
     // json-encoding
     $postData = stripslashes(json_encode($data_to_send));
-
     $http = curl_init();
     curl_setopt($http, CURLOPT_URL, $file);
     curl_setopt($http, CURLOPT_POST, true);
@@ -171,10 +172,11 @@ class Paia2_daia2 extends General
         $user['lastname'] = $user_response['name'];
       }
     }
-    $user['email'] = isset($user_response['email']) ? $user_response['email'] : "";
+    $user['email']   = isset($user_response['email']) ? $user_response['email'] : "";
     $user['address'] = isset($user_response['address']) ? $user_response['address'] : "";
     $user['expires'] = isset($user_response['expires']) ? $user_response['expires'] : "";
-    $user['status'] = isset($user_response['status']) ? $user_response['status'] : "";
+    $user['status']  = isset($user_response['status']) ? $user_response['status'] : "";
+    $user['type']    = isset($user_response['type'][0]) ? substr($user_response['type'][0],strripos($user_response['type'][0],"user-type")+10) : "";
     return $user;
   }
 
@@ -217,8 +219,8 @@ class Paia2_daia2 extends General
 
     if ( $Found ) $MsgText .= ( $MsgText != "" ) ? "<br />" . $this->CI->database->code2text("COLLECTABLEREMARK") : $this->CI->database->code2text("COLLECTABLEREMARK");
 
-    return array ( "blocked" => $Blocked, 
-                   "message" => ($MsgText != "") ? true : false, 
+    return array ( "blocked" => $Blocked,
+                   "message" => ($MsgText != "") ? true : false,
                    "messagetext" => $MsgText );
   }
 
@@ -303,21 +305,30 @@ class Paia2_daia2 extends General
     return ( $array_response );
   }
 
-  public function request($uri)
+  public function request($uri, $conditions=array())
   {
     if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] >= "1" )
     {
       return (array("status" => -3,
                     "error"  => ( isset($_SESSION["userstatus"]["message"]) && $_SESSION["userstatus"]["message"] == true && isset($_SESSION["userstatus"]["messagetext"])) ? $_SESSION["userstatus"]["messagetext"] : "Error" ));
     }
-
-    $doc = array("doc" => array(array("item" => $uri)));
+    if ( isset($conditions["desk"]) && $conditions["desk"] != "" )
+    {
+      $doc = array("doc" => array(array("item" => $uri, "confirm" => array("http://purl.org/ontology/paia#StorageCondition" => array($conditions["desk"])))));
+    }
+    elseif ( isset($conditions["feeusertypes"]) && isset($_SESSION["login"]["type"]) && in_array($_SESSION["login"]["type"],$conditions["feeusertypes"]) )
+    {
+      $doc = array("doc" => array(array("item" => $uri, "confirm" => array("http://purl.org/ontology/paia#FeeCondition" => array("http://purl.org/ontology/dso#Reservation")))));
+    }
+    else
+    {
+      $doc = array("doc" => array(array("item" => $uri)));
+    }
     $response = $this->postAsArray($this->paia.'/core/' . $_SESSION["userlogin"] .'/request', $doc);
-    //$this->CI->printArray2File($response);
     if ( isset($response["doc"][0]["error"]) )
     {
-      return (array("status" => -2,
-                    "error"  => $response["doc"][0]["error"]));
+      return (array("status"    => -2,
+                    "error"     => $response["doc"][0]["error"]));
     }
     return (array("status"    => (isset($response["doc"][0]["status"]))    ? $response["doc"][0]["status"] : "0",
                   "label"     => (isset($response["doc"][0]["label"]))     ? $response["doc"][0]["label"] : "",
@@ -335,7 +346,6 @@ class Paia2_daia2 extends General
 
     $doc = array("doc" => array(array("item" => $uri)));
     $response = $this->postAsArray($this->paia.'/core/' . $_SESSION["userlogin"] .'/cancel', $doc);
-    //$this->CI->printArray2File($response);
     if ( isset($response["doc"][0]["error"]) )
     {
       return (array("status" => -2,
@@ -383,6 +393,6 @@ class Paia2_daia2 extends General
     $this->login($_SESSION["userlogin"], $new);
 
     return (array("status" => 0));
-  }  
+  }
 }
 ?>

@@ -61,7 +61,7 @@ foreach ( $Tabs as $Tab )
   $Output .= "<div role='tabpanel' class='tab-pane fade";
   if ( $Action == $Tab ) $Output .= " in active";
   $Output .= "' id='" . $Tab . "'>";
-  $Output .= "<table class='table rowheight-reduced table-hover borderless small'><tbody>";
+  $Output .= "<table width='100%' class='table-responsive rowheight-reduced table-hover borderless small'><tbody>";
   $Output .= $this->LoadTab($Tab);
   $Output .= "</tbody></table>";
   $Output .= "</div>";
@@ -69,7 +69,7 @@ foreach ( $Tabs as $Tab )
 foreach ( $TabsOpt as $Tab )
 {
   $Output .= "<div role='tabpanel' class='tab-pane fade' id='" . $Tab . "'>";
-  $Output .= "<table class='table rowheight-reduced table-hover borderless small'><tbody>";
+  $Output .= "<table width='100%' class='table-responsive rowheight-reduced table-hover borderless small'><tbody>";
   $Output .= $this->LoadTab($Tab);
   $Output .= "</tbody></table>";
   $Output .= "</div>";

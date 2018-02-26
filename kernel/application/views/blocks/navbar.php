@@ -1,11 +1,8 @@
 <?php
 
 $FacetDataPool = (isset($_SESSION["config_" . $modul]["navbar"]["facet_datapool"]) 
- && $_SESSION["config_" . $modul]["navbar"]["facet_datapool"] == "1" ) 
-? true : false;
-$Assistant     = (isset($_SESSION["config_" . $modul]["navbar"]["assistant"]) 
- && $_SESSION["config_" . $modul]["navbar"]["assistant"] == "1" ) 
-? true : false;
+                     && $_SESSION["config_" . $modul]["navbar"]["facet_datapool"] == "1" ) 
+               ? true : false;
 
 // Logo Settings
 $logotitle = $_SESSION["config_general"]["general"]["title"];

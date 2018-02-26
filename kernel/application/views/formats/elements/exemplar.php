@@ -128,13 +128,16 @@ else
         }
       }
     }
-    $FinalDB = (isset($CatDB) && $CatDB != "") ? $CatDB : $DefaultDB;
+    if ( isset($CatDB) && $CatDB != "" )
+    {
+      $FinalDB = (isset($CatDB) && $CatDB != "") ? $CatDB : $DefaultDB;
 
-    $Interloan[] = array
-    (
-    "link"   => "http://gso.gbv.de/DB=" . $FinalDB . "/PPNSET?PPN=" . $this->PPN,
-    "label1" => $this->CI->database->code2text("INTERLOAN")
-    );
+      $Interloan[] = array
+      (
+      "link"   => "http://gso.gbv.de/DB=" . $FinalDB . "/PPNSET?PPN=" . $this->PPN,
+      "label1" => $this->CI->database->code2text("INTERLOAN")
+      );
+    }
   }
 
 }

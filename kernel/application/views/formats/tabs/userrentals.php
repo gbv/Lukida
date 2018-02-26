@@ -1,22 +1,30 @@
 <?php
 
+// Get settings
 $MaxRenewals = (isset($_SESSION["config_general"]["lbs"]["maxrenewals"]) && $_SESSION["config_general"]["lbs"]["maxrenewals"] != "" ) ? (integer) $_SESSION["config_general"]["lbs"]["maxrenewals"] : 0;
 $AllowAfterTime = (isset($_SESSION["config_general"]["lbs"]["allowrenewalaftertime"]) && $_SESSION["config_general"]["lbs"]["allowrenewalaftertime"] == "1" ) ? true : false;
-$Count  = 0;
 
-$Output .= "<tr>";
-$Output .= "<td class='tablemiddle' align='center'><button class='btn btn-tiny navbar-panel-color btn-check-all' onClick='javascript:$.mark_check(\"renew\");'>" . $this->CI->database->code2text("ALL") . "</button></td>";
-$Output .= "<td>" . $this->CI->database->code2text("TITLE")    . "</td>";
-$Output .= "<td align='center'>" . $this->CI->database->code2text("RETURN")   . "</td>";
-$Output .= "<td align='center'>" . $this->CI->database->code2text("REMINDERS") . "</td>";
-$Output .= "<td align='center'>" . $this->CI->database->code2text("RENEWALS") . "</td>";
-$Output .= "</tr>";
-
+// Filter and sort items
+$Items = array();
 foreach ( $_SESSION["items"] as $Item )
 {
-  // Only show lend media
-  if ( $Item["status"] != "3" ) continue;
+  if ( $Item["status"] == "3" && isset($Item["endtime"]) && $Item["endtime"] != "" ) $Items[] = $Item;
+}
+usort($Items, function ($a, $b) { return $a['endtime'] <=> $b['endtime']; });
 
+// Print header
+$Output .= "<tr>";
+$Output .= "<td ><button class='btn btn-tiny navbar-panel-color btn-check-all' onClick='javascript:$.mark_check(\"renew\");'>" . $this->CI->database->code2text("ALL") . "</button></td>";
+$Output .= "<th>" . $this->CI->database->code2text("TITLE")     . "</th>";
+$Output .= "<th>" . $this->CI->database->code2text("RETURN")    . "</th>";
+$Output .= "<th>" . $this->CI->database->code2text("REMINDERS") . "</th>";
+$Output .= "<th>" . $this->CI->database->code2text("RENEWALS")  . "</th>";
+$Output .= "</tr>";
+
+// Print data
+$Count  = 0;
+foreach ( $Items as $Item )
+{
   // Preparation
   $Tmp    = strtotime($Item["endtime"]);
   $InTime = ( date("Ymd",$Tmp) > date("Ymd") ) ? true : false;
@@ -26,7 +34,7 @@ foreach ( $_SESSION["items"] as $Item )
   $Output .= "<tr>";
 
   // Checkbox
-  $Output .= "<td class='tablemiddle' align='center' id='checkbox_renew_" . $Bar . "'>";
+  $Output .= "<td id='checkbox_renew_" . $Bar . "'>";
   if ( ( ( !$InTime && $AllowAfterTime) or $InTime ) && ! $Queue && ( ( $Item["renewals"] < $MaxRenewals && $MaxRenewals > 0) || $MaxRenewals == 0 ) )
   {
     $Count++;
@@ -35,18 +43,18 @@ foreach ( $_SESSION["items"] as $Item )
   $Output .= "</td>";
 
   // Titel
-  $Output .= "<td class='tablemiddle'>" . $Item["about"] . "</td>";
+  $Output .= "<td>" . $Item["about"] . "</td>";
   
   // Return
-  $Output .= "<td class='tablemiddle' align='center' id='return_renew_" . $Bar . "'>";
+  $Output .= "<td id='return_renew_" . $Bar . "'>";
   $Output .= ( $InTime ) ? date("d.m.Y",$Tmp) : "<b><font color='red'>" . date("d.m.Y",$Tmp) . "</font></b>";
   $Output .= "</td>";
 
   // Reminder
-  $Output .= "<td class='tablemiddle' align='center'>" . $Item["reminder"] . "</td>";
+  $Output .= "<td>" . $Item["reminder"] . "</td>";
 
   // Renewals
-  $Output .= "<td class='tablemiddle' align='center'><span id='renewals_renew_" . $Bar . "'>";
+  $Output .= "<td><span id='renewals_renew_" . $Bar . "'>";
   if ( $Queue )
   {
     $Output .= $this->CI->database->code2text("RESERVED");
@@ -61,6 +69,6 @@ foreach ( $_SESSION["items"] as $Item )
   $Output .= "</tr>";
 }
 
-if ( $Count > 0 ) $Output .= "<tr><td class='tablemiddle' align='center'><button onClick='$.renew()' class='btn fullview-button-color btn-renew'>" . $this->CI->database->code2text("RENEW") . "</button></td><td></td><td></td><td></td><td></td></tr>";
+if ( $Count > 0 ) $Output .= "<tr><td ><button onClick='$.renew()' class='btn fullview-button-color btn-renew'>" . $this->CI->database->code2text("RENEW") . "</button></td><td></td><td></td><td></td><td></td></tr>";
 
 ?>

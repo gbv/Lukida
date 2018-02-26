@@ -770,7 +770,7 @@ class General
       $OriginalYear = (substr($this->contents["008"],6,1) == "r") ? substr($this->contents["008"],11,4) : "";
     }
     return $OriginalYear;
-}
+  }
 
   protected function SetCover($type = "preview")
   {

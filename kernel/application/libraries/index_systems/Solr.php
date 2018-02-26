@@ -556,18 +556,31 @@ class Solr extends General
   private function solr_after($result,$package)
   {
     // fill container
-    $container = array
-    (
-      "results" => isset($result["response"]["docs"]) ? $result["response"]["docs"] : array(),
-      "qtime"   => isset($result["responseHeader"]["QTime"]) ? str_replace(".", ",",round($result["responseHeader"]["QTime"] / 1000,2)) : "",
-      "hits"    => isset($result["response"]["numFound"]) ? $result["response"]["numFound"] : "0",
-      "hitspack"=> count($result["response"]["docs"]),
-      "facets"  => isset($result["facet_counts"]["facet_fields"]) ? $result["facet_counts"]["facet_fields"] : "",
-      "stats"   => isset($result["stats"]["stats_fields"]) ? $result["stats"]["stats_fields"] : "",
-      "start"   => ($package != 0 ) ? ($package-1)*50 : 0,
-      "query"   => isset($result["query"]) ? htmlentities($result["query"]) : "",
-      "spell"   => isset($result["spellcheck"]["suggestions"]) ? $result["spellcheck"]["suggestions"] : ""
-    );
+    if ( isset($result["error"]) )
+    {
+      $container = array
+      (
+        "status"  => (isset($result["error"]["code"]))           ? $result["error"]["code"]           : "0",
+        "message" => (isset($result["error"]["msg"]))            ? $result["error"]["msg"]            : "",
+        "time"    => (isset($result["responseHeader"]["QTime"])) ? $result["responseHeader"]["QTime"] : "0"
+      );
+    }
+    else
+    {
+      $container = array
+      (
+        "status"  => (isset($result["error"]["code"]))              ? $result["error"]["code"]                : "0",
+        "results" => isset($result["response"]["docs"])             ? $result["response"]["docs"]             : array(),
+        "qtime"   => isset($result["responseHeader"]["QTime"])      ? str_replace(".", ",",round($result["responseHeader"]["QTime"] / 1000,2)) : "",
+        "hits"    => isset($result["response"]["numFound"])         ? $result["response"]["numFound"]         : "0",
+        "hitspack"=> isset($result["response"]["docs"])             ? count($result["response"]["docs"])          : "0",
+        "facets"  => isset($result["facet_counts"]["facet_fields"]) ? $result["facet_counts"]["facet_fields"] : "",
+        "stats"   => isset($result["stats"]["stats_fields"])        ? $result["stats"]["stats_fields"]        : "",
+        "start"   => ($package != 0 )                               ? ($package-1)*50                         : 0,
+        "query"   => isset($result["query"])                        ? htmlentities($result["query"])          : "",
+        "spell"   => isset($result["spellcheck"]["suggestions"])    ? $result["spellcheck"]["suggestions"]    : ""
+      );
+    }
 
     // return container
     return $container;

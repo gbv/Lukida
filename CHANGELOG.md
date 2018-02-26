@@ -1,4 +1,67 @@
 # Changelog
+**13.02.2018**
+* Updates
+  * Platform 1.3.5
+
+**12.02.2018**
+* General
+  * Robots.txt removed - enables Bots
+
+**09.02.2018**
+* User module
+  * Date columns width enhanced
+  
+**05.02.2018**
+* Full view
+  * Google Cover & Preview enhanced
+  * Interlibrary loan button only shown when loan is possible
+
+* General
+  * Robots.txt removed
+
+**02.02.2018**
+* Index system
+  * Controlled failure reaction
+
+**30.01.2018**
+* User module
+  * All views updated
+    * Heading
+    * Sorting (oldest item at top)
+    * top aligmment per row
+    * amount column wider
+
+**26.01.2018**
+* Updates
+  * Code Igniter 3.1.7
+
+**22.01.2018**
+* Updates
+  * jQuery 3.3.1
+  * Moment 2.20.1
+  * DaterangePicker 2.1.30 
+  * NoUISlider 11.0.3
+
+**18.01.2018**
+* Library System
+  * Cancelation of reservertions 
+
+**09.01.2018**
+* Library System
+  * Fee Condition support for PAIA2
+
+**12.12.2017**
+* Updates
+  * Momemt 2.19.4
+  * Daterangepicker 2.1.26
+
+**29.11.2017**
+* MailOrder
+  * Performance improved
+
+**23.11.2017**
+* Index System
+  * Counter Selection support for PAIA2
 
 **15.11.2017**
 * Fullview
