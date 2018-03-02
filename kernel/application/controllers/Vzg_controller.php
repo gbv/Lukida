@@ -700,12 +700,19 @@ class Vzg_controller extends CI_Controller
     $Mess .= "</table>";
 
     // Body user part
+    $UserElements = ( isset($_SESSION["config_discover"]["mailorderview"]["usermailelements"]) 
+                         && $_SESSION["config_discover"]["mailorderview"]["usermailelements"] != "" ) 
+               ? strtolower($_SESSION["config_discover"]["mailorderview"]["usermailelements"]) : "";
+ 
     $Mess .= "<h3>Benutzer</h3>"; 
     $Mess .= "<table>";
     foreach ( $_SESSION["login"] as $key => $value )
     {
-      if ( $value == "" )  continue;
-      if ( !in_array($key,array("username","lastname","firstname")) ) continue;
+      if ( $value == "" || $key == "type" )  continue;
+      if ( $UserElements != "all" )
+      {
+        if ( !in_array($key,explode(",",$UserElements)) ) continue;
+      }
       $Mess .= "<tr><td>" . $this->database->code2text($key) . "</td><td>" . $value . "</td></tr>";
     }
     $Mess .= "</table>";

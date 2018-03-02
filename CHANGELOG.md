@@ -1,4 +1,9 @@
 # Changelog
+
+**02.03.2018**
+* MailOrder
+  * Added switch for userfields
+
 **26.02.2018**
 * Search
   * Added empty search
