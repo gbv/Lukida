@@ -94,18 +94,20 @@ In order to get it running you need to customize your library (.../lukida/librar
         mailfrom=
         ```
 
-   - Enter the remembered URL 
+   - Enter the remembered URL in den domains-sections
+        
+        ```
+        [domains]
+        
+        ; Develpment URLs 
+        devurl=lukida.local
 
-        if development or test mode (without protocol)
-        ```
-        ; Multiple Develpment URLs (separated by , without protocol)
-        devurl=lukida.domain.tld
-        ```
+        ; Test URLs
+        testurl=lukida.testdomain.tld,https://lukida.test2.tld
 
-        if production mode (with protocol)
-        ```
-        ; One Production URL (with protocol)
-        produrl=http://lukida.domain.tld
+        ; Production URLs
+        produrl=https://lukida.domain.tld
+
         ```
 
    - Enter the remembered database connection

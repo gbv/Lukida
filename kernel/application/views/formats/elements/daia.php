@@ -7,22 +7,31 @@ if ( ! isset($_SESSION["interfaces"]["lbs"]) || ! $_SESSION["interfaces"]["lbs"]
 
 // Local storage (ILN)
 $DAIA = $this->CI->GetLBS($this->PPN);   
-if ( isset($DAIA["message"][0]["errno"]) )
+if ( isset($DAIA["document"]) && empty($DAIA["document"]) )
 {
   // Fehler passiert zunächst nur ausgeben
   if ( isset($this->medium["parents"][0]) )
   {
     $DAIA = $this->CI->GetLBS($this->medium["parents"][0]);
+    $Output   .= "<tr><td class='tabcell' style='color:red'>Parent PPN</td><td class='tabcell' style='color:red'>" . $this->medium["parents"][0] . "</td></tr>";
   }
 }
 
 if (!is_array($DAIA)) return;
 
+// $this->CI->printArray2Screen($DAIA["document"]);
 // $this->CI->printArray2Screen($DAIA);
 
 // Part Lukida Driver & Host
 $Driver = (isset($_SESSION["config_general"]["lbs"]["type"]) && $_SESSION["config_general"]["lbs"]["type"] != "" ) ? $_SESSION["config_general"]["lbs"]["type"] : "";
-$Host = (isset($_SESSION["config_general"]["lbs"]["daia"]) && $_SESSION["config_general"]["lbs"]["daia"] != "" ) ? $_SESSION["config_general"]["lbs"]["daia"] : "";
+if ( strtolower(MODE) == "production" )
+{
+  $Host = (isset($_SESSION["config_general"]["lbsprod"]["daia"]) && $_SESSION["config_general"]["lbsprod"]["daia"] != "" ) ? $_SESSION["config_general"]["lbsprod"]["daia"] : "";
+}
+else
+{
+  $Host = (isset($_SESSION["config_general"]["lbsdevtest"]["daia"]) && $_SESSION["config_general"]["lbsdevtest"]["daia"] != "" ) ? $_SESSION["config_general"]["lbsdevtest"]["daia"] : "";
+}
 $Output .= "<tr><td class='tabcell'>driver <i class='fa fa-arrow-right' aria-hidden='true'></i> host</td><td class='tabcell'><font color='red'>" . $Driver . " <i class='fa fa-arrow-right' aria-hidden='true'></i> " . $Host . "</font></td></tr>";
 
 // Part Institution

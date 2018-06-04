@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 $FacetDataPool = (isset($_SESSION["config_" . $modul]["navbar"]["facet_datapool"]) 
                      && $_SESSION["config_" . $modul]["navbar"]["facet_datapool"] == "1" ) 
@@ -19,7 +19,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
   <div class="container-fluid">
 
     <div class="navbar-header">
-      <a class="navbar-brand" href="<?php echo base_url(); ?>" data-tooltip="tooltip" data-placement="buttom" title="<?php echo $logotitle ?>" data-container="body"> <span class="hidden"> Start </span></a>
+      <a class="navbar-brand" href="javascript:$.clear_search()" data-tooltip="tooltip" data-placement="buttom" title="<?php echo $logotitle ?>" data-container="body"> <span class="hidden"> Start </span></a>
     </div>
 
     <div class="navbar-collapse collapse searchbar">
@@ -71,6 +71,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
         <div class="btn-group">
           <button type="button" onClick="javascript:$.open_favors()" class="favorites btn navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Merkliste" data-container="body">
             <i class="fa fa-star" title="Merkliste"></i>
+            <span class='countFavors' data-toggle="tooltip" data-placement="bottom" data-title="Einträge Merkliste" data-trigger="hover manual"> </span>
             <span class="sr-only">Merkliste</span>
           </button>
         </div>
@@ -146,7 +147,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
     <div class="row">
       <div class="col-xs-3">
         <div class="navbar-header">
-          <a class="navbar-brand" href="<?php echo base_url(); ?>" data-tooltip="tooltip" data-placement="buttom" title="<?php echo $logotitle ?>" data-container="body"> <span class="hidden"> Start </span> </a>
+          <a class="navbar-brand" href="javascript:$.clear_search()" data-tooltip="tooltip" data-placement="buttom" title="<?php echo $logotitle ?>" data-container="body"> <span class="hidden"> Start </span> </a>
         </div>
       </div>
       <div class="col-xs-9">
@@ -186,7 +187,8 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
           <!-- Favorites -->
           <div class="btn-group pull-right left-padding">
             <button type="button" onClick="javascript:$.open_favors()" class="favorites btn navbar-button-color dropdown-toggle" data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Merkliste" data-container="body">
-              <i class="fa fa-star"></i>
+              <i class="fa fa-star" title="Merkliste"></i>
+              <span class='countFavors' data-toggle="tooltip" data-placement="bottom" data-title="Einträge Merkliste" data-trigger="hover manual"> </span>
               <span class="sr-only">Merkliste</span>
             </button>
           </div>

@@ -607,14 +607,14 @@ class Mysql extends General
     return (0);
   }
 
-  public function store_logs($header, $body="", $userid="", $ppn="")
+  public function store_logs($header, $body="", $userid="", $ppn="", $title="", $username="", $serialdata="")
   {      
     $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
     if ( $header == "" || $iln == "" )  return (-1);
 
     $User = ($userid != "") ? md5($userid) : "";
     $this->CI->db->reset_query();
-    $this->CI->db->query("replace into logs_library (iln, userid, ppn, header, body, created) values ('" . $iln . "', '" . $User . "','" . $ppn . "', '" . $this->CI->db->escape_str($header) . "', '" . $this->CI->db->escape_str($body) . "', now())");
+    $this->CI->db->query("replace into logs_library (iln, userid, username, ppn, title, serialdata, header, body, created) values ('" . $iln . "', '" . $User . "', '" . $username . "','" . $ppn . "', '" .  $this->CI->db->escape_str($title) . "', '" . $serialdata . "', '" . $this->CI->db->escape_str($header) . "', '" . $this->CI->db->escape_str($body) . "', now())");
   
     return 0;
   }
@@ -633,8 +633,11 @@ class Mysql extends General
     $this->CI->db->select('id');
     $this->CI->db->select('DATE_FORMAT(created, "%d.%m.%Y %H:%i:%s") as Zeitpunkt');    
     $this->CI->db->select('header as Bezeichnung');    
-    $this->CI->db->select('body as Details');
+    $this->CI->db->select('username as Username');
     $this->CI->db->select('ppn as PPN');
+    $this->CI->db->select('title as Titel');
+    $this->CI->db->select('serialdata as Daten');
+    $this->CI->db->select('body as Details');
     $this->CI->db->from('logs_library');
     $this->CI->db->where('iln',$iln);
     $this->CI->db->where('created >=',$Start);
@@ -646,8 +649,97 @@ class Mysql extends General
     $Data = array();
     foreach ($results->result_array() as $row)
     {
-      $Data[] = $row;
+      $Satz   = $row;
+      $Daten  = isset($Satz["Daten"]) ? $Satz["Daten"] : "";
+      unset($Satz["Daten"]);
+      $Tmp    = unserialize($Daten);
+      $Satz["Theke"] = (isset($Tmp["mailtoname"]) && $Tmp["mailtoname"] != "" ) ? $Tmp["mailtoname"] : "";
+      $Satz["Band"]  = (isset($Tmp["volume"]) && $Tmp["volume"] != "" ) ? $Tmp["volume"] : "";
+      $Data[] = $Satz;
     }
     return (array("data" => $Data, "status" => 0));
   }
+
+  public function get_log_data_user($User)
+  {
+    $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
+    if ( $User == "" || $iln == "" )  return (-1);
+
+    $Start  = date("Y-m-d", strtotime('-1 month'));;
+    // $End    = date("Y-m-d");
+
+    $this->CI->db->reset_query();
+    $this->CI->db->select('id');
+    $this->CI->db->select('DATE_FORMAT(created, "%d.%m.%Y %H:%i:%s") as Zeitpunkt');    
+    $this->CI->db->select('header as Bezeichnung');    
+    $this->CI->db->select('body as Details');
+    $this->CI->db->select('ppn as PPN');
+    $this->CI->db->select('title as Titel');
+    $this->CI->db->select('serialdata as Daten');
+    $this->CI->db->select('username as Username');
+    $this->CI->db->from('logs_library');
+    $this->CI->db->where('iln',$iln);
+    $this->CI->db->where('userid',md5($User));
+    $this->CI->db->where('created >=',$Start);
+    // $this->CI->db->where('created <=',$End);
+    $this->CI->db->order_by('created desc');
+    $results = $this->CI->db->get();
+    $Data = array();
+    foreach ($results->result_array() as $row)
+    {
+      $Data[] = $row;
+    }
+    $_SESSION["usermailorders"]  = $Data;
+  }
+
+  private function CockpitExec($StatQuery)
+  {
+    return number_format($this->CI->db->query($StatQuery)->row()->anzahl,0,",",".");
+  }
+
+  private function CockpitYear($Year, $Query)
+  {
+    $Data     = array();
+    $Data[$Year-2] = $this->CockpitExec(str_replace("{year}", ($Year-2), $Query));
+    $Data[$Year-1] = $this->CockpitExec(str_replace("{year}", ($Year-1), $Query));
+    $Data[$Year]   = $this->CockpitExec(str_replace("{year}", ($Year),   $Query));
+    return $Data;
+  }
+
+  public function get_cockpit_data($params=array())
+  {
+    $Year   = ( isset($params["year"]) && $params["year"] != "" ) ? $params["year"] : date("Y");
+
+    $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
+    if ( $iln == "" )  return (-1);
+
+    $Data = array();
+    $Data[] = array("label" =>"Suchen", 
+                    "icon"  =>"fa fa-search fa-5x",
+                    "values"=>$this->CockpitYear($Year,"select sum(hour_00+hour_01+hour_02+hour_03+hour_04+hour_05+hour_06+hour_07+hour_08+hour_09+hour_10+hour_11+hour_12+hour_13+hour_14+hour_15+hour_16+hour_17+hour_18+hour_19+hour_20+hour_21+hour_22+hour_23) as anzahl from stats_day_library where iln=" . $iln . "  and day>='{year}-01-01' and day<='{year}-12-31' and area = 'Search'"));
+    $Data[] = array("label" =>"Große Kachel", 
+                    "icon"  =>"fa fa-square fa-5x",
+                    "values"=>$this->CockpitYear($Year,"select sum(hour_00+hour_01+hour_02+hour_03+hour_04+hour_05+hour_06+hour_07+hour_08+hour_09+hour_10+hour_11+hour_12+hour_13+hour_14+hour_15+hour_16+hour_17+hour_18+hour_19+hour_20+hour_21+hour_22+hour_23) as anzahl from stats_day_library where iln=" . $iln . "  and day>='{year}-01-01' and day<='{year}-12-31' and area = 'FullView'"));
+    $Data[] = array("label" =>"Benutzerkonto", 
+                    "icon"  =>"fa fa-user fa-5x",
+                    "values"=>$this->CockpitYear($Year,"select sum(hour_00+hour_01+hour_02+hour_03+hour_04+hour_05+hour_06+hour_07+hour_08+hour_09+hour_10+hour_11+hour_12+hour_13+hour_14+hour_15+hour_16+hour_17+hour_18+hour_19+hour_20+hour_21+hour_22+hour_23) as anzahl from stats_day_library where iln=" . $iln . "  and day>='{year}-01-01' and day<='{year}-12-31' and area = 'UserView'"));
+    $Data[] = array("label" =>"Exporte", 
+                    "icon"  =>"fa fa-share-square fa-5x",
+                    "values"=>$this->CockpitYear($Year,"select sum(hour_00+hour_01+hour_02+hour_03+hour_04+hour_05+hour_06+hour_07+hour_08+hour_09+hour_10+hour_11+hour_12+hour_13+hour_14+hour_15+hour_16+hour_17+hour_18+hour_19+hour_20+hour_21+hour_22+hour_23) as anzahl from stats_day_library where iln=" . $iln . "  and day>='{year}-01-01' and day<='{year}-12-31' and area like 'Export_%'"));
+    $Data[] = array("label" =>"Bildschirm-Auflösungen", 
+                    "icon"  =>"fa fa-desktop fa-5x",
+                    "values"=>$this->CockpitYear($Year,"select distinct count(*) as anzahl from stats_year_library where iln=" . $iln . " and year={year} and area like 'Screen_%'"));
+    $Data[] = array("label" =>"Browser und Versionen", 
+                    "icon"  =>"fa fa-fire fa-5x",
+                    "values"=>$this->CockpitYear($Year,"select distinct count(*) as anzahl from stats_year_library where iln=" . $iln . " and year={year} and area like 'Browser_%'"));
+    $Data[] = array("label" =>"Betriebssysteme und Versionen", 
+                    "icon"  =>"fa fa-laptop fa-5x",
+                    "values"=>$this->CockpitYear($Year,"select distinct count(*) as anzahl from stats_year_library where iln=" . $iln . " and year={year} and area like 'OS%'"));
+    $Data[] = array("label" =>"Produkte und Version", 
+                    "icon"  =>"fa fa-mobile fa-5x",
+                    "values"=>$this->CockpitYear($Year,"select distinct count(*) as anzahl from stats_year_library where iln=" . $iln . " and year={year} and area like 'Product%'"));
+     //$query = $this->CI->db->get_compiled_select('logs_library', false );
+    return (array("data" => $Data, "status" => 0));
+  }
+
 }

@@ -2,23 +2,25 @@
 
 class General
 {
-  protected $catalogues        = array();
-  protected $collgsize         = "";
-  protected $contents          = array();
-  protected $cover             = "";
-  protected $exemplar          = array();
-  protected $format            = "";
-  protected $isbn              = "";
-  protected $leader            = "";
-  protected $marc              = "";
-  protected $medium            = array();
-  protected $online            = "";
-  protected $parents           = array();
-  protected $PPN               = "";
-  protected $ppnlink           = "";
-  protected $pretty            = array();
-  protected $words             = "";
-  protected $proofofpossession = array();
+  protected $catalogues         = array();
+  protected $collgsize          = "";
+  protected $collection         = array();
+  protected $collection_details = array();
+  protected $contents           = array();
+  protected $cover              = "";
+  protected $exemplar           = array();
+  protected $format             = "";
+  protected $isbn               = "";
+  protected $leader             = "";
+  protected $marc               = "";
+  protected $medium             = array();
+  protected $online             = "";
+  protected $parents            = array();
+  protected $PPN                = "";
+  protected $ppnlink            = "";
+  protected $pretty             = array();
+  protected $words              = "";
+  protected $proofofpossession  = array();
 
   protected function SessionExits()
   {
@@ -354,22 +356,11 @@ class General
       $pretty["title"]            = $this->PrettyFields(array("245" => array("a" => " : ",
                                                                              "b" => " : ")));
   
-      $pretty["titlesecond"]      = $this->PrettyFields(array("245" => array("c" => " : "),
-                                                              "260" => array("c" => " (~)")));
+      $pretty["titlesecond"]      = $this->PrettyFields(array("245" => array("c" => " : ")));
   
       $pretty["author"]           = $this->GetAuthors();
   
-      $pretty["pv_publisher"]     = $this->PrettyFields(array("250" => array("a" => "~."),
-                                                              "260" => array("a" => " - ",
-                                                                             "b" => " : ",
-                                                                             "c" => ", ")));
-  
-      $pretty["pv_publishershort"]= $this->PrettyFields(array("250" => array("a" => "~."),
-                                                              "260" => array("c" => ", ")));
-      if ( $pretty["pv_publishershort"] == "" )
-      {
-        $pretty["pv_publishershort"]= $this->PrettyFields(array("952" => array("j" => "~.")));
-      }
+      $pretty["pv_publisher"]     = $this->GetPublisher();
   
       $pretty["pv_pubarticle"]    = $this->PrettyFields(array("773" => array("i" => " ",
                                                                              "t" => " ",
@@ -392,7 +383,11 @@ class General
 
     if ( $type == "fullview" )
     {
-      $pretty["publisher"]           = $this->GetArray(array("260" => array("a","b","c")));
+      $pretty["publisher"]           = $this->GetArray(array("264" => array("a","b","c")));
+      if ( empty($pretty["publisher"]) )
+      {
+        $pretty["publisher"]           = $this->GetArray(array("260" => array("a","b","c")));
+      }
                                      
       $pretty["publisherarticle"]    = $this->GetArray(array("773" => array("i","t","d","g","q","w")));
 
@@ -432,7 +427,8 @@ class General
 
       $pretty["othereditions"]       = $this->GetCompleteArray(array("780" => array("i","t","w")));
 
-      $pretty["remarks"]             = $this->GetCompleteArray(array("770" => array("i","t","w"),
+      $pretty["remarks"]             = $this->GetCompleteArray(array("772" => array("i","t","w"),
+                                                                     "770" => array("i","t","w"),
                                                                      "785" => array("i","t","w") ));
 
       $pretty["seealso"]             = $this->GetCompleteArray(array("787" => array("i","t","w")));
@@ -452,10 +448,12 @@ class General
       $pretty["subject"]             = $this->GetSimpleArray(array("650" => array("a","z","v"),
                                                                    "653" => array("a"),
                                                                    "689" => array("a")));
-                                                                   
-      $pretty["in830"]               = $this->GetArray(array("830" => array("a","b","p","v","w")));
 
-      $pretty["in800"]               = $this->GetArray(array("800" => array("a","t","v","w")));
+      $pretty["genre"]               = $this->GetSimpleArray(array("655" => array("a")));
+                                                                   
+      $pretty["in830"]               = $this->GetUplink("830");
+      
+      $pretty["in800"]               = $this->GetUplink("800");
 
       $pretty["additionalinfo"]      = $this->GetArray(array("856" => array("u","3")));
     
@@ -492,6 +490,17 @@ class General
     }
 
     return $pretty;
+  }
+
+  protected function GetUplink($BaseField)
+  {
+    $Data = $this->GetArray(array($BaseField => array("a","b","p","v","w")));
+    if ( !isset($Data[0]["a"]) )
+    {
+      $Tmp = $this->GetSimpleArray(array("490" => array("a")));
+      if ( count($Tmp) > 0 )  $Data[0]["a"] = $Tmp[0];
+    }
+    return ( $Data );
   }
 
   protected function PrettyFields($Filter)
@@ -569,6 +578,26 @@ class General
     return $Authors;
   }
 
+  protected function GetPublisher()
+  {
+    $Publisher = $this->PrettyFields(array("250" => array("a" => "~."))) . " ";
+
+    if ( isset($this->contents["264"]) )
+    {
+      $Publisher .= $this->PrettyFields(array("264" => array("c" => ", ")));
+    }
+    else
+    {
+      $Publisher .= $this->PrettyFields(array("260" => array("c" => ", ")));
+    }
+
+    if ( trim($Publisher) == "" )
+    {
+      $Publisher = $this->PrettyFields(array("952" => array("j" => "~.")));
+    }
+    return trim($Publisher);
+  }
+
   protected function GetAssociates()
   {
     $Associates = array();
@@ -602,6 +631,7 @@ class General
               {
                 if ( (string)$Key == (string)$Sub )
                 {
+                  if ( $Key == "w" && substr($Value,0,8) != "(DE-601)" )  continue;
                   $Tmp[$Sub] = htmlspecialchars($Value);
                 }
               }
@@ -800,7 +830,7 @@ class General
 
   protected function Link($Typ, $Value, $Text="")
   {
-    if ( in_array($Typ,array("id","author","class","series","foreignid","publisher","subject","year")) )
+    if ( in_array($Typ,array("id","author","class","foreignid","genre","publisher","series","subject","year")) )
     {
       // Internal links
       return "<a href='javascript:$.link_search(\"" . $Typ . "\",\"" . $Value . "\")'>" . (($Text=="") ? $Value : $Text). " <span class='fa fa-link'></span></a>";
@@ -815,4 +845,313 @@ class General
         "<a href='" . $Value . "' target='_blank'>" . $Typ . $Host . " <span class='fa fa-external-link'></span></a>";
     }
   }
+
+  public function GetMARC($Contents, $Field, $OnlyFirstRecord = false, $OnlyW601 = false)
+  {
+    // Return first MARC fields as string
+    if ( $Field >= "000" && $Field <= "009")   return ( array_key_exists($Field, $Contents) ) ? $Contents[$Field] : "-";
+
+    // Return remaining MARC fields as array
+    $Records = array();
+    if ( ! array_key_exists($Field, $Contents) )  
+    {
+      foreach ( $Contents[$Field] as $Rec )
+      {
+        $Record = array();
+        foreach ( $Rec as $Subrec )
+        {
+          if ( $OnlyW601 && isset($Subrec["w"]) && substr($Subrec["w"],0,8) != "(DE-601)" ) continue;
+          foreach ( $Subrec as $Key => $Value )
+          {
+            $Record[$Key] = ( $OnlyW601 && $Key == "w" && substr($Value,0,8) == "(DE-601)" ) ? substr($Value,8) : $Value;
+          }
+        }
+        if ( $OnlyFirstRecord ) return $Record;
+        $Records[] = $Record;
+      }
+    }
+    return $Records;
+  }
+
+  public function GetMARCSubfield($Contents, $Field, $Subfield )
+  {
+    $Data = array();
+    if ( array_key_exists($Field, $Contents) )
+    {
+      foreach ( $Contents[$Field] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == $Subfield )
+            {
+              $Data[] = $Value;
+            }
+          }
+        }
+      }
+    }
+    return ($Data);
+  }
+
+  public function GetMARCSubfieldFirstString($Contents, $Field, $Subfield )
+  {
+    if ( array_key_exists($Field, $Contents) )
+    {
+      foreach ( $Contents[$Field] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == $Subfield )
+            {
+              return $Value;
+            }
+          }
+        }
+      }
+    }
+    return "";
+  }
+
+  public function GetRelatedPubs($T, $PPN, $Modus)
+  {
+    // Modus
+    // 1: Mehrbändige Werke
+    // 2: Schriftenreihen
+  
+    $RelatedPubs = array();
+    $PPNLink = $this->CI->internal_search("ppnlink",$PPN);
+    if ( ! isset($PPNLink["results"]) ) return ($RelatedPubs);
+  
+    //$this->printArray2Screen($PPNLink);
+  
+    $PPNStg = json_encode(array_keys($PPNLink["results"]));
+  
+    foreach ( $PPNLink["results"] as $One )
+    {
+      $this->contents = $One["contents"];
+      $Pretty = $T->SetContents("preview");
+  
+      $Title = "";
+      if ( $Modus == 1 )
+      {
+        $Title = $this->Get245npa($One["contents"]);
+      }
+      else
+      {
+        $Title = $this->Get245an($One["contents"]);
+      }
+  
+      $Publisher = "";
+      $Publisher  = $this->Get250a($One["contents"]);
+      $Publisher  = ($Publisher != "" ) ? $Publisher . ", " . $this->Get260c($One["contents"]) :  $this->Get260c($One["contents"]);
+  
+      $RelatedPubs[$One["id"]] = array
+      (
+      "format"    => $One["format"],
+      "cover"     => $One["cover"],
+      "title"     => $Title,
+      "publisher" => $Publisher
+      );
+    }
+    return ($RelatedPubs);
+  }
+  
+  public function GetIncludedPubs($T, $PPN)
+  {
+    // Zeitschriften mit Einzelheften
+    $PPNLink = $this->CI->internal_search("ppnlink",$PPN, "Book,Journal");
+    $PPNStg   = json_encode(array_keys($PPNLink["results"]));
+    $Journals = array();
+    $Counter  = 0;
+    foreach ( $PPNLink["results"] as $One )
+    {
+      $this->contents = $One["contents"];
+      $Pretty = $T->SetContents("preview");
+  
+      if ( substr($One["leader"],7,1) == "m" || substr($One["leader"],7,1) == "d" )
+      {
+        $Counter++;
+        $Title = $this->Get245ab($One["contents"]);
+        if ( $Title == "" )  $Title = $this->Get490av($One["contents"]);
+        if ( $Title == "" )  $Title = "Nr." . $Counter;
+  
+        $Journals[$One["id"]] = array
+        (
+        "format"    => $One["format"],
+        "cover"     => $One["cover"],
+        "title"     => $Title,
+        "publisher" => $this->Get952j($One["contents"])
+        );
+      }
+    }
+  
+    // Artikel
+    $PPNLink = $this->CI->internal_search("ppnlink",$PPN, "Article");
+    $PPNStg   = json_encode(array_keys($PPNLink["results"]));
+    $Articles = array();
+    $Counter  = 0;
+    foreach ( $PPNLink["results"] as $One )
+    {
+      $this->contents = $One["contents"];
+      $Pretty = $T->SetContents("preview");
+  
+      if ( substr($One["leader"],7,1) == "a" )
+      {
+        $Articles[$One["id"]] = array
+        (
+        "format"    => $One["format"],
+        "cover"     => $One["cover"],
+        "title"     => $this->Get245ab($One["contents"]),
+        "publisher" => $this->Get260c($One["contents"])
+        );
+      }
+    }
+    return (array("articles" => $Articles, "journals" => $Journals ));
+  }  
+
+  private function Get245ab($Contents)
+  {
+    $Titel = "";
+    if ( array_key_exists("245", $Contents) )
+    {
+      foreach ( $Contents["245"] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == "a" )    $Titel .= ($Titel != "" ) ? " | " . $Value : $Value;
+            if ( $Key == "b" )    $Titel .= ($Titel != "" ) ? " : " . $Value : $Value;
+          }
+        }
+      }
+    }
+    return ($Titel);
+  }
+  
+  private function Get245an($Contents)
+  {
+    $Titel = "";
+    if ( array_key_exists("245", $Contents) )
+    {
+      foreach ( $Contents["245"] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == "a" )    $Titel .= ($Titel != "" ) ? " | " . $Value : $Value;
+            if ( $Key == "n" )    $Titel .= ($Titel != "" ) ? " : " . $Value : $Value;
+          }
+        }
+      }
+    }
+    return ($Titel);
+  }
+  
+  private function Get245npa($Contents)
+  {
+    $Titel = "";
+    $A = "";
+    if ( array_key_exists("245", $Contents) )
+    {
+      foreach ( $Contents["245"] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == "n" )    $Titel .= ($Titel != "" ) ? " | " . $Value : $Value;
+            if ( $Key == "p" )    $Titel .= ($Titel != "" ) ? ", " . $Value : $Value;
+            if ( $Key == "a" )    $A = $Value;
+          }
+        }
+      }
+    }
+  
+    if ( $Titel == "" && $A != "" ) $Titel = $A;
+  
+    return ($Titel);
+  }
+  
+  private function Get250a($Contents)
+  {
+    if ( array_key_exists("250", $Contents) )
+    {
+      foreach ( $Contents["250"] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == "a" )    return ($Value);
+          }
+        }
+      }
+    }
+    return ("");
+  }
+  
+  private function Get260c($Contents)
+  {
+    $Jahr = "";
+    if ( array_key_exists("260", $Contents) )
+    {
+      foreach ( $Contents["260"] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == "c" )    $Jahr .= ($Jahr != "" ) ? " | " . $Value : $Value;
+          }
+        }
+      }
+    }
+    return ($Jahr);
+  }
+  
+  private function Get490av($Contents)
+  {
+    $Titel = "";
+    if ( array_key_exists("490", $Contents) )
+    {
+      foreach ( $Contents["490"] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == "a" )    $Titel .= ($Titel != "" ) ? " | " . $Value : $Value;
+            if ( $Key == "v" )    $Titel .= ($Titel != "" ) ? " ; " . $Value : $Value;
+          }
+        }
+      }
+    }
+    return ($Titel);
+  }
+  
+  private function Get952j($Contents)
+  {
+    $Jahr = "";
+    if ( array_key_exists("952", $Contents) )
+    {
+      foreach ( $Contents["952"] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == "j" )    $Jahr .= ($Jahr != "" ) ? " | " . $Value : $Value;
+          }
+        }
+      }
+    }
+    return ($Jahr);
+  }
+
 }

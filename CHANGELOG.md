@@ -1,5 +1,133 @@
 # Changelog
 
+###V47
+
+**27.05.2018**
+* Settings
+  * Separate lbs settings for dev + test and production server
+
+**25.05.2018**
+* Fullview
+  * Added over 170 new associated jobs 
+
+**23.05.2018**
+* Preview
+  * Published year added
+
+* Fullview
+  * Added parent link name from M490a, when missing
+  * Genre links MARC655 added to bibliographic data
+
+* Search 
+  * Search by genre added
+
+**17.05.2018**
+* Fullview
+  * Journals links shortened to 3 lines; more can be opened by click 
+
+**11.05.2018**
+* Updates
+  * DaterangePicker 3.0.2
+
+**08.05.2018**
+* Genernal
+  * Browser history improvements
+
+**07.05.2018**
+* Search
+  * Authors renamed to participants
+  * Click on brand now only empties search
+
+* Checklist
+  * Counter on checklist added to button
+
+**03.05.2018**
+* Library Module
+  * New view "Cockpit" added
+
+* Userview
+  * New tab "Other rentals" added
+
+**27.04.2018**
+* Fullview
+  * New DAIA structure
+  * Journals links MARC772 added to bibliographic data
+
+* Search
+  * Suggest global search on empty local search
+
+* Library module
+  * Separate counting order and reserve
+
+**26.04.2018**
+* Fullview
+  * DAIA-tab: When empty parent data is loaded
+  * MARC-tab: When available parent data is shown below
+
+**24.04.2018**
+* Fullview
+  * New items tab to display items data
+  * New crossover journal links
+
+* Search 
+  * Phonectic search activated for all fields
+
+**23.04.2018**
+* LBS
+  * Improved DAIA parsing and displaying
+  * DAIA answers are cached 
+  
+**22.04.2018**
+* General
+  * Ajax calls rewritten 
+  * Unnecessary ajax calls aborted
+
+* Fullview
+  * Improved performance
+  * Button behaviour on stacked views corrected
+
+* Mails & Print
+  * Removed exemplar data
+
+**18.04.2018**
+* Search
+  * Search-prefix "ppn" added like "id"
+
+* Fullview
+  * Opening speed improved
+
+**16.04.2018**
+* Fullview
+  * Publisher MARC264 added to bibliographic data
+
+* Link Resolver
+  * Button size adjusted  
+
+**10.04.2018**
+* Search
+  * Enable global filtering
+
+**05.04.2018**
+* General
+  * Easier domain usage by new section [domains]
+
+**03.04.2018**
+* Updates
+  * Momemt 2.22.0
+  * NoUISlider 11.1.0
+  * Chart.js 2.7.2
+
+**09.03.2018**
+* Search
+  * Collection Gutenberg eBooks available
+
+**06.03.2018**
+* General
+  * Fonts for iOS improved 
+    http://www.ampsoft.net/webdesign-l/WindowsMacFonts.html
+
+###V46
+
 **02.03.2018**
 * MailOrder
   * Added switch for userfields
@@ -42,7 +170,7 @@
 
 **26.01.2018**
 * Updates
-  * Code Igniter 3.1.7
+  * CodeIgniter 3.1.7
 
 **22.01.2018**
 * Updates
@@ -115,7 +243,7 @@
 
 **26.09.2017**
 * Updates
-  * Code Igniter 3.1.6
+  * CodeIgniter 3.1.6
 
 * Search
   * Support for external key search added
@@ -237,7 +365,7 @@
 
 **20.06.2017**
 * Updates
-  * Code Igniter 3.1.5
+  * CodeIgniter 3.1.5
 
 **16.06.2017**
 * Interfaces

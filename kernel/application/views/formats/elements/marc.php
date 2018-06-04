@@ -1,89 +1,93 @@
 <?php
 
-// Leader
-$Output .= "<tr><td>Lead</td><td>" .  formatLeader($this->leader) . "</td></tr>";
-
-foreach ($this->contents as $Field => $Record)
+function printMARC($Leader, $Contents)
 {
-  if ( substr($Field, -1) == "}" && ( !isset($_SESSION["internal"]["marcfull"]) || $_SESSION["internal"]["marcfull"] == "0" ) ) continue;
-
-  $Output .= "<tr>";
-  $Output .= ( substr($Field, -1) == "}" ) ? "<td style='color:red'>" : "<td>"; 
-  $Output .= $Field . "</td>";
-  $First = true;
-  if ( ! is_array($Record ) )
+  // Leader
+  $Output = "<tr><td>Lead</td><td>Alex" .  formatLeader($Leader) . "</td></tr>";
+  
+  foreach ($Contents as $Field => $Record)
   {
-    if ( $Field == "007" ) $Record = format007($Record);
-    if ( $Field == "008" ) $Record = format008($Record);
-    $Output .= "<td>" . $Record . "</td>";
-  }
-  else
-  {
-    // Counts
-    $SubList = array();
-    $Indys   = array();
-    $Count   = -1;
-    foreach ( $Record as $Subrecord )
+    if ( substr($Field, -1) == "}" && ( !isset($_SESSION["internal"]["marcfull"]) || $_SESSION["internal"]["marcfull"] == "0" ) ) continue;
+  
+    $Output .= "<tr>";
+    $Output .= ( substr($Field, -1) == "}" ) ? "<td style='color:red'>" : "<td>"; 
+    $Output .= $Field . "</td>";
+    $First = true;
+    if ( ! is_array($Record ) )
     {
-      $Count++;
-      foreach ( $Subrecord as $Subfieldrecord )
-      {
-        foreach ( $Subfieldrecord as $Key => $Value )
-        {
-          if ( $Key == "I1" || $Key == "I2" )
-          {
-            $Indys[$Count][$Key] = $Value;
-            continue;
-          }
-          if ( !in_array($Key, $SubList))  $SubList[] = (string) $Key;
-        }
-      }
+      if ( $Field == "007" ) $Record = format007($Record);
+      if ( $Field == "008" ) $Record = format008($Record);
+      $Output .= "<td>" . $Record . "</td>";
     }
-
-    // Output
-    $Output .= "<td valign='top'><table class='table' style='background-color: inherit !important;  white-space: nowrap; width: 1%'>";
-    $Count = -1;
-    foreach ( $Record as $Subrecord )
+    else
     {
-      $Count++;
-      $Output .= "<tr>";
-      $Cols = count(array_values(array_values($Subrecord)));
-
-      $Output .= "<td style='line-height:1;min-width:12px;'>" . ((isset($Indys[$Count]["I1"])) ? $Indys[$Count]["I1"] : "&nbsp;") . "</td>";
-      $Output .= "<td style='line-height:1;min-width:12px;'>" . ((isset($Indys[$Count]["I2"])) ? $Indys[$Count]["I2"] : "&nbsp;") . "</td>";
-
-      foreach ($SubList as $SortKey)
+      // Counts
+      $SubList = array();
+      $Indys   = array();
+      $Count   = -1;
+      foreach ( $Record as $Subrecord )
       {
-        $Found = false;
+        $Count++;
         foreach ( $Subrecord as $Subfieldrecord )
         {
           foreach ( $Subfieldrecord as $Key => $Value )
           {
-            if ( (string) $Key != (string) $SortKey ) continue;
-
-            $Output .= ( !$Found ) ? "<td style='line-height:1 !important;'><b>" . $Key . "</b> " : " <b>|</b> ";
-
-            $Value = htmlspecialchars($Value, ENT_QUOTES, "UTF-8") ;
-
-            if ( strlen($Value) > ( 130 / $Cols ) )
+            if ( $Key == "I1" || $Key == "I2" )
             {
-              $Output .= "<a data-toggle='tooltip' title='" . $Value . "'>" . substr($Value,0,floor(130 / $Cols)) . "...</a>";
+              $Indys[$Count][$Key] = $Value;
+              continue;
             }
-            else
-            {
-              $Output .= $Value;
-            }
-
-            $Found = true;
+            if ( !in_array($Key, $SubList))  $SubList[] = (string) $Key;
           }
         }
-        $Output .= ( !$Found ) ? "<td></td>" : "</td>";
       }
-      $Output .= "</tr>";
+  
+      // Output
+      $Output .= "<td valign='top'><table class='table' style='background-color: inherit !important;  white-space: nowrap; width: 1%'>";
+      $Count = -1;
+      foreach ( $Record as $Subrecord )
+      {
+        $Count++;
+        $Output .= "<tr>";
+        $Cols = count(array_values(array_values($Subrecord)));
+  
+        $Output .= "<td style='line-height:1;min-width:12px;'>" . ((isset($Indys[$Count]["I1"])) ? $Indys[$Count]["I1"] : "&nbsp;") . "</td>";
+        $Output .= "<td style='line-height:1;min-width:12px;'>" . ((isset($Indys[$Count]["I2"])) ? $Indys[$Count]["I2"] : "&nbsp;") . "</td>";
+  
+        foreach ($SubList as $SortKey)
+        {
+          $Found = false;
+          foreach ( $Subrecord as $Subfieldrecord )
+          {
+            foreach ( $Subfieldrecord as $Key => $Value )
+            {
+              if ( (string) $Key != (string) $SortKey ) continue;
+  
+              $Output .= ( !$Found ) ? "<td style='line-height:1 !important;'><b>" . $Key . "</b> " : " <b>|</b> ";
+  
+              $Value = htmlspecialchars($Value, ENT_QUOTES, "UTF-8") ;
+  
+              if ( strlen($Value) > ( 130 / $Cols ) )
+              {
+                $Output .= "<a data-toggle='tooltip' title='" . $Value . "'>" . substr($Value,0,floor(130 / $Cols)) . "...</a>";
+              }
+              else
+              {
+                $Output .= $Value;
+              }
+  
+              $Found = true;
+            }
+          }
+          $Output .= ( !$Found ) ? "<td></td>" : "</td>";
+        }
+        $Output .= "</tr>";
+      }
+      $Output .= "</table></td>";
     }
-    $Output .= "</table></td>";
+    $Output .= "</tr>";
   }
-  $Output .= "</tr>";
+  return $Output;
 }
 
 function formatLeader($Str)
@@ -106,6 +110,22 @@ function format008($Str)
   $Tmp = $Str;
   $Tmp = substr_replace($Tmp, "<b>" . substr($Tmp,21,1) . "</b>", 21, 1) ;
   return $Tmp;
+}
+
+$Output .= printMARC($this->leader, $this->contents);
+
+$ParentPPN = ( isset($this->medium["parents"][0]) ) ? $this->medium["parents"][0] : "";
+if ( $ParentPPN != "" && $this->CI->EnsurePPN($ParentPPN) ) 
+{
+  $ParentLeader   = ( isset($_SESSION["data"]["results"][$ParentPPN]["leader"]) ) ? $_SESSION["data"]["results"][$ParentPPN]["leader"] : "";
+  $ParentContents = ( isset($_SESSION["data"]["results"][$ParentPPN]["contents"]) ) ? $_SESSION["data"]["results"][$ParentPPN]["contents"] : "";
+
+  if ( $ParentLeader != "" && $ParentContents != "" )
+  {
+    $Output .= "<tr><td class='tabcell' style='color:red'>Parent PPN</td><td class='tabcell' style='color:red'>" . $ParentPPN . "</td></tr>";
+    $Output .= printMARC($ParentLeader, $ParentContents);
+  }
+
 }
 
 ?>

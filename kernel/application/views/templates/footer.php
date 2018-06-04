@@ -41,7 +41,7 @@ if ( $front )
   // Laden der Systemmodule
   foreach ( $_SESSION["config_system"]["frontjs"] as $value )
   {
-    echo "<script type='text/javascript' src='" . base_url("/systemassets/" . $value) . "'></script>";
+    echo "<script src='" . base_url("/systemassets/" . $value) . "'></script>";
   }
 
   // Laden der allgemeinen Kundenmodule
@@ -49,7 +49,7 @@ if ( $front )
   {
     foreach ( $_SESSION["config_general"]["frontjs"] as $value )
     {
-      echo "<script type='text/javascript' src='" . base_url("/assets/" . $value) . "'></script>";
+      echo "<script src='" . base_url("/assets/" . $value) . "'></script>";
     }
   }
 
@@ -59,25 +59,25 @@ else
   // Laden der Systemlibraries
   foreach ( $_SESSION["config_system"]["systemjs"] as $value )
   {
-    echo "<script type='text/javascript' src='" . base_url("/systemassets/" . $value) . "'></script>";
+    echo "<script src='" . base_url("/systemassets/" . $value) . "'></script>";
   }
   
   // Laden der Systemmodullibraries
   foreach ( $_SESSION["config_system"][$modul."js"] as $value )
   {
-    echo "<script type='text/javascript' src='" . base_url("/systemassets/" . $value) . "'></script>";
+    echo "<script src='" . base_url("/systemassets/" . $value) . "'></script>";
   }
   
   // Laden der allgemeinen Kundenlibraries
   foreach ( $_SESSION["config_general"]["js"] as $value )
   {
-    echo "<script type='text/javascript' src='" . base_url("/assets/" . $value) . "'></script>";
+    echo "<script src='" . base_url("/assets/" . $value) . "'></script>";
   }
   
   // Laden des Kunden-Modullibraries
   foreach ( $_SESSION["config_". $modul]["js"] as $value )
   {
-    echo "<script type='text/javascript' src='" . base_url("/assets/" . $value) . "'></script>";
+    echo "<script src='" . base_url("/assets/" . $value) . "'></script>";
   }
 }
 

@@ -18,11 +18,18 @@ class Paia_daia extends General
     $this->isil = (isset($_SESSION["config_general"]["general"]["isil"]) && $_SESSION["config_general"]["general"]["isil"] != "" ) ? $_SESSION["config_general"]["general"]["isil"] : "";
     if ( $this->isil == "" )  return false;
 
-    $this->paia = (isset($_SESSION["config_general"]["lbs"]["paia"]) && $_SESSION["config_general"]["lbs"]["paia"] != "" ) ? $_SESSION["config_general"]["lbs"]["paia"] : "";
+    if ( strtolower(MODE) == "production" )
+    {
+      $this->paia = (isset($_SESSION["config_general"]["lbsprod"]["paia"]) && $_SESSION["config_general"]["lbsprod"]["paia"] != "" ) ? $_SESSION["config_general"]["lbsprod"]["paia"] : "";
+      $this->daia = (isset($_SESSION["config_general"]["lbsprod"]["daia"]) && $_SESSION["config_general"]["lbsprod"]["daia"] != "" ) ? $_SESSION["config_general"]["lbsprod"]["daia"] : "";
+    }
+    else
+    {
+      $this->paia = (isset($_SESSION["config_general"]["lbsdevtest"]["paia"]) && $_SESSION["config_general"]["lbsdevtest"]["paia"] != "" ) ? $_SESSION["config_general"]["lbsdevtest"]["paia"] : "";
+      $this->daia = (isset($_SESSION["config_general"]["lbsdevtest"]["daia"]) && $_SESSION["config_general"]["lbsdevtest"]["daia"] != "" ) ? $_SESSION["config_general"]["lbsdevtest"]["daia"] : "";
+    }
     if ( $this->paia == "" )  return false;
     $this->paia .= "/" . $this->isil;
-
-    $this->daia = (isset($_SESSION["config_general"]["lbs"]["daia"]) && $_SESSION["config_general"]["lbs"]["daia"] != "" ) ? $_SESSION["config_general"]["lbs"]["daia"] : "";
     if ( $this->daia == "" )  return false;
     $this->daia .= "/isil/" . $this->isil . "/";
   }

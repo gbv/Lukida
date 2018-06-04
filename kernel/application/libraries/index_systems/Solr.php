@@ -72,14 +72,14 @@ class Solr extends General
     {
       // Find complex search phrases and move them to $matches
       // First: field(phrase)
-      preg_match_all("/([A-Za-z0-9]+)\(([^))]+)\)/", $search, $matches);
+      preg_match_all("/([A-Za-z0-9_]+)\(([^))]+)\)/", $search, $matches);
       foreach ( $matches[0] as $one )
       {
         $search = str_replace($one, "", $search);
       }
   
       // Second: field:(phrase)
-      preg_match_all("/([A-Za-z0-9]+):\(([^))]+)\)/", $search, $matchescolon);
+      preg_match_all("/([A-Za-z0-9_]+):\(([^))]+)\)/", $search, $matchescolon);
       foreach ( $matchescolon[0] as $one )
       {
         $search = str_replace($one, "", $search);
@@ -93,7 +93,7 @@ class Solr extends General
       }
       
       // Third: field:phrase
-      preg_match_all("/([A-Za-z0-9]+):([^\s]+)/", $search, $matchescolon2);
+      preg_match_all("/([A-Za-z0-9_]+):([^\s]+)/", $search, $matchescolon2);
       foreach ( $matchescolon2[0] as $one )
       {
         $search = str_replace($one, "", $search);
@@ -107,12 +107,12 @@ class Solr extends General
       }
     }
 
-    //$this->CI->printArray2File($matches);
+    // $this->CI->printArray2File($matches);
 
     // Remove not allowed complex phrases based on used key
     foreach ( $matches[1] as $index => $key )
     {
-      if ( ! in_array(strtolower(trim($key)), array("author","autor","collection", "collection_details","foreignid","id","isn","subject","schlagwort","title","titel","series","reihe","publisher","verlag","year","jahr","contents","inhalt","class","sachgebiet","ppnlink","format")) )
+      if ( ! in_array(strtolower(trim($key)), array("author","autor","collection", "collection_details","foreignid","genre","id","isn","subject","schlagwort","title","titel","series","reihe","publisher","verlag","year","jahr","contents","inhalt","class","sachgebiet","ppn","ppnlink","format")) )
       {
         unset($matches[0][$index]);
       }
@@ -147,7 +147,7 @@ class Solr extends General
           case "autor":
             if ( $this->phoneticsearch )
             {
-              $MainSearch .= "(author:\"" . $Phrases[0] . "\" OR author2:\"" . $Phrases[0] . "\" OR authorSound:\"" . $Phrases[0] . "\" OR author2Sound:\"" . $Phrases[0] . "\")";
+              $MainSearch .= "(author:\"" . $Phrases[0] . "\" OR author2:\"" . $Phrases[0] . "\" OR authorSound:\"" . $Phrases[0] . "\" )";
             }
             else
             {
@@ -174,22 +174,27 @@ class Solr extends General
           case "format":
             $MainSearch .= "(format_phy_str_mv:\"" . $Phrases[0] . "\" )";
             break;
+          case "genre":
+            $MainSearch .= "(genre:\"" . $Phrases[0] . "\")";
+            break;
           case "title":
           case "titel":
-            /*
             if ( $this->phoneticsearch )
             {
               $MainSearch .= "(title_short:" . $Phrases[0] . " OR title_full_unstemmed:" . $Phrases[0] . " OR title_full:" . $Phrases[0] . " OR title:" . $Phrases[0] . " OR title_fullSound:" . $Phrases[0] . ")";
             }
             else
             {
-            */
               $MainSearch .= "(title_short:" . $Phrases[0] . " OR title_full_unstemmed:" . $Phrases[0] . " OR title_full:" . $Phrases[0] . " OR title:" . $Phrases[0] . ")";
-            //}
+            }
             break;
           case "jahr":
           case "year":
             $MainSearch .= "(publishDateSort :\"" . $Phrases[0] . "\")";
+            break;
+          case "id":
+          case "ppn":
+            $MainSearch .= "(id :\"" . $Phrases[0] . "\")";
             break;
           default:
             $MainSearch .= $CType . ":\"" . $Phrases[0] . "\"";
@@ -203,10 +208,9 @@ class Solr extends General
           case "autor":
             if ( $this->phoneticsearch )
             {
-              $MainSearch .= "(author:\"" .  implode("\" OR author:\"", $Phrases) . "\" OR "
-                           . " author2:\"" . implode("\" OR author2:\"",$Phrases) . "\" OR "
-                           . " authorSound:\"" . implode("\" OR authorSound:\"",$Phrases) . "\" OR "
-                           . " author2Sound:\"" . implode("\" OR author2Sound:\"",$Phrases) . "\")";
+              $MainSearch .= "(author:\"" .      implode("\" OR author:\"", $Phrases) . "\" OR "
+                           . " author2:\"" .     implode("\" OR author2:\"",$Phrases) . "\" OR "
+                           . " authorSound:\"" . implode("\" OR authorSound:\"",$Phrases) . "\")";
             }
             else
             {
@@ -238,9 +242,11 @@ class Solr extends General
           case "format":
             $MainSearch .= "(format_phy_str_mv:\"" . implode("\" OR format_phy_str_mv:\"", $Phrases) . "\")";
             break;
+          case "genre":
+            $MainSearch .= "(genre:\"" . implode("\" OR genre:\"", $Phrases) . "\")";
+            break;
           case "title":
           case "titel":
-            /*
             if ( $this->phoneticsearch )
             {
               $MainSearch .= "(title_short:\"" .          implode("\" OR title_short:\"", $Phrases) . "\" OR "
@@ -251,16 +257,19 @@ class Solr extends General
             }
             else
             {
-            */
               $MainSearch .= "(title_short:\"" .          implode("\" OR title_short:\"", $Phrases) . "\" OR "
                            . " title_full_unstemmed:\"" . implode("\" OR title_full_unstemmed:\"",$Phrases) . "\" OR "
                            . " title_full:\"" .           implode("\" OR title_full:\"",$Phrases) . "\" OR "
                            . " title:\"" .                implode("\" OR title:\"",$Phrases) . "\")";
-            //}
+            }
             break;
           case "jahr":
           case "year":
             $MainSearch .= "(publishDateSort :\"" . implode("\" OR publishDateSort :\"", $Phrases) . "\")";
+            break;
+          case "ppn":
+          case "id":
+            $MainSearch .= "(id :\"" . implode("\" OR id :\"", $Phrases) . "\")";
             break;
           default:
             $MainSearch .= "(" . $CType . ":\"" . implode("\" OR " . $CType . ":\"",$Phrases) . "\")";
@@ -282,8 +291,10 @@ class Solr extends General
         // All fields for normal searches
         $dismaxQuery
         ->addQueryField("title_short",750)
+        ->addQueryField("title_shortGer",650)
         ->addQueryField("title_full_unstemmed",600)
         ->addQueryField("title_full",400)
+        ->addQueryField("title_fullGer",400)
         ->addQueryField("title",500)
         ->addQueryField("title_alt",200)
         ->addQueryField("title_new",100)
@@ -300,6 +311,7 @@ class Solr extends General
         ->addQueryField("fulltext_unstemmed",10)
         ->addQueryField("allfields_whitespace",10)
         ->addQueryField("allfields",10)
+        ->addQueryField("allfieldsGer",10)
         ->addQueryField("fulltext",5)
         ->addQueryField("description",5)
         ->addQueryField("isbn")
@@ -308,11 +320,10 @@ class Solr extends General
         if ( $this->phoneticsearch )
         {
           $dismaxQuery
-          //->addQueryField("title_fullSound",2)
-          ->addQueryField("authorSound",2)
-          ->addQueryField("author2Sound",2)
-          ->addQueryField("allfieldsSound",2)
-          ->addQueryField("fulltextSound",2);
+          ->addQueryField("title_fullSound",390)
+          ->addQueryField("authorSound",2900)
+          ->addQueryField("allfieldsSound",9)
+          ->addQueryField("fulltextSound",9);
         }
     }
     else
@@ -335,8 +346,7 @@ class Solr extends General
             if ( $this->phoneticsearch )
             {
               $dismaxQuery
-              ->addQueryField("authorSound",2)
-              ->addQueryField("author2Sound",2);
+              ->addQueryField("authorSound",90);
             }
             break;
           }
@@ -372,13 +382,11 @@ class Solr extends General
             ->addQueryField("series",100)
             ->addQueryField("series2");
 
-            /*
             if ( $this->phoneticsearch )
             {
               $dismaxQuery
-              ->addQueryField("title_fullSound",2)
+              ->addQueryField("title_fullSound",2);
             } 
-            */           
             break;
           }
           case "series":
@@ -430,6 +438,8 @@ class Solr extends General
     // Return fields
     $dismaxQuery
     ->addField('id')
+    ->addField('collection')
+    ->addField('collection_details')
     ->addField('fullrecord');
 
     // Add shards
@@ -463,7 +473,7 @@ class Solr extends General
         {
           case "datapool":
           {
-            if ( $value != "global" && isset($_SESSION["config_discover"]["datapoolfilter"][$value]) )
+            if ( isset($_SESSION["config_discover"]["datapoolfilter"][$value]) && $_SESSION["config_discover"]["datapoolfilter"][$value] != "" )
             {
               $dismaxQuery
               ->addFilterQuery($_SESSION["config_discover"]["datapoolfilter"][$value]);
@@ -544,7 +554,9 @@ class Solr extends General
     }
 
     // Store query in session
-    $_SESSION["query"] = $dismaxQuery;
+    $_SESSION["query"] = (string) $dismaxQuery;
+
+    //$this->CI->printArray2File($_SESSION["query"]);
 
     // Execute query
     $query_response = $client->query($dismaxQuery);

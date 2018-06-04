@@ -1,6 +1,20 @@
 <div class="container-fluid">
   <div class="collapse" id="libraryhelp">
-    <div class="row">
+    <div id="help_cockpit" class="row">
+      <div class="col-sm-4">
+        <div class="well">
+          <p>Cockpit</p>
+          Im Cockpit sind mehrere Instrumente des aktuellen und der vergangenen 2 Jahre ersichtlich. Dies soll einen Schnellüberblick über die Nutzung des System geben. In jedem Instrument wird die Gesamtanzahl des jeweiligen Jahres dargestellt.
+        </div>
+      </div>
+      <div class="col-sm-8">
+        <div class="well">
+          <p>Option Jahr</p>
+          Mit dieser Option können Sie das Jahr der Betrachtung auswählen.
+        </div>
+      </div>
+    </div>
+    <div id="help_chart" class="row">
       <div class="col-sm-4">
         <div class="well searches">
           <p>Diagramm Suchen</p>
@@ -38,7 +52,9 @@
             <li>LBS_Login: Anmeldung am LBS</li>
             <li>LBS_Logout: Abmeldung vom LBS</li>
             <li>LBS_Renew: Ausleihverlängerung</li>
-            <li>LBS_Request: LBS-Bestellung oder -Vormerkung</li>
+            <li>LBS_Request: LBS-Bestellung oder -Vormerkung bis 27.05.2018</li>
+            <li>LBS_Order: LBS-Bestellung ab 27.05.2018</li>
+            <li>LBS_Reserve: LBS-Vormerkung ab 27.05.2018</li>
           </ul></li>
           <li>Mails
           Evtl. mehrere Indikatoren entsprechen den von Ihnen definierten Exemplar-Fällen. Die Weiterempfehlungsmail entspricht dem Wert "Mail".</li>
@@ -53,6 +69,24 @@
         <div class="well usage collapse">
           <p>Option Weiteres</p>
           Dieser Parameter setzt die einzelnen Indikatoren übereinander; die Häufigkeiten werden addiert. Der erste, am weitesten links stehende Indikator beginnt bei 0, alle weiteren Indikatoren beginnen beim Wert des Indikators vorher.
+        </div>
+        <div class="well devicescreens collapse">
+          <p>Option Jahr</p>
+          Mit dieser Option können Sie das Jahr der Betrachtung auswählen.
+        </div>
+      </div>
+    </div>
+    <div id="help_log" class="row">
+      <div class="col-sm-4">
+        <div class="well searches">
+          <p>Log</p>
+          Hier werden Ihnen die Log-Einträge im entsprechenden Zeitraum angezeigt. Ein Log-Eintrag entsteht durch Aktivitäten, die nicht mit dem LBS in Zusammenhang stehen. Beispielsweise bei Mailbestellungen oder Speziallösungen. Diese Logbuch soll darüber Auskunft geben.
+        </div>
+      </div>
+      <div class="col-sm-8">
+        <div class="well">
+          <p>Option Zeitraum</p>
+          Mit dieser Option können Sie das Zeitintervall per Klappliste auswählen. Entweder verwenden Sie einen der vordefinierten Zeiträume oder sie wählen einen eigenen Zeitraum, nicht größer als 6 Monate.
         </div>
       </div>
     </div>

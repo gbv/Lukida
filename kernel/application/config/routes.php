@@ -58,6 +58,7 @@ $route['ajax/command']                     = 'Vzg_controller/command';
 $route['ajax/config']                      = 'Vzg_controller/config';
 $route['ajax/changepw']                    = 'Vzg_controller/changepw';
 $route['ajax/checkpw']                     = 'Vzg_controller/checkpw';
+$route['ajax/cockpit']                     = 'Vzg_controller/cockpit';
 $route['ajax/exportlink']                  = 'Vzg_controller/exportlink';
 $route['ajax/facet']                       = 'Vzg_controller/facet';
 $route['ajax/fullview/(:any)/(:any)']      = 'Vzg_controller/fullview/$1/$2';

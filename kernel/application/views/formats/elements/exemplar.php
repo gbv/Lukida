@@ -94,13 +94,14 @@ if ( isset($this->contents[912]) && isset($_SESSION["iln"]) && $_SESSION["iln"] 
 else
 {
   // Fremdbestand
-  if ( ( substr($this->medium["leader"],6,2) == "ma"
+  if ( ( ( substr($this->medium["leader"],6,2) == "ma"
   || substr($this->medium["leader"],6,2) == "mm"
-  || substr($this->medium["leader"],6,2) == "ms" 
-  || substr($this->medium["leader"],6,2) == "aa" 
-  || substr($this->medium["leader"],6,2) == "am" 
+  || substr($this->medium["leader"],6,2) == "ms"
+  || substr($this->medium["leader"],6,2) == "aa"
+  || substr($this->medium["leader"],6,2) == "am"
   || substr($this->medium["leader"],6,2) == "as" )
-  && substr(Get007($this->contents),0,2) == "cr" )
+  && substr(Get007($this->contents),0,2) == "cr" ) 
+  || ( in_array("Gutenberg", $this->collection) ) )
   {
     // Online Fremdbestand
     if ( array_key_exists("856", $this->contents) )
@@ -183,7 +184,7 @@ if ( $LinkResolver )
 }
 if ( $LinkResolver )
 {
-  $Output .= "<script>linkresolver=true;</script>";
+  $Output .= "<script>linkresolver=true;linkresolverclass='col-xs-12 col-sm-6 col-md-4';</script>";
 }
 else
 {
@@ -295,7 +296,7 @@ if ( count($Lizenzen)>0)
   $Output .= "<div>" . $this->CI->database->code2text("License") . "</div><small>";
   foreach ( $Lizenzen as $Lizenz)
   {
-    $Output .= $Lizenz . "</br>";
+    $Output .= $Lizenz . "<br />";
   }
   $Output .= "</small>";
   $Output .= "</div>";

@@ -1,8 +1,8 @@
 <div class="container-fluid">
   <div class="collapse" id="libraryoption">
     <div class="row">
-      <div class="col-sm-5 col-md-4 col-lg-3">
-        <div class="well usage searches">
+      <div class="col-sm-5 col-md-4 col-lg-3 option usage searches log collapse">
+        <div class="well">
           <p>Zeitraum</p>
           <div class="input-group">
             <span class="input-group-addon open-daterange" for=daterange><i class="fa fa-calendar" aria-hidden="true"></i></span>
@@ -10,8 +10,8 @@
           </div>
         </div>
       </div>
-      <div class="col-sm-4 col-md-6 col-lg-6">
-        <div class="well usage collapse">
+      <div class="col-sm-4 col-md-6 col-lg-6 option usage collapse">
+        <div class="well">
           <p>Indikatoren - Gruppen</p>
           <div class="row">
             <div class="col-sm-6 col-md-3">
@@ -27,7 +27,7 @@
                 <label><input name='Layouts' type='checkbox' data-value="Layout_1,Layout_2,Layout_3,Layout_4" checked="checked">Layouts</label>
               </div>
               <div class='checkbox'>
-                <label><input name='LBS' type='checkbox' data-value="LBS_Document,LBS_Login,LBS_Logout,LBS_Renew,LBS_Request">LBS</label>
+                <label><input name='LBS' type='checkbox' data-value="LBS_Document,LBS_Login,LBS_Logout,LBS_Renew,LBS_Request,LBS_Order,LBS_Reserve">LBS</label>
               </div>
             </div>
             <div class="col-sm-6 col-md-3">
@@ -54,24 +54,22 @@
           </div>
         </div>
       </div>
-      <div class="col-sm-3 col-md-2 col-lg-3">
-        <div class="well usage collapse">
+      <div class="col-sm-3 col-md-2 col-lg-3 option usage collapse">
+        <div class="well">
           <p>Weiteres</p>
             <div class='checkbox'>
               <label><input name='Stapel' type='checkbox' value="0">Gestapelt</label>
             </div>
         </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-xs-6 col-sm-2">
-        <div class="well devicescreens">
+      <div class="col-sm-5 col-md-4 col-lg-3 option devicescreens cockpit">
+        <div class="well">
           <p>Jahr</p>
           <div class="input-group number-spinner">
             <span class="input-group-btn">
               <a class="btn btn-danger" data-dir="dwn"><span class="glyphicon glyphicon-minus"></span></a>
             </span>
-            <input type="text" disabled id="year" class="form-control text-center" value="2017" max=2049 min=2016>
+            <input type="text" disabled id="year" class="form-control text-center" value="<?php echo date("Y"); ?>" max=2049 min=2016>
             <span class="input-group-btn">
               <a class="btn btn-info" data-dir="up"><span class="glyphicon glyphicon-plus"></span></a>
             </span>

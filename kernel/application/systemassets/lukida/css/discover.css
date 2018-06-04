@@ -433,12 +433,31 @@ html {
 .btn-exemplar 
 {
   display: inline-block;
-  float: none;
   vertical-align: middle !important;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: normal;
   min-height:60px;
+
+  /* Internet Explorer 10 */
+  display:-ms-flexbox;
+  -ms-flex-pack:center;
+  -ms-flex-align:center;
+  
+  /* Firefox */
+  display:-moz-box;
+  -moz-box-pack:center;
+  -moz-box-align:center;
+  
+  /* Safari, Opera, and Chrome */
+  display:-webkit-box;
+  -webkit-box-pack:center;
+  -webkit-box-align:center;
+  
+  /* W3C */
+  display:box;
+  box-pack:center;
+  box-align:center;
 }
 
 .btn-tiny

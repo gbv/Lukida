@@ -341,12 +341,11 @@ if ( isset($this->pretty["footnote"]) && $this->pretty["footnote"] != "" )
   $Output .=  "</tr>";
 }
 
-/*
-
 // Other editions
 if ( isset($this->pretty["othereditions"]) && count($this->pretty["othereditions"]) > 0 )
 {
-  $Count     = 0;
+  $Count = 0;
+  $Total = count($this->pretty["othereditions"]);
   foreach ( $this->pretty["othereditions"] as $record)
   {
     $FoundText = "";
@@ -367,14 +366,27 @@ if ( isset($this->pretty["othereditions"]) && count($this->pretty["othereditions
       if ( $Count == 1 )
       {
         $Output .=  "<tr>";
-        $Output .=  "<td>" . $this->CI->database->code2text("EarlierLater") . "</td>";
-        $Output .=  "<td>";
+        $Output .=  "<td>" . $this->CI->database->code2text("EarlierLater");
+        if ( $Total > 3 ) $Output .=  "<br /><br /><button class='btn btn-tiny navbar-panel-color' onclick='javascript:$.toggle_area(&quot;biboth_" . $this->dlgid . "&quot;);'><span class='biboth_" . $this->dlgid . "down'><i class='fa fa-caret-down'></i></span><span class='biboth_" . $this->dlgid . "up collapse'><i class='fa fa-caret-up'></i></span></button>";
+        $Output .=  "</td><td>";
+        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
       }
-      else
+      if ( $Count >= 2 && $Count <= 3 )
       {
         $Output .=  "<br />";
+        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
       }
-      $Output .= $this->link("foreignid", $FoundLink, $FoundText);
+      if ( $Count == 4 )
+      {
+        $Output .=  "</td></tr>";
+        $Output .=  "<tr class='discoverbiboth_" . $this->dlgid . " collapse'><td>&nbsp;</td><td>";
+        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
+      }
+      if ( $Count >= 5 )
+      {
+        $Output .=  "<br />";
+        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
+      }
     }
   }
   if ( $Count > 0 ) $Output .=  "</td></tr>";
@@ -383,7 +395,8 @@ if ( isset($this->pretty["othereditions"]) && count($this->pretty["othereditions
 // Remarks
 if ( isset($this->pretty["remarks"]) && count($this->pretty["remarks"]) > 0 )
 {
-  $Count     = 0;
+  $Count = 0;
+  $Total = count($this->pretty["remarks"]);
   foreach ( $this->pretty["remarks"] as $record)
   {
     $FoundText = "";
@@ -404,14 +417,27 @@ if ( isset($this->pretty["remarks"]) && count($this->pretty["remarks"]) > 0 )
       if ( $Count == 1 )
       {
         $Output .=  "<tr>";
-        $Output .=  "<td>" . $this->CI->database->code2text("remarks") . "</td>";
-        $Output .=  "<td>";
+        $Output .=  "<td>" . $this->CI->database->code2text("remarks");
+        if ( $Total > 3 ) $Output .=  "<br /><br /><button class='btn btn-tiny navbar-panel-color' onclick='javascript:$.toggle_area(&quot;bibrem_" . $this->dlgid . "&quot;);'><span class='bibrem_" . $this->dlgid . "down'><i class='fa fa-caret-down'></i></span><span class='bibrem_" . $this->dlgid . "up collapse'><i class='fa fa-caret-up'></i></span></button>";
+        $Output .=  "</td><td>";
+        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
       }
-      else
+      if ( $Count >= 2 && $Count <= 3 )
       {
         $Output .=  "<br />";
+        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
       }
-      $Output .= $this->link("foreignid", $FoundLink, $FoundText);
+      if ( $Count == 4 )
+      {
+        $Output .=  "</td></tr>";
+        $Output .=  "<tr class='discoverbibrem_" . $this->dlgid . " collapse'><td>&nbsp;</td><td>";
+        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
+      }
+      if ( $Count >= 5 )
+      {
+        $Output .=  "<br />";
+        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
+      }
     }
   }
   if ( $Count > 0 ) $Output .=  "</td></tr>";
@@ -420,7 +446,8 @@ if ( isset($this->pretty["remarks"]) && count($this->pretty["remarks"]) > 0 )
 // See also
 if ( isset($this->pretty["seealso"]) && count($this->pretty["seealso"]) > 0 )
 {
-  $Count     = 0;
+  $Count = 0;
+  $Total = count($this->pretty["seealso"]);
   foreach ( $this->pretty["seealso"] as $record)
   {
     $FoundText = "";
@@ -441,20 +468,31 @@ if ( isset($this->pretty["seealso"]) && count($this->pretty["seealso"]) > 0 )
       if ( $Count == 1 )
       {
         $Output .=  "<tr>";
-        $Output .=  "<td>" . $this->CI->database->code2text("seealso") . "</td>";
-        $Output .=  "<td>";
+        $Output .=  "<td>" . $this->CI->database->code2text("seealso");
+        if ( $Total > 3 ) $Output .=  "<br /><br /><button class='btn btn-tiny navbar-panel-color' onclick='javascript:$.toggle_area(&quot;bibsee_" . $this->dlgid . "&quot;);'><span class='bibsee_" . $this->dlgid . "down'><i class='fa fa-caret-down'></i></span><span class='bibsee_" . $this->dlgid . "up collapse'><i class='fa fa-caret-up'></i></span></button>";
+        $Output .=  "</td><td>";
+        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
       }
-      else
+      if ( $Count >= 2 && $Count <= 3 )
       {
         $Output .=  "<br />";
+        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
       }
-      $Output .= $this->link("foreignid", $FoundLink, $FoundText);
+      if ( $Count == 4 )
+      {
+        $Output .=  "</td></tr>";
+        $Output .=  "<tr class='discoverbibsee_" . $this->dlgid . " collapse'><td>&nbsp;</td><td>";
+        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
+      }
+      if ( $Count >= 5 )
+      {
+        $Output .=  "<br />";
+        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
+      }
     }
   }
   if ( $Count > 0 ) $Output .=  "</td></tr>";
 }
-
-*/
 
 // Language Notes
 if ( isset($this->pretty["languagenotes"]) && $this->pretty["languagenotes"] != "" )
@@ -601,6 +639,22 @@ if ( isset($this->pretty["subject"]) && count($this->pretty["subject"]) > 0 )
   $Output .=  "</td></tr>";
 }
 
+// Genre
+if ( isset($this->pretty["genre"]) && count($this->pretty["genre"]) > 0 )
+{
+  $Output .=  "<tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("genre") . "</td>";
+  $Output .=  "<td>";
+  $First = true;
+  foreach ( $this->pretty["genre"] as $one)
+  {
+    if ( !$First ) $Output .= " | ";
+    $Output .= $this->link("genre", $one);
+    $First = false;
+  }
+  $Output .=  "</td></tr>";
+}
+
 // Classification
 if ( isset($this->pretty["classification"]) && $this->pretty["classification"] != "" )
 {
@@ -677,7 +731,8 @@ if ( isset($this->pretty["siblings"]) && count($this->pretty["siblings"]) > 0 )
           }
           else
           {
-            $Text = $this->CI->database->code2text($one["i"]);
+            //$Text = $this->CI->database->code2text($one["i"]);
+            $Text = $one["i"];
           }
        	}
        	else

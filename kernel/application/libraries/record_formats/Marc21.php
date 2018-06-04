@@ -29,6 +29,17 @@ class Marc21 extends General
   {
     // Get Leader
     $Leader = $this->marc->getLeader();
+
+    if ( in_array("Gutenberg", $this->collection) )
+    {
+      $this->leader  = $Leader;
+      $this->format  = "ebook";
+      $this->cover   = "N";
+      $this->ppnlink = 0;
+      $this->online  = 1;
+      return;
+    }
+
     $Pos6 = substr($Leader,6,1);
     $Pos7 = substr($Leader,7,1);
     $Pos19 = substr($Leader,19,1);
@@ -40,9 +51,9 @@ class Marc21 extends General
 
     if     ( $Pos6 == "a" && $Pos7 == "m" && $Pos19 == "a" )                    { $Cover = "R"; $Online = 0; $PPNLink = 1; $Name = "multivolumework"; }
     elseif ( $Pos6 == "a" && $Pos7 == "m" && $F007_0 == "h" )                   { $Cover = "I"; $Online = 0; $PPNLink = 0; $Name = "microform"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "a" && $F007_0 == "c" )                   { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "earticle"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "m" && $F007_0 == "c" )                   { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "s" && $F007_0 == "c" )                   { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "a" && $F007_0_2 == "cr" )                { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "earticle"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "m" && $F007_0_2 == "cr" )                { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "s" && $F007_0_2 == "cr" )                { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
     elseif ( $Pos6 == "a" && $Pos7 == "m" )                                     { $Cover = "B"; $Online = 0; $PPNLink = 0; $Name = "book"; }
     elseif ( $Pos6 == "a" && $Pos7 == "a" )                                     { $Cover = "A"; $Online = 0; $PPNLink = 0; $Name = "article"; }
     elseif ( $Pos6 == "a" && $Pos7 == "d" )                                     { $Cover = "F"; $Online = 0; $PPNLink = 0; $Name = "journal"; }
@@ -225,6 +236,50 @@ class Marc21 extends General
         }
       }
     }
+    if ( isset($this->contents["800"]) )
+    {
+      foreach ( $this->contents["800"] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == "w" )
+            {
+              if ( substr($Value,0,8) == "(DE-601)" )
+              {
+                if ( !in_array(trim(substr($Value,8)), $Parents) )
+                {
+                  $Parents[]  = trim(substr($Value,8));
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    if ( isset($this->contents["830"]) )
+    {
+      foreach ( $this->contents["830"] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == "w" )
+            {
+              if ( substr($Value,0,8) == "(DE-601)" )
+              {
+                if ( !in_array(trim(substr($Value,8)), $Parents) )
+                {
+                  $Parents[]  = trim(substr($Value,8));
+                }
+              }
+            }
+          }
+        }
+      }
+    }    
     $this->parents = $Parents;
   }
 
@@ -277,6 +332,7 @@ class Marc21 extends General
     $this->catalogues = $Cats;
   }
 
+
   // ********************************************
   // ************** Start-Function **************
   // ********************************************
@@ -287,6 +343,9 @@ class Marc21 extends General
     $results_reduced	= array();
     foreach ( $container["results"] as $one )
     {
+      $this->collection         = isset($one["collection"])         ? $one["collection"]         : "";
+      $this->collection_details = isset($one["collection_details"]) ? $one["collection_details"] : "";
+
       // Load MARC library and pass params
       $this->marc = $this->CI->pearloader->loadmarc('File','MARC', $this->prepare($one["fullrecord"]))->next();
       $this->SetMarcFormat();
@@ -299,17 +358,19 @@ class Marc21 extends General
       // Prepare reduced array
       $reduced = array
       (
-        "id" 		            => $one["id"],
-        "parents"           => $this->parents,
-        "leader"            => $this->leader,
-        "format"            => $this->format,
-        "ppnlink"           => $this->ppnlink,
-        "cover"             => $this->cover,
-        "isbn"              => $this->isbn,
-        "online"            => $this->online,
-        "catalogues"        => $this->catalogues,
-        "contents"          => $this->contents,
-        "proofofpossession" => $this->proofofpossession
+        "id" 		             => $one["id"],
+        "parents"            => $this->parents,
+        "leader"             => $this->leader,
+        "format"             => $this->format,
+        "ppnlink"            => $this->ppnlink,
+        "cover"              => $this->cover,
+        "isbn"               => $this->isbn,
+        "online"             => $this->online,
+        "collection"         => $this->collection,
+        "collection_details" => $this->collection_details,
+        "catalogues"         => $this->catalogues,
+        "contents"           => $this->contents,
+        "proofofpossession"  => $this->proofofpossession
       );
 
       $results_reduced[$one["id"]]	= $reduced + $this->SetContents("preview");

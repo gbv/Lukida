@@ -223,6 +223,7 @@ class Vzg_controller extends CI_Controller
 
           if ( ! isset($_SESSION["internal"]["marc"]) )     $_SESSION["internal"]["marc"]     = (strtolower(MODE) == "development") ? 1 : 0;
           if ( ! isset($_SESSION["internal"]["daia"]) )     $_SESSION["internal"]["daia"]     = (strtolower(MODE) == "development") ? 1 : 0;
+          if ( ! isset($_SESSION["internal"]["item"]) )     $_SESSION["internal"]["item"]     = (strtolower(MODE) == "development") ? 1 : 0;
           if ( ! isset($_SESSION["internal"]["paia"]) )     $_SESSION["internal"]["paia"]     = (strtolower(MODE) == "development") ? 1 : 0;
           if ( ! isset($_SESSION["internal"]["marcfull"]) ) $_SESSION["internal"]["marcfull"] = 0;
 
@@ -295,8 +296,16 @@ class Vzg_controller extends CI_Controller
           // Read LBS config & load library - if it is available
           if (isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] == "1" )
           {
-            $LBS    = (isset($_SESSION["config_general"]["lbs"]["type"]) && $_SESSION["config_general"]["lbs"]["type"] != "" ) 
-                      ? $_SESSION["config_general"]["lbs"]["type"] : "paia_daia";
+            if ( strtolower(MODE) == "production" )
+            {
+              $LBS    = (isset($_SESSION["config_general"]["lbsprod"]["type"]) && $_SESSION["config_general"]["lbsprod"]["type"] != "" ) 
+                        ? $_SESSION["config_general"]["lbsprod"]["type"] : "paia2_daia2";
+            }
+            else
+            {
+              $LBS    = (isset($_SESSION["config_general"]["lbsdevtest"]["type"]) && $_SESSION["config_general"]["lbsdevtest"]["type"] != "" ) 
+                        ? $_SESSION["config_general"]["lbsdevtest"]["type"] : "paia2_daia2";
+            }
             $this->load->library('lb_systems/'.$LBS, "", "lbs");
             $_SESSION["interfaces"]["lbs"] = 1;
           }
@@ -306,7 +315,7 @@ class Vzg_controller extends CI_Controller
     }
   }
 
-  protected function ensurePPN($PPN)
+  public function ensurePPN($PPN)
   {
     if ( $PPN == "" ) return false;
 
@@ -389,6 +398,28 @@ class Vzg_controller extends CI_Controller
     return  date("d.m.Y H:i",$Tmp);
   }
   
+  public function CutText($Text, $MaxBreak, $ToolTip = false)
+  {
+    $MinBreak = floor($MaxBreak *.7);
+    if ( strlen($Text) > $MaxBreak )
+    {
+      if ( strrpos($Text, ' ', $MinBreak) !== false && strrpos($Text, ' ', $MinBreak) < $MaxBreak )
+      {
+        $CutText = substr($Text, 0, strrpos($Text, ' ', $MinBreak));
+      }
+      else
+      {
+        $CutText = substr($Text, 0, $MaxBreak-3);
+      }
+      if ( $ToolTip ) $CutText = "<a data-toggle='tooltip' title='" . $Text . "'>" . $CutText . "...</a>";
+    }
+    else
+    {
+      $CutText = $Text;
+    }
+    return $CutText;
+  }
+
   /**
    * Return $val if it is set, $default otherwise.
    *
@@ -556,16 +587,16 @@ class Vzg_controller extends CI_Controller
     // Mail Adresses
     $SoftwareName = (isset($_SESSION["config_general"]["general"]["softwarename"]) && $_SESSION["config_general"]["general"]["softwarename"] != "" ) 
                 ? $_SESSION["config_general"]["general"]["softwarename"] : "";
-	$LibraryName  = (isset($_SESSION["config_general"]["general"]["title"]) && $_SESSION["config_general"]["general"]["title"] != "" ) 
+    $LibraryName  = (isset($_SESSION["config_general"]["general"]["title"]) && $_SESSION["config_general"]["general"]["title"] != "" ) 
                 ? $_SESSION["config_general"]["general"]["title"] : "";
     if ( $LibraryName != "" )
     {
       $FromName = ( $SoftwareName != "" ) ? $SoftwareName . " - " . $LibraryName : $LibraryName;
     }
-	else
-	{
-	  $FromName = $SoftwareName;
-	}
+    else
+    {
+      $FromName = $SoftwareName;
+    }
 	
     $this->email->from($_SESSION["config_general"]["general"]["mailfrom"], $FromName);
     $this->email->reply_to($_SESSION["config_general"]["general"]["mailfrom"], $FromName);
@@ -575,34 +606,31 @@ class Vzg_controller extends CI_Controller
     $this->email->subject($this->database->code2text("RECOMMENDATIONFROM") . ' ' . $username);
 
     // Mail body
-	$message = "<hr>";
-	//$message .= (isset($_SESSION["config_general"]["general"]["printlogo"]) && $_SESSION["config_general"]["general"]["printlogo"] != "" ) ? "<img src='" . base_url() . "/" . $_SESSION["config_general"]["general"]["printlogo"] . "'></img>" : "";
     $message .= "<p><b>" . $LibraryName . "</b>: <a href='" . base_url() . "'>" . ( $SoftwareName != "" ? $SoftwareName  : base_url() ) . "</a></p>";	
     foreach ( $fullbodylist as $ppn  => $fullbody)
     {
       if ( ! in_array($ppn, $ppnlist))  continue;
       
       // Remove Links from message body
-      //$fullbody  = $fullbodylist[$ppn];
       $fullbody  = preg_replace("/<a[^>]+\>/i", " ", $fullbody);
       $fullbody  = preg_replace("/<\/a>/i", " ", $fullbody);
 
       $fullbody .= "<sub><a style='color:blue;background-color:white;text-decoration:none;font-size:21px;' href='" 
                          . base_url("id%7Bcolon%7D".$ppn) . "'><b>" . $this->database->code2text("CLICKTOOPEN") . "</b></a></sub>";
-      $message  .= $fullbody . ( next($fullbodylist) == true ? "<hr>" : "" );
+      $message  .= "<hr>" . $fullbody;
     }
 
     if ( count($ppnlist) > 1 )
     {
-      $this->email->message(json_decode($username) . " (<a href='mailto:" . $mailfrom . "'>" . $mailfrom 
-                            . "</a>) " . $this->database->code2text("HASRECOMMENDATIONS") . ".<hr>"
-                            . json_decode($msg) . $message);
+      $this->email->message("<p>" . json_decode($username) . " (<a href='mailto:" . $mailfrom . "'>" . $mailfrom 
+                            . "</a>) " . $this->database->code2text("HASRECOMMENDATIONS") . ".</p><p>"
+                            . json_decode($msg) . "</p>" . $message);
     }
     else
     {
-      $this->email->message(json_decode($username) . " (<a href='mailto:" . $mailfrom . "'>" . $mailfrom 
-                            . "</a>) " . $this->database->code2text("HASRECOMMENDATION") . ".<hr>"
-                            . json_decode($msg) . $message);
+      $this->email->message("<p>" . json_decode($username) . " (<a href='mailto:" . $mailfrom . "'>" . $mailfrom 
+                            . "</a>) " . $this->database->code2text("HASRECOMMENDATION") . ".</p><p>"
+                            . json_decode($msg) . "</p>" . $message);
     }
 
     // Send it away...
@@ -620,6 +648,7 @@ class Vzg_controller extends CI_Controller
     $ppn				 = $this->input->post('ppn');
     $mailfrom		 = $this->input->post('mailfrom');
     $mailto			 = $this->input->post('mailto');
+    $mailtoname  = $this->input->post('mailtoname');
     $fullbody		 = $this->input->post('fullbody');
     $exemplar		 = (array)json_decode($this->input->post('exemplar'));
     $userinput   = (array)json_decode($this->input->post('userinput'));
@@ -742,9 +771,8 @@ class Vzg_controller extends CI_Controller
 
     // Body media part
     $Mess .= "<h3>Medium</h3>"; 
-    $Mess .= "PPN: " . $ppn;
     $Mess .= "<table border=1>" . json_decode($fullbody) . "</table>";
-    
+
     // Body link part
     $Mess .= "<h3>Direkter Link</h3>"; 
     $Mess .= "<a style='color:blue;background-color:white;text-decoration:none;' href='" 
@@ -756,7 +784,9 @@ class Vzg_controller extends CI_Controller
     $this->email->send();
 
     // Set logs
-    $this->database->store_logs($mailsubject . ' von ' . $username, $Mess, $_SESSION["userlogin"], $ppn);
+    $Title = (isset($_SESSION["data"]["results"][$ppn]["title"])) ? substr($_SESSION["data"]["results"][$ppn]["title"],0,99) : "";
+    $Data  = $userinput + array("mailto"=>$mailto, "mailtoname"=>$mailtoname);
+    $this->database->store_logs($mailsubject, $Mess, $_SESSION["userlogin"], $ppn, $Title, substr($username,0,99), serialize($Data));
 
     // Return data
     echo json_encode(array("status" => "0"));
@@ -842,6 +872,19 @@ class Vzg_controller extends CI_Controller
         }
         break;
       }
+      case "item":
+      case "items":
+      {
+        if ( ! isset($cmd[1] ) )
+        {
+          $_SESSION["internal"]["item"] = ( !isset($_SESSION["internal"]["item"]) || $_SESSION["internal"]["item"] == "0" ) ? "1" : "0";
+        }
+        else
+        {
+          $_SESSION["internal"]["item"] = ($cmd[1]== "off") ? "0" : "1";
+        }
+        break;
+      }
       case "paia":
       {
         if ( ! isset($cmd[1] ) )
@@ -860,12 +903,14 @@ class Vzg_controller extends CI_Controller
         {
           $_SESSION["internal"]["marc"] = ( !isset($_SESSION["internal"]["marc"]) || $_SESSION["internal"]["marc"] == "0" ) ? "1" : "0";
           $_SESSION["internal"]["daia"] = ( !isset($_SESSION["internal"]["daia"]) || $_SESSION["internal"]["daia"] == "0" ) ? "1" : "0";
+          $_SESSION["internal"]["item"] = ( !isset($_SESSION["internal"]["item"]) || $_SESSION["internal"]["item"] == "0" ) ? "1" : "0";
           $_SESSION["internal"]["paia"] = ( !isset($_SESSION["internal"]["paia"]) || $_SESSION["internal"]["paia"] == "0" ) ? "1" : "0";
         }
         else
         {
           $_SESSION["internal"]["marc"] = ($cmd[1]== "off") ? "0" : "1";
           $_SESSION["internal"]["daia"] = ($cmd[1]== "off") ? "0" : "1";
+          $_SESSION["internal"]["item"] = ($cmd[1]== "off") ? "0" : "1";
           $_SESSION["internal"]["paia"] = ($cmd[1]== "off") ? "0" : "1";
         }
         break;
@@ -1180,30 +1225,255 @@ class Vzg_controller extends CI_Controller
   public function GetLBS($PPN)
   {
     // Receive params
-    
+
     // Check params
 
     // Ensure required interfaces
     $this->ensureInterface(array("config","discover","lbs"));
+    
+    // DAIA from cache
+    $Cache = false;
+    if ( isset($_SESSION['data']['daia']['X_' . $PPN]) )
+    {
+      $Time = $_SESSION['data']['daia']['X_' . $PPN]["time"];
+      $DAIA = $_SESSION['data']['daia']['X_' . $PPN]["daia"];
+      if ( ($Time+30) > time() )  $Cache = true;
+    }
 
-    // Set stats
-    $this->stats("LBS_Document");
+    if ( !$Cache )
+    {
+      // Set stats
+      $this->stats("LBS_Document");
 
-    // Call LBS
-    return $this->lbs->document($PPN);
+      // Get daia from LBS
+      $DAIA = $this->lbs->document($PPN);
+      $_SESSION['data']['daia']['X_' . $PPN] = array("time" => time(), "daia" => $DAIA);
+    }
+
+    // Return daia
+    return $DAIA;
+  }
+
+   public function GetIndexItems($PPN)
+  {
+    // Load PPN
+    if ( ! $this->EnsurePPN($PPN) ) return array();
+
+    // Return empty array when no items attached
+    if ( !isset($_SESSION["data"]["results"][$PPN]["contents"]["980"]) ) return array();
+
+    // Parse MARC records
+    $Contents = $_SESSION["data"]["results"][$PPN]["contents"]["980"];
+    $Items    = array();
+    $X        = 0;
+    foreach ( $Contents as $Record )
+    {
+      $One = array();
+      foreach ( $Record as $Subrecord )
+      {
+        foreach ( $Subrecord as $Key => $Value )
+        {
+          // Only use first subfield and skip follow-ups inside one record.
+          if (!isset($One[$Key])) $One[$Key] = $Value;
+        }
+      }
+
+      // Use or create ExpID
+      $EPN = ( isset($One["b"]) ) ? $One["b"] : $X++;
+      $Items[$EPN] = $One;
+    }
+
+    // Return items
+    return ($Items);
+  }
+
+  public function GetLBSItems($PPN)
+  {
+    // Return empty array when no lbs attached
+    if ( ! isset($_SESSION["interfaces"]["lbs"]) || $_SESSION["interfaces"]["lbs"] != "1" ) return array();
+
+    // Get data
+    $Contents = $this->GetLBS($PPN);
+  
+    // Parse DAIA records
+    $Items  = array();
+    $ICount = array();
+    $Count  = 0;
+    if ( isset($Contents["document"]) )
+    {
+      foreach ( $Contents["document"] as $Dok )
+      {
+        if ( isset($Dok["item"]) )
+        {
+          foreach ( $Dok["item"] as $Exp )
+          {
+            // DAIA 1 & 2 - Check services
+            $ExpID    = (isset($Exp["temporary-hack-do-not-use"])) ? $Exp["temporary-hack-do-not-use"] : explode(":",$Exp["id"])[3];
+            $OrgExpID = $ExpID;
+            $ICount["EPN_" . $ExpID] = (!isset($ICount["EPN_" . $ExpID])) ? 1 : $ICount["EPN_" . $ExpID] + 1;
+            if ( array_key_exists($ExpID, $Items) )
+            {
+              // Important: Bandlist
+              $Count ++;
+              $ExpID .= "_" . $Count;
+            }
+            $Items[$ExpID]["epn"] = $OrgExpID;
+
+            // ParseServices
+            $Items[$ExpID] += ( isset($Exp["available"]) )   ? $this->ParseLBSServices($Exp["available"]  , true ) : array();
+            $Items[$ExpID] += ( isset($Exp["unavailable"]) ) ? $this->ParseLBSServices($Exp["unavailable"], false ) : array();
+  
+            // ID Parameter ergänzen
+            if ( (isset($Exp["id"])) && $Exp["id"] != "" )
+            {
+              $Items[$ExpID]["id"] = (isset($Exp["id"])) ? trim($Exp["id"]) : "";
+            }
+  
+            // Storage Parameter ergänzen
+            if ( (isset($Exp["storage"]["content"])) && $Exp["storage"]["content"] != "" )
+            {
+              $Items[$ExpID]["storage"] = (isset($Exp["storage"]["content"])) ? trim($Exp["storage"]["content"]) : "";
+            }
+  
+            // Chronology Parameter ergänzen
+            if ( (isset($Exp["chronology"]["about"])) && $Exp["chronology"]["about"] != "" )
+            {
+              $Items[$ExpID]["chronology"] = (isset($Exp["chronology"]["about"])) ? trim($Exp["chronology"]["about"]) : "";
+            }
+  
+            // Department Parameter ergänzen
+            if ( (isset($Exp["department"]["content"])) && $Exp["department"]["content"] != "" )
+            {
+              $Items[$ExpID]["department"] = (isset($Exp["department"]["content"])) ? trim($Exp["department"]["content"]) : "";
+            }
+  
+            // Label Parameter ergänzen
+            if ( (isset($Exp["label"])) && $Exp["label"] != "" )
+            {
+              $Items[$ExpID]["label"] = trim($Exp["label"]);
+            }
+  
+            // Label About ergänzen (Immer wegen Sortierung)
+            $Items[$ExpID]["about"] = ( (isset($Exp["about"])) && $Exp["about"] != "" ) ? trim($Exp["about"]) : "-";
+          }
+        }
+      }
+  
+      // Add bandlist switch 
+      foreach ($Items as $ExpID => $One) 
+      {
+        $Items[$ExpID]["bandlist"]  = (isset($One["epn"]) && isset($ICount["EPN_".$One["epn"]]) && $ICount["EPN_".$One["epn"]] > 1) ? true : false;
+      }
+  
+      // Sort records by about (volume...)
+      uasort($Items, function ($a, $b) { return $a['about'] <=> $b['about']; });
+  
+    }
+
+    // Return items
+    return ($Items);
+  }
+
+  private function GetLimitation($Limitation)
+  {
+    $Str = "";
+    foreach ($Limitation as $Limit)
+    {
+      if ( isset($Limit["id"]) )
+      {
+        $Str = ($Str == "") ? parse_url($Limit["id"], PHP_URL_FRAGMENT) : ", " . parse_url($Limit["id"], PHP_URL_FRAGMENT);
+      }
+    }
+    return $Str;
+  }
+
+  private function GetLBSAction($URI)
+  {
+    if ( strpos($URI,"&action=") !== false )
+    {
+      parse_str(parse_url(trim($URI), PHP_URL_QUERY), $Tmp);
+      return $Tmp["action"];
+    }
+    else
+    {
+      return "-";
+    }
+  }
+
+  private function ParseLBSServices($LBSItems, $State)
+  {
+    $Services = array();
+    $Items    = array();
+    foreach ($LBSItems as $One )
+    {
+      $SName = (isset($One["service"])) ? $One["service"] : "";
+      if ( $SName == "" ) continue;
+      if ( !isset($Services[$SName]) )
+      {
+        $Items[$SName]         = $State;
+        $Items[$SName."items"] = array();
+        $Services[$SName]      = 0;
+      }
+      else
+      {
+        $Services[$SName]      += 1;
+      }
+      $SID = $Services[$SName];
+      $Items[$SName."items"][$SID]["limitation"] = ( isset($One["limitation"]) ) ? $this->GetLimitation($One["limitation"])                     : "-";
+      $Items[$SName."items"][$SID]["expected"]   = ( isset($One["expected"]) )   ? date("d.m.Y", strtotime(strtolower(trim($One["expected"])))) : "-";
+      $Items[$SName."items"][$SID]["queue"]      = ( isset($One["queue"]) )      ? trim($One["queue"]) : "0";
+      $Items[$SName."items"][$SID]["title"]      = ( isset($One["title"]) )      ? trim($One["title"]) : "-";
+      if ( isset($One["href"]) )
+      {
+        $Items[$SName."items"][$SID]["href"]     = trim($One["href"]);
+        $Items[$SName."items"][$SID]["action"]   = $this->GetLBSAction($One["href"]);
+      }
+      else
+      {
+        $Items[$SName."items"][$SID]["href"]     = "-";
+        $Items[$SName."items"][$SID]["action"]   = "-";
+      }
+    }
+    return ($Items);
+  }
+
+  public function GetCombinedItems($PPN)
+  {
+    $MARCItems = $this->GetIndexItems($PPN);
+
+    if ( isset($_SESSION["interfaces"]["lbs"]) && $_SESSION["interfaces"]["lbs"] == "1" )
+    {
+      $DAIAItems = $this->GetLBSItems($PPN);
+      $Combined  = array();
+
+      // Add MARC-Data to DAIA records (incl. bandlists)
+      foreach ($DAIAItems as $EPN => $Item) 
+      {
+        if ( isset($Item["epn"]) && $Item["epn"] !="" && isset($MARCItems[$Item["epn"]]) ) $Combined[$EPN] = $DAIAItems[$EPN] + $MARCItems[$Item["epn"]];
+        // Sort records by about (volume...)
+        ksort($Combined[$EPN]);
+
+      }
+      return ($Combined);
+    }
+    else
+    {
+      return ($MARCItems);
+    }
   }
 
   public function request()
   {
     // Receive params
-    $uri  = $this->input->post('uri');
-    $desk = $this->input->post('desk');
+    $uri    = $this->input->post('uri');
+    $desk   = $this->input->post('desk');
+    $action = $this->input->post('action');
 
     // Check params
     if ( $uri == "" )    return ($this->ajaxreturn("400","uri is missing"));
 
     // Set stats
-    $this->stats("LBS_Request");
+    $this->stats("LBS_".ucfirst($action));
 
     $feeusertypes = ( isset($_SESSION["config_general"]["lbs"]["usertypesconfirmfeecondition"]) 
                   && $_SESSION["config_general"]["lbs"]["usertypesconfirmfeecondition"] != "" ) 
@@ -1352,6 +1622,27 @@ class Vzg_controller extends CI_Controller
     echo json_encode($container);
   }
 
+
+  public function cockpit()
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+    $params = (array) json_decode($this->input->post('params'));
+
+    // Check params
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","database"));
+
+    // Set stats
+    $this->stats("Cockpit");
+
+    $container = $this->database->get_cockpit_data($params);
+
+    echo json_encode($container);
+  }
+
   public function settingsstore()
   {
     // Ajax Method => No view will be loaded, just data is returned
@@ -1465,6 +1756,8 @@ class Vzg_controller extends CI_Controller
       else
       {
         $_SESSION['data']['results']	= $container["results"];
+        // Clear daia cache
+        unset($_SESSION['data']['daia']);
       }
     }
 
@@ -1710,7 +2003,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("FullView");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","discover","index_system","theme","lbs"));
+    $this->ensureInterface(array("config","discover","index_system","theme","lbs","record_format"));
 
     // Ensure required ppn data
     if ( !$this->ensurePPN($PPN)) return ($this->ajaxreturn("400","ppn not found"));
@@ -1736,8 +2029,11 @@ class Vzg_controller extends CI_Controller
     // Ensure required interfaces
     $this->ensureInterface(array("config","discover","theme","database","lbs"));
 
-    // Refresh data
+    // Refresh LBS data
     $this->lbs->userdata();
+
+    // Load local data
+    $this->database->get_log_data_user($_SESSION["userlogin"]);
 
     // Display view
     echo $this->theme->userview(array('action'=>$Action));

@@ -31,50 +31,64 @@ defined('BASEPATH') OR exit('No direct script access allowed');
   22.06.2017 AKa https Protocol erkennbar anhand HTTP_X_FORWARDED_PROTO
 */
 
-// Step 0: Load general config
+// Load general config
 if ( ! file_exists(LIBRARYPATH.'general.ini'))
 {
   echo "Configuration file general.ini not found at " . LIBRARYPATH.'general.ini';
   return;
 }
-$general = parse_ini_file(LIBRARYPATH.'general.ini', true);
+$general             = parse_ini_file(LIBRARYPATH.'general.ini', true);
+$serverhosts         = array_values(array_intersect_key($_SERVER, array_flip(array('HTTP_HOST', 'HTTP_X_FORWARDED_HOST'))));
 $config['base_url']  = "";
 
-// Step 1: Set development base_url, if $_SERVER['HTTP_HOST'] matches against ini-setting
-if ( isset($general["general"]["devurl"]) && $general["general"]["devurl"] != "" )
+// Mode development
+if ( strtolower(MODE) == "development" && isset($general["domains"]["devurl"]) && $general["domains"]["devurl"] != "" )
 {
-    $delimiter = ", \t";
-    $host = strtok($general["general"]["devurl"], $delimiter);
-    while ($host !== FALSE)
+  $hosts = explode(",",$general["domains"]["devurl"]);
+  foreach ($hosts as $host)
+  {
+    if ( in_array(preg_replace('#^https?://#', '', rtrim($host,'/')), $serverhosts) )
     {
-        if ($host !== $_SERVER['HTTP_HOST'])
-        {
-            $host = strtok($delimiter);
-            continue;
-        }
-        $config['base_url'] = empty($_SERVER['HTTP_X_FORWARDED_PROTO'])
-            ? 'http://'  . $host
-            : 'https://' . $host;
-        break;
+      $config['base_url'] = ( parse_url($host, PHP_URL_SCHEME) != "" ) ? $host : "http://" . $host;
+      break;
     }
+  }
 }
 
-// Step 2: Set configured base_url incl. protocol
-if ( $config['base_url'] == "" )
+// Mode test url incl. protocol
+if ( strtolower(MODE) == "test" && isset($general["domains"]["testurl"]) && $general["domains"]["testurl"] != "" )
 {
-    if ( isset($general["general"]["produrl"]) && $general["general"]["produrl"] != "" )
+  $hosts = explode(",",$general["domains"]["testurl"]);
+  foreach ( $hosts as $host )
+  {
+    if ( in_array(preg_replace('#^https?://#', '', rtrim($host,'/')), $serverhosts) )
     {
-        $config['base_url'] = $general["general"]["produrl"];
+      $config['base_url'] = ( parse_url($host, PHP_URL_SCHEME) != "" ) ? $host : "http://" . $host;
+      break;
     }
+  }
 }
 
-// Step 3: Error: No base url has been set
+// Mode production url incl. protocol
+if ( strtolower(MODE) == "production" && isset($general["domains"]["produrl"]) && $general["domains"]["produrl"] != "" )
+{
+  $hosts = explode(",",$general["domains"]["produrl"]);
+  foreach ( $hosts as $host )
+  {
+    if ( in_array(preg_replace('#^https?://#', '', rtrim($host,'/')), $serverhosts) )
+    {
+      $config['base_url'] = ( parse_url($host, PHP_URL_SCHEME) != "" ) ? $host : "http://" . $host;
+      break;
+    }
+  }
+}
+
+// No base url has been set
 if ( $config['base_url'] == "" )
 {
   echo "Not able to set base_url (" . $_SERVER['HTTP_HOST'] . "). Check general.ini";
   return;
 }
-
 
 /*
 |--------------------------------------------------------------------------

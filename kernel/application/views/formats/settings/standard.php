@@ -36,7 +36,7 @@ $Output .= "</div>";
 $Output .= "</li>";
 
 $Output .= "<li id='authorArea' data-filter='author' class='list-group-item editli col-sm-12 col-md-6 clear-right hide'>";
-$Output .= $this->CI->database->code2text('AUTHOR');
+$Output .= $this->CI->database->code2text('PARTICIPANTS');
 $Output .= "<div class='text-right'>";
 $Output .= "<div id='authorFilterValue' class='editable' data-type='textarea' data-mode='inline' data-rows='3' data-emptytext='(" . $this->CI->database->code2text('EMPTY') . ")' data-emptyclass='editempty'> </div>";
 $Output .= "</div>";

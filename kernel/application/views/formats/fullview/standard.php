@@ -14,13 +14,6 @@ $Tab2 = (isset($_SESSION["config_discover"]["fullview"]["tab2_available"])
             && $_SESSION["config_discover"]["fullview"]["tab2_available"] == "1" )  
              ? true : false;
 
-$Tab5 = (isset($_SESSION["config_discover"]["fullview"]["tab5_elements"])   
-            && $_SESSION["config_discover"]["fullview"]["tab5_elements"] != "" )  
-             ? true : false;
-$Tab5Name = (isset($_SESSION["config_discover"]["fullview"]["tab5_name"])   
-            && $_SESSION["config_discover"]["fullview"]["tab5_name"] != "" )  
-             ? $_SESSION["config_discover"]["fullview"]["tab5_name"] : "Tab5";
-
 $Buttom	= (isset($_SESSION["config_discover"]["fullview"]["buttomelement"])
               && $_SESSION["config_discover"]["fullview"]["buttomelement"] != "" )
                ? $_SESSION["config_discover"]["fullview"]["buttomelement"] : "";
@@ -44,6 +37,7 @@ $GooglePreview = (isset($_SESSION["config_discover"]["fullview"]["googlepreview"
 // Tabs Header
 $Tab = ( ( isset($_SESSION["internal"]["marc"]) && $_SESSION["internal"]["marc"] == "1" ) 
       || ( isset($_SESSION["internal"]["daia"]) && $_SESSION["internal"]["daia"] == "1" )
+      || ( isset($_SESSION["internal"]["item"]) && $_SESSION["internal"]["item"] == "1" )
       || ( isset($_SESSION["internal"]["marcfull"]) && $_SESSION["internal"]["marcfull"] == "1" )
       || $Tab2 ) 
       ? true : false;
@@ -65,11 +59,11 @@ if ( $Tab )
   {
     $Output .= "<li role='presentation'><a href='#tab4_" . $this->dlgid . "' aria-controls='tab4' role='tab' data-toggle='tab'>" . $this->CI->database->code2text('RECORDDAIA') . "</a></li>";
   }
-  if ( $Tab5 )
+  if ( isset($_SESSION["internal"]["item"]) && $_SESSION["internal"]["item"] == "1" )
   {
-    $Output .= "<li role='presentation'><a href='#tab5_" . $this->dlgid . "' aria-controls='tab5' role='tab' data-toggle='tab'>" . $this->CI->database->code2text($Tab5Name) . "</a></li>";
+    $Output .= "<li role='presentation'><a href='#tab5_" . $this->dlgid . "' aria-controls='tab5' role='tab' data-toggle='tab'>" . $this->CI->database->code2text('EXEMPLARS') . "</a></li>";
   }
-  $Output .= "</ul><!-- tab panes --><div class='tab-content'>";
+  $Output .= "</ul><div class='tab-content'>";
 }
 
 // ****** Start Tab 1 ******
@@ -81,7 +75,7 @@ if ( $GoogleCover || $GooglePreview )
 {
   $Output .=  "<div class='col-md-10'>";
 
-    $Output .= "<table id='mail_" . $this->dlgid . "' class='table rowheight-reduced table-hover borderless small'><tbody>";
+    $Output .= "<table id='biblio_" . $this->dlgid . "' class='table rowheight-reduced table-hover borderless small'><tbody>";
 
     // Show elements based on ini-file
     $Output .= $this->LoadTabElements("tab1_elements");
@@ -105,7 +99,7 @@ else
 {
   $Output .=  "<div class='col-md-12'>";
 
-    $Output .= "<table id='mail_" . $this->dlgid . "' class='table rowheight-reduced table-hover borderless small'><tbody>";
+    $Output .= "<table id='biblio_" . $this->dlgid . "' class='table rowheight-reduced table-hover borderless small'><tbody>";
 
     // Show elements based on ini-file
     $Output .= $this->LoadTabElements("tab1_elements");
@@ -116,7 +110,6 @@ else
 }
 $Output .=  "</div>";
 
-
 // Final Block
 foreach ( $TabGens as $TabGen )
 {
@@ -126,21 +119,21 @@ foreach ( $TabGens as $TabGen )
 $Output .= "</div>";
 // ****** Ende Tab 1 ******
 
-// ****** Start Tab 2 ******
 if ( $Tab2 )
 {
+  // ****** Start Tab 2 ******
   $Output .= "<div role='tabpanel' class='tab-pane fade' id='tab2_" . $this->dlgid . "'>";
   $Output .= "<div class='row row-auto' id='simularpubscontent_" . $this->dlgid . "'>";
   $Output .= "<div class='space'></div>";
   $Output .= "<div class='outercircle'></div><div class='innercircle'></div>";
   $Output .= "</div>";
   $Output .= "</div>";
+  // ****** Ende Tab 2 ******
 }
-// ****** Ende Tab 2 ******
  
-// ****** Start Tab 3 ******
 if ( ( isset($_SESSION["internal"]["marc"]) && $_SESSION["internal"]["marc"] == "1" ) || ( isset($_SESSION["internal"]["marcfull"]) && $_SESSION["internal"]["marcfull"] == "1" ) )
 {
+  // ****** Start Tab 3 ******
   $Output .= "<div role='tabpanel' class='tab-pane fade' id='tab3_" . $this->dlgid . "'>";
   $Output .= "<div class='table-responsive'><table class='table table-striped rowheight-reduced table-hover borderless small'><tbody>";
 
@@ -152,9 +145,9 @@ if ( ( isset($_SESSION["internal"]["marc"]) && $_SESSION["internal"]["marc"] == 
   // ****** Ende Tab 3 ******
 }
 
-// ****** Start Tab 4 ******
 if ( isset($_SESSION["internal"]["daia"]) && $_SESSION["internal"]["daia"] == "1" )
 {
+  // ****** Start Tab 4 ******
   $Output .= "<div role='tabpanel' class='tab-pane fade' id='tab4_" . $this->dlgid . "'>";
   $Output .= "<div class='table-responsive'><table class='table table-striped rowheight-reduced table-hover borderless small'><tbody>";
 
@@ -166,20 +159,20 @@ if ( isset($_SESSION["internal"]["daia"]) && $_SESSION["internal"]["daia"] == "1
   // ****** Ende Tab 4 ******
 }
 
-// ****** Start Tab 5 ******
-if ( $Tab5 )
+if ( isset($_SESSION["internal"]["item"]) && $_SESSION["internal"]["item"] == "1" )
 {
+  // ****** Start Tab 5 ******
   $Output .= "<div role='tabpanel' class='tab-pane fade' id='tab5_" . $this->dlgid . "'>";
-$Output .= "<div class='table-responsive'><table class='table table-striped rowheight-reduced table-hover borderless small'><tbody>";
+  $Output .= "<div class='table-responsive'><table class='table table-striped rowheight-reduced table-hover borderless small'><tbody>";
 
   // Show elements based on ini-file
   $Output .= $this->LoadTabElements("tab5_elements");
 
   $Output .= "</tbody></table></div>";
   $Output .= "</div>";
+  // ****** Ende Tab 5 ******
 }
-// ****** Ende Tab 5 ******
- 
+
 // End Tabbody
 $Output .= "</div>";
 

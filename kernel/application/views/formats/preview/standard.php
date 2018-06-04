@@ -56,7 +56,7 @@ if ( $Header )
         $Output .= "<small>";
         $Output .= ($this->pretty["titlesecond"] != "" ) ? $this->Mark_Text($this->pretty["titlesecond"]) :       implode(", ", $this->Mark_Text($this->pretty["author"]));
       
-        $Output .= "</small><br />";
+        $Output .= "<br />";
       
        if ( in_array($this->format, array("article", "earticle")) )
         {
@@ -73,7 +73,7 @@ if ( $Header )
         // PublisherArticle 
         if ( $Tmp == "" )  $Tmp = $this->pretty["physicaldescription"];
       
-        $Output .= $Tmp;
+        $Output .= $Tmp . "</small>";
   //$Output .= "</td>";
   //$Output .= "</tr></tbody>";
   //$Output .= "</table>";

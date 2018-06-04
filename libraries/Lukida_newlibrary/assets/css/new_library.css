@@ -3,8 +3,9 @@ a:visited { color: #013ADF !important; text-decoration: none}
 a:hover 	{ color: #013ADF !important; text-decoration: none}
 a:active 	{ color: #013ADF !important; text-decoration: none}
 
-body {
-	font-family:'Lucida Grande','Lucida Sans Unicode','Lucida Sans',sans-serif;  
+body 
+{
+	font-family:'Lucida Sans Unicode','Lucida Grande',sans-serif;  
 }
 
 @media (max-width:991px)

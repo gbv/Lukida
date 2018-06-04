@@ -24,3 +24,29 @@ html {
     display: flex;
     align-items: center;
 }
+
+.widget 
+{
+  border-radius: 5px;
+  padding: 15px 20px;
+  margin-bottom: 10px;
+  margin-top: 10px;
+}
+
+.navy
+{
+  background-color: #1ab394;
+  color: #ffffff;
+}
+
+.lazur
+{
+  background-color: #23c6c8;
+  color: #ffffff;
+}
+
+.orange
+{
+  background-color: #f8ac59;
+  color: #ffffff;
+}
