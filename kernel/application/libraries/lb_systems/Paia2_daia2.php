@@ -332,10 +332,15 @@ class Paia2_daia2 extends General
       $doc = array("doc" => array(array("item" => $uri)));
     }
     $response = $this->postAsArray($this->paia.'/core/' . $_SESSION["userlogin"] .'/request', $doc);
+    if ( isset($response["error"]) )
+    {
+      return (array("status" => -2,
+                    "error"  => $response["error"]));
+    }
     if ( isset($response["doc"][0]["error"]) )
     {
-      return (array("status"    => -2,
-                    "error"     => $response["doc"][0]["error"]));
+      return (array("status" => -2,
+                    "error"  => $response["doc"][0]["error"]));
     }
     return (array("status"    => (isset($response["doc"][0]["status"]))    ? $response["doc"][0]["status"] : "0",
                   "label"     => (isset($response["doc"][0]["label"]))     ? $response["doc"][0]["label"] : "",
@@ -353,6 +358,12 @@ class Paia2_daia2 extends General
 
     $doc = array("doc" => array(array("item" => $uri)));
     $response = $this->postAsArray($this->paia.'/core/' . $_SESSION["userlogin"] .'/cancel', $doc);
+
+    if ( isset($response["error"]) )
+    {
+      return (array("status" => -2,
+                    "error"  => $response["error"]));
+    }
     if ( isset($response["doc"][0]["error"]) )
     {
       return (array("status" => -2,
@@ -371,14 +382,24 @@ class Paia2_daia2 extends General
 
     $doc = array("doc" => array(array("item" => $uri)));
     $response = $this->postAsArray($this->paia.'/core/' . $_SESSION["userlogin"] .'/renew', $doc);
+
+    if ( isset($response["error"]) )
+    {
+      return (array("status"  => -2,
+                    "error"   => $response["error"]));
+    }
     if ( isset($response["doc"][0]["error"]) )
     {
-      return (array("status" => -2,
-        "error"  => $response["doc"][0]["error"]));
+      return (array("status"  => -2,
+                    "error"   => $response["doc"][0]["error"]));
     }
-    return (array("status" => 0,
-      "endtime"  => date("d.m.Y",strtotime($response["doc"][0]["endtime"])),
-      "renewals" => $response["doc"][0]["renewals"]));
+    return (array("status"    => 0,
+                  "endtime"   => (isset($response["doc"][0]["endtime"]))   ? date("d.m.Y",strtotime($response["doc"][0]["endtime"])) : "",
+                  "renewals"  => (isset($response["doc"][0]["renewals"]))  ? $response["doc"][0]["renewals"]                         : "1",
+                  "cancancel" => (isset($response["doc"][0]["cancancel"])) ? $response["doc"][0]["cancancel"]                        : "",     // not useable yet
+                  "queue"     => (isset($response["doc"][0]["queue"]))     ? $response["doc"][0]["queue"]                            : "0",    // not useable yet
+                  "reminder"  => (isset($response["doc"][0]["reminder"]))  ? $response["doc"][0]["reminder"]                         : "1"
+           ));
   }
 
   public function changepw($old, $new)
@@ -394,7 +415,7 @@ class Paia2_daia2 extends General
     if ( isset($change_response["error_description"]) )
     {
       return (array("status" => -2,
-        "error"  => $change_response["error_description"]));
+                    "error"  => $change_response["error_description"]));
     }
 
     $this->login($_SESSION["userlogin"], $new);

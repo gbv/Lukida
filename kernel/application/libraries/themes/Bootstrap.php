@@ -64,7 +64,7 @@ class Bootstrap extends General
       $this->isbn     = $Erg["isbn"];
       $this->pretty   = $Erg;
 
-      $this->words .= " " . $this->pretty["title"] . " " . implode(" ",$this->pretty["author"]);
+      $this->words .= " " . $this->pretty["title"] . " " . implode(" ",array_column($this->pretty["author"], "name"));
 
       // $this->CI->printArray2File($_SESSION["data"]["results"][$this->PPN]);
  
@@ -194,8 +194,9 @@ class Bootstrap extends General
     $this->cover              = $this->medium["cover"];
     $this->catalogues         = $this->medium["catalogues"];
     $this->isbn               = $this->medium["isbn"];
+
     $_SESSION["data"]["results"][$this->PPN] = array_merge($_SESSION["data"]["results"][$this->PPN],$this->SetContents("fullview"));
-    $this->pretty     = $_SESSION["data"]["results"][$this->PPN];
+    $this->pretty                            = $_SESSION["data"]["results"][$this->PPN];
 
     // $this->CI->printArray2File($_SESSION["data"]["results"][$this->PPN]);
 

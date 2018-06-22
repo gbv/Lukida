@@ -606,7 +606,7 @@ class Vzg_controller extends CI_Controller
     $this->email->subject($this->database->code2text("RECOMMENDATIONFROM") . ' ' . $username);
 
     // Mail body
-    $message .= "<p><b>" . $LibraryName . "</b>: <a href='" . base_url() . "'>" . ( $SoftwareName != "" ? $SoftwareName  : base_url() ) . "</a></p>";	
+    $message = "<p><b>" . $LibraryName . "</b>: <a href='" . base_url() . "'>" . ( $SoftwareName != "" ? $SoftwareName  : base_url() ) . "</a></p>";	
     foreach ( $fullbodylist as $ppn  => $fullbody)
     {
       if ( ! in_array($ppn, $ppnlist))  continue;
@@ -1266,6 +1266,7 @@ class Vzg_controller extends CI_Controller
     $Contents = $_SESSION["data"]["results"][$PPN]["contents"]["980"];
     $Items    = array();
     $X        = 0;
+
     foreach ( $Contents as $Record )
     {
       $One = array();
@@ -1274,7 +1275,14 @@ class Vzg_controller extends CI_Controller
         foreach ( $Subrecord as $Key => $Value )
         {
           // Only use first subfield and skip follow-ups inside one record.
-          if (!isset($One[$Key])) $One[$Key] = $Value;
+          if (!isset($One[$Key]))
+          {
+            $One[$Key] = $Value;
+          }
+          else
+          {
+            $One[$Key] .= " | " . $Value;
+          }
         }
       }
 
@@ -1389,7 +1397,7 @@ class Vzg_controller extends CI_Controller
 
   private function GetLBSAction($URI)
   {
-    if ( strpos($URI,"&action=") !== false )
+    if ( strpos($URI,"&action=") !== false || strpos($URI,"?action=") !== false )
     {
       parse_str(parse_url(trim($URI), PHP_URL_QUERY), $Tmp);
       return $Tmp["action"];
@@ -1423,6 +1431,7 @@ class Vzg_controller extends CI_Controller
       $Items[$SName."items"][$SID]["expected"]   = ( isset($One["expected"]) )   ? date("d.m.Y", strtotime(strtolower(trim($One["expected"])))) : "-";
       $Items[$SName."items"][$SID]["queue"]      = ( isset($One["queue"]) )      ? trim($One["queue"]) : "0";
       $Items[$SName."items"][$SID]["title"]      = ( isset($One["title"]) )      ? trim($One["title"]) : "-";
+      $Items[$SName."items"][$SID]["delay"]      = ( isset($One["delay"]) )      ? trim($One["delay"]) : "-";
       if ( isset($One["href"]) )
       {
         $Items[$SName."items"][$SID]["href"]     = trim($One["href"]);
@@ -1452,7 +1461,6 @@ class Vzg_controller extends CI_Controller
         if ( isset($Item["epn"]) && $Item["epn"] !="" && isset($MARCItems[$Item["epn"]]) ) $Combined[$EPN] = $DAIAItems[$EPN] + $MARCItems[$Item["epn"]];
         // Sort records by about (volume...)
         ksort($Combined[$EPN]);
-
       }
       return ($Combined);
     }

@@ -54,7 +54,7 @@ if ( $Header )
         // Show second found item
         $Output .= "<br />";
         $Output .= "<small>";
-        $Output .= ($this->pretty["titlesecond"] != "" ) ? $this->Mark_Text($this->pretty["titlesecond"]) :       implode(", ", $this->Mark_Text($this->pretty["author"]));
+        $Output .= ($this->pretty["titlesecond"] != "" ) ? $this->Mark_Text($this->pretty["titlesecond"]) :       implode(", ", $this->Mark_Text(array_column($this->pretty["author"], "name")));
       
         $Output .= "<br />";
       

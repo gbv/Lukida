@@ -34,13 +34,16 @@ if ( isset($this->pretty["part"]) && $this->pretty["part"] != "" )
 if ( isset($this->pretty["author"]) && count($this->pretty["author"]) > 0 )
 {
   $Output .=  "<tr>";
-  $Output .=  "<td>" . $this->CI->database->code2text("author") . "</td>";
+  if ( isset($this->pretty["author"][0]["role"]) && $this->pretty["author"][0]["role"] != "" )
+  {
+	  $Output .=  "<td>" . ucfirst($this->pretty["author"][0]["role"]) . "</td>";
+  }
   $Output .=  "<td>";
   $First = true;
   foreach ( $this->pretty["author"] as $one)
   {
     if ( !$First ) $Output .= " | ";
-    $Output .= $this->link("author", $one);
+    $Output .= $this->link("author", $one["name"]);
     $First = false;
   }
   $Output .=  "</td></tr>";
@@ -56,24 +59,8 @@ if ( isset($this->pretty["associates"]) && count($this->pretty["associates"]) > 
   foreach ( $this->pretty["associates"] as $one)
   {
     if ( !$First ) $Output .= " | ";
-    if ( isset($one["a"]) )
-    {
-      if ( isset($one["4"]) )
-      {
-        $Output .= $this->link("author", $one["a"]) . " (" . $this->CI->database->code2text($one["4"]) . ")";
-      }
-      else
-      {
-        if ( isset($one["e"]) )
-        {
-          $Output .= $this->link("author", $one["a"]) . " (" . $one["e"] . ")";
-        }
-        else
-        {
-          $Output .= $this->link("author", $one["a"]);
-        }
-      }
-    }
+    $Output .= $this->link("author", $one["name"]);
+    if ( $one["role"] != "" ) $Output .= " (" . $one["role"] . ")";
     $First = false;
   }
   $Output .=  "</td></tr>";
@@ -92,7 +79,8 @@ if ( $this->format != "" )
 if ( isset($this->pretty["corporation"]) && $this->pretty["corporation"] != "" )
 {
   $Output .=  "<tr>";
-  $Output .=  "<td>" . $this->CI->database->code2text("corporation") . "</td>";
+  $Output .=  "<td>" . ucfirst($this->CI->database->code2text("corporation")) . "</td>";
+
   $Output .=  "<td>" . $this->link("author", $this->pretty["corporation"]) . "</td>";
   $Output .=  "</tr>";
 }

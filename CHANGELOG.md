@@ -1,6 +1,23 @@
 # Changelog
 
-###V47
+**13.06.2018**
+* Updates
+  * CodeIgniter 3.1.9
+  * Moment 2.22.2
+  * DateRangePicker 3.0.3
+
+**11.06.2018**
+* General
+  * New info button in search bar (filled by info.html file)
+  * New switch for infobutton
+  * New switch for logotitle
+
+* Fullview
+  * Enhancements to bibligraphic data (author and associates)
+  
+**07.06.2018**
+* Userview
+  * userrentals, column "reminder" will be updated when renewing
 
 **27.05.2018**
 * Settings

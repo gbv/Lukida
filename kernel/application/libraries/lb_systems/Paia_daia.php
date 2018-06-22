@@ -366,8 +366,12 @@ class Paia_daia extends General
         "error"  => $response["doc"][0]["error"]));
     }
     return (array("status" => 0,
-      "endtime"  => date("d.m.Y",strtotime($response["doc"][0]["endtime"])),
-      "renewals" => $response["doc"][0]["renewals"]));
+      "endtime"   => date("d.m.Y",strtotime($response["doc"][0]["endtime"])),
+      "renewals"  => (isset($response["doc"][0]["renewals"])) ? $response["doc"][0]["renewals"]  : "1",
+      "cancancel" => (isset($response["doc"][0]["renewals"])) ? $response["doc"][0]["cancancel"] : "",     // not used yet
+      "queue"     => (isset($response["doc"][0]["renewals"])) ? $response["doc"][0]["queue"]     : "0",    // not used yet
+      "reminder"  => (isset($response["doc"][0]["renewals"])) ? $response["doc"][0]["reminder"]  : "1"
+    ));
   }
 }
 ?>

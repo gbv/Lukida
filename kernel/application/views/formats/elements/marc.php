@@ -3,7 +3,7 @@
 function printMARC($Leader, $Contents)
 {
   // Leader
-  $Output = "<tr><td>Lead</td><td>Alex" .  formatLeader($Leader) . "</td></tr>";
+  $Output = "<tr><td>Lead</td><td>" .  formatLeader($Leader) . "</td></tr>";
   
   foreach ($Contents as $Field => $Record)
   {

@@ -1,17 +1,18 @@
 ﻿<?php
 
-$FacetDataPool = (isset($_SESSION["config_" . $modul]["navbar"]["facet_datapool"]) 
-                     && $_SESSION["config_" . $modul]["navbar"]["facet_datapool"] == "1" ) 
-               ? true : false;
-
 // Logo Settings
-$logotitle = $_SESSION["config_general"]["general"]["title"];
-$logocheck = true;
+$logotitle = $_SESSION["config_general"]["general"]["titlelogo"];
+
+$info = (isset($_SESSION["config_" . $modul]["navbar"]["infobutton"]) 
+            && $_SESSION["config_" . $modul]["navbar"]["infobutton"] == "1" 
+            && file_exists("info.html")) 
+             ? true : false;
+$lbs  = (isset($_SESSION["config_general"]["lbs"]["available"]) 
+            && $_SESSION["config_general"]["lbs"]["available"] != "" ) 
+             ? true : false;
 
 // User already logged in?
 $Login  = ( isset($_SESSION["login"]) && $_SESSION["login"] != "" ) ? true : false;
-
-$lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] != "" ) ? true : false;
 
 ?>
 
@@ -26,7 +27,23 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
 
       <div class="navbar-form navbar-right">
 
-        <!-- Switches -->
+        <!-- info -->
+        <?php if ( $info ) { ?>
+        <div class="btn-group">
+          <button type='button' class='ubinfo btn dropdown-toggle navbar-button-color' data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Informationen" data-container="body">
+            <i class="fa fa-info"></i>
+            <span class="caret"></span>
+            <span class="sr-only">Informationen</span>
+          </button>
+          <ul class="dropdown-menu info-menu" role="menu">
+            <div id="info">
+              <?php include "info.html"; ?>
+            </div>
+          </ul>
+        </div>
+        <?php } ?>
+
+        <!-- Switch-Gruppe-Start -->
         <div class="btn-group">
 
           <!-- Sprache -->
@@ -52,7 +69,7 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
           </div>
 
           <!-- Ansicht -->
-          <div class="btn-group hidden-xs">
+          <div class="btn-group">
             <button type='button' class='selectview btn dropdown-toggle navbar-button-color' data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Ansicht ausw&auml;hlen" data-container="body">
               <i class="fa fa-th-large"></i>
               <span class="caret"></span>
@@ -65,6 +82,8 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
               <li class="hidden-sm hidden-md"><a class="col4" href="javascript:void(0)" data-value= "3"> </a></li>
             </ul>
           </div>
+
+        <!-- Switch-Gruppe-Ende -->
         </div>
 
         <!-- Favorites -->
@@ -77,33 +96,33 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
         </div>
         
         <?php if ( $lbs ) { ?>
-        <!-- User NOT Login -->
-        <div class="nologinarea btn-group<?php if ($Login) echo " hide";?>">
-          <button onClick="javascript:$.loginonly('')" type="button" class="btn navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Login" data-container="body">
-            <i class="fa fa-user" title="Login"></i>
-            <span class="sr-only">Login</span>
-          </button>
-        </div>
+          <!-- User NOT Login -->
+          <div class="nologinarea btn-group<?php if ($Login) echo " hide";?>">
+            <button onClick="javascript:$.loginonly('')" type="button" class="btn navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Login" data-container="body">
+              <i class="fa fa-user" title="Login"></i>
+              <span class="sr-only">Login</span>
+            </button>
+          </div>
 
-        <!-- User Already Logged in -->
-        <div class="loginarea btn-group<?php if (!$Login) echo " hide";?>">
-          <button type="button" class="myarea btn navbar-button-color dropdown-toggle" data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Mein Bereich" data-container="body">
-            <i class="fa fa-user" title="Mein Bereich"></i>
-            <span class="caret"></span>
-            <span class="sr-only">Mein Bereich</span>
-          </button>
-          <ul class="dropdown-menu" role="menu">
-            <li><a class="myarea2" href="javascript:$.open_user('userrentals')"><i class="fa fa-user"></i> Mein Bereich</a></li>
-            <li class="divider"></li>
-            <li><a class="usercollectables" href="javascript:$.open_user('usercollectables')">Abholbare Medien</a></li>
-            <li><a class="userrentals" href="javascript:$.open_user('userrentals')">Ausleihen</a></li>
-            <li><a class="userorders" href="javascript:$.open_user('userorders')">Bestellungen</a></li>
-            <li><a class="userreservations" href="javascript:$.open_user('userreservations')">Vormerkungen</a></li>
-            <li><a class="userfees" href="javascript:$.open_user('userfees')">Geb&uuml;hren</a></li>
-            <li class="divider"></li>
-            <li><a href="javascript:$.logout()"><i class="glyphicon glyphicon-log-out"></i> Logout</a></li>
-          </ul>
-        </div>
+          <!-- User Already Logged in -->
+          <div class="loginarea btn-group<?php if (!$Login) echo " hide";?>">
+            <button type="button" class="myarea btn navbar-button-color dropdown-toggle" data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Mein Bereich" data-container="body">
+              <i class="fa fa-user" title="Mein Bereich"></i>
+              <span class="caret"></span>
+              <span class="sr-only">Mein Bereich</span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+              <li><a class="myarea2" href="javascript:$.open_user('userrentals')"><i class="fa fa-user"></i> Mein Bereich</a></li>
+              <li class="divider"></li>
+              <li><a class="usercollectables" href="javascript:$.open_user('usercollectables')">Abholbare Medien</a></li>
+              <li><a class="userrentals" href="javascript:$.open_user('userrentals')">Ausleihen</a></li>
+              <li><a class="userorders" href="javascript:$.open_user('userorders')">Bestellungen</a></li>
+              <li><a class="userreservations" href="javascript:$.open_user('userreservations')">Vormerkungen</a></li>
+              <li><a class="userfees" href="javascript:$.open_user('userfees')">Geb&uuml;hren</a></li>
+              <li class="divider"></li>
+              <li><a href="javascript:$.logout()"><i class="glyphicon glyphicon-log-out"></i> Logout</a></li>
+            </ul>
+          </div>
         <?php } ?>
       </div>
 
@@ -154,33 +173,33 @@ $lbs = ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["co
         <div class="navbar-form navbar-right">      
           <?php if ( $lbs ) { ?>
 
-          <!-- User NOT Login -->
-          <div class="nologinarea btn-group pull-right left-padding<?php if ($Login) echo " hide";?>">
-            <button onClick="javascript:$.loginonly()" type="button" class="btn  navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Login" data-container="body">
-              <i class="fa fa-user"></i>
-              <span class="sr-only">Login</span>
-            </button>
-          </div>
+            <!-- User NOT Login -->
+            <div class="nologinarea btn-group pull-right left-padding<?php if ($Login) echo " hide";?>">
+              <button onClick="javascript:$.loginonly()" type="button" class="btn  navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Login" data-container="body">
+                <i class="fa fa-user"></i>
+                <span class="sr-only">Login</span>
+              </button>
+            </div>
 
-          <!-- User Already Logged in -->
-          <div class="loginarea btn-group pull-right left-padding<?php if (!$Login) echo " hide";?>">
-            <button type="button" class="myarea btn navbar-button-color dropdown-toggle" data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Mein Bereich">
-              <i class="fa fa-user"></i>
-              <span class="caret"></span>
-              <span class="sr-only">Mein Bereich</span>
-            </button>
-            <ul class="dropdown-menu" role="menu">
-              <li><a class="myarea2" href="javascript:$.open_user('userrentals')"><i class="fa fa-user"></i> Mein Bereich</a></li>
-              <li class="divider"></li>
-              <li><a class="usercollectables" href="javascript:$.open_user('usercollectables')">Abholbare Medien</a></li>
-              <li><a class="userrentals" href="javascript:$.open_user('userrentals')">Ausleihen</a></li>
-              <li><a class="userorders" href="javascript:$.open_user('userorders')">Bestellungen</a></li>
-              <li><a class="userreservations" href="javascript:$.open_user('userreservations')">Vormerkungen</a></li>
-              <li><a class="userfees" href="javascript:$.open_user('userfees')">Geb&uuml;hren</a></li>
-              <li class="divider"></li>
-              <li><a href="javascript:$.logout()"><i class="glyphicon glyphicon-log-out"></i> Logout</a></li>
-            </ul>
-          </div>
+            <!-- User Already Logged in -->
+            <div class="loginarea btn-group pull-right left-padding<?php if (!$Login) echo " hide";?>">
+              <button type="button" class="myarea btn navbar-button-color dropdown-toggle" data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Mein Bereich">
+                <i class="fa fa-user"></i>
+                <span class="caret"></span>
+                <span class="sr-only">Mein Bereich</span>
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a class="myarea2" href="javascript:$.open_user('userrentals')"><i class="fa fa-user"></i> Mein Bereich</a></li>
+                <li class="divider"></li>
+                <li><a class="usercollectables" href="javascript:$.open_user('usercollectables')">Abholbare Medien</a></li>
+                <li><a class="userrentals" href="javascript:$.open_user('userrentals')">Ausleihen</a></li>
+                <li><a class="userorders" href="javascript:$.open_user('userorders')">Bestellungen</a></li>
+                <li><a class="userreservations" href="javascript:$.open_user('userreservations')">Vormerkungen</a></li>
+                <li><a class="userfees" href="javascript:$.open_user('userfees')">Geb&uuml;hren</a></li>
+                <li class="divider"></li>
+                <li><a href="javascript:$.logout()"><i class="glyphicon glyphicon-log-out"></i> Logout</a></li>
+              </ul>
+            </div>
 
           <?php } ?>
 
