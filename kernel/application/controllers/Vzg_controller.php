@@ -400,18 +400,16 @@ class Vzg_controller extends CI_Controller
   
   public function CutText($Text, $MaxBreak, $ToolTip = false)
   {
-    $MinBreak = floor($MaxBreak *.7);
+    $Text = trim($Text);
     if ( strlen($Text) > $MaxBreak )
     {
-      if ( strrpos($Text, ' ', $MinBreak) !== false && strrpos($Text, ' ', $MinBreak) < $MaxBreak )
+      $MinBreak = floor($MaxBreak *.8);
+      $CutText  = substr($Text, 0, $MaxBreak);
+      if ( strrpos($CutText, ' ', $MinBreak) !== false )
       {
-        $CutText = substr($Text, 0, strrpos($Text, ' ', $MinBreak));
+        $CutText = substr($CutText, 0, strrpos($CutText, ' ', $MinBreak));
       }
-      else
-      {
-        $CutText = substr($Text, 0, $MaxBreak-3);
-      }
-      if ( $ToolTip ) $CutText = "<a data-toggle='tooltip' title='" . $Text . "'>" . $CutText . "...</a>";
+      $CutText = ( $ToolTip ) ? "<a data-toggle='tooltip' title='" . $Text . "'>" . trim($CutText) . "...</a>" : trim($CutText) . "...";
     }
     else
     {
@@ -1458,7 +1456,8 @@ class Vzg_controller extends CI_Controller
       // Add MARC-Data to DAIA records (incl. bandlists)
       foreach ($DAIAItems as $EPN => $Item) 
       {
-        if ( isset($Item["epn"]) && $Item["epn"] !="" && isset($MARCItems[$Item["epn"]]) ) $Combined[$EPN] = $DAIAItems[$EPN] + $MARCItems[$Item["epn"]];
+        $Combined[$EPN] = (isset($Item["epn"]) && $Item["epn"] !="") ? $DAIAItems[$EPN] : array();
+        if (isset($MARCItems[$Item["epn"]])) $Combined[$EPN] += $MARCItems[$Item["epn"]];
         // Sort records by about (volume...)
         ksort($Combined[$EPN]);
       }

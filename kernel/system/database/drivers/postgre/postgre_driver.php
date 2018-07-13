@@ -224,8 +224,8 @@ class CI_DB_postgre_driver extends CI_DB {
 		 * and so we'll have to fall back to running a query in
 		 * order to get it.
 		 */
-		return (isset($pg_version['server']) && preg_match('#^(\d+\.\d+)#', $pg_version['server'], $match))
-			? $this->data_cache['version'] = $match[1]
+		return isset($pg_version['server'])
+			? $this->data_cache['version'] = $pg_version['server']
 			: parent::version();
 	}
 
@@ -354,7 +354,8 @@ class CI_DB_postgre_driver extends CI_DB {
 	 */
 	public function insert_id()
 	{
-		$v = $this->version();
+		$v = pg_version($this->conn_id);
+		$v = isset($v['server']) ? $v['server'] : 0; // 'server' key is only available since PosgreSQL 7.4
 
 		$table	= (func_num_args() > 0) ? func_get_arg(0) : NULL;
 		$column	= (func_num_args() > 1) ? func_get_arg(1) : NULL;

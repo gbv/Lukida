@@ -157,7 +157,7 @@ class Standard extends General
         {
           foreach($data["author"] as $author) 
           {
-            $metadataOU .= $tagPrefix . $exportTags["author"][$format] . $author . $tagExtention;
+            $metadataOU .= $tagPrefix . $exportTags["author"][$format] . $author["name"] . $tagExtention;
           }
         }
       }
@@ -749,12 +749,12 @@ class Standard extends General
 				}
 				else 
 				{ 
-					$metadataOU .= "&rft.title=" . $data["title"];
+					$metadataOU .= "&rft.title=" . addslashes($data["title"]);
 				}
 			}
 			else 
 			{ 
-				$metadataOU .= "&rft.title=" . $data["title"];
+				$metadataOU .= "&rft.title=" . addslashes($data["title"]);
 			}
 		}
 		if (isset($data["isbn"])) 
@@ -810,11 +810,11 @@ class Standard extends General
 					foreach($data["author"] as $author) 
 					{
 						$aNr += 1;
-						$metadataOU .= "&rft.author=" . $author;
-						if ($aNr == 1 && !empty($author) && strpos($author, ', ') !== false) 
+						$metadataOU .= "&rft.author=" . $author["name"];
+						if ($aNr == 1 && !empty($author["name"]) && strpos($author["name"], ', ') !== false) 
 						{
-							$metadataOU .= "&rft.aulast=" . strstr($author, ', ', true);
-							$metadataOU .= "&rft.aufirst=" . substr(strstr($author, ", "), 2);
+							$metadataOU .= "&rft.aulast=" . strstr($author["name"], ', ', true);
+							$metadataOU .= "&rft.aufirst=" . substr(strstr($author["name"], ", "), 2);
 						}
 					}
 					}

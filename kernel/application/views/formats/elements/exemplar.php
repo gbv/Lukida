@@ -119,25 +119,14 @@ else
     {
       foreach($_SESSION["config_general"]["interlibraryloan"] as $cat => $db )
       {
-        if ( $cat != "default" )
-        {
-          if ( in_array($cat, $this->catalogues) )  $CatDB = $db;
-        }
-        else
-        {
-          $DefaultDB = $db;
-        }
+        if ( in_array($cat, $this->catalogues) )  $CatDB = $db;
       }
-    }
-    if ( isset($CatDB) && $CatDB != "" )
-    {
-      $FinalDB = (isset($CatDB) && $CatDB != "") ? $CatDB : $DefaultDB;
-
-      $Interloan[] = array
-      (
-      "link"   => "http://gso.gbv.de/DB=" . $FinalDB . "/PPNSET?PPN=" . $this->PPN,
-      "label1" => $this->CI->database->code2text("INTERLOAN")
-      );
+      if ( isset($CatDB) && $CatDB != "" )
+        $Interloan[] = array
+        (
+          "link"   => "http://gso.gbv.de/DB=" . $CatDB . "/PPNSET?PPN=" . $this->PPN,
+          "label1" => $this->CI->database->code2text("INTERLOAN")
+        );
     }
   }
 

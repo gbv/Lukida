@@ -1,5 +1,13 @@
 # Changelog
 
+**12.07.2018**
+* Fullview
+  * Improved display of original characters
+  * Improved Zotero 5 support
+
+* Updates
+  * CodeIgniter 3.1.7
+
 **13.06.2018**
 * Updates
   * CodeIgniter 3.1.9

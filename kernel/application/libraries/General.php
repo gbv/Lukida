@@ -570,58 +570,20 @@ class General
     $People = $this->GetArray(array("100" => array("a","c","4","e")));
     foreach ( $People as $One )
     {
-      if (isset($One["4"]) && $One["4"] != "") 
-      {
-        $Role = $this->CI->database->code2text($One["4"]);
-      }
-      elseif (isset($One["e"]) && $One["e"] != "" && strlen($One["e"]) == 3)
-      {
-        $Role = $this->CI->database->code2text($One["e"]);
-      }
-      elseif (isset($One["e"]) && $One["e"] != "")
-      {
-        $Role = $One["e"];
-      }
-      else
-      {
-        $Role = $this->CI->database->code2text("aut");
-      }
-      $Name = $this->FormatPersonName($One);
-      $Authors[]   = array("name" => $Name, "role" => $Role);
+      $Name = 
+      $Authors[]   = array("name" => $this->FormatPersonName($One),
+                           "role" => $this->FormatPersonRole($One, true));
     }
 
     $People = $this->GetArray(array("700" => array("a","c","4","e")));
     foreach ( $People as $One )
     {
+      // Only catch authors
       if ( ( isset($One["4"]) && $One["4"] == "aut" ) 
         || ( isset($One["e"]) && in_array(strtolower(substr($One["e"],0,7)), array("verfass","author")) ) ) 
       {
-        $Role = "";
-        if (isset($One["4"]) ? $One["4"] : "") 
-        {
-          $Role = $this->CI->database->code2text($One["4"]);
-        }
-        elseif (isset($One["e"]) && $One["e"] != "" && strlen($One["e"]) == 3)
-        {
-          $Role = $this->CI->database->code2text($One["e"]);
-        }
-        elseif (isset($One["e"]) ? $One["e"] : "") 
-        {
-          $Tmp = preg_replace("/[^a-zA-Z0-9öäü ]+/", "", strtolower($One["e"]));
-          if ( in_array($Tmp, array("bearb","begr","hrsg","komp","mitarb","red","ubers","adressat","komm","stecher","verstorb","zeichner","präses","praeses","resp","widmungsempfänger","widmungsempfaenger","zensor","beiträger","beitraeger","beiträger k","beitraeger k","beiträger m","beitraeger m","interpr","verf")) )
-          {
-            $Tmp = str_replace(
-              array("bearb","begr","hrsg","komp","mitarb","red","ubers","adressat","komm","stecher","verstorb","zeichner","präses","praeses","resp","widmungsempfänger","widmungsempfaenger","zensor","beiträger","beitraeger","beiträger k","beitraeger k","beiträger m","beitraeger m","interpr","verf"), 
-              array("EDI","FDR","EDT","CMP","CBR","PBD","TRL","RCP","CMM","EGR","DCS","DRM","CHM","CHM","RSP","DTE","DTE","CNS","CTL","CTL","CTA","CTA","CTM","CTM","IPT","AUT"), $Tmp);
-            $Role = $this->CI->database->code2text($Tmp);
-          }
-          else
-          {
-            $Role = $One["e"];
-          }
-        }
-        $Name = $this->FormatPersonName($One);
-        $Authors[]   = array("name" => $Name, "role" => $Role);
+        $Authors[]   = array("name" => $this->FormatPersonName($One), 
+                             "role" => $this->FormatPersonRole($One, true));
       }
     }
     return $Authors;
@@ -639,33 +601,8 @@ class General
       if ( ( isset($One["4"]) && $One["4"] == "aut" ) 
         || ( isset($One["e"]) && in_array(strtolower(substr($One["e"],0,7)), array("verfass","author")) ) )   continue;
 
-      $Role = "";
-      if (isset($One["4"]) ? $One["4"] : "") 
-      {
-        $Role = $this->CI->database->code2text($One["4"]);
-      }
-      elseif (isset($One["e"]) && $One["e"] != "" && strlen($One["e"]) == 3)
-      {
-        $Role = $this->CI->database->code2text($One["e"]);
-      }
-      elseif (isset($One["e"]) ? $One["e"] : "") 
-      {
-        $Tmp = preg_replace("/[^a-zA-Z0-9öäü ]+/", "", strtolower($One["e"]));
-        if ( in_array($Tmp, array("bearb","begr","hrsg","komp","mitarb","red","ubers","adressat","komm","stecher","verstorb","zeichner","präses","praeses","resp","widmungsempfänger","widmungsempfaenger","zensor","beiträger","beitraeger","beiträger k","beitraeger k","beiträger m","beitraeger m","interpr","verf")) )
-        {
-          $Tmp = str_replace(
-            array("bearb","begr","hrsg","komp","mitarb","red","ubers","adressat","komm","stecher","verstorb","zeichner","präses","praeses","resp","widmungsempfänger","widmungsempfaenger","zensor","beiträger","beitraeger","beiträger k","beitraeger k","beiträger m","beitraeger m","interpr","verf"), 
-            array("EDI","FDR","EDT","CMP","CBR","PBD","TRL","RCP","CMM","EGR","DCS","DRM","CHM","CHM","RSP","DTE","DTE","CNS","CTL","CTL","CTA","CTA","CTM","CTM","IPT","AUT"), $Tmp);
-          $Role = $this->CI->database->code2text($Tmp);
-        }
-        else
-        {
-          $Role = $One["e"];
-        }
-      }
-
       $Associates[]  = array("name" => $this->FormatPersonName($One),
-                             "role" => $Role);
+                             "role" => $this->FormatPersonRole($One, false));
     }
     return $Associates;
   }
@@ -684,6 +621,35 @@ class General
     {
       return htmlspecialchars($One["a"]);
     }
+  }
+
+  protected function FormatPersonRole($One, $onlyauthor = true)
+  {
+    $Role = "";
+    if (isset($One["4"]) ? $One["4"] : "") 
+    {
+      $Role = $this->CI->database->code2text($One["4"]);
+    }
+    elseif (isset($One["e"]) && $One["e"] != "" && strlen($One["e"]) == 3)
+    {
+      $Role = $this->CI->database->code2text($One["e"]);
+    }
+    elseif (isset($One["e"]) && $One["e"] != "") 
+    {
+      $Tmp = preg_replace("/[^a-zA-Z0-9öäü ]+/", "", strtolower($One["e"]));
+      if ( in_array($Tmp, array("bearb","begr","hrsg","komp","mitarb","red","ubers","adressat","komm","stecher","verstorb","zeichner","präses","praeses","resp","widmungsempfänger","widmungsempfaenger","zensor","beiträger","beitraeger","beiträger k","beitraeger k","beiträger m","beitraeger m","interpr","verf")) )
+      {
+        $Tmp = str_replace(
+          array("bearb","begr","hrsg","komp","mitarb","red","ubers","adressat","komm","stecher","verstorb","zeichner","präses","praeses","resp","widmungsempfänger","widmungsempfaenger","zensor","beiträger","beitraeger","beiträger k","beitraeger k","beiträger m","beitraeger m","interpr","verf"), 
+          array("EDI","FDR","EDT","CMP","CBR","PBD","TRL","RCP","CMM","EGR","DCS","DRM","CHM","CHM","RSP","DTE","DTE","CNS","CTL","CTL","CTA","CTA","CTM","CTM","IPT","AUT"), $Tmp);
+        $Role = $this->CI->database->code2text($Tmp);
+      }
+    }
+    else
+    {
+      $Role = ( $onlyauthor ) ? $this->CI->database->code2text("aut") : "";
+    }
+    return $Role;
   }
 
   protected function GetPublisher()
@@ -797,7 +763,7 @@ class General
   
   protected function AddOriginalCharacters($pretty, $area)
   {
-    $origin = $this->GetArray(array("880" => array("6","a","b","c")));
+    $origin = $this->GetArray(array("880" => array("6","a","b","c","e","4")));
 
     foreach($origin as $rec)
     { 
@@ -818,25 +784,23 @@ class General
           {
             $pretty["title"] .= ( isset($pretty["title"]) && $pretty["title"] != "" ) ? " | " . $rec["b"] : $rec["b"];
           }
+          if ( isset($rec["c"]) && $rec["c"] != "" )     $pretty["title"] .= " " . $rec["c"];
         }
 
         // Author
         if ( isset($rec["6"]) && substr($rec["6"],0,3) == "100" )
         {
-          if ( isset($rec["a"]) && $rec["a"] != "" )
-          {
-            if ( isset($pretty["author"]["names"]) )
-            {
-              if ( !in_array($rec["a"],$pretty["author"]["names"]) )
-              {
-                array_push($pretty["author"]["names"],$rec["a"]);
-              }
-            }
-            else
-            {
-              $pretty["author"]["names"] = array($rec["a"]);
-            }
-          }
+          $pretty["author"][] = array("name" => $this->FormatPersonName($rec),
+                                      "role" => $this->FormatPersonRole($rec, true));
+        }
+
+        // PV_Publisher
+        if ( isset($rec["6"]) && ( substr($rec["6"],0,3) == "260" || substr($rec["6"],0,3) == "264" ) )
+        {
+          if ( isset($pretty["pv_publisher"]) && $pretty["pv_publisher"] != ""  ) $pretty["pv_publisher"] .= " | ";
+
+          if ( isset($rec["a"]) && $rec["a"] != "" )  $pretty["pv_publisher"] .= $rec["a"];
+          if ( isset($rec["c"]) && $rec["c"] != "" )  $pretty["pv_publisher"] .= " " . $rec["c"];
         }
 
         // Serial
@@ -861,8 +825,16 @@ class General
 
       if ( $area == "fullview" )
       {
+
+        // Associates
+        if ( isset($rec["6"]) && substr($rec["6"],0,3) == "700" )
+        {
+          $pretty["associates"][] = array("name" => $this->FormatPersonName($rec),
+                                          "role" => $this->FormatPersonRole($rec, false));
+        }
+
         // Publisher
-        if ( isset($rec["6"]) && substr($rec["6"],0,3) == "260" )
+        if ( isset($rec["6"]) && ( substr($rec["6"],0,3) == "260" || substr($rec["6"],0,3) == "264" ) )
         {
           $Tmp = array();
           if ( isset($rec["a"]) && $rec["a"] != "" )  $Tmp["a"] = $rec["a"];
@@ -1000,7 +972,7 @@ class General
           {
             if ( $Key == $Subfield )
             {
-              return $Value;
+              return htmlentities($Value);
             }
           }
         }
@@ -1039,7 +1011,7 @@ class General
   
       $Publisher = "";
       $Publisher  = $this->Get250a($One["contents"]);
-      $Publisher  = ($Publisher != "" ) ? $Publisher . ", " . $this->Get260c($One["contents"]) :  $this->Get260c($One["contents"]);
+      $Publisher  = ($Publisher != "" ) ? $Publisher . ", " . $this->GetPublisherYear($One["contents"]) :  $this->GetPublisherYear($One["contents"]);
   
       $RelatedPubs[$One["id"]] = array
       (
@@ -1075,7 +1047,7 @@ class General
         "format"    => $One["format"],
         "cover"     => $One["cover"],
         "title"     => $Title,
-        "publisher" => $this->Get952j($One["contents"])
+        "publisher" => $this->GetPublisherYear($One["contents"])
         );
       }
     }
@@ -1096,7 +1068,7 @@ class General
         "format"    => $One["format"],
         "cover"     => $One["cover"],
         "title"     => $this->Get245ab($One["contents"]),
-        "publisher" => $this->Get260c($One["contents"])
+        "publisher" => $this->Get952j($One["contents"])
         );
       }
     }
@@ -1186,9 +1158,23 @@ class General
     return ("");
   }
   
-  private function Get260c($Contents)
+  private function GetPublisherYear($Contents)
   {
     $Jahr = "";
+    if ( array_key_exists("264", $Contents) )
+    {
+      foreach ( $Contents["264"] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == "c" )    $Jahr .= ($Jahr != "" ) ? " | " . $Value : $Value;
+          }
+        }
+      }
+      return $Jahr;
+    }
     if ( array_key_exists("260", $Contents) )
     {
       foreach ( $Contents["260"] as $Record )
@@ -1202,7 +1188,7 @@ class General
         }
       }
     }
-    return ($Jahr);
+    return $Jahr;
   }
   
   private function Get490av($Contents)

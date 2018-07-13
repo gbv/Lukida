@@ -835,10 +835,7 @@ class CI_Image_lib {
 		imagedestroy($dst_img);
 		imagedestroy($src_img);
 
-		if ($this->dynamic_output !== TRUE)
-		{
-			chmod($this->full_dst_path, $this->file_permissions);
-		}
+		chmod($this->full_dst_path, $this->file_permissions);
 
 		return TRUE;
 	}

@@ -134,9 +134,7 @@ class CI_Security {
 	 */
 	protected $_never_allowed_str =	array(
 		'document.cookie' => '[removed]',
-		'(document).cookie' => '[removed]',
 		'document.write'  => '[removed]',
-		'(document).write'  => '[removed]',
 		'.parentNode'     => '[removed]',
 		'.innerHTML'      => '[removed]',
 		'-moz-binding'    => '[removed]',
@@ -154,7 +152,7 @@ class CI_Security {
 	 */
 	protected $_never_allowed_regex = array(
 		'javascript\s*:',
-		'(\(?document\)?|\(?window\)?(\.document)?)\.(location|on\w*)',
+		'(document|(document\.)?window)\.(location|on\w*)',
 		'expression\s*(\(|&\#40;)', // CSS and IE
 		'vbscript\s*:', // IE, surprise!
 		'wscript\s*:', // IE
@@ -544,14 +542,6 @@ class CI_Security {
 			$str
 		);
 
-		// Same thing, but for "tag functions" (e.g. eval`some code`)
-		// See https://github.com/bcit-ci/CodeIgniter/issues/5420
-		$str = preg_replace(
-			'#(alert|prompt|confirm|cmd|passthru|eval|exec|expression|system|fopen|fsockopen|file|file_get_contents|readfile|unlink)(\s*)`(.*?)`#si',
-			'\\1\\2&#96;\\3&#96;',
-			$str
-		);
-
 		// Final clean up
 		// This adds a bit of extra precaution in case
 		// something got through the above filters
@@ -863,7 +853,7 @@ class CI_Security {
 		// For other tags, see if their attributes are "evil" and strip those
 		elseif (isset($matches['attributes']))
 		{
-			// We'll store the already filtered attributes here
+			// We'll store the already fitlered attributes here
 			$attributes = array();
 
 			// Attribute-catching pattern
@@ -937,7 +927,7 @@ class CI_Security {
 		return str_replace(
 			$match[1],
 			preg_replace(
-				'#href=.*?(?:(?:alert|prompt|confirm)(?:\(|&\#40;|`|&\#96;)|javascript:|livescript:|mocha:|charset=|window\.|\(?document\)?\.|\.cookie|<script|<xss|d\s*a\s*t\s*a\s*:)#si',
+				'#href=.*?(?:(?:alert|prompt|confirm)(?:\(|&\#40;)|javascript:|livescript:|mocha:|charset=|window\.|document\.|\.cookie|<script|<xss|d\s*a\s*t\s*a\s*:)#si',
 				'',
 				$this->_filter_attributes($match[1])
 			),
@@ -965,7 +955,7 @@ class CI_Security {
 		return str_replace(
 			$match[1],
 			preg_replace(
-				'#src=.*?(?:(?:alert|prompt|confirm|eval)(?:\(|&\#40;|`|&\#96;)|javascript:|livescript:|mocha:|charset=|window\.|\(?document\)?\.|\.cookie|<script|<xss|base64\s*,)#si',
+				'#src=.*?(?:(?:alert|prompt|confirm|eval)(?:\(|&\#40;)|javascript:|livescript:|mocha:|charset=|window\.|document\.|\.cookie|<script|<xss|base64\s*,)#si',
 				'',
 				$this->_filter_attributes($match[1])
 			),

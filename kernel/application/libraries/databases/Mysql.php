@@ -546,7 +546,7 @@ class Mysql extends General
     if ( $userid == "" ||  $name == "" || $iln == "" )  return (-1);
 
     $this->CI->db->reset_query();
-    $this->CI->db->query("replace into settings_library (iln, userid, name, settings, created) values ('" . $iln . "', '" . md5($userid) . "', '" . $this->CI->db->escape_str($name) . "', '" . serialize($settings) . "', now())");
+    $this->CI->db->query("replace into searches_library_user (iln, userid, name, settings, created) values ('" . $iln . "', '" . md5($userid) . "', '" . $this->CI->db->escape_str($name) . "', '" . serialize($settings) . "', now())");
   
     return 0;
   }
@@ -558,7 +558,7 @@ class Mysql extends General
 
     $this->CI->db->reset_query();
     $this->CI->db->select('settings');
-    $this->CI->db->from('settings_library');
+    $this->CI->db->from('searches_library_user');
     $this->CI->db->where('id',$id);
     $this->CI->db->where('iln',$iln);
     $results = $this->CI->db->get();
@@ -577,7 +577,7 @@ class Mysql extends General
     $this->CI->db->select('id');
     $this->CI->db->select('name');    
     $this->CI->db->select('created');
-    $this->CI->db->from('settings_library');
+    $this->CI->db->from('searches_library_user');
     $this->CI->db->where('iln',$iln);
     $this->CI->db->where('userid',md5($userid));
     $this->CI->db->order_by('name');
@@ -597,7 +597,7 @@ class Mysql extends General
     if ( $userid == "" ||  $ids == "" || $iln == "" )  return (-1);
 
     $this->CI->db->reset_query();
-    $this->CI->db->from('settings_library');
+    $this->CI->db->from('searches_library_user');
     $this->CI->db->where_in('id', $ids);
     $this->CI->db->where('iln',$iln);
     if ( ! $this->CI->db->delete() )

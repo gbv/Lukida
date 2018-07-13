@@ -21,8 +21,9 @@ foreach ( $_SESSION["items"] as $Item )
   if ( $Item["status"] == "3" ) (isset($Add["userrentals"]))      ? $Add["userrentals"]++      : $Add["userrentals"]      = 1;
   if ( $Item["status"] == "4" ) (isset($Add["usercollectables"])) ? $Add["usercollectables"]++ : $Add["usercollectables"] = 1;
 }
-if ( $_SESSION["fees"]["amount"] != "0.00 EUR" ) $Add["userfees"] = $_SESSION["fees"]["amount"];
-if ( isset($_SESSION["searches"]) && count($_SESSION["searches"])>0) $Add["usersearches"] = count($_SESSION["searches"]);
+if ( $_SESSION["fees"]["amount"] != "0.00 EUR" )                                 $Add["userfees"]       = $_SESSION["fees"]["amount"];
+if ( isset($_SESSION["searches"]) && count($_SESSION["searches"])>0)             $Add["usersearches"]   = count($_SESSION["searches"]);
+if ( isset($_SESSION["usermailorders"]) && count($_SESSION["usermailorders"])>0) $Add["userordermails"] = count($_SESSION["usermailorders"]);
 
 // *****************************************************
 // ************ Section TWO: Create Output *************
