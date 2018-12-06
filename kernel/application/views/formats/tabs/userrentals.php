@@ -1,12 +1,22 @@
 <?php
 
+// Merge LBS
+if ( $this->countLBS() == 2 )
+{
+  $Total = array_merge($_SESSION[$_SESSION["info"]["1"]["isil"]]["items"],$_SESSION[$_SESSION["info"]["2"]["isil"]]["items"]);
+}
+else
+{
+  $Total = $_SESSION[$_SESSION["info"]["1"]["isil"]]["items"];
+}
+
 // Get settings
 $MaxRenewals = (isset($_SESSION["config_general"]["lbs"]["maxrenewals"]) && $_SESSION["config_general"]["lbs"]["maxrenewals"] != "" ) ? (integer) $_SESSION["config_general"]["lbs"]["maxrenewals"] : 0;
 $AllowAfterTime = (isset($_SESSION["config_general"]["lbs"]["allowrenewalaftertime"]) && $_SESSION["config_general"]["lbs"]["allowrenewalaftertime"] == "1" ) ? true : false;
 
 // Filter and sort items
 $Items = array();
-foreach ( $_SESSION["items"] as $Item )
+foreach ( $Total as $Item )
 {
   if ( $Item["status"] == "3" && isset($Item["endtime"]) && $Item["endtime"] != "" ) $Items[] = $Item;
 }
@@ -17,6 +27,7 @@ $Output .= "<tr>";
 $Output .= "<td align='center'><button class='btn btn-tiny navbar-panel-color btn-check-all' onClick='javascript:$.mark_check(\"renew\");'>" . $this->CI->database->code2text("ALL") . "</button></td>";
 $Output .= "<th>" . $this->CI->database->code2text("TITLE")     . "</th>";
 $Output .= "<th>" . $this->CI->database->code2text("RETURN")    . "</th>";
+if ( $this->countLBS() == 2 ) $Output .= "<th>" . $this->CI->database->code2text("LIBRARY")   . "</th>";
 $Output .= "<th>" . $this->CI->database->code2text("REMINDERS") . "</th>";
 $Output .= "<th>" . $this->CI->database->code2text("RENEWALS")  . "</th>";
 $Output .= "</tr>";
@@ -29,7 +40,7 @@ foreach ( $Items as $Item )
   $Tmp    = strtotime($Item["endtime"]);
   $InTime = ( date("Ymd",$Tmp) >= date("Ymd") ) ? true : false;
   $Queue  = ( $Item["queue"] >= 1 ) ? true : false;
-  $Bar    = substr($Item["item"], strrpos($Item["item"], '$') + 1);
+  $Bar    = substr($Item["item"], max(strrpos($Item["item"], '$'),strrpos($Item["item"], ':')) + 1);
 
   $Output .= "<tr>";
 
@@ -38,7 +49,7 @@ foreach ( $Items as $Item )
   if ( ( ( !$InTime && $AllowAfterTime) or $InTime ) && ! $Queue && ( ( $Item["renewals"] < $MaxRenewals && $MaxRenewals > 0) || $MaxRenewals == 0 ) )
   {
     $Count++;
-    $Output .=  "<input type='checkbox' class='check_renew' data-item='" . $Item["item"] . "' value=''>";
+    $Output .=  "<input type='checkbox' class='check_renew' data-item='" . $Item["item"] . "' data-iln='" . $this->getLBSILN($Item["isil"]) . "' value=''>";
   }
   $Output .= "</td>";
 
@@ -49,6 +60,9 @@ foreach ( $Items as $Item )
   $Output .= "<td align='center' id='return_renew_" . $Bar . "'>";
   $Output .= ( $InTime ) ? date("d.m.Y",$Tmp) : "<b><font color='red'>" . date("d.m.Y",$Tmp) . "</font></b>";
   $Output .= "</td>";
+
+  // Library
+  if ( $this->countLBS() == 2 ) $Output .= "<td>" .$this->getLBSName($Item["isil"])   . "</td>";
 
   // Reminder
   $Output .= "<td align='center'><span id='reminder_renew_" . $Bar . "'>" . $Item["reminder"] . "</span></td>";

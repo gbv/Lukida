@@ -95,6 +95,13 @@ class Marc21 extends General
 
   private function SetMarcContents()
   {
+
+    $ILNs = array();
+    if ( isset($_SESSION["iln"]) && isset($_SESSION["iln"]) != "" )         $ILNs[] = $_SESSION["iln"];
+    if ( isset($_SESSION["config_general"]["general"]["ilnsecond"]) 
+            && $_SESSION["config_general"]["general"]["ilnsecond"] != "" )  $ILNs[] = $_SESSION["config_general"]["general"]["ilnsecond"];
+    // file_put_contents('ILNs_' . microtime() . '.txt', print_r($ILNs, true));
+
     $this->contents = array();
     foreach ($this->marc->getFields() as $tag => $data)
     {
@@ -130,14 +137,16 @@ class Marc21 extends General
         }
         else
         {
-          // 912-area keep only data for configured iln
-          if ( $tag == "912" && isset($_SESSION["iln"]) )
+          // 912-area keep only data for configured ilns
+          if ( $tag == "912" && count($ILNs) )
           {
             if ( $data->getSubField("a") )
             {
-              $Tmp = $data->getSubField("a")->getData();
-              if ( ( $Tmp == "GBV_ILN_" . $_SESSION["iln"] ) 
-                || ( substr($Tmp,0,8) != "GBV_ILN_" && ! in_array($Tmp, array("SYSFLAG_1", "SYSFLAG_A")) ) ) 
+              $Tmp = (string) trim($data->getSubField("a")->getData());
+              // file_put_contents('ILN687_' . microtime() . '.txt', print_r($Tmp, true));
+
+              if ( in_array(substr($Tmp,8), array_values($ILNs)) || 
+                ( substr($Tmp,0,8) != "GBV_ILN_" && !in_array($Tmp, array("SYSFLAG_1", "SYSFLAG_A"))) ) 
               {
                 $this->contents[$tag][] = $Sub;
                 continue;
@@ -150,12 +159,12 @@ class Marc21 extends General
           }
 
           // 980-area keep only data for configured iln
-          if ( $tag >= "980" && isset($_SESSION["iln"]) )
+          if ( $tag >= "980" && count($ILNs) )
           {
             if ( $data->getSubField("2") )
             {
               $Tmp = $data->getSubField("2")->getData();
-              if ( $Tmp == $_SESSION["iln"] )
+              if ( in_array($Tmp, $ILNs) )
               {
                 $this->contents[$tag][] = $Sub;
                 continue;

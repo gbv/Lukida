@@ -25,18 +25,6 @@ class Vzg_controller extends CI_Controller
   // ************* Config-Functions *************
   // ********************************************
 
-  private function isUserSessionAlive()
-  {
-    // Check/Restart Session
-    if ( !isset($_SESSION) || !isset($_SESSION["login"]) || !isset($_SESSION["userlogin"])|| !isset($_SESSION["items"]) )
-    {  
-      echo "Bitte den Browser aktualisieren !";
-      echo "<br />Please refresh browser to reactivate system !";
-      return false;
-    }
-    return true;
-  }
-
   private function load_check_system_config()
   {
     // Check, if system-config is available
@@ -199,7 +187,19 @@ class Vzg_controller extends CI_Controller
           $this->load_check_general_config();
 
           // ILN mal vorhanden und mal nicht vorhanden
-          if ( isset($_SESSION["config_general"]["general"]["iln"]) && $_SESSION["config_general"]["general"]["iln"] != "" )  $_SESSION["iln"] = $_SESSION["config_general"]["general"]["iln"];
+          if ( isset($_SESSION["config_general"]["general"]["iln"]) && $_SESSION["config_general"]["general"]["iln"] != "" )
+          {
+            $_SESSION["iln"]              = $_SESSION["config_general"]["general"]["iln"];
+            $_SESSION["info"]["1"]["iln"] = $_SESSION["config_general"]["general"]["iln"];
+            $_SESSION["info"]["ilncount"] = 1;
+          }  
+
+          if ( isset($_SESSION["config_general"]["general"]["ilnsecond"]) && $_SESSION["config_general"]["general"]["ilnsecond"] != "" )
+          {
+            $_SESSION["ilnsecond"]        = $_SESSION["config_general"]["general"]["ilnsecond"];
+            $_SESSION["info"]["2"]["iln"] = $_SESSION["config_general"]["general"]["ilnsecond"];
+            $_SESSION["info"]["ilncount"] = 2;
+          }  
 
           // Also load ILN dependant translations
           $this->load_languages(); // Wichtig für ersten Seitenaufbau
@@ -293,26 +293,87 @@ class Vzg_controller extends CI_Controller
     
         case "lbs":
         {
+          // 1. LBS
           // Read LBS config & load library - if it is available
           if (isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] == "1" )
           {
+            $Params = array();
+            $Params["isil"] = (isset($_SESSION["config_general"]["general"]["isil"]) && $_SESSION["config_general"]["general"]["isil"] != "" ) ? $_SESSION["config_general"]["general"]["isil"] : "";
             if ( strtolower(MODE) == "production" )
             {
               $LBS    = (isset($_SESSION["config_general"]["lbsprod"]["type"]) && $_SESSION["config_general"]["lbsprod"]["type"] != "" ) 
                         ? $_SESSION["config_general"]["lbsprod"]["type"] : "paia2_daia2";
+              $Params["paia"] = (isset($_SESSION["config_general"]["lbsprod"]["paia"]) && $_SESSION["config_general"]["lbsprod"]["paia"] != "" ) ? $_SESSION["config_general"]["lbsprod"]["paia"] : "";
+              $Params["daia"] = (isset($_SESSION["config_general"]["lbsprod"]["daia"]) && $_SESSION["config_general"]["lbsprod"]["daia"] != "" ) ? $_SESSION["config_general"]["lbsprod"]["daia"] : "";
             }
             else
             {
               $LBS    = (isset($_SESSION["config_general"]["lbsdevtest"]["type"]) && $_SESSION["config_general"]["lbsdevtest"]["type"] != "" ) 
                         ? $_SESSION["config_general"]["lbsdevtest"]["type"] : "paia2_daia2";
+              $Params["paia"] = (isset($_SESSION["config_general"]["lbsdevtest"]["paia"]) && $_SESSION["config_general"]["lbsdevtest"]["paia"] != "" ) ? $_SESSION["config_general"]["lbsdevtest"]["paia"] : "";
+              $Params["daia"] = (isset($_SESSION["config_general"]["lbsdevtest"]["daia"]) && $_SESSION["config_general"]["lbsdevtest"]["daia"] != "" ) ? $_SESSION["config_general"]["lbsdevtest"]["daia"] : "";
             }
-            $this->load->library('lb_systems/'.$LBS, "", "lbs");
-            $_SESSION["interfaces"]["lbs"] = 1;
+
+            if ( $Params["isil"] == "" || $Params["paia"] == "" || $Params["daia"] == "" )  break;
+
+            $Name = ( isset($_SESSION["config_general"]["lbs"][$Params["isil"]]) && $_SESSION["config_general"]["lbs"][$Params["isil"]] != "" ) ? $_SESSION["config_general"]["lbs"][$Params["isil"]] : "";
+
+            $this->load->library('lb_systems/'.$LBS, $Params, "lbs");
+            $_SESSION["interfaces"]["lbs"]   = 1;
+            $_SESSION["info"]["lbscount"]    = 1;
+            $_SESSION["info"]["names"][$Params["isil"]] = $Name;
+            $_SESSION["info"]["1"]["isil"]   = $Params["isil"];
+            $_SESSION["info"]["1"]["driver"] = $LBS;
+            $_SESSION["info"]["1"]["host"]   = $Params["paia"];
           }
           break;
         }
+
+        case "lbs2":
+        {
+          // 2. LBS
+          // Read LBS config & load library - if it is available
+          if (isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] == "1" )
+          {
+            $Params = array();
+            if ( strtolower(MODE) == "production" )
+            {
+              $LBS    = (isset($_SESSION["config_general"]["lbsprod"]["type"]) && $_SESSION["config_general"]["lbsprod"]["type"] != "" ) 
+                        ? $_SESSION["config_general"]["lbsprod"]["type"] : "paia2_daia2";
+              $Params["isil"] = (isset($_SESSION["config_general"]["lbsprod2"]["isil"]) && $_SESSION["config_general"]["lbsprod2"]["isil"] != "" ) ? $_SESSION["config_general"]["lbsprod2"]["isil"] : "";
+              $Params["paia"] = (isset($_SESSION["config_general"]["lbsprod2"]["paia"]) && $_SESSION["config_general"]["lbsprod2"]["paia"] != "" ) ? $_SESSION["config_general"]["lbsprod2"]["paia"] : "";
+              $Params["daia"] = (isset($_SESSION["config_general"]["lbsprod2"]["daia"]) && $_SESSION["config_general"]["lbsprod2"]["daia"] != "" ) ? $_SESSION["config_general"]["lbsprod2"]["daia"] : "";
+            }
+            else
+            {
+              $LBS    = (isset($_SESSION["config_general"]["lbsdevtest"]["type"]) && $_SESSION["config_general"]["lbsdevtest"]["type"] != "" ) 
+                        ? $_SESSION["config_general"]["lbsdevtest"]["type"] : "paia2_daia2";
+              $Params["isil"] = (isset($_SESSION["config_general"]["lbsdevtest2"]["isil"]) && $_SESSION["config_general"]["lbsdevtest2"]["isil"] != "" ) ? $_SESSION["config_general"]["lbsdevtest2"]["isil"] : "";
+              $Params["paia"] = (isset($_SESSION["config_general"]["lbsdevtest2"]["paia"]) && $_SESSION["config_general"]["lbsdevtest2"]["paia"] != "" ) ? $_SESSION["config_general"]["lbsdevtest2"]["paia"] : "";
+              $Params["daia"] = (isset($_SESSION["config_general"]["lbsdevtest2"]["daia"]) && $_SESSION["config_general"]["lbsdevtest2"]["daia"] != "" ) ? $_SESSION["config_general"]["lbsdevtest2"]["daia"] : "";
+            }
+
+            if ( $Params["isil"] == "" || $Params["paia"] == "" || $Params["daia"] == "" )  break;
+
+            $Name = (isset($_SESSION["config_general"]["lbs"][$Params["isil"]]) && $_SESSION["config_general"]["lbs"][$Params["isil"]] != "" ) ? $_SESSION["config_general"]["lbs"][$Params["isil"]] : "";
+
+            $this->load->library('lb_systems/'.$LBS, $Params, "lbs2");
+            $_SESSION["interfaces"]["lbs2"]  = 1;
+            $_SESSION["info"]["lbscount"]    = 2;
+            $_SESSION["info"]["names"][$Params["isil"]] = $Name;
+            $_SESSION["info"]["2"]["isil"]   = $Params["isil"];
+            $_SESSION["info"]["2"]["driver"] = $LBS;
+            $_SESSION["info"]["2"]["host"]   = $Params["paia"];
+          }
+          break;
+        }        
       }
     }
+  }
+
+  public function countLBS()
+  {
+    return ( isset($_SESSION["info"]["lbscount"]) ) ? $_SESSION["info"]["lbscount"] : 0;
   }
 
   public function ensurePPN($PPN)
@@ -659,14 +720,16 @@ class Vzg_controller extends CI_Controller
     if ( $mailto == "" )   return ($this->ajaxreturn("400","mailto is missing"));
     if ( $fullbody == "" ) return ($this->ajaxreturn("400","mailbody is missing"));
     if ( ! is_array($exemplar) || count($exemplar) == 0 ) return ($this->ajaxreturn("400","exemplar is missing"));
-    if ( ! $this->isUserSessionAlive() ) return ($this->ajaxreturn("400","timeout user session"));
     if ( $mailtyp == "" ) $mailtyp = "order";
     if ( $mailsubject == "" ) $mailtyp = "Magazinbestellung";
-    if ( isset($_SESSION["login"]["status"]) && $_SESSION["login"]["status"] >= "1" )
+    if ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["status"]) && $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["status"] >= "1" )
     {
       echo json_encode(array(
         "status" => -3,
-        "error"  => ( isset($_SESSION["userstatus"]["message"]) && $_SESSION["userstatus"]["message"] == true && isset($_SESSION["userstatus"]["messagetext"])) ? $_SESSION["userstatus"]["messagetext"] : "Error" ));
+        "error"  => ( isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["message"]) 
+                         && $_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["message"] == true 
+                   && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["messagetext"])) 
+                          ? $_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["messagetext"] : "Error" ));
       return(0);
     }
 
@@ -710,7 +773,7 @@ class Vzg_controller extends CI_Controller
     }
     
     // Username
-    $username = trim($_SESSION["login"]["firstname"] . " " . $_SESSION["login"]["lastname"]);
+    $username = trim($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["firstname"] . " " . $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["lastname"]);
         
     // Mail subject
     $this->email->subject($mailsubject . ' von ' . $username );
@@ -733,7 +796,8 @@ class Vzg_controller extends CI_Controller
  
     $Mess .= "<h3>Benutzer</h3>"; 
     $Mess .= "<table>";
-    foreach ( $_SESSION["login"] as $key => $value )
+
+    foreach ( $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] as $key => $value )
     {
       if ( $value == "" || $key == "type" )  continue;
       if ( $UserElements != "all" )
@@ -784,7 +848,7 @@ class Vzg_controller extends CI_Controller
     // Set logs
     $Title = (isset($_SESSION["data"]["results"][$ppn]["title"])) ? substr($_SESSION["data"]["results"][$ppn]["title"],0,99) : "";
     $Data  = $userinput + array("mailto"=>$mailto, "mailtoname"=>$mailtoname);
-    $this->database->store_logs($mailsubject, $Mess, $_SESSION["userlogin"], $ppn, $Title, substr($username,0,99), serialize($Data));
+    $this->database->store_logs($mailsubject, $Mess, $_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"], $ppn, $Title, substr($username,0,99), serialize($Data));
 
     // Return data
     echo json_encode(array("status" => "0"));
@@ -1166,10 +1230,17 @@ class Vzg_controller extends CI_Controller
     $this->stats("LBS_Login");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","discover","lbs","database"));
+    $this->ensureInterface(array("config","discover","lbs","lbs2","database"));
+
+    if ( $this->countLBS() == 2 )
+    {
+      $_SESSION[$_SESSION["info"]["2"]["isil"]]["login"] = $this->lbs2->login($user, $pw);
+    }
+
+    $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] = $this->lbs->login($user, $pw);
 
     // Login lbs & echo
-    echo json_encode($this->lbs->login($user, $pw));
+    echo json_encode($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]);
   }
 
   public function logout()
@@ -1179,19 +1250,23 @@ class Vzg_controller extends CI_Controller
     // Receive params
 
     // Check params
+    if ( ! $this->countLBS() )  return (-1);
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","discover","lbs"));
+    $this->ensureInterface(array("config","discover","lbs", "Lbs2"));
 
     // Set stats
     $this->stats("LBS_Logout");
 
-    if ( isset($_SESSION["userlogin"]) )
+    // Logout lbs & echo
+    $_SESSION[$_SESSION["info"]["1"]["isil"]]["logout"]  = $this->lbs->logout();
+
+    if ( $this->countLBS() == 2 )
     {
-      // Logout lbs & echo
-      echo  json_encode($this->lbs->logout());
+      $_SESSION[$_SESSION["info"]["2"]["isil"]]["logout"]  = $this->lbs2->logout();
     }
-    return (0);
+
+    echo json_encode($_SESSION[$_SESSION["info"]["1"]["isil"]]["logout"]);
   }
 
   public function changepw()
@@ -1203,6 +1278,7 @@ class Vzg_controller extends CI_Controller
     $new = trim($this->input->post('new'));
 
     // Check params
+    if ( ! $this->countLBS() )  return (-1);
     if ( $old == "" ) echo json_encode(array("status"=>"-2"));
     if ( $new == "" ) echo json_encode(array("status"=>"-2"));
 
@@ -1212,7 +1288,7 @@ class Vzg_controller extends CI_Controller
     // Set stats
     $this->stats("LBS_Change");
 
-    if ( isset($_SESSION["userlogin"]) )
+    if ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"]) )
     {
       // Logout lbs & echo
       echo  json_encode($this->lbs->changepw($old,$new));
@@ -1225,9 +1301,10 @@ class Vzg_controller extends CI_Controller
     // Receive params
 
     // Check params
+    if ( ! $this->countLBS() )  return (-1);
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","discover","lbs"));
+    $this->ensureInterface(array("config","discover","lbs","lbs2"));
     
     // DAIA from cache
     $Cache = false;
@@ -1238,13 +1315,16 @@ class Vzg_controller extends CI_Controller
       if ( ($Time+30) > time() )  $Cache = true;
     }
 
-    if ( !$Cache )
+    if ( !$Cache && isset($_SESSION["interfaces"]["lbs"]) && $_SESSION["interfaces"]["lbs"] == 1 )
     {
       // Set stats
       $this->stats("LBS_Document");
 
       // Get daia from LBS
       $DAIA = $this->lbs->document($PPN);
+      if ( isset($_SESSION["interfaces"]["lbs2"]) && $_SESSION["interfaces"]["lbs2"] == 1 )    $DAIA["daia2"] = $this->lbs2->document($PPN);
+
+      // Get daia from LBS
       $_SESSION['data']['daia']['X_' . $PPN] = array("time" => time(), "daia" => $DAIA);
     }
 
@@ -1252,7 +1332,7 @@ class Vzg_controller extends CI_Controller
     return $DAIA;
   }
 
-   public function GetIndexItems($PPN)
+  public function GetIndexItems($PPN)
   {
     // Load PPN
     if ( ! $this->EnsurePPN($PPN) ) return array();
@@ -1295,6 +1375,9 @@ class Vzg_controller extends CI_Controller
 
   public function GetLBSItems($PPN)
   {
+    // Check Params
+    if ( ! $this->countLBS() )  return array();
+
     // Return empty array when no lbs attached
     if ( ! isset($_SESSION["interfaces"]["lbs"]) || $_SESSION["interfaces"]["lbs"] != "1" ) return array();
 
@@ -1375,7 +1458,76 @@ class Vzg_controller extends CI_Controller
       uasort($Items, function ($a, $b) { return $a['about'] <=> $b['about']; });
   
     }
+    if ( isset($Contents["daia2"]["document"]) )
+    {
+      foreach ( $Contents["daia2"]["document"] as $Dok )
+      {
+        if ( isset($Dok["item"]) )
+        {
+          foreach ( $Dok["item"] as $Exp )
+          {
+            // DAIA 1 & 2 - Check services
+            $ExpID    = (isset($Exp["temporary-hack-do-not-use"])) ? $Exp["temporary-hack-do-not-use"] : explode(":",$Exp["id"])[3];
+            $OrgExpID = $ExpID;
+            $ICount["EPN_" . $ExpID] = (!isset($ICount["EPN_" . $ExpID])) ? 1 : $ICount["EPN_" . $ExpID] + 1;
+            if ( array_key_exists($ExpID, $Items) )
+            {
+              // Important: Bandlist
+              $Count ++;
+              $ExpID .= "_" . $Count;
+            }
+            $Items[$ExpID]["epn"] = $OrgExpID;
 
+            // ParseServices
+            $Items[$ExpID] += ( isset($Exp["available"]) )   ? $this->ParseLBSServices($Exp["available"]  , true ) : array();
+            $Items[$ExpID] += ( isset($Exp["unavailable"]) ) ? $this->ParseLBSServices($Exp["unavailable"], false ) : array();
+  
+            // ID Parameter ergänzen
+            if ( (isset($Exp["id"])) && $Exp["id"] != "" )
+            {
+              $Items[$ExpID]["id"] = (isset($Exp["id"])) ? trim($Exp["id"]) : "";
+            }
+  
+            // Storage Parameter ergänzen
+            if ( (isset($Exp["storage"]["content"])) && $Exp["storage"]["content"] != "" )
+            {
+              $Items[$ExpID]["storage"] = (isset($Exp["storage"]["content"])) ? trim($Exp["storage"]["content"]) : "";
+            }
+  
+            // Chronology Parameter ergänzen
+            if ( (isset($Exp["chronology"]["about"])) && $Exp["chronology"]["about"] != "" )
+            {
+              $Items[$ExpID]["chronology"] = (isset($Exp["chronology"]["about"])) ? trim($Exp["chronology"]["about"]) : "";
+            }
+  
+            // Department Parameter ergänzen
+            if ( (isset($Exp["department"]["content"])) && $Exp["department"]["content"] != "" )
+            {
+              $Items[$ExpID]["department"] = (isset($Exp["department"]["content"])) ? trim($Exp["department"]["content"]) : "";
+            }
+  
+            // Label Parameter ergänzen
+            if ( (isset($Exp["label"])) && $Exp["label"] != "" )
+            {
+              $Items[$ExpID]["label"] = trim($Exp["label"]);
+            }
+  
+            // Label About ergänzen (Immer wegen Sortierung)
+            $Items[$ExpID]["about"] = ( (isset($Exp["about"])) && $Exp["about"] != "" ) ? trim($Exp["about"]) : "-";
+          }
+        }
+      }
+  
+      // Add bandlist switch 
+      foreach ($Items as $ExpID => $One) 
+      {
+        $Items[$ExpID]["bandlist"]  = (isset($One["epn"]) && isset($ICount["EPN_".$One["epn"]]) && $ICount["EPN_".$One["epn"]] > 1) ? true : false;
+      }
+  
+      // Sort records by about (volume...)
+      uasort($Items, function ($a, $b) { return $a['about'] <=> $b['about']; });
+  
+    }
     // Return items
     return ($Items);
   }
@@ -1447,21 +1599,31 @@ class Vzg_controller extends CI_Controller
   public function GetCombinedItems($PPN)
   {
     $MARCItems = $this->GetIndexItems($PPN);
-
-    if ( isset($_SESSION["interfaces"]["lbs"]) && $_SESSION["interfaces"]["lbs"] == "1" )
+    $DAIAItems = array();
+    if ( $this->countLBS() )
     {
-      $DAIAItems = $this->GetLBSItems($PPN);
-      $Combined  = array();
-
-      // Add MARC-Data to DAIA records (incl. bandlists)
-      foreach ($DAIAItems as $EPN => $Item) 
+      if ( isset($_SESSION["interfaces"]["lbs"])  && $_SESSION["interfaces"]["lbs"]  == "1" )  $DAIAItems =  $this->GetLBSItems($PPN);
+      if ( count($DAIAItems) )
       {
-        $Combined[$EPN] = (isset($Item["epn"]) && $Item["epn"] !="") ? $DAIAItems[$EPN] : array();
-        if (isset($MARCItems[$Item["epn"]])) $Combined[$EPN] += $MARCItems[$Item["epn"]];
-        // Sort records by about (volume...)
-        ksort($Combined[$EPN]);
+        $AllItems  = array_unique(array_merge(array_keys($MARCItems),array_keys($DAIAItems)));
+        $Combined  = array();
+
+        // Loop over all Items and merge MARC and DAIA data
+        foreach ($AllItems as $LukidaID ) 
+        {
+          $Combined[$LukidaID] = (isset($DAIAItems[$LukidaID])) ? $DAIAItems[$LukidaID] : array();
+          $EPN = (isset($Combined[$LukidaID]["epn"])) ? $Combined[$LukidaID]["epn"] : "";
+          if ( $EPN != "" )
+          {
+            if (isset($MARCItems[$EPN])) $Combined[$LukidaID] += $MARCItems[$EPN];
+          }
+
+          // Sort records by about (volume...)
+          ksort($Combined[$LukidaID]);
+        }
+        //$this->printArray2File($Combined);
+        return ($Combined);
       }
-      return ($Combined);
     }
     else
     {
@@ -1472,12 +1634,15 @@ class Vzg_controller extends CI_Controller
   public function request()
   {
     // Receive params
+    $iln    = $this->input->post('iln');
     $uri    = $this->input->post('uri');
     $desk   = $this->input->post('desk');
     $action = $this->input->post('action');
 
     // Check params
+    if ( ! $this->countLBS() )  return array();
     if ( $uri == "" )    return ($this->ajaxreturn("400","uri is missing"));
+    if ( $iln == "" )    return ($this->ajaxreturn("400","iln is missing"));
 
     // Set stats
     $this->stats("LBS_".ucfirst($action));
@@ -1487,13 +1652,23 @@ class Vzg_controller extends CI_Controller
                   ? explode(",",$_SESSION["config_general"]["lbs"]["usertypesconfirmfeecondition"]) : array();
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","discover","lbs"));
+    $this->ensureInterface(array("config","discover","lbs","lbs2"));
 
     // Call LBS
-    echo json_encode($this->lbs->request($uri, array(
-                                                      "desk" => $desk,
-                                                      "feeusertypes" => $feeusertypes
-                                                    )));
+    if ( isset($_SESSION["interfaces"]["lbs2"]) && $_SESSION["interfaces"]["lbs2"] == 1 && isset($_SESSION["config_general"]["general"]["ilnsecond"]) && $iln == $_SESSION["config_general"]["general"]["ilnsecond"] )
+    {
+      echo json_encode($this->lbs2->request($iln, $uri, array(
+                                                        "desk" => $desk,
+                                                        "feeusertypes" => $feeusertypes
+                                                      )));
+    }
+    else
+    {
+      echo json_encode($this->lbs->request($iln, $uri, array(
+                                                        "desk" => $desk,
+                                                        "feeusertypes" => $feeusertypes
+                                                      )));
+    }
   }  
   
   public function cancel()
@@ -1501,19 +1676,29 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $uri	= $this->input->post('uri');
+    $iln = $this->input->post('iln');
+    $uri = $this->input->post('uri');
 
     // Check params
+    if ( ! $this->countLBS() )  return array();
     if ( $uri == "" )    return ($this->ajaxreturn("400","uri is missing"));
+    if ( $iln == "" )    return ($this->ajaxreturn("400","iln is missing"));
 
     // Set stats
     $this->stats("LBS_Cancel");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","discover","lbs"));
+    $this->ensureInterface(array("config","discover","lbs", "lbs2"));
 
     // Call LBS
-    echo json_encode($this->lbs->cancel($uri));
+    if ( isset($_SESSION["interfaces"]["lbs2"]) && $_SESSION["interfaces"]["lbs2"] == 1 && isset($_SESSION["config_general"]["general"]["ilnsecond"]) && $iln == $_SESSION["config_general"]["general"]["ilnsecond"] )
+    {
+      echo json_encode($this->lbs2->cancel($uri));
+    }
+    else
+    {
+      echo json_encode($this->lbs->cancel($uri));
+    }
   }  
 
   public function renew()
@@ -1521,19 +1706,29 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
+    $iln  = $this->input->post('iln');
     $uri	= $this->input->post('uri');
 
     // Check params
+    if ( ! $this->countLBS() )  return array();
     if ( $uri == "" )    return ($this->ajaxreturn("400","uri is missing"));
+    if ( $iln == "" )    return ($this->ajaxreturn("400","iln is missing"));
 
     // Set stats
     $this->stats("LBS_Renew");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","discover","lbs"));
+    $this->ensureInterface(array("config","discover","lbs","lbs2"));
 
     // Call LBS
-    echo json_encode($this->lbs->renew($uri));
+    if ( isset($_SESSION["interfaces"]["lbs2"]) && $_SESSION["interfaces"]["lbs2"] == 1 && isset($_SESSION["config_general"]["general"]["ilnsecond"]) && $iln == $_SESSION["config_general"]["general"]["ilnsecond"] )
+    {
+      echo json_encode($this->lbs2->renew($uri));
+    }
+    else
+    {
+      echo json_encode($this->lbs->renew($uri));
+    }
   }  
 
   // ********************************************
@@ -1660,7 +1855,7 @@ class Vzg_controller extends CI_Controller
 
     // Check params
     if ( $name == "" ) return ($this->ajaxreturn("400","name is missing"));
-    if ( ! isset($_SESSION["userlogin"]) || $_SESSION["userlogin"] == "" ) return ($this->ajaxreturn("400","login is missing"));
+    if ( ! isset($_SESSION["info"]["1"]["isil"]) || ! isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"]) || $_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"] == "" ) return ($this->ajaxreturn("400","login is missing"));
 
     // Ensure required interfaces
     $this->ensureInterface(array("config","database"));
@@ -1668,7 +1863,7 @@ class Vzg_controller extends CI_Controller
     // Set stats
     $this->stats("SettingsStore");
 
-    $container = $this->database->store_settings($_SESSION["userlogin"], $name, $settings);
+    $container = $this->database->store_settings($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"], $name, $settings);
 
     echo json_encode($container);
   }
@@ -1682,7 +1877,7 @@ class Vzg_controller extends CI_Controller
 
     // Check params
     if ( $id == "" ) return ($this->ajaxreturn("400","id is missing"));
-    if ( ! isset($_SESSION["userlogin"]) || $_SESSION["userlogin"] == "" ) return ($this->ajaxreturn("400","login is missing"));
+    if ( ! isset($_SESSION["info"]["1"]["isil"]) || ! isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"]) || $_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"] == "" ) return ($this->ajaxreturn("400","login is missing"));
 
     // Ensure required interfaces
     $this->ensureInterface(array("config","database"));
@@ -1690,7 +1885,7 @@ class Vzg_controller extends CI_Controller
     // Set stats
     $this->stats("SettingsStore");
 
-    $container = $this->database->load_settings($_SESSION["userlogin"], $id);
+    $container = $this->database->load_settings($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"], $id);
 
     echo json_encode($container);
   }
@@ -1704,7 +1899,7 @@ class Vzg_controller extends CI_Controller
 
     // Check params
     if ( $ids == "" ) return ($this->ajaxreturn("400","ids are missing"));
-    if ( ! isset($_SESSION["userlogin"]) || $_SESSION["userlogin"] == "" ) return ($this->ajaxreturn("400","login is missing"));
+    if ( ! isset($_SESSION["info"]["1"]["isil"]) || ! isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"]) || $_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"] == "" ) return ($this->ajaxreturn("400","login is missing"));
 
     // Ensure required interfaces
     $this->ensureInterface(array("config","database"));
@@ -1712,7 +1907,7 @@ class Vzg_controller extends CI_Controller
     // Set stats
     $this->stats("SettingsDelete");
 
-    $container = $this->database->delete_settings($_SESSION["userlogin"], $ids);
+    $container = $this->database->delete_settings($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"], $ids);
 
     echo json_encode($container);
   }
@@ -2027,20 +2222,24 @@ class Vzg_controller extends CI_Controller
     // Receive params
 
     // Check params
-    if ( $Action == "" )                 return ($this->ajaxreturn("400","action is missing"));
-    if ( ! $this->isUserSessionAlive() ) return ($this->ajaxreturn("400","timeout user session"));;
+    if ( $Action == "" ) return ($this->ajaxreturn("400","action is missing"));
 
     // Set stats
     $this->stats("UserView");
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","discover","theme","database","lbs"));
+    $this->ensureInterface(array("config","discover","theme","database","lbs","lbs2"));
 
     // Refresh LBS data
     $this->lbs->userdata();
 
+    if ( $this->countLBS() == 2 )
+    {
+      $this->lbs2->userdata();
+    }
+
     // Load local data
-    $this->database->get_log_data_user($_SESSION["userlogin"]);
+    $this->database->get_log_data_user($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"]);
 
     // Display view
     echo $this->theme->userview(array('action'=>$Action));
@@ -2074,7 +2273,7 @@ class Vzg_controller extends CI_Controller
     // Receive params
 
     // Check params
-    if ( ! isset($_SESSION["userlogin"]) || $_SESSION["userlogin"] == "" ) return ($this->ajaxreturn("400","login is missing"));
+    if ( ! isset($_SESSION["info"]["1"]["isil"]) || ! isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"]) || $_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"] == "" ) return ($this->ajaxreturn("400","login is missing"));
 
     // Set stats
     $this->stats("SettingsView");
@@ -2083,7 +2282,7 @@ class Vzg_controller extends CI_Controller
     $this->ensureInterface(array("config","discover","database","theme"));
 
     // Get available settings
-    $settings = $this->database->list_settings($_SESSION["userlogin"]);
+    $settings = $this->database->list_settings($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"]);
 
     // Display view
     echo $this->theme->settingsview(array('settings'=>$settings));
@@ -2138,7 +2337,6 @@ class Vzg_controller extends CI_Controller
   public function view($modul="discover", $search="", $facets="")
   {
     // Check params
-
 
     // Reset Configuration
     if ( $modul != $this->module )  $_SESSION["interfaces"] = array();

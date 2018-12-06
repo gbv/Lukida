@@ -12,7 +12,7 @@ $lbs  = (isset($_SESSION["config_general"]["lbs"]["available"])
              ? true : false;
 
 // User already logged in?
-$Login  = ( isset($_SESSION["login"]) && $_SESSION["login"] != "" ) ? true : false;
+$Login  = ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]) && $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] != "" ) ? true : false;
 
 ?>
 

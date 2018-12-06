@@ -3,14 +3,15 @@
 // General code
 
 // Initialize vars
-$Exemplare    = array();
-$Zugaenge     = array();
-$Lizenzen     = array();
-$RelatedPubs  = array();
-$IncJournals  = array();
-$IncArticles  = array();
-$Interloan    = array();
-$LinkResolver = true;
+$Exemplare     = array();
+$Zugaenge      = array();
+$Lizenzen      = array();
+$RelatedPubs   = array();
+$IncludedMedia = array();
+$IncJournals   = array();
+$IncArticles   = array();
+$Interloan     = array();
+$LinkResolver  = true;
 
 //***************************************
 //********* M A I N - P A P  1 **********
@@ -18,24 +19,27 @@ $LinkResolver = true;
 if ( substr($this->medium["leader"],7,1) == "m" && substr($this->medium["leader"],19,1) == "a" )
 {
   // Mehrbändige Werke
-  // $Output .= "Mehrbändige Werke";
-  $RelatedPubs = GetRelatedPubs($this->CI,$this,$this->PPN,1);
+   $RelatedPubs = GetRelatedPubs($this->CI,$this,$this->PPN,1);
 }
 
 if ( substr($this->medium["leader"],7,1) == "s" && substr(Get008($this->contents),21,1) == "m" )
 {
   // Schriftenreihen
-  // $Output .= "Schriftenreihen";
-  $RelatedPubs = GetRelatedPubs($this->CI,$this,$this->PPN,2);
+   $RelatedPubs = GetRelatedPubs($this->CI,$this,$this->PPN,2);
 }
 
 if ( substr($this->medium["leader"],7,1) == "s" && in_array(substr(Get008($this->contents),21,1), array("p","n")) )
 {
   // Zeitschriften mit Einzelheften
-  // $Output .= "Zeitschriften mit Einzelheften";
-  $IncludedPubs = GetIncludedPubs($this->CI,$this,$this->PPN);
+   $IncludedPubs = GetIncludedPubs($this->CI,$this,$this->PPN);
   $IncJournals  = $IncludedPubs["journals"];
   $IncArticles  = $IncludedPubs["articles"];
+}
+
+if ( Get951b($this->contents) )
+{
+  // Enthaltene Werke
+  $IncludedMedia = GetRelatedPubs($this->CI,$this,$this->PPN,1);
 }
 
 //***************************************
@@ -142,6 +146,7 @@ $this->CI->printArray2Screen(array(
 "Exemplare"                => $Exemplare,
 "Fernleihe"                => $Interloan,
 "Lizenzen"                 => $Lizenzen,
+"Enthaltene Werke"         => $IncludedMedia,
 "Zugehörige Publikationen" => $RelatedPubs,
 "Zugehörige Einzelhefte"   => $IncJournals,
 "Zugehörige Artikel"       => $IncArticles
@@ -246,7 +251,8 @@ if ( count($Exemplare) > 0 || count($Interloan) > 0)
     $Exams    = array_unique($Exemplar, SORT_REGULAR);
     ksort($Exams);
     $_SESSION["exemplar"][$this->PPN][$EPN] = $Exams;
-    $Action = (isset($Exemplar["action"])) ? "onclick='$." . $Exemplar["action"] . "(\"" . $this->PPN . "\",\"" . $EPN . "\"," . json_encode($Exams,JSON_HEX_TAG) . ")'" : "";
+    $ILN    = (isset($_SESSION["iln"])) ? $_SESSION["iln"] : "";
+    $Action = (isset($Exemplar["action"])) ? "onclick='$." . $Exemplar["action"] . "(\"" . $ILN . "\",\"" . $this->PPN . "\",\"" . $EPN . "\"," . json_encode($Exams,JSON_HEX_TAG) . ")'" : "";
     $Class  = (isset($Exemplar["action"])) ? $BtnClass : $EmptyClass;
     $Output .= "<button " . $Action . " class='" . $Class . "'>";
     $Output .= (isset($Exemplar["label1"])) ?  addslashes($Exemplar["label1"]) : "";
@@ -289,6 +295,34 @@ if ( count($Lizenzen)>0)
   }
   $Output .= "</small>";
   $Output .= "</div>";
+}
+
+// Create Included Media
+if ( count($IncludedMedia) > 0 )
+{
+  $BtnClass = "col-xs-12 col-sm-6 btn btn btn-default publication";
+  if ( count($Exemplare) > 0 || count($Lizenzen) > 0 )  $Output .= "<div class='space_buttons'></div>";
+
+  $Output .= "<div>" . $this->CI->database->code2text("INCLUDEDMEDIA") . "</div>";
+  $Output .= "<div class='container-fluid'><div id='includedmediacontent_" . $this->dlgid . "' class='row'>";
+
+  // Generate Buttons
+  foreach ( $IncludedMedia as $PPN => $Exemplar )
+  {
+    $Action = "onclick='$.open_fullview(\"" . $PPN . "\"," . json_encode(array_keys($IncludedMedia)) . ",\"publications\")'";
+    $Output .= "<button " . $Action . " class='" . $BtnClass . "'>";
+    $Output .= "<div id='related_" . $PPN . "'>";
+    $Output .= "<table><tr><td data-toggle='tooltip' title='" . $this->CI->database->code2text($Exemplar["format"]) . "' class='publication-icon'>";
+    $Output .= "<span class='gbvicon'>" . $Exemplar["cover"] . "</span>";
+    $Output .= "</td><td id='title'>";
+    $Output .= $this->trim_text($Exemplar["title"],60);
+    $Output .= "<br /><small id='date'>" . $this->trim_text($Exemplar["publisher"],50) . "</small>";
+    $Output .= "</td></tr></table></div>";
+    $Output .= "</button>";
+  }
+
+  // Close div
+  $Output .= "</div></div>";
 }
 
 // Create Related Publications
@@ -1078,6 +1112,24 @@ function Get856($Area, $CI)
     $ExemplarOnline[] = $Link;
   }
   return $ExemplarOnline;
+}
+
+function Get951b($Contents)
+{
+  if ( array_key_exists("951", $Contents) )
+  {
+    foreach ( $Contents["951"] as $Record )
+    {
+      foreach ( $Record as $Subrecord )
+      {
+        foreach ( $Subrecord as $Key => $Value )
+        {
+          if ( $Key == "b" && $Value == "j" )    return true;
+        }
+      }
+    }
+  }
+  return false;
 }
 
 function Get952j($Contents)

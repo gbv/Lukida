@@ -112,7 +112,7 @@ class Solr extends General
     // Remove not allowed complex phrases based on used key
     foreach ( $matches[1] as $index => $key )
     {
-      if ( ! in_array(strtolower(trim($key)), array("author","autor","collection", "collection_details","foreignid","genre","id","isn","subject","schlagwort","title","titel","series","reihe","publisher","verlag","year","jahr","contents","inhalt","class","sachgebiet","ppn","ppnlink","format")) )
+      if ( ! in_array(strtolower(trim($key)), array("acqdate","author","autor","class","collection","collection_details","contents","erwdatum","foreignid","format","genre","id","inhalt","isn","jahr","language","ppn","ppnlink","publisher","reihe","sachgebiet","schlagwort","series","sprache","subject","titel","title","verlag","year")) )
       {
         unset($matches[0][$index]);
       }
@@ -173,6 +173,14 @@ class Solr extends General
             break;
           case "format":
             $MainSearch .= "(format_phy_str_mv:\"" . $Phrases[0] . "\" )";
+            break;
+          case "language":
+          case "sprache":
+            $MainSearch .= "(language:\"" . $Phrases[0] . "\" )";
+            break;
+          case "erwdatum":
+          case "acqdate":
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selektneu_str_mv:\"" . $_SESSION["iln"] . "@" . $Phrases[0] . "\" )";
             break;
           case "genre":
             $MainSearch .= "(genre:\"" . $Phrases[0] . "\")";
@@ -242,6 +250,14 @@ class Solr extends General
           case "format":
             $MainSearch .= "(format_phy_str_mv:\"" . implode("\" OR format_phy_str_mv:\"", $Phrases) . "\")";
             break;
+          case "language":
+          case "sprache":
+            $MainSearch .= "(language:\"" . implode("\" OR language:\"", $Phrases) . "\")";
+            break;
+          case "erwdatum":
+          case "acqdate":
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selektneu_str_mv:\"" . $_SESSION["iln"] . "@" . implode("\" OR selektneu_str_mv:\"" . $_SESSION["iln"] . "@", $Phrases) . "\")";
+            break;
           case "genre":
             $MainSearch .= "(genre:\"" . implode("\" OR genre:\"", $Phrases) . "\")";
             break;
@@ -307,6 +323,7 @@ class Solr extends General
         ->addQueryField("topic",500)
         ->addQueryField("geographic",300)
         ->addQueryField("genre",300)
+        ->addQueryField("GND_txt_mv",200)
         ->addQueryField("allfields_unstemmed",10)
         ->addQueryField("fulltext_unstemmed",10)
         ->addQueryField("allfields_whitespace",10)

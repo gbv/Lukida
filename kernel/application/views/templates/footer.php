@@ -1,39 +1,32 @@
 <?php
 
-if ( $front && isset($_SESSION["config_general"]["general"]["frontpagewithoutlukida"]) && $_SESSION["config_general"]["general"]["frontpagewithoutlukida"] == "1" )
+$FooterArray = array();
+
+if ( !$front || !isset($_SESSION["config_general"]["general"]["frontpagewithoutlukida"]) || $_SESSION["config_general"]["general"]["frontpagewithoutlukida"] == "0" )
 {
-  $Version   = "";
-  $Copyright = "";
-  $Mode      = "";
-}
-else
-{
-  $Version   = KERNEL . " " . KERNELVERSION . "." .  KERNELSUBVERSION . "." .  LIBRARYVERSION;
-  $Copyright = " &copy; " . date("Y");
-  $Mode      = ( strtolower(MODE) == "production" ) ? "" : " &middot; " . ucfirst(MODE) . " " . ucfirst(LIBRARY);
+  $FooterArray[]  = KERNEL . " " . KERNELVERSION . "." .  KERNELSUBVERSION . "." . LIBRARYVERSION . " &copy; " . date("Y");
+  $FooterArray[]  = ( strtolower(MODE) == "production" ) ? "" : "" . ucfirst(MODE) . " " . ucfirst(LIBRARY);
 }
 
-if ( $front && isset($_SESSION["config_general"]["general"]["frontpagewithoutlinks"]) && $_SESSION["config_general"]["general"]["frontpagewithoutlinks"] == "1" )
+if ( !$front || !isset($_SESSION["config_general"]["general"]["frontpagewithoutlinks"]) || $_SESSION["config_general"]["general"]["frontpagewithoutlinks"] == "0" )
 {
-  // Frontpage without Links
-  $Imprint = "";
-  $About = "";
+  if ( isset($_SESSION["config_general"]["general"]["imprint"])  && $_SESSION["config_general"]["general"]["imprint"] != "" )
+  {
+    $FooterArray[] = "<a href='" . $_SESSION["config_general"]["general"]["imprint"] . "' target='_blank'><span class='imprint'>" .  $this->database->code2text("IMPRINT") . "</span></a>";
+  }
+  if ( isset($_SESSION["config_general"]["general"]["dataprotection"]) && $_SESSION["config_general"]["general"]["dataprotection"] != "" ) 
+  {
+    $FooterArray[] = "<a href='" . $_SESSION["config_general"]["general"]["dataprotection"] . "' target='_blank'><span class='dataprotection'>" . $this->database->code2text("DATAPROTECTION") . "</span></a>";
+  }
+  if ( isset($_SESSION["config_general"]["general"]["about"]) && $_SESSION["config_general"]["general"]["about"] != "" ) 
+  {
+    $FooterArray[] = "<a href='" . $_SESSION["config_general"]["general"]["about"] . "' target='_blank'><span class='about'>" .  $this->database->code2text("ABOUT") . "</span></a>";
+  }
 }
-else
-{
-  $Imprint = ( isset($_SESSION["config_general"]["general"]["imprint"]) 
-            && $_SESSION["config_general"]["general"]["imprint"] != "" ) 
-            ? "<a href='" . $_SESSION["config_general"]["general"]["imprint"] 
-            . "' target='_blank'><span class='imprint'>" . ( ( $_SESSION["language"] == "eng" ) ? "Imprint" : "Impressum" ) . "</span></a> &middot; " : "";
-  $About = ( isset($_SESSION["config_general"]["general"]["about"]) 
-            && $_SESSION["config_general"]["general"]["about"] != "" ) 
-            ? " &middot; <a href='" . $_SESSION["config_general"]["general"]["about"] 
-            . "' target='_blank'><span class='about'>" . ( ( $_SESSION["language"] == "eng" ) ? "About" : "Über" ) . "</span></a>" : "";
-}            
 
 echo "<div class='row'>";
-echo "<div id='version_search' class='lastline col-sm-offset-5 col-sm-7 col-md-offset-4 col-md-8 col-lg-offset-3 col-lg-9 text-center collapse'>" . $Imprint . $Version . $Copyright . $Mode . $About ."</div>";
-echo "<div id='version_start' class='lastline text-center'>" . $Imprint . $Version . $Copyright . $Mode . $About . "</div>";
+echo "<div id='version_search' class='lastline col-sm-offset-5 col-sm-7 col-md-offset-4 col-md-8 col-lg-offset-3 col-lg-9 text-center collapse'>" . implode(" &middot; ", $FooterArray) . "</div>";
+echo "<div id='version_start' class='lastline text-center'>" . implode(" &middot; ", $FooterArray) . "</div>";
 echo "</div>";
 
 if ( $front )
@@ -83,7 +76,7 @@ else
 
 // Check if $User is still logged in
 echo "<script>";
-if ( isset($_SESSION["login"]) && $_SESSION["login"] != "" ) echo "\nusrconfig=" . json_encode($_SESSION["login"]) . ";";
+if ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]) && $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] != "" ) echo "\nusrconfig=" . json_encode($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]) . ";";
 if ( isset($_SESSION["language"]) && $_SESSION["language"] != "" ) 
 {
   if ( isset($_SESSION['language_'.$_SESSION["language"]]) )  echo "\nconfiglang=" . json_encode($_SESSION['language_'.$_SESSION["language"]]) . ";";

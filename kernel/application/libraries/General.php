@@ -35,6 +35,16 @@ class General
     }
   }
 
+  protected function countLBS()
+  {
+    return ( isset($_SESSION["info"]["lbscount"]) ) ? $_SESSION["info"]["lbscount"] : 0;
+  }
+
+  protected function formatEuro($Betrag)
+  {
+    return number_format($Betrag,2,",",".") . " €";
+  }
+
   protected function ParamExits($Name, $Parameter, $Key1="", $Key2="",$Key3="")
   {
     // Existiert Variable
@@ -407,14 +417,10 @@ class General
       
       $pretty["reproduction"]        = $this->GetArray(array("533" => array("a","b","c","d","e","f","n")));
     
-      $pretty["corporation"]         = $this->PrettyFields(array("110" => array("a" => " ",
-                                                                                "b" => " "),
-                                                                 "111" => array("a" => " ",
-                                                                                "b" => " "),
-                                                                 "710" => array("a" => " ",
-                                                                                "b" => " "),
-                                                                 "711" => array("a" => " ",
-                                                                                "b" => " ")));
+      $pretty["corporation"]         = $this->GetSimpleArray(array("110" => array("a"),
+                                                                   "111" => array("a"),
+                                                                   "710" => array("a"),
+                                                                   "711" => array("a")));
   
       $pretty["notes"]               = $this->GetSimpleArray(array("500" => array("a")));
 
@@ -429,9 +435,10 @@ class General
 
       $pretty["remarks"]             = $this->GetCompleteArray(array("772" => array("i","t","w"),
                                                                      "770" => array("i","t","w"),
-                                                                     "785" => array("i","t","w") ));
+                                                                     "785" => array("i","t","w")));
 
-      $pretty["seealso"]             = $this->GetCompleteArray(array("787" => array("i","t","w")));
+      $pretty["seealso"]             = $this->GetCompleteArray(array("787" => array("i","t","w"),
+                                                                     "776" => array("i","t","w")));
 
       $pretty["languagenotes"]       = $this->PrettyFields(array("546" => array("a" => " | ")));
       
@@ -455,7 +462,7 @@ class General
       
       $pretty["in800"]               = $this->GetUplink("800");
 
-      $pretty["additionalinfo"]      = $this->GetArray(array("856" => array("u","3")));
+      $pretty["additionalinfo"]      = $this->GetArray(array("856" => array("u","3","y")));
     
       $pretty["class"]               = $this->GetSimpleArray(array("983" => array("a")));
 
@@ -795,7 +802,7 @@ class General
         }
 
         // PV_Publisher
-        if ( isset($rec["6"]) && ( substr($rec["6"],0,3) == "260" || substr($rec["6"],0,3) == "264" ) )
+        if ( isset($rec["6"]) && ( substr($rec["6"],0,3) == "260" || substr($rec["6"],0,3) == "264" || substr($rec["6"],0,3) == "250" ) )
         {
           if ( isset($pretty["pv_publisher"]) && $pretty["pv_publisher"] != ""  ) $pretty["pv_publisher"] .= " | ";
 
@@ -852,6 +859,14 @@ class General
             }
           }
         }
+
+        // Edition
+        if ( isset($rec["6"]) && substr($rec["6"],0,3) == "250" )
+        {
+          $pretty["edition"] = (isset($pretty["edition"]) && $pretty["edition"] != "" ) 
+                             ? $pretty["edition"] . " | " . $rec["a"] 
+                             : $rec["a"];
+        }
       }
     }
     return $pretty;
@@ -898,7 +913,7 @@ class General
     if ( in_array($Typ,array("id","author","class","foreignid","genre","publisher","series","subject","year")) )
     {
       // Internal links
-      return "<a href='javascript:$.link_search(\"" . $Typ . "\",\"" . $Value . "\")'>" . (($Text=="") ? $Value : $Text). " <span class='fa fa-link'></span></a>";
+      return "<a href='javascript:$.link_search(\"" . $Typ . "\",\"" . str_replace(array('&quot;',"'"),' ', $Value) . "\")'>" . (($Text=="") ? $Value : $Text). " <span class='fa fa-link'></span></a>";
     }
     else
     {
@@ -986,6 +1001,7 @@ class General
     // Modus
     // 1: Mehrbändige Werke
     // 2: Schriftenreihen
+    // 3: Enthaltene Werke
   
     $RelatedPubs = array();
     $PPNLink = $this->CI->internal_search("ppnlink",$PPN);
@@ -1000,27 +1016,31 @@ class General
       $Pretty = $T->SetContents("preview");
   
       $Title = "";
-      if ( $Modus == 1 )
+      if ( $Modus == 1 || $Modus == 3 )
       {
-        $Title = $this->Get245npa($One["contents"]);
-      }
+        $Title = $this->Get245npa($One["contents"], $Modus);
+        $Sort  = $this->Get245n($One["contents"]);
+    }
       else
       {
         $Title = $this->Get245an($One["contents"]);
+        $Sort  = $this->Get490v($One["contents"]);
       }
   
       $Publisher = "";
-      $Publisher  = $this->Get250a($One["contents"]);
-      $Publisher  = ($Publisher != "" ) ? $Publisher . ", " . $this->GetPublisherYear($One["contents"]) :  $this->GetPublisherYear($One["contents"]);
-  
+      $Publisher = $this->Get250a($One["contents"]);
+      $Publisher = ($Publisher != "" ) ? $Publisher . ", " . $this->GetPublisherYear($One["contents"]) :  $this->GetPublisherYear($One["contents"]);
+        
       $RelatedPubs[$One["id"]] = array
       (
       "format"    => $One["format"],
       "cover"     => $One["cover"],
       "title"     => $Title,
-      "publisher" => $Publisher
+      "publisher" => $Publisher,
+      "sort"      => $Sort
       );
     }
+    uasort($RelatedPubs, function ($a, $b) { return $a['sort'] <=> $b['sort']; });
     return ($RelatedPubs);
   }
   
@@ -1041,15 +1061,20 @@ class General
         $Title = $this->Get245ab($One["contents"]);
         if ( $Title == "" )  $Title = $this->Get490av($One["contents"]);
         if ( $Title == "" )  $Title = "Nr." . $Counter;
+
+        $Sort  = explode(".", $this->Get490v($One["contents"]));
+        $Sort  = $Sort[0];
   
         $Journals[$One["id"]] = array
         (
         "format"    => $One["format"],
         "cover"     => $One["cover"],
         "title"     => $Title,
-        "publisher" => $this->GetPublisherYear($One["contents"])
+        "publisher" => $this->GetPublisherYear($One["contents"]),
+        "sort"      => $Sort
         );
       }
+      uasort($Journals, function ($a, $b) { return $a['sort'] <=> $b['sort']; });
     }
   
     // Artikel
@@ -1115,7 +1140,7 @@ class General
     return ($Titel);
   }
   
-  private function Get245npa($Contents)
+  private function Get245npa($Contents, $Modus)
   {
     $Titel = "";
     $A = "";
@@ -1127,9 +1152,10 @@ class General
         {
           foreach ( $Subrecord as $Key => $Value )
           {
-            if ( $Key == "n" )    $Titel .= ($Titel != "" ) ? " | " . $Value : $Value;
-            if ( $Key == "p" )    $Titel .= ($Titel != "" ) ? ", " . $Value : $Value;
-            if ( $Key == "a" )    $A = $Value;
+            if ( $Key == "n" )                 $Titel .= ($Titel != "" ) ? " | " . $Value : $Value;
+            if ( $Key == "p" && $Modus == 1 )  $Titel .= ($Titel != "" ) ? ", " . $Value : $Value;
+            if ( $Key == "p" && $Modus == 3 )  $Titel .= ($Titel != "" ) ? ": " . $Value : $Value;
+            if ( $Key == "a" )                 $A = $Value;
           }
         }
       }
@@ -1139,7 +1165,43 @@ class General
   
     return ($Titel);
   }
+
+  private function Get245n($Contents)
+  {
+    if ( array_key_exists("245", $Contents) )
+    {
+      foreach ( $Contents["245"] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == "n" ) return $Value;
+          }
+        }
+      }
+    }
+    return ("");
+  }
   
+  private function Get490v($Contents)
+  {
+    if ( array_key_exists("490", $Contents) )
+    {
+      foreach ( $Contents["490"] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == "v" )    return ($Value);
+          }
+        }
+      }
+    }
+    return ("");
+  }
+
   private function Get250a($Contents)
   {
     if ( array_key_exists("250", $Contents) )
@@ -1230,4 +1292,15 @@ class General
     return ($Jahr);
   }
 
+  protected function getLBSName($isil)
+  {
+    return ( (isset($_SESSION["info"]["names"][$isil]) && $_SESSION["info"]["names"][$isil] != "" ) ? $_SESSION["info"]["names"][$isil] : $isil );
+  }
+
+  protected function getLBSILN($isil)
+  {
+    return ( ( isset($_SESSION["interfaces"]["lbs2"]) && $_SESSION["interfaces"]["lbs2"] == 1 && isset($_SESSION["config_general"]["general"]["ilnsecond"]) && isset($_SESSION["info"]["2"]["isil"]) && isset($_SESSION["info"]["2"]["iln"]) && $isil == $_SESSION["info"]["2"]["isil"] ) 
+             ? $_SESSION["info"]["2"]["iln"] : $_SESSION["info"]["1"]["iln"] );
+
+  }
 }

@@ -1,4 +1,60 @@
 # Changelog
+**05.12.2018**
+* Search
+  * GND supported
+
+**26.11.2018**
+* Full view
+  * Improved display seealso and additionalinfo
+
+**21.11.2018**
+* User view
+  * Display merged items from multiple attached LBSystems
+  * Cancel and renew for second lbs
+
+**19.11.2018**
+* Updates
+  * NoUISlider 12.1.0 
+
+**16.11.2018**
+* Fullview / Items
+  * All MARC-Data is copied to bandlist records
+
+**05.11.2018**
+* Fullview
+  * Improved additional info using M856y
+
+**26.09.2018**
+* Updates
+  * NoUISlider 12.0.0 
+
+**11.09.2018**
+* General
+  * Second ILN possible
+
+* Fullview
+  * Tab MARC shows data from second ILN
+  * Tab DAIA shows data from second ILN
+  * Tab ITEM shows data from second ILN
+
+**20.08.2018**
+* Search
+  * Search by language added
+
+* System
+  * Added Support for second LBS
+
+* Fullview
+  * Sorting on related and included media 
+
+**14.08.2018**
+* Search
+  * Search by acquisition date added
+
+* Fullview
+  * Original characters added to edition
+  * Display & search for corporation improved
+  * Added included media
 
 **12.07.2018**
 * Fullview

@@ -25,8 +25,10 @@ class Standard extends General
     if ($_SESSION["config_general"]["export"]["sfxlink"] == "1")
     {
       if ( ( $Link = $this->getSFX_Link($this->contents) ) != "")
-      {
-        $linkarray["sfx"] = $Link;
+      { 
+        if(strpos($Link,"ovid")!==false) 
+             $linkarray["ovid"] = $Link;
+        else $linkarray["sfx"] = $Link;
       }
     }
 

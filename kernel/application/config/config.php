@@ -37,6 +37,7 @@ if ( ! file_exists(LIBRARYPATH.'general.ini'))
   echo "Configuration file general.ini not found at " . LIBRARYPATH.'general.ini';
   return;
 }
+
 $general             = parse_ini_file(LIBRARYPATH.'general.ini', true);
 $serverhosts         = array_values(array_intersect_key($_SERVER, array_flip(array('HTTP_HOST', 'HTTP_X_FORWARDED_HOST'))));
 $config['base_url']  = "";
@@ -44,6 +45,7 @@ $config['base_url']  = "";
 // Mode development
 if ( strtolower(MODE) == "development" && isset($general["domains"]["devurl"]) && $general["domains"]["devurl"] != "" )
 {
+
   $hosts = explode(",",$general["domains"]["devurl"]);
   foreach ($hosts as $host)
   {

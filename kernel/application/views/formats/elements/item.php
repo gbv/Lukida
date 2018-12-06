@@ -5,14 +5,11 @@ if ( !count($Combined) )
 {
   $ParentPPN = ( isset($this->medium["parents"][0]) ) ? $this->medium["parents"][0]                   : "";
   $Combined  = $this->CI->GetCombinedItems($ParentPPN);   
+  if ( !count($Combined) )  return;
   $Output   .= "<tr><td class='tabcell' style='color:red'>Parent PPN</td><td class='tabcell' style='color:red'>" . $ParentPPN . "</td></tr>";
 }
-else
-{
-  // $Output   .= "<tr><td class='tabcell' style='color:red'>PPN</td><td class='tabcell' style='color:red' colspan=" . count($Combined) .">" . $this->PPN . "</td></tr>";
-}
-
 // $this->CI->printArray2Screen($Combined);
+
 
 $LeftSide = array();
 $Count = 0;
@@ -25,10 +22,8 @@ foreach ($Combined as $LID => $Item)
   if ( $Count == 6 ) break;
 }
 sort($LeftSide);
-// $this->CI->printArray2Screen($LeftSide);
 
 $LIDs = array_keys($Combined);
-// $this->CI->printArray2Screen($UpSide);
 
 // First Line
 $Output .= "<tr><td class='tabcell'>LukidaID</td>";

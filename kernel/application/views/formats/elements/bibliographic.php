@@ -76,13 +76,19 @@ if ( $this->format != "" )
 }  
 
 // Corporation
-if ( isset($this->pretty["corporation"]) && $this->pretty["corporation"] != "" )
+if ( isset($this->pretty["corporation"]) && count($this->pretty["corporation"]) > 0 )
 {
   $Output .=  "<tr>";
-  $Output .=  "<td>" . ucfirst($this->CI->database->code2text("corporation")) . "</td>";
-
-  $Output .=  "<td>" . $this->link("author", $this->pretty["corporation"]) . "</td>";
-  $Output .=  "</tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("corporation") . "</td>";
+  $Output .=  "<td>";
+  $First = true;
+  foreach ( $this->pretty["corporation"] as $one)
+  {
+    if ( !$First ) $Output .= " | ";
+    $Output .= $this->link("author", trim($one));
+    $First = false;
+  }
+  $Output .=  "</td></tr>";
 }
 
 // Series
@@ -228,7 +234,7 @@ else
       $In = ( !$First ) ? " | " : "";
       if ( isset($one["a"]) && $one["a"] != "" )  $In .= $one["a"];
       if ( isset($one["b"]) && $one["b"] != "" )  $In .= " : " . $this->link("publisher", $one["b"]);
-      if ( isset($one["c"]) && $one["c"] != "" )  $In .= ", " . $this->link("year", filter_var($one["c"], FILTER_SANITIZE_NUMBER_INT));
+      if ( isset($one["c"]) && $one["c"] != "" )  $In .= ", " . $this->link("year", $one["c"]); // filter_var($one["c"], FILTER_SANITIZE_NUMBER_INT));
       $Output .= $In;
       $First = false;
     }
@@ -444,12 +450,14 @@ if ( isset($this->pretty["seealso"]) && count($this->pretty["seealso"]) > 0 )
     {
       foreach ( $onesubfield as $value )
       {
-        if ( $key == "i" && trim($value) != "" )  $FoundText .= trim($value);
-        if ( $key == "t" && trim($value) != "" )  $FoundText .= ( $FoundText != "" ) ? ": " . trim($value) : trim($value);
-        if ( $key == "w" && substr(trim($value),0,8) == "(DE-600)" )  $FoundLink = trim($value);
+        if ( $key == "i" && trim($value) != "" )                      $FoundText .= trim($value);
+        if ( $key == "i" && is_array($value) && isset($value[0]) )    $FoundText .= trim($value[0]);
+        if ( $key == "t" && trim($value) != "" )                      $FoundText .= ( $FoundText != "" ) ? ": " . trim($value) : trim($value);
+        if ( $key == "t" && is_array($value) && isset($value[0]) )    $FoundText .= ( $FoundText != "" ) ? ": " . trim($value[0]) : trim($value[0]);
+        if ( $key == "w" && substr(trim($value),0,8) == "(DE-600)" )  { $FoundLink  = trim(substr(trim($value),8)); $Intern = false;}
+        if ( $key == "w" && substr(trim($value),0,8) == "(DE-601)" )  { $FoundLink  = trim(substr(trim($value),8)); $Intern = true;}
       }
     }
-
     if ( $FoundText != "" && $FoundLink != "" )
     {
       $Count++;
@@ -459,24 +467,21 @@ if ( isset($this->pretty["seealso"]) && count($this->pretty["seealso"]) > 0 )
         $Output .=  "<td>" . $this->CI->database->code2text("seealso");
         if ( $Total > 3 ) $Output .=  "<br /><br /><button class='btn btn-tiny navbar-panel-color' onclick='javascript:$.toggle_area(&quot;bibsee_" . $this->dlgid . "&quot;);'><span class='bibsee_" . $this->dlgid . "down'><i class='fa fa-caret-down'></i></span><span class='bibsee_" . $this->dlgid . "up collapse'><i class='fa fa-caret-up'></i></span></button>";
         $Output .=  "</td><td>";
-        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
       }
       if ( $Count >= 2 && $Count <= 3 )
       {
         $Output .=  "<br />";
-        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
       }
       if ( $Count == 4 )
       {
         $Output .=  "</td></tr>";
         $Output .=  "<tr class='discoverbibsee_" . $this->dlgid . " collapse'><td>&nbsp;</td><td>";
-        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
       }
       if ( $Count >= 5 )
       {
         $Output .=  "<br />";
-        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
       }
+      $Output .= ( $Intern) ? $this->link("id", $FoundLink, $FoundText) : $this->link("foreignid", $FoundLink, $FoundText);
     }
   }
   if ( $Count > 0 ) $Output .=  "</td></tr>";
@@ -567,19 +572,21 @@ if ( isset($this->pretty["summary"]) && $this->pretty["summary"] != "" )
 if ( isset($this->pretty["additionalinfo"]) && count($this->pretty["additionalinfo"]) > 0 )
 {
   $Output .=  "<tr>";
-  $Output .=  "<td>" . $this->CI->database->code2text("additionalinformations") . "<d>";
+  $Output .=  "<td>" . $this->CI->database->code2text("additionalinformations") . "</td>";
   $Output .=  "<td>";
   $First = true;
   $Links = array();
   foreach ( $this->pretty["additionalinfo"] as $one)
   {
-    if ( isset($one["3"]) && isset($one["u"]) )
+    if ( isset($one["u"]) && $one["u"] != "" )
     {
       // Do not repeat identical links
       if ( in_array($one["u"],$Links) ) continue;
       $Links[]  = $one["u"];
-      
-      switch (trim($one["3"]))
+
+      $Text = (isset($one["y"]) && trim($one["y"]) != "" ) ? trim($one["y"]) : "";
+      if ( $Text == "") $Text = (isset($one["3"]) && trim($one["3"]) != "" ) ? trim($one["3"]) : "";
+      switch ($Text)
       {
         case "Rezension":
         case "Ausfuehrliche Beschreibung":
@@ -588,7 +595,7 @@ if ( isset($this->pretty["additionalinfo"]) && count($this->pretty["additionalin
         case "Inhaltstext":
         {
           if ( !$First ) $Output .= " | ";
-          $Output .=  $this->link($one["3"], $one["u"]);
+          $Output .=  $this->link($Text, $one["u"]);
           $First = false;
           break; 
         }
@@ -599,13 +606,14 @@ if ( isset($this->pretty["additionalinfo"]) && count($this->pretty["additionalin
           $First = false;
           break; 
         }
+        default:
+        {
+          if ( !$First ) $Output .= " | ";
+          $Output .=  $this->link("Online", $one["u"]);
+          $First = false;
+          break; 
+        }
       }
-    }
-    if ( !isset($one["3"]) && isset($one["u"]) )
-    {    
-      if ( !$First ) $Output .= " | ";
-      $Output .=  $this->link("Online", $one["u"]);
-      $First = false;
     }
   }
   $Output .=  "</td></tr>";   
@@ -719,7 +727,6 @@ if ( isset($this->pretty["siblings"]) && count($this->pretty["siblings"]) > 0 )
           }
           else
           {
-            //$Text = $this->CI->database->code2text($one["i"]);
             $Text = $one["i"];
           }
        	}
