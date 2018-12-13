@@ -24,6 +24,10 @@
           <p>Diagramm Nutzung</p>
           Diese Diagramme stellen Ihnen dar, welche Lukida-Funktion wie oft genutzt wird.<br />Achse nach rechts: gewählter Zeitraum; Achse nach oben: Häufigkeit.
         </div>
+        <div class="well usageyear collapse">
+          <p>Diagramm Nutzung</p>
+          Diese Diagramme stellen Ihnen dar, welche Lukida-Funktion wie oft im ausgewählten Jahr genutzt wird. Es werden 12 Monatssummen angezeigt.<br />Achse nach rechts: gewähltes Jahr / 12 Monate; Achse nach oben: Häufigkeit.
+        </div>
         <div class="well devicescreens collapse">
           <p>Diagramm Geräte-Auflösungen</p>
           Dieses Diagramm stellt Ihnen die genutzen Geräte in Form der Display-Auflösung im angegebenen Zeitraum dar. <br />
@@ -35,7 +39,7 @@
           <p>Option Zeitraum</p>
           Mit dieser Option können Sie das Zeitintervall per Klappliste auswählen. Entweder verwenden Sie einen der vordefinierten Zeiträume oder sie wählen einen eigenen Zeitraum, nicht größer als 6 Monate.
         </div>
-        <div class="well usage collapse">
+        <div class="well usage usageyear collapse">
           <p>Option Indikatoren</p>
           Jede ausgewählte Indikatoren-Gruppe beinhaltet mehrere Parameter. 
           <ul>
@@ -70,7 +74,7 @@
           <p>Option Weiteres</p>
           Dieser Parameter setzt die einzelnen Indikatoren übereinander; die Häufigkeiten werden addiert. Der erste, am weitesten links stehende Indikator beginnt bei 0, alle weiteren Indikatoren beginnen beim Wert des Indikators vorher.
         </div>
-        <div class="well devicescreens collapse">
+        <div class="well devicescreens usageyear collapse">
           <p>Option Jahr</p>
           Mit dieser Option können Sie das Jahr der Betrachtung auswählen.
         </div>

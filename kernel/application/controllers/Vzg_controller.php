@@ -1232,14 +1232,20 @@ class Vzg_controller extends CI_Controller
     // Ensure required interfaces
     $this->ensureInterface(array("config","discover","lbs","lbs2","database"));
 
+    if ( $this->countLBS() == 1 )
+    {
+      $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] = $this->lbs->login($user, $pw);
+    }
     if ( $this->countLBS() == 2 )
     {
+      $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] = $this->lbs->login($user, $pw);
       $_SESSION[$_SESSION["info"]["2"]["isil"]]["login"] = $this->lbs2->login($user, $pw);
+      if ( $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] == -1 || $_SESSION[$_SESSION["info"]["2"]["isil"]]["login"] == -1 ) 
+      {
+        echo json_encode(-1);
+        return;
+      }
     }
-
-    $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] = $this->lbs->login($user, $pw);
-
-    // Login lbs & echo
     echo json_encode($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]);
   }
 
@@ -1345,8 +1351,16 @@ class Vzg_controller extends CI_Controller
     $Items    = array();
     $X        = 0;
 
+    // Determine First & Second ILN
+    $ILNs = array();
+    if ( isset($_SESSION["iln"]) && isset($_SESSION["iln"]) != "" )         $ILNs[] = $_SESSION["iln"];
+    if ( isset($_SESSION["config_general"]["general"]["ilnsecond"]) 
+            && $_SESSION["config_general"]["general"]["ilnsecond"] != "" )  $ILNs[] = $_SESSION["config_general"]["general"]["ilnsecond"];
+
     foreach ( $Contents as $Record )
     {
+      if (isset($Record[0]["2"]) && !in_array($Record[0]["2"],$ILNs)) continue;
+
       $One = array();
       foreach ( $Record as $Subrecord )
       {

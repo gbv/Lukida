@@ -926,7 +926,7 @@ class General
     }
   }
 
-  public function GetMARC($Contents, $Field, $OnlyFirstRecord = false, $OnlyW601 = false)
+  public function GetMARC($Contents, $Field, $OnlyFirstRecord = false, $OnlyW601 = false, $OnlyFirstSubfield = false)
   {
     // Return first MARC fields as string
     if ( $Field >= "000" && $Field <= "009")   return ( array_key_exists($Field, $Contents) ) ? $Contents[$Field] : "-";
@@ -943,7 +943,14 @@ class General
           if ( $OnlyW601 && isset($Subrec["w"]) && substr($Subrec["w"],0,8) != "(DE-601)" ) continue;
           foreach ( $Subrec as $Key => $Value )
           {
-            $Record[$Key] = ( $OnlyW601 && $Key == "w" && substr($Value,0,8) == "(DE-601)" ) ? substr($Value,8) : $Value;
+            if ( $OnlyFirstSubfield )
+            {
+              if ( ! isset($Record[$Key]) ) $Record[$Key] = ( $OnlyW601 && $Key == "w" && substr($Value,0,8) == "(DE-601)" ) ? substr($Value,8) : $Value;
+            }
+            else
+            {
+              $Record[$Key] = ( $OnlyW601 && $Key == "w" && substr($Value,0,8) == "(DE-601)" ) ? substr($Value,8) : $Value;
+            }
           }
         }
         if ( $OnlyFirstRecord ) return $Record;
@@ -994,6 +1001,32 @@ class General
       }
     }
     return "";
+  }
+
+  public function GetMARCFullArray($Contents, $Field)
+  {
+    // Return first MARC fields as string
+    if ( $Field >= "000" && $Field <= "009")   return ( array_key_exists($Field, $Contents) ) ? $Contents[$Field] : "-";
+
+    // Return remaining MARC fields as array ( grouped by subfield, values always array )
+    $Records = array();
+    if ( array_key_exists($Field, $Contents) )  
+    {
+      foreach ( $Contents[$Field] as $Rec )
+      {
+        $Record = array();
+        foreach ( $Rec as $Subrec )
+        {
+          foreach ( $Subrec as $Key => $Value )
+          {
+            if ( !isset($Record[$Key]) ) $Record[$Key] = array();
+            $Record[$Key][] = $Value;
+          }
+        }
+        $Records[] = $Record;
+      }
+    }
+    return $Records;
   }
 
   public function GetRelatedPubs($T, $PPN, $Modus)

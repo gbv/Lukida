@@ -10,11 +10,14 @@
           </div>
         </div>
       </div>
-      <div class="col-sm-4 col-md-6 col-lg-6 option usage collapse">
+      <div class="col-sm-4 col-md-6 col-lg-6 option usage usageyear collapse">
         <div class="well">
           <p>Indikatoren - Gruppen</p>
           <div class="row">
             <div class="col-sm-6 col-md-3">
+              <div class='checkbox'>
+                <label><input name='Suchen' type='checkbox' data-value="Search">Suchen</label>
+              </div>
               <div class='checkbox'>
                 <label><input name='Exporte' type='checkbox' data-value="Export_Bibtex,Export_Citavi,Export_Endnote,Export_Refworks">Exporte</label>
               </div>
@@ -45,11 +48,6 @@
               <div class='checkbox'>
                 <label><input name='Bibliothek' type='checkbox' data-value="Command,LibrarySpecial,StoreUserSearch">Bibliothek</label>
               </div>
-              <!--
-              <div class='checkbox'>
-                <label><input name='Sonstiges' type='checkbox' value="'ViewInit','NoJavaScript'">Sonstiges</label>
-              </div>
-              -->
             </div>
           </div>
         </div>
@@ -62,7 +60,7 @@
             </div>
         </div>
       </div>
-      <div class="col-sm-5 col-md-4 col-lg-3 option devicescreens cockpit">
+      <div class="col-sm-5 col-md-4 col-lg-3 option devicescreens cockpit usageyear">
         <div class="well">
           <p>Jahr</p>
           <div class="input-group number-spinner">

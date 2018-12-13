@@ -100,7 +100,9 @@ class Marc21 extends General
     if ( isset($_SESSION["iln"]) && isset($_SESSION["iln"]) != "" )         $ILNs[] = $_SESSION["iln"];
     if ( isset($_SESSION["config_general"]["general"]["ilnsecond"]) 
             && $_SESSION["config_general"]["general"]["ilnsecond"] != "" )  $ILNs[] = $_SESSION["config_general"]["general"]["ilnsecond"];
-    // file_put_contents('ILNs_' . microtime() . '.txt', print_r($ILNs, true));
+    if ( isset($_SESSION["config_general"]["general"]["ilnmore"]) 
+            && $_SESSION["config_general"]["general"]["ilnmore"] != "" )    $ILNs = array_unique(array_merge($ILNs,explode(",",$_SESSION["config_general"]["general"]["ilnmore"])));      
+    //file_put_contents('ALEX_' . microtime() . '.txt', print_r($ILNs, true));
 
     $this->contents = array();
     foreach ($this->marc->getFields() as $tag => $data)

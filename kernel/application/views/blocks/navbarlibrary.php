@@ -28,6 +28,7 @@ $logocheck = true;
             <li class="dropdown-header">Benutzer</li>
             <li><a href="javascript:void(0)" data-value="searches"><i class="fa fa-search" aria-hidden="true"></i> Suchen</a></li>
             <li><a href="javascript:void(0)" data-value="usage"><i class="fa fa-line-chart" aria-hidden="true"></i> Nutzung</a></li>
+            <li><a href="javascript:void(0)" data-value="usageyear"><i class="fa fa-calendar" aria-hidden="true"></i> Jahresnutzung</a></li>
             <li role="separator" class="divider"></li>
             <li class="dropdown-header">Geräte</li>
             <li><a href="javascript:void(0)" data-value="devicescreens"><i class="fa fa-desktop" aria-hidden="true"></i> Auflösungen</a></li>

@@ -1,4 +1,11 @@
 # Changelog
+**11.12.2018**
+* General
+  * DataProtection Link in Footer
+
+* Library Module
+  * New chart created: device resolutions
+
 **05.12.2018**
 * Search
   * GND supported

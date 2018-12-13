@@ -475,6 +475,64 @@ class Mysql extends General
         );
         break;                
       }
+      case "usageyear":
+      {
+        $Labels  = array();
+        $Values  = array();
+        $Year   = ( isset($params["year"]) && $params["year"] != "" ) ? $params["year"] : date("Y");
+        $Areas   = ( isset($params["areas"]) && $params["areas"] != "" ) ? explode(",",$params["areas"]) : array();
+
+        // Create Range Area with 0
+        $begin    = $Year . "-01-01";
+        $end      = ($Year+1) . "-01-01";
+
+        $Labels = array("1" => "Januar", "2" => "Februar", "3" => "März",       "4" => "April",    "5" => "Mai",      "16" => "Juni", 
+                        "7" => "Juli",   "8" => "August",  "9" => "September", "10" => "Oktober", "11" => "November", "12" => "Dezember");
+
+        foreach ($Areas as $Area)
+        {
+          $Values[$Area] = array("1" => 0, "2" => 0, "3" => 0, "4" => 0, "5" => 0, "6" => 0, "7" => 0, "8" => 0, "9" => 0, "10" => 0, "11" => 0, "12" => 0);
+        }
+
+
+        $query = $this->CI->db->query("select month(day) as month, area, sum(hour_00 + hour_01 + hour_02 + hour_03 + hour_04 + hour_05 + hour_06 + hour_07 + hour_08 + hour_09 + hour_10 + hour_11 + hour_12 + hour_13 + hour_14 + hour_15 + hour_16 + hour_17 + hour_18 + hour_19 + hour_20 + hour_21 + hour_22 + hour_23) as summe from stats_day_library where iln = " . $iln . " and area in ('" . implode("','", $Areas) . "') and day >= '" . $begin . "' and day < '" . $end . "' group by month(day),area order by month(day),area");
+        foreach ($query->result() as $row)
+        {
+          $Values[$row->area][$row->month] = (integer) $row->summe;
+        }
+
+        $Counter = -1;
+        foreach ($Areas as $Area) 
+        {
+          $Counter++;
+          if ( $Counter >= count($backgroundColor) ) $Counter = 0;
+          $Datasets[] = array
+          (
+            "label"           => $Area, //this->code2text("SEARCHESDONE"),
+            "data"            => array_values($Values[$Area]),
+            "borderWidth"     => 1,
+            "backgroundColor" => $backgroundColor[$Counter],
+            "borderColor"     => $borderColor[$Counter]
+          );
+        }
+
+        $Data = array
+        (
+          "labels"   => array_values($Labels),
+          "datasets" => $Datasets,
+        );
+        $Replacements = array
+        (
+          "{year}" => $Year
+        );
+        $Title = array
+        (
+          "display"  => true,
+          "text"     => strtr($this->code2text("USERUSAGEYEAR"), $Replacements),
+          "fontSize" => 24 
+        );
+        break;                
+      }
       case "devicescreens":
       {
         $Year   = ( isset($params["year"]) && $params["year"] != "" ) ? $params["year"] : date("Y");

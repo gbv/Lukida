@@ -19,6 +19,24 @@ html {
   font-style: normal;
 }
 
+@media (max-width:991px)
+{
+  body 
+  {
+    padding-top: 140px;
+    background-repeat: no-repeat;
+  }
+}
+
+@media (min-width:992px)
+{
+  body 
+  {
+    padding-top: 90px;
+    background-repeat: no-repeat;
+  }
+}
+
 .vertical-align 
 {
     display: flex;

@@ -14,29 +14,41 @@ $TabsOpt= (iSset($_SESSION["config_discover"]["userview"]["optionaltabs"])	&& $_
 
 // Prepare additional tab header info
 $Add  = array("userfees"=> 0);
-foreach ( $_SESSION[$_SESSION["info"]["1"]["isil"]]["items"] as $Item )
+if ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["items"]) && is_array($_SESSION[$_SESSION["info"]["1"]["isil"]]["items"]) )
 {
-  if ( $Item["status"] == "1" ) (isset($Add["userreservations"])) ? $Add["userreservations"]++ : $Add["userreservations"] = 1;
-  if ( $Item["status"] == "2" ) (isset($Add["userorders"]))       ? $Add["userorders"]++       : $Add["userorders"]       = 1;
-  if ( $Item["status"] == "3" ) (isset($Add["userrentals"]))      ? $Add["userrentals"]++      : $Add["userrentals"]      = 1;
-  if ( $Item["status"] == "4" ) (isset($Add["usercollectables"])) ? $Add["usercollectables"]++ : $Add["usercollectables"] = 1;
-}
-if ( $_SESSION[$_SESSION["info"]["1"]["isil"]]["fees"]["amount"] != "0.00 EUR" ) 
-{ 
-  $Add["userfees"] += (float) explode(" ",$_SESSION[$_SESSION["info"]["1"]["isil"]]["fees"]["amount"])[0]; 
-}
-if ( $this->countLBS() == 2 )
-{
-  foreach ( $_SESSION[$_SESSION["info"]["2"]["isil"]]["items"] as $Item )
+  foreach ( $_SESSION[$_SESSION["info"]["1"]["isil"]]["items"] as $Item )
   {
     if ( $Item["status"] == "1" ) (isset($Add["userreservations"])) ? $Add["userreservations"]++ : $Add["userreservations"] = 1;
     if ( $Item["status"] == "2" ) (isset($Add["userorders"]))       ? $Add["userorders"]++       : $Add["userorders"]       = 1;
     if ( $Item["status"] == "3" ) (isset($Add["userrentals"]))      ? $Add["userrentals"]++      : $Add["userrentals"]      = 1;
     if ( $Item["status"] == "4" ) (isset($Add["usercollectables"])) ? $Add["usercollectables"]++ : $Add["usercollectables"] = 1;
   }
-  if ( $_SESSION[$_SESSION["info"]["2"]["isil"]]["fees"]["amount"] != "0.00 EUR" ) 
+}
+if ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["fees"]["amount"]) && is_array($_SESSION[$_SESSION["info"]["1"]["isil"]]["fees"]["amount"]) )
+{
+  if ( $_SESSION[$_SESSION["info"]["1"]["isil"]]["fees"]["amount"] != "0.00 EUR" ) 
   { 
-    $Add["userfees"] += (float) explode(" ",$_SESSION[$_SESSION["info"]["2"]["isil"]]["fees"]["amount"])[0]; 
+    $Add["userfees"] += (float) explode(" ",$_SESSION[$_SESSION["info"]["1"]["isil"]]["fees"]["amount"])[0]; 
+  }
+}
+if ( $this->countLBS() == 2 )
+{
+  if ( isset($_SESSION["info"]["2"]["isil"]) && isset($_SESSION[$_SESSION["info"]["2"]["isil"]]["items"]) && is_array($_SESSION[$_SESSION["info"]["2"]["isil"]]["items"]) )
+  {
+    foreach ( $_SESSION[$_SESSION["info"]["2"]["isil"]]["items"] as $Item )
+    {
+      if ( $Item["status"] == "1" ) (isset($Add["userreservations"])) ? $Add["userreservations"]++ : $Add["userreservations"] = 1;
+      if ( $Item["status"] == "2" ) (isset($Add["userorders"]))       ? $Add["userorders"]++       : $Add["userorders"]       = 1;
+      if ( $Item["status"] == "3" ) (isset($Add["userrentals"]))      ? $Add["userrentals"]++      : $Add["userrentals"]      = 1;
+      if ( $Item["status"] == "4" ) (isset($Add["usercollectables"])) ? $Add["usercollectables"]++ : $Add["usercollectables"] = 1;
+    }
+  }
+  if ( isset($_SESSION["info"]["2"]["isil"]) && isset($_SESSION[$_SESSION["info"]["2"]["isil"]]["fees"]["amount"]) && is_array($_SESSION[$_SESSION["info"]["2"]["isil"]]["fees"]["amount"]) )
+  {
+    if ( $_SESSION[$_SESSION["info"]["2"]["isil"]]["fees"]["amount"] != "0.00 EUR" ) 
+    { 
+      $Add["userfees"] += (float) explode(" ",$_SESSION[$_SESSION["info"]["2"]["isil"]]["fees"]["amount"])[0]; 
+    }
   }
 }
 $Add["userfees"] = ( $Add["userfees"] == 0 ) ? "" : $this->formatEuro($Add["userfees"]);
