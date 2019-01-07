@@ -1,4 +1,9 @@
 # Changelog
+**07.01.2019**
+* Updates
+  * Bootstrap 3.4.0
+  * Moment 2.23.0
+
 **11.12.2018**
 * General
   * DataProtection Link in Footer
