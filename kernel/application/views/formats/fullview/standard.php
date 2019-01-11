@@ -4,7 +4,7 @@
 // **** Section ONE: Get & Formats required Fields *****
 // *****************************************************
 
-// Bereits verfÃ¼gbare Parameter
+// Bereits verfügbare Parameter
 // $this->PPN					          PPN des Mediums
 // $this->contents			        Komplettes Array des Mediums
 // $this->contents["format"]  	Format des Mediums (internes Format)

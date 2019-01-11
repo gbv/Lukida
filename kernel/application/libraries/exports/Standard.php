@@ -200,13 +200,13 @@ class Standard extends General
 		  $associates = "";
           foreach($data["associates"] as $associate) 
           {
-            $metadataOU .= $tagPrefix . $exportTags["associates"][$format] . $associate["a"] . $tagExtention;
+            $metadataOU .= $tagPrefix . $exportTags["associates"][$format] . $associate["name"] . $tagExtention;
           }
         }
       }
       elseif ($data["associates"] != "") 
       {
-        $metadataOU .= $tagPrefix . $exportTags["associates"][$format] . $data["associates"][a] . $tagExtention;
+        $metadataOU .= $tagPrefix . $exportTags["associates"][$format] . $data["associates"]["name"] . $tagExtention;
       }
     }
 	if (isset($data["computerfile"]) && $data["computerfile"] != "")

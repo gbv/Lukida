@@ -261,6 +261,8 @@ class Vzg_controller extends CI_Controller
           $Database	= (isset($_SESSION["config_general"]["database"]["type"]) && $_SESSION["config_general"]["database"]["type"] != "" ) 
                       ? $_SESSION["config_general"]["database"]["type"] : "mysql";
           $this->load->library('databases/'.$Database, "", "database");
+
+          if ( !isset($_SESSION['collections']) ) $_SESSION['collections'] = $this->database->getCollections();
           break;
         }
     

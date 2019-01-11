@@ -25,7 +25,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 
 /*
-  04.11.2015 AKa Code neu eingefÃ¼hrt fÃ¼r CI Version 3.0.3, welche Security
+  04.11.2015 AKa Code neu eingeführt für CI Version 3.0.3, welche Security
                  Issues behoben hat.
                  https://www.codeigniter.com/user_guide/installation/upgrade_303.html
   22.06.2017 AKa https Protocol erkennbar anhand HTTP_X_FORWARDED_PROTO

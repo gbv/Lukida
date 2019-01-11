@@ -915,6 +915,10 @@ class General
       // Internal links
       return "<a href='javascript:$.link_search(\"" . $Typ . "\",\"" . str_replace(array('&quot;',"'"),' ', $Value) . "\")'>" . (($Text=="") ? $Value : $Text). " <span class='fa fa-link'></span></a>";
     }
+    elseif ($Typ == "web")
+    {
+      return "<a href='" . $Value . "' target='_blank'>" . $Text . " <span class='fa fa-external-link'></span></a>";
+    }
     else
     {
       // External links

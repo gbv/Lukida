@@ -1,4 +1,9 @@
 # Changelog
+
+**10.01.2019**
+* Fullview
+  * Improved display source with link
+
 **07.01.2019**
 * Updates
   * Bootstrap 3.4.0

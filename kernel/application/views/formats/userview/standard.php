@@ -4,7 +4,7 @@
 // **** Section ONE: Get & Formats required Fields *****
 // *****************************************************
 
-// Bereits verfÃ¼gbare Parameter
+// Bereits verfügbare Parameter
 // $Action = Name des Tabs, der Aktiv werden soll
 
 // Parameter aus INI-Datei einlesen

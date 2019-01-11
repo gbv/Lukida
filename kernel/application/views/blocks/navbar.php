@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 // Logo Settings
 $logotitle = $_SESSION["config_general"]["general"]["titlelogo"];

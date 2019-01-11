@@ -660,18 +660,18 @@ if ( isset($this->pretty["classification"]) && $this->pretty["classification"] !
   $Output .=  "</tr>";
 }
 
-// Source
-if ( count($this->catalogues) > 1 || ( count($this->catalogues) == 1 && isset($_SESSION["iln"]) && $this->catalogues[0] != "GBV_ILN_" . $_SESSION["iln"]) )
+// Collections / Source
+if ( count($this->collection) > 0 )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("source") . "</td>";
   $Output .=  "<td>";
   $First = true;
-  foreach ( $this->catalogues as $one)
+  foreach ( $this->collection as $one)
   {
-    if ( isset($_SESSION["iln"]) && $one == "GBV_ILN_" . $_SESSION["iln"] ) continue;
+    if ( !isset($_SESSION["collections"][strtoupper($one)]) )  continue;
     if ( !$First ) $Output .= " | ";
-    $Output .= $this->CI->database->code2text($one);
+    $Output .= $this->link("web", $_SESSION["collections"][strtoupper($one)]["link"], $_SESSION["collections"][strtoupper($one)]["name"]);
     $First = false;
   }
   $Output .=  "</td></tr>";

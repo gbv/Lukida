@@ -12,7 +12,16 @@ if ( !$front || !isset($_SESSION["config_general"]["general"]["frontpagewithoutl
 {
   if ( isset($_SESSION["config_general"]["general"]["imprint"])  && $_SESSION["config_general"]["general"]["imprint"] != "" )
   {
-    $FooterArray[] = "<a href='" . $_SESSION["config_general"]["general"]["imprint"] . "' target='_blank'><span class='imprint'>" .  $this->database->code2text("IMPRINT") . "</span></a>";
+    $Tmp = explode(",",$_SESSION["config_general"]["general"]["imprint"]);
+    if (count($Tmp) == 1)
+    {
+      $FooterArray[] = "<a href='" . $Tmp[0] . "' target='_blank'><span class='imprint'>" . $this->database->code2text("IMPRINT") . "</span></a>";
+    }
+    if (count($Tmp) == 2)
+    {
+      $FooterArray[] = "<a class='showger' href='" . $Tmp[0] . "' target='_blank'><span class='imprint'>" . $this->database->code2text("IMPRINT") . "</span></a>"
+                     . "<a class='showeng hide' href='" . $Tmp[1] . "' target='_blank'><span class='imprint'>" . $this->database->code2text("IMPRINT") . "</span></a>";
+    }
   }
   if ( isset($_SESSION["config_general"]["general"]["dataprotection"]) && $_SESSION["config_general"]["general"]["dataprotection"] != "" ) 
   {

@@ -333,6 +333,20 @@ class Mysql extends General
     $this->CI->db->query("replace into links_resolved_library (iln, ppn, resolved,checkdate) values (" . $iln . ", '" . $ppn . "', '" .  $links . "','" . date("y-m-d") . "')");
   }
 
+  public function getCollections()
+  {
+    $this->CI->db->reset_query();
+    $this->CI->db->select('shortcut,name,link');
+    $this->CI->db->from('collections');
+    $results = $this->CI->db->get();
+    $Data = array();
+    foreach ($results->result_array() as $row)
+    {
+      $Data[$row['shortcut']] = array("name" => $row['name'], "link" => $row['link']);
+    }
+    return ($Data);
+  }
+
   public function get_chart_data($typ, $params=array())
   {
     $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";

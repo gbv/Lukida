@@ -17,7 +17,7 @@ foreach ( $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] as $key => $value )
   if ( $key == "expires" )  $value =  $this->CI->date2german($value);
 
   // Output
-  $Output .="<tr><td>" . $this->CI->database->code2text($key) . "</td><td>" . $value . "</td></tr>";
+  $Output .="<tr><td>" . $this->CI->database->code2text(( $key == "username" ) ? "usernumber" : $key) . "</td><td>" . $value . "</td></tr>";
 }
 
 $Output .= "</tbody></table>";
