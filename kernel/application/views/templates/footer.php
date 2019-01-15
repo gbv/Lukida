@@ -5,7 +5,7 @@ $FooterArray = array();
 if ( !$front || !isset($_SESSION["config_general"]["general"]["frontpagewithoutlukida"]) || $_SESSION["config_general"]["general"]["frontpagewithoutlukida"] == "0" )
 {
   $FooterArray[]  = KERNEL . " " . KERNELVERSION . "." .  KERNELSUBVERSION . "." . LIBRARYVERSION . " &copy; " . date("Y");
-  $FooterArray[]  = ( strtolower(MODE) == "production" ) ? "" : "" . ucfirst(MODE) . " " . ucfirst(LIBRARY);
+  if ( strtolower(MODE) != "production" ) $FooterArray[]  =  ucfirst(MODE) . " " . ucfirst(LIBRARY);
 }
 
 if ( !$front || !isset($_SESSION["config_general"]["general"]["frontpagewithoutlinks"]) || $_SESSION["config_general"]["general"]["frontpagewithoutlinks"] == "0" )
