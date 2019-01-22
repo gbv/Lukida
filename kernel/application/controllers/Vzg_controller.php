@@ -835,6 +835,7 @@ class Vzg_controller extends CI_Controller
 
     // Body media part
     $Mess .= "<h3>Medium</h3>"; 
+    $Mess .= "<p>PPN: " . $ppn . "</p>";
     $Mess .= "<table border=1>" . json_decode($fullbody) . "</table>";
 
     // Body link part

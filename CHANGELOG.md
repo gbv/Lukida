@@ -1,5 +1,10 @@
 # Changelog
 
+**21.01.2019**
+* Mail Order
+  * PPN is added
+  * Bibliographic data ensured 
+
 **10.01.2019**
 * Fullview
   * Improved display source with link
