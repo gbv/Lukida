@@ -9,7 +9,7 @@ if ( ! isset($_SESSION["interfaces"]["lbs"]) || ! $_SESSION["interfaces"]["lbs"]
 $DAIA = $this->CI->GetLBS($this->PPN);   
 if ( isset($DAIA["document"]) && empty($DAIA["document"]) )
 {
-  // Fehler passiert zunächst nur ausgeben
+  // Fehler passiert zunÃ¤chst nur ausgeben
   if ( isset($this->medium["parents"][0]) )
   {
     $DAIA = $this->CI->GetLBS($this->medium["parents"][0]);

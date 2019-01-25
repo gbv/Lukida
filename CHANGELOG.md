@@ -1,5 +1,9 @@
 # Changelog
 
+**24.01.2019**
+* Full View
+  * Messages moved to full view after login on order
+
 **21.01.2019**
 * Mail Order
   * PPN is added

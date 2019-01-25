@@ -88,7 +88,7 @@ class Bootstrap extends General
 
     if ( true )
     {
-      // Facetten für Anzeige filtern
+      // Facetten fÃ¼r Anzeige filtern
       $Filter  = array();
 
       // Online
@@ -122,7 +122,7 @@ class Bootstrap extends General
         $Count += 2;
       }
 
-      // Facetten für Anzeige vorbereiten
+      // Facetten fÃ¼r Anzeige vorbereiten
       $container["yearmin"] = isset($container["stats"]["publishDateSort"]["min"]) ? $container["stats"]["publishDateSort"]["min"] : "1900";
       $container["yearmax"] = (isset($container["stats"]["publishDateSort"]["max"]) && $container["stats"]["publishDateSort"]["max"] <= date("Y")) ? $container["stats"]["publishDateSort"]["max"] : date("Y");
       $container["online"]  = (isset($Filter["online"])) ? $Filter["online"] : "";
