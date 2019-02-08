@@ -166,7 +166,7 @@ class Solr extends General
             $MainSearch .= "(topic:\"" . $Phrases[0] . "\" OR topic_unstemmed:\"" . $Phrases[0] . "\")";
             break;
           case "class":
-            $MainSearch .= "(class_local:\"" . $Phrases[0] . "\" )";
+            $MainSearch .= "(class:\"" . $Phrases[0] . "\" )";
             break;
           case "isn":
             $MainSearch .= "(issn:\"" . $Phrases[0] . "\" OR isbn:\"" . $Phrases[0] . "\")";
@@ -241,7 +241,7 @@ class Solr extends General
                          . " topic_unstemmed:\"" . implode("\" OR topic_unstemmed:\"",$Phrases) . "\")";
             break;
           case "class":
-            $MainSearch .= "(class_local:\"" . implode("\" OR class_local:\"", $Phrases) . "\")";
+            $MainSearch .= "(class:\"" . implode("\" OR class:\"", $Phrases) . "\")";
             break;
           case "isn":
             $MainSearch .= "(issn:\"" . implode("\" OR issn:\"", $Phrases) . "\" OR "
@@ -439,7 +439,7 @@ class Solr extends General
           case "sachgebiet":
           {
             $dismaxQuery
-            ->addQueryField("class_local",100);
+            ->addQueryField("class",100);
             break;
           }
           case "id":

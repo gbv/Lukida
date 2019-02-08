@@ -449,8 +449,7 @@ class General
 
       $pretty["languageorigin"]      = $this->GetSimpleArray(array("041" => array("h")));
 
-      $pretty["classification"]      = $this->PrettyFields(array("084" => array("a" => " - ",
-                                                                                "9" => " - ")));
+      $pretty["classification"]      = $this->GetClassification();
   
       $pretty["subject"]             = $this->GetSimpleArray(array("650" => array("a","z","v"),
                                                                    "653" => array("a"),
@@ -880,6 +879,28 @@ class General
       $OriginalYear = (substr($this->contents["008"],6,1) == "r") ? substr($this->contents["008"],11,4) : "";
     }
     return $OriginalYear;
+  }
+
+  protected function GetClassification()
+  {
+    $Classification = array();
+    if ( array_key_exists("084", $this->contents) )
+    {
+      $Classification = $this->GetCompleteArray(array("084" => array("a","2","9")));
+    }
+    // Add Dewey
+    if ( array_key_exists("082", $this->contents) )
+    {
+      $Dewey = $this->GetSimpleArray(array("082" => array("a")));
+      foreach ($Dewey as $One) 
+      {
+        $Classification[] = array(
+                                      "a" => array($One),
+                                      "2" => array("DDC")
+                                 );
+      }
+    }
+    return $Classification;
   }
 
   protected function SetCover($type = "preview")

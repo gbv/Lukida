@@ -652,12 +652,39 @@ if ( isset($this->pretty["genre"]) && count($this->pretty["genre"]) > 0 )
 }
 
 // Classification
-if ( isset($this->pretty["classification"]) && $this->pretty["classification"] != "" )
+if ( isset($this->pretty["classification"]) && count($this->pretty["classification"]) > 0 )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("classification") . "</td>";
-  $Output .=  "<td>" . $this->pretty["classification"] . "</td>";
-  $Output .=  "</tr>";
+  $Output .=  "<td>";
+  $First = true;
+  foreach ( $this->pretty["classification"] as $One)
+  {
+    $Nm = "";
+    if ( isset($One["9"]) )
+    {
+    	foreach($One["9"] as $Single)
+    	{
+		    $Nm .= $Single . " ";
+    	}
+    }
+    $Sy = ( isset($One["2"]["0"]) && $One["2"]["0"] != "" ) ? " (" . strtoupper($One["2"]["0"]) . ")" : "";
+
+    if ( isset($One["a"]) )
+    {
+    	foreach($One["a"] as $Single)
+    	{
+		    $In = ( !$First ) ? " | " : "";
+		    $Cl = ( $Single != "" ) ? $this->link("class", $Single, trim($Nm)) : ""; 
+  		  if ( $Cl != "" )
+    		{
+    			$Output .= $In . $Cl . $Sy;
+	    		$First = false;
+  	  	}
+  	  }
+    }
+  }
+  $Output .=  "</td></tr>";
 }
 
 // Collections / Source

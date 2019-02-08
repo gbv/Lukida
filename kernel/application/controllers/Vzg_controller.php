@@ -713,6 +713,7 @@ class Vzg_controller extends CI_Controller
     $fullbody		 = $this->input->post('fullbody');
     $exemplar		 = (array)json_decode($this->input->post('exemplar'));
     $userinput   = (array)json_decode($this->input->post('userinput'));
+    $userconfig  = (array)json_decode($this->input->post('userconfig'));
     $mailtyp     = $this->input->post('mailtyp');
     $mailsubject = $this->input->post('mailsubject');
 
@@ -773,10 +774,26 @@ class Vzg_controller extends CI_Controller
       // Test & Production Mode
       $this->email->to($mailto);
     }
-    
-    // Username
-    $username = trim($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["firstname"] . " " . $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["lastname"]);
-        
+
+    // User-Daten
+    if ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]) 
+      && is_array($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]) && count($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]) )
+    {
+      $userdata = $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"];
+    }
+    elseif ( is_array($userconfig) && count($userconfig) )
+    {
+      $userdata = $userconfig;
+    }
+    else
+    {
+      $userdata = array();
+    }
+    $username = "";
+    if ( isset($userdata["firstname"]) )  $username  = trim($userdata["firstname"]);
+    if ( isset($userdata["lastname"]) )   $username .= " " . trim($userdata["lastname"]);
+    $username = trim($username);
+
     // Mail subject
     $this->email->subject($mailsubject . ' von ' . $username );
 
@@ -799,7 +816,7 @@ class Vzg_controller extends CI_Controller
     $Mess .= "<h3>Benutzer</h3>"; 
     $Mess .= "<table>";
 
-    foreach ( $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] as $key => $value )
+    foreach ( $userdata as $key => $value )
     {
       if ( $value == "" || $key == "type" )  continue;
       if ( $UserElements != "all" )
@@ -869,7 +886,7 @@ class Vzg_controller extends CI_Controller
     // Receive params
     $action       = $this->input->post('action');
     $ppnlist      = (array)json_decode($this->input->post('ppnlist'));
-    $fields       = (array)json_decode($this->input->post('fields'));
+    $fields       = (array)json_decode($this->input->post('fields'), true);
 
     // Check params
     if ( $action == "" )          return ($this->ajaxreturn("400","action is missing"));

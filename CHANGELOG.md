@@ -1,5 +1,16 @@
 # Changelog
 
+**06.02.2019**
+* Full View
+  * Links added to classification
+  * Dewey classification added
+
+**05.02.2019**
+* Full View
+  * Messages display in 3 top most dialogs
+* MailOrder
+  * Backup user information added
+  
 **24.01.2019**
 * Full View
   * Messages moved to full view after login on order
