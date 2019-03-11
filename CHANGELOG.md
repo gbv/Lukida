@@ -1,5 +1,14 @@
 # Changelog
 
+**11.03.2019**
+* Updates
+  * Bootstrap 3.4.1
+  * NoUISlider 13.1.1
+
+**19.02.2019**
+* Updates
+  * Moment 2.24.0
+
 **06.02.2019**
 * Full View
   * Links added to classification

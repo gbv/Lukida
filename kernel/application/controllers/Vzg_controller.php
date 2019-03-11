@@ -1633,10 +1633,12 @@ class Vzg_controller extends CI_Controller
   public function GetCombinedItems($PPN)
   {
     $MARCItems = $this->GetIndexItems($PPN);
+    // $this->printArray2Screen($MARCItems);
     $DAIAItems = array();
     if ( $this->countLBS() )
     {
       if ( isset($_SESSION["interfaces"]["lbs"])  && $_SESSION["interfaces"]["lbs"]  == "1" )  $DAIAItems =  $this->GetLBSItems($PPN);
+      // $this->printArray2Screen($DAIAItems);
       if ( count($DAIAItems) )
       {
         $AllItems  = array_unique(array_merge(array_keys($MARCItems),array_keys($DAIAItems)));
@@ -1659,10 +1661,9 @@ class Vzg_controller extends CI_Controller
         return ($Combined);
       }
     }
-    else
-    {
-      return ($MARCItems);
-    }
+
+    // $this->printArray2Screen($MARCItems);
+    return ($MARCItems);
   }
 
   public function request()
