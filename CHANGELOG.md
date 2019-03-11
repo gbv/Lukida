@@ -5,6 +5,9 @@
   * Bootstrap 3.4.1
   * NoUISlider 13.1.1
 
+* Drivers
+  * PAIA2-Driver adapted for change password
+
 **19.02.2019**
 * Updates
   * Moment 2.24.0

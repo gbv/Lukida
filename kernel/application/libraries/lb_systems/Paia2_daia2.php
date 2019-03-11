@@ -64,6 +64,7 @@ class Paia2_daia2 extends General
       curl_setopt($http, CURLOPT_HTTPHEADER, array('Content-type: application/json; charset=UTF-8'));
     }
     curl_setopt($http, CURLOPT_RETURNTRANSFER, true);
+
     if( ! $data = curl_exec($http))
     {
       trigger_error(curl_error($http));
@@ -225,6 +226,7 @@ class Paia2_daia2 extends General
   public function login ( $user, $pw )
   {
     $post_data = array("username" => $user, "password" => $pw, "grant_type" => "password", "scope" => "read_patron read_fees read_items write_items change_password");
+
     $login_response = $this->postit($this->paia.'/auth/login', $post_data);
     $json_start = strpos($login_response, '{');
     $json_response = substr($login_response, $json_start);
@@ -412,14 +414,17 @@ class Paia2_daia2 extends General
 
   public function changepw($old, $new)
   {
+    /*
     if ( isset($_SESSION[$this->isil]["login"]["status"]) && $_SESSION[$this->isil]["login"]["status"] >= "1" )
     {
-      return (array("status" => -3,
+      return (array("status" => -2,
                     "error"  => ( isset($_SESSION[$this->isil]["userstatus"]["message"]) && $_SESSION[$this->isil]["userstatus"]["message"] == true && isset($_SESSION[$this->isil]["userstatus"]["messagetext"])) ? $_SESSION[$this->isil]["userstatus"]["messagetext"] : "Error" ));
     }
-
+    */
     $post_data = array("patron" => $_SESSION[$this->isil]["userlogin"], "username" => $_SESSION[$this->isil]["userlogin"], "old_password" => $old, "new_password" => $new);
-    $change_response = json_decode($this->postit($this->paia.'/auth/change', $post_data, $_SESSION[$this->isil][$this->paia]['paiaToken']),true);
+
+    $change_response = json_decode($this->postit($this->paia.'/auth/change', $post_data, $_SESSION[$this->isil]['paiaToken']),true);
+
     if ( isset($change_response["error_description"]) )
     {
       return (array("status" => -2,
