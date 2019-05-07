@@ -48,10 +48,10 @@ foreach ($LeftSide as $Left)
     }
 
     // Next columns
-    foreach ( $Combined as $LID => $Item )
+    foreach ( $Combined as $LID => $Item2 )
     {
-      if (isset($Item[$Left]) && is_bool($Item[$Left]))  { $Item[$Left] = ( $Item[$Left] ) ? "true" : "false";  }
-      $Output .= "<td class='tabcell'>" . ( (isset($Item[$Left]) && !is_array($Item[$Left]) ) ? $this->CI->CutText($Item[$Left],30,true) : "&nbsp;") . "</td>";
+      if (isset($Item2[$Left]) && is_bool($Item2[$Left]))  { $Item2[$Left] = ( $Item2[$Left] ) ? "true" : "false";  }
+      $Output .= "<td class='tabcell'>" . ( (isset($Item2[$Left]) && !is_array($Item2[$Left]) ) ? $this->CI->CutText($Item2[$Left],30,true) : "&nbsp;") . "</td>";
     }
     $Output .= "</tr>";
   }
@@ -61,10 +61,14 @@ foreach ($LeftSide as $Left)
     $Output .= "<tr id='" . $Left . "_" . $this->dlgid . "' class='collapse'><td class='tabcell'>&nbsp;</td>";
 
     // Next columns
-    foreach ( $Combined as $LID => $Item )
+    foreach ( $Combined as $LID => $Item2 )
     {
-      $Output .= "<td class='tabcell'><table>";
-        foreach ( $Item[$Left] as $K1 => $V1 )
+      // $this->CI->printArray2Screen($Item2);
+
+      if ( isset( $Item2[$Left]) && is_array($Item2[$Left]) )
+      {
+        $Output .= "<td class='tabcell'><table>";
+        foreach ( $Item2[$Left] as $K1 => $V1 )
         {
           $Output .= "<tr><td class='tabcell'>" . $K1 . "</td><td class='tabcell'><table>";
           foreach ( $V1 as $K2 => $V2 )
@@ -74,6 +78,11 @@ foreach ($LeftSide as $Left)
           $Output .= "</table></td></tr>";
         }
         $Output .= "</table></td>";
+      }
+      else
+      {
+        $Output .= "<td class='tabcell'>-</td>";
+      }
     }
     $Output .= "</tr>";
   }

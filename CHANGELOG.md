@@ -1,5 +1,12 @@
 # Changelog
 
+**24.04.2019**
+* Updates
+  * jQuery 3.4.0
+  * NoUISlider 13.1.4
+  * DateRangePicker 3.0.5
+  * Chart.js 2.8.0
+
 **11.03.2019**
 * Updates
   * Bootstrap 3.4.1

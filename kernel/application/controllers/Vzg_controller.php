@@ -1653,6 +1653,10 @@ class Vzg_controller extends CI_Controller
           {
             if (isset($MARCItems[$EPN])) $Combined[$LukidaID] += $MARCItems[$EPN];
           }
+          else
+          {
+            $Combined[$LukidaID] += $MARCItems[$LukidaID];
+          }
 
           // Sort records by about (volume...)
           ksort($Combined[$LukidaID]);
