@@ -466,7 +466,7 @@ class Solr extends General
     }
 
     if ( $search != "" || count(array_values($matches[0])) >  1 || 
-       ( count(array_values($matches[0])) == 1 && $matches[1][0] != "id" ) )
+       ( count(array_values($matches[0])) == 1 && !in_array($matches[1][0], array("id","foreignid") ) ) )
     {
       // Facet fields (only for new searches (package=1), not for inkremential searches (package=0, package >=2)
       if ( $package == 1 && $facets )

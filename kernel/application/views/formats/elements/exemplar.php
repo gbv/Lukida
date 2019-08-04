@@ -126,11 +126,14 @@ else
         if ( in_array($cat, $this->catalogues) )  $CatDB = $db;
       }
       if ( isset($CatDB) && $CatDB != "" )
+      {
+        $FLPPN = (substr($this->PPN,0,4) == "OEVK") ? substr($this->PPN,4) : $this->PPN;
         $Interloan[] = array
         (
-          "link"   => "http://gso.gbv.de/DB=" . $CatDB . "/PPNSET?PPN=" . $this->PPN,
+          "link"   => "http://gso.gbv.de/DB=" . $CatDB . "/PPNSET?PPN=" . $FLPPN,
           "label1" => $this->CI->database->code2text("INTERLOAN")
         );
+      }
     }
   }
 

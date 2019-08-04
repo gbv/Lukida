@@ -89,7 +89,7 @@ $Login  = ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["
         <!-- Favorites -->
         <div class="btn-group">
           <button type="button" onClick="javascript:$.open_favors()" class="favorites btn navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Merkliste" data-container="body">
-            <i class="fa fa-star" title="Merkliste"></i>
+            <i class="fa fa-star"></i>
             <span class='countFavors' data-toggle="tooltip" data-placement="bottom" data-title="Einträge Merkliste" data-trigger="hover manual"> </span>
             <span class="sr-only">Merkliste</span>
           </button>
@@ -135,7 +135,7 @@ $Login  = ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["
           <span class="input-group-btn" style="width:1%;">
             <button type="button" onClick="javascript:$.open_settings()" class="settings btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Einstellungen" data-container="body">
               <i class="fa fa-sliders"></i> 
-              <span class='countSettings' data-toggle="tooltip" data-placement="bottom" data-title="Aktive Einstellungen" data-trigger="hover manual"> </span>
+              <span class='countSettings' data-toggle="tooltip" data-placement="bottom" title="Aktive Einstellungen" data-trigger="hover manual"> </span>
               <span class="sr-only">Einstellungen</span>
             </button>
           </span>
@@ -206,7 +206,7 @@ $Login  = ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["
           <!-- Favorites -->
           <div class="btn-group pull-right left-padding">
             <button type="button" onClick="javascript:$.open_favors()" class="favorites btn navbar-button-color dropdown-toggle" data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Merkliste" data-container="body">
-              <i class="fa fa-star" title="Merkliste"></i>
+              <i class="fa fa-star"></i>
               <span class='countFavors' data-toggle="tooltip" data-placement="bottom" data-title="Einträge Merkliste" data-trigger="hover manual"> </span>
               <span class="sr-only">Merkliste</span>
             </button>
@@ -265,7 +265,7 @@ $Login  = ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["
           <div style="display:table;" class="input-group">
             <span class="input-group-btn" style="width:1%;">
               <button type="button" onClick="javascript:$.open_settings()" class="settings btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Einstellungen" data-container="body">
-                <i class="fa fa-sliders"></i> <span class='countSettings' data-toggle="tooltip" data-placement="bottom" data-title="Aktive Einstellungen" data-trigger="hover manual"> </span>
+                <i class="fa fa-sliders"></i> <span class='countSettings' data-toggle="tooltip" data-placement="bottom" title="Aktive Einstellungen" data-trigger="hover manual"> </span>
                 <span class="sr-only">Einstellungen</span>
               </button>
             </span>

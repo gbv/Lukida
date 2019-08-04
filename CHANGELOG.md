@@ -1,4 +1,38 @@
 # Changelog
+**01.08.2019**
+* Updates
+  * NoUISlider 14.0.2
+
+**30.07.2019**
+** Interlibrary loan corrected for collection ÖVK
+
+**24.07.2019**
+* Fullview
+  * Other editions enhanced
+
+**27.06.2019**
+* Search
+  * ForeignID-Search more specific
+  * ForeignID-Search as ID bypass filters
+  * Keyboard-Support repaired by removing autofocus on search field
+
+**14.06.2019**
+* Fullview
+  * First publisher (if multiple)
+  * Reproduction updated
+  * Footnote updated
+  * Original year updated
+  * ISSN updated
+  * Part updated
+  * Includes shortened to 3 lines (with seemore button)
+  * Summary shortened to 3 lines (with seemore button)
+
+* Export
+  * ZBD-ID updated
+
+**04.06.2019**
+* Updates
+  * jQuery 3.4.1
 
 **24.04.2019**
 * Updates

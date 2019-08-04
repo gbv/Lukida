@@ -378,7 +378,7 @@ class General
                                                                              "g" => " ",
                                                                              "q" => ". Band: ")));
 
-      $pretty["part"]             = $this->PrettyFields(array("245" => array("n" => " | ",
+      $pretty["part"]             = $this->PrettyFields(array("773" => array("g" => " | ",
                                                                              "p" => " : ")));
 
       $pretty["serial"]           = $this->GetArray(array("490" => array("a","v")));
@@ -393,13 +393,13 @@ class General
 
     if ( $type == "fullview" )
     {
-      $pretty["publisher"]           = $this->GetArray(array("264" => array("a","b","c")));
+      $pretty["publisher"]           = $this->GetArrayFirst(array("264" => array("a","b","c")));
       if ( empty($pretty["publisher"]) )
       {
         $pretty["publisher"]           = $this->GetArray(array("260" => array("a","b","c")));
       }
                                      
-      $pretty["publisherarticle"]    = $this->GetArray(array("773" => array("i","t","d","g","q","w")));
+      $pretty["publisherarticle"]    = $this->GetArray(array("773" => array("a","i","t","b","d","g","h","q","w")));
 
       $pretty["uniformtitle"]        = $this->PrettyFields(array("240" => array("a" => " | ")));
       
@@ -415,7 +415,7 @@ class General
   
       $pretty["edition"]             = $this->PrettyFields(array("250" => array("a" => " | ")));
       
-      $pretty["reproduction"]        = $this->GetArray(array("533" => array("a","b","c","d","e","f","n")));
+      $pretty["reproduction"]        = $this->GetArray(array("338" => array("a","b","c","d","e","f","n")));
     
       $pretty["corporation"]         = $this->GetSimpleArray(array("110" => array("a"),
                                                                    "111" => array("a"),
@@ -424,14 +424,15 @@ class General
   
       $pretty["notes"]               = $this->GetSimpleArray(array("500" => array("a")));
 
-      $pretty["includes"]            = $this->PrettyFields(array("501" => array("a" => " | ")));
+      $pretty["includes"]            = $this->PrettyFields(array("249" => array("a" => " | "),
+                                                                 "501" => array("a" => " | ")));
 
       $pretty["publishedjournal"]    = $this->PrettyFields(array("515" => array("a" => " | ")));
 
-      $pretty["footnote"]            = $this->PrettyFields(array("533" => array("a" => " ",
+      $pretty["footnote"]            = $this->PrettyFields(array("338" => array("a" => " ",
                                                                                 "n" => ": ")));
 
-      $pretty["othereditions"]       = $this->GetCompleteArray(array("780" => array("i","t","w")));
+      $pretty["othereditions"]       = $this->GetArray(array("780" => array("a","i","t","b","d","g","h","q","w")));
 
       $pretty["remarks"]             = $this->GetCompleteArray(array("772" => array("i","t","w"),
                                                                      "770" => array("i","t","w"),
@@ -451,9 +452,7 @@ class General
 
       $pretty["classification"]      = $this->GetClassification();
   
-      $pretty["subject"]             = $this->GetSimpleArray(array("650" => array("a","z","v"),
-                                                                   "653" => array("a"),
-                                                                   "689" => array("a")));
+      $pretty["subject"]             = $this->GetSimpleArray(array("689" => array("a")));
 
       $pretty["genre"]               = $this->GetSimpleArray(array("655" => array("a")));
                                                                    
@@ -475,7 +474,7 @@ class General
 
       $pretty["siblings"]            = $this->GetArray(array("787" => array("i","n","t","w")));
 
-      $pretty["originalyear"]        = $this->GetOriginalYear();
+      $pretty["originalyear"]        = $this->PrettyFields(array("534" => array("c" => " | ")));
 
       // Add original characters 
       $pretty = $this->AddOriginalCharacters($pretty,"fullview");
@@ -483,12 +482,12 @@ class General
 
     if ( $type == "export" )
     {
-      $field016 = $this->GetArray(array("016" => array("a","2")));
-      foreach ($field016 as $One)
+      $zdbid = $this->GetSimpleArray(array("773" => array("w")));
+      foreach ($zdbid as $One)
       {
-        if ( isset($One["a"]) && $One["a"] != "" && isset($One["2"]) && $One["2"] == "DE-600" )
+        if ( substr($One,0,8) == "(DE-600)" )
         { 
-          $pretty["zdbid"] = $One["a"];
+          $pretty["zdbid"] = substr($One,8);
           break;
         }
       }
@@ -680,6 +679,7 @@ class General
 
   protected function GetArray($Filter)
   {
+    // Last identical subfield will survive
     $Output = array();
     foreach ( $Filter as $Field => $Subfields )
     {
@@ -696,8 +696,40 @@ class General
               {
                 if ( (string)$Key == (string)$Sub )
                 {
-                  if ( $Key == "w" && substr($Value,0,8) != "(DE-601)" )  continue;
+                  if ( $Key == "w" && !in_array(substr($Value,0,8), array("(DE-601)","(DE-627)") ) )  continue; 
                   $Tmp[$Sub] = htmlspecialchars($Value);
+                }
+              }
+            }
+          }
+          $Output[] = $Tmp;
+        }
+      }
+    }
+    return $Output;
+  }
+
+  protected function GetArrayFirst($Filter)
+  {
+    // First identical subfield will survive
+    $Output = array();
+    foreach ( $Filter as $Field => $Subfields )
+    {
+      if ( array_key_exists($Field, $this->contents) )
+      {
+        foreach ($this->contents[$Field] as $Record)
+        {
+          $Tmp = array();
+          foreach ( $Record as $Subrecord )
+          {
+            foreach ( $Subfields as $Sub )
+            {
+              foreach ( $Subrecord as $Key => $Value )
+              {
+                if ( (string)$Key == (string)$Sub )
+                {
+                  if ( $Key == "w" && !in_array(substr($Value,0,8), array("(DE-601)","(DE-627)") ) )  continue; 
+                  if ( !isset($Tmp[$Sub]) ) $Tmp[$Sub] = htmlspecialchars($Value);
                 }
               }
             }
@@ -871,16 +903,6 @@ class General
     return $pretty;
   }
 
-  protected function GetOriginalYear()
-  {
-    $OriginalYear = "";
-    if ( array_key_exists("008", $this->contents) )
-    {
-      $OriginalYear = (substr($this->contents["008"],6,1) == "r") ? substr($this->contents["008"],11,4) : "";
-    }
-    return $OriginalYear;
-  }
-
   protected function GetClassification()
   {
     $Classification = array();
@@ -965,16 +987,16 @@ class General
         $Record = array();
         foreach ( $Rec as $Subrec )
         {
-          if ( $OnlyW601 && isset($Subrec["w"]) && substr($Subrec["w"],0,8) != "(DE-601)" ) continue;
+          if ( $OnlyW601 && isset($Subrec["w"]) && !in_array(substr($Subrec["w"],0,8), array("(DE-601)","(DE-627)")) ) continue;
           foreach ( $Subrec as $Key => $Value )
           {
             if ( $OnlyFirstSubfield )
             {
-              if ( ! isset($Record[$Key]) ) $Record[$Key] = ( $OnlyW601 && $Key == "w" && substr($Value,0,8) == "(DE-601)" ) ? substr($Value,8) : $Value;
+              if ( ! isset($Record[$Key]) ) $Record[$Key] = ( $OnlyW601 && $Key == "w" && in_array(substr($Value,0,8),array("(DE-601)","(DE-627)") ) ) ? substr($Value,8) : $Value;
             }
             else
             {
-              $Record[$Key] = ( $OnlyW601 && $Key == "w" && substr($Value,0,8) == "(DE-601)" ) ? substr($Value,8) : $Value;
+              $Record[$Key] = ( $OnlyW601 && $Key == "w" && in_array(substr($Value,0,8),array("(DE-601)","(DE-627)") ) ) ? substr($Value,8) : $Value;
             }
           }
         }
@@ -1101,11 +1123,11 @@ class General
     uasort($RelatedPubs, function ($a, $b) { return $a['sort'] <=> $b['sort']; });
     return ($RelatedPubs);
   }
-  
+
   public function GetIncludedPubs($T, $PPN)
   {
     // Zeitschriften mit Einzelheften
-    $PPNLink = $this->CI->internal_search("ppnlink",$PPN, "Book,Journal");
+    $PPNLink  = $this->CI->internal_search("ppnlink",$PPN, '("Book","Journal","Serial Volume")');
     $PPNStg   = json_encode(array_keys($PPNLink["results"]));
     $Journals = array();
     $Counter  = 0;
@@ -1136,7 +1158,7 @@ class General
     }
   
     // Artikel
-    $PPNLink = $this->CI->internal_search("ppnlink",$PPN, "Article");
+    $PPNLink = $this->CI->internal_search("ppnlink",$PPN, '("Article")');
     $PPNStg   = json_encode(array_keys($PPNLink["results"]));
     $Articles = array();
     $Counter  = 0;
@@ -1280,7 +1302,19 @@ class General
   
   private function GetPublisherYear($Contents)
   {
-    $Jahr = "";
+    if ( array_key_exists("245", $Contents) )
+    {
+      foreach ( $Contents["245"] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == "n" )  return $Value;
+          }
+        }
+      }
+    }
     if ( array_key_exists("264", $Contents) )
     {
       foreach ( $Contents["264"] as $Record )
@@ -1289,7 +1323,7 @@ class General
         {
           foreach ( $Subrecord as $Key => $Value )
           {
-            if ( $Key == "c" )    $Jahr .= ($Jahr != "" ) ? " | " . $Value : $Value;
+            if ( $Key == "c" )  return $Value;
           }
         }
       }
@@ -1303,12 +1337,12 @@ class General
         {
           foreach ( $Subrecord as $Key => $Value )
           {
-            if ( $Key == "c" )    $Jahr .= ($Jahr != "" ) ? " | " . $Value : $Value;
+            if ( $Key == "c" )  return $Value;
           }
         }
       }
     }
-    return $Jahr;
+    return "";
   }
   
   private function Get490av($Contents)
@@ -1361,4 +1395,490 @@ class General
              ? $_SESSION["info"]["2"]["iln"] : $_SESSION["info"]["1"]["iln"] );
 
   }
+
+  // *****************
+  // * New functions * 
+  // *****************
+
+  protected function isOwner()  
+  {
+    return ( isset($this->contents[912]) && isset($_SESSION["iln"]) && $_SESSION["iln"] != "" && ( in_array( "GBV_ILN_".$_SESSION["iln"], $this->catalogues) ) ) ? true : false;
+  }
+
+  protected function isOnline()
+  {
+    return ( ( ( substr($this->medium["leader"],6,2) == "ma"
+    || substr($this->medium["leader"],6,2) == "mm"
+    || substr($this->medium["leader"],6,2) == "ms" 
+    || substr($this->medium["leader"],6,2) == "aa" 
+    || substr($this->medium["leader"],6,2) == "am" 
+    || substr($this->medium["leader"],6,2) == "as" )
+    && substr($this->GetMARC($this->contents,"007"),0,2) == "cr" )
+    || ( in_array("Gutenberg", $this->collection) ) ) ? true : false;
+  }
+
+  protected function isHapticMulti()
+  {
+    return ( ( substr($this->medium["leader"],7,1) == "m" && substr($this->medium["leader"],19,1) == "a" )
+          || ( substr($this->medium["leader"],7,1) == "s" && substr($this->GetMARC($this->contents,"008"),21,1) == "m" )
+          || ( $this->CI->record_format->GetMARCSubfieldFirstString($this->contents, "951", "b") == "j" )
+          || ( substr($this->medium["leader"],7,1) == "s" && in_array(substr($this->GetMARC($this->contents,"008"),21,1), array("p","n")) ) )
+          ? true : false;
+  }
+
+  protected function getHapticMulti()
+  {
+    $Exemplars = array();
+
+    // Mehrbändige Werke, Schriftenreihen, Zeitschriften mit Einzelheften
+    if ( substr($this->medium["leader"],7,1) == "m" && substr($this->medium["leader"],19,1) == "a" )
+    {
+      // Mehrbändige Werke
+      $Exemplars[] = array("label"  => "RELATEDPUBLICATIONS", 
+                           "rembef" => array(),
+                           "data"   => $this->GetRelatedPubsNew($this,$this->PPN,1),
+                           "remaft" => array());
+    }
+    
+    if ( substr($this->medium["leader"],7,1) == "s" && substr($this->GetMARC($this->contents,"008"),21,1) == "m" )
+    {
+      // Schriftenreihen
+      $Exemplars[] = array("label"  => "RELATEDPUBLICATIONS",
+                           "rembef" => array(),
+                           "data"   => $this->GetRelatedPubsNew($this,$this->PPN,2),
+                           "remaft" => array());
+    }
+    
+    if ( $this->CI->record_format->GetMARCSubfieldFirstString($this->contents, "951", "b") == "j" )
+    {
+      // Enthaltene Werke
+      $Exemplars[] = array("label"  => "INCLUDEDMEDIA",
+                           "rembef" => array(),
+                           "data"   => GetRelatedPubsNew($this,$this->PPN,3),
+                           "remaft" => array());
+    }
+    
+    if ( substr($this->medium["leader"],7,1) == "s" && in_array(substr($this->GetMARC($this->contents,"008"),21,1), array("p","n")) )
+    {
+      // Zeitschriften mit Einzelheften
+      $IncludedPubs = $this->GetIncludedPubsNew($this,$this->PPN);
+      if ( count($IncludedPubs["journals"]) )
+      {
+        $Exemplars[] = array("label"  => "RELATEDJOURNALS",
+                             "rembef" => array(),
+                             "data"   => $IncludedPubs["journals"],
+                             "remaft" => array());
+      }
+      if ( count($IncludedPubs["articles"]) )
+      {
+        $Exemplars[] = array("label"  => "RELATEDARTICLES",
+                             "rembef" => array(),
+                             "data"   => $IncludedPubs["articles"],
+                             "remaft" => array());
+      }
+    }
+
+    return $Exemplars;
+  }
+
+  public function GetRelatedPubsNew($T, $PPN, $Modus)
+  {
+    // Modus
+    // 1: Mehrbändige Werke
+    // 2: Schriftenreihen
+    // 3: Enthaltene Werke
+  
+    $RelatedPubs = array();
+    $PPNLink = $this->CI->internal_search("ppnlink",$PPN);
+    if ( ! isset($PPNLink["results"]) ) return ($RelatedPubs);
+  
+    //$this->printArray2Screen($PPNLink);
+  
+    $PPNStg = json_encode(array_keys($PPNLink["results"]));
+  
+    foreach ( $PPNLink["results"] as $One )
+    {
+      $Pretty = $T->SetContents("preview");
+  
+      $Title = "";
+      if ( $Modus == 1 || $Modus == 3 )
+      {
+        $Title = $this->Get245npa($One["contents"], $Modus);
+        $Sort  = $this->Get245n($One["contents"]);
+      }
+      else
+      {
+        $Title = $this->Get245an($One["contents"]);
+        $Sort  = $this->Get490v($One["contents"]);
+      }
+  
+      $Publisher = "";
+      $Publisher = $this->Get250a($One["contents"]);
+      $Publisher = ($Publisher != "" ) ? $Publisher . ", " . $this->GetPublisherYear($One["contents"]) :  $this->GetPublisherYear($One["contents"]);
+        
+      $RelatedPubs[$One["id"]] = array
+      (
+      "format"    => $One["format"],
+      "cover"     => $One["cover"],
+      "type"      => "ppn",
+      "link"      => $One["id"],
+      "label1"    => $Title,
+      "label2"    => $Publisher,
+      "sort"      => $Sort
+      );
+    }
+    uasort($RelatedPubs, function ($a, $b) { return $a['sort'] <=> $b['sort']; });
+    return ($RelatedPubs);
+  }
+  
+  public function GetIncludedPubsNew($T, $PPN)
+  {
+    $Exemplars = array();
+
+    // Zeitschriften mit Einzelheften
+    $PPNLink  = $this->CI->internal_search("ppnlink",$PPN, "Book,Journal");
+    $PPNStg   = json_encode(array_keys($PPNLink["results"]));
+    $Journals = array();
+    $Counter  = 0;
+    foreach ( $PPNLink["results"] as $One )
+    {
+      $Pretty = $T->SetContents("preview");
+  
+      if ( substr($One["leader"],7,1) == "m" || substr($One["leader"],7,1) == "d" )
+      {
+        $Counter++;
+        $Title = $this->Get245ab($One["contents"]);
+        if ( $Title == "" )  $Title = $this->Get490av($One["contents"]);
+        if ( $Title == "" )  $Title = "Nr." . $Counter;
+
+        $Sort  = explode(".", $this->Get490v($One["contents"]));
+        $Sort  = $Sort[0];
+  
+        $Journals[$One["id"]] = array
+        (
+        "format"    => $One["format"],
+        "cover"     => $One["cover"],
+        "type"      => "ppn",
+        "link"      => $One["id"],
+        "label1"    => $Title,
+        "label2"    => $this->GetPublisherYear($One["contents"]),
+        "sort"      => $Sort
+        );
+      }
+    }
+    if ( count($Journals) )
+    {
+      uasort($Journals, function ($a, $b) { return $a['sort'] <=> $b['sort']; });
+    }
+  
+    // Artikel
+    $PPNLink  = $this->CI->internal_search("ppnlink",$PPN, "Article");
+    $PPNStg   = json_encode(array_keys($PPNLink["results"]));
+    $Articles = array();
+    $Counter  = 0;
+    foreach ( $PPNLink["results"] as $One )
+    {
+      $Pretty = $T->SetContents("preview");
+  
+      if ( substr($One["leader"],7,1) == "a" )
+      {
+        $Articles[$One["id"]] = array
+        (
+        "format"    => $One["format"],
+        "cover"     => $One["cover"],
+        "type"      => "ppn",
+        "link"      => $One["id"],
+        "label1"    => $this->Get245ab($One["contents"]),
+        "label2"    => $this->Get952j($One["contents"])
+        );
+      }
+    }
+
+    return (array("articles" => $Articles, "journals" => $Journals ));
+  } 
+
+  public function TrimTextNew($Text, $Length)
+  {
+    if (strlen($Text) <= $Length) return addslashes($Text);
+
+    //return addslashes(substr($Text, 0, strrpos(substr($Text, 0, $Length), ' ')) . ' ...');
+    return substr($Text, 0, strrpos(substr($Text, 0, $Length), ' ')) . ' ...';
+  }
+
+  public function OutputButtons($Exemplars, $ButtonSize, $LineLength)
+  {
+    $Output = "";
+    $Case          = ( strtolower(MODE) == "production" ) ? false : true;
+
+    // Set javascript variable
+    $LinksResolved = array();
+    if ( $this->medium["online"] )
+    {
+      if ( ($LinksStored=$this->CI->internal_linkresolver($this->PPN)) != "" )
+      {
+        // $this->CI->printArray2Screen($LinksStored);
+        if ( isset($LinksStored["links"]) )
+        {
+          if ( ( !is_array($LinksStored["links"]) && $LinksStored["links"] != "[]" && $LinksStored["links"] != "" )
+            || ( is_array($LinksStored["links"]) && count($LinksStored["links"])) )
+          {
+            $LinksResolved = (array) json_decode($LinksStored["links"],true);
+          }
+        }
+        $Output .= "<script>linkresolver=true;linkresolverclass='" . $ButtonSize . "';</script>";
+      }
+    }
+    else
+    {
+      $Output .= "<script>linkresolver=false;</script>";
+    }
+    
+    // Create Buttons
+    $BtnClass     = $ButtonSize . " btn btn-default btn-exemplar";
+    $EmptyClass   = $ButtonSize . " btn btn-default empty-exemplar";
+     
+    $FirstArea = true;
+    foreach ($Exemplars as $Area)
+    {
+      if ( isset($Area["data"]) && count($Area["data"]) )
+      {
+        // Space above
+        if ( !$FirstArea ) $Output .= "<div class='space_buttons'></div>";
+    
+        // Area Label
+        $Label = (isset($Area["label"]) && trim($Area["label"]) != "") ? $this->CI->database->code2text($Area["label"]) : "";
+        $Output .= "<div>" . $Label . "</div>";
+    
+        // Area remarks before buttons
+        if ( isset($Area["rembef"]) && count($Area["rembef"]) )
+        {
+          $Output .= "<div><small><ul><li>" . implode("</li><li>",$Area["rembef"]) . "</li></ul></small></div>";
+        }
+    
+        // Area Buttons
+        $Output .= "<div class='container-fluid'><div class='row'>";
+        foreach ( $Area["data"] as $EPN => $Exemplar )
+        {
+          // Sort messages (Not unique)
+          asort($Exemplar, SORT_REGULAR);
+          $Exams = $Exemplar;
+          $ExamCase = ($Case && isset($Exams["case"])) ? " <small>" . $Exams["case"]  . "</small>" : "";
+          unset($Exams["case"]);
+          ksort($Exams);
+          $_SESSION["exemplar"][$this->PPN][$EPN] = $Exams;
+    
+          // General properties
+          $Icon = "";  
+          $Title = "";
+          if ( isset($Exemplar["label1"]) && trim($Exemplar["label1"]) && strlen($Exemplar["label1"]) > $LineLength )
+          {
+            $Title = "title='".$Exemplar["label1"] . "'";
+          }
+    
+          // Link
+          if ( isset($Exemplar["link"]) && trim($Exemplar["link"]) != "" )
+          {
+            $Class  = $BtnClass;
+            if ( isset($Exemplar["type"]) && !in_array($Exemplar["type"], array("ppn","external")) )  continue;
+            if ( isset($Exemplar["type"]) && $Exemplar["type"] == "ppn" )
+            {
+              $Action = "onclick='$.open_fullview(\"" . $EPN . "\"," . json_encode(array_keys($Area["data"])) . ",\"publications\")'";
+            }
+            if ( isset($Exemplar["type"]) && $Exemplar["type"] == "external" )
+            {
+              $Action = "onclick='window.open(\"" . $Exemplar["link"] . "\",\"_blank\")'";
+              $Icon   = " <span class='fa fa-external-link'></span>";
+            }
+            $Host = "";
+            if ( $Host = parse_url($Exemplar["link"],PHP_URL_HOST) )
+            {
+              if ( $Host == "www.bibliothek.uni-regensburg.de" ) $Host = "Elektr. Zeitschriftenbibliothek";
+              if ( substr($Host,0,4) == "www.")   $Host = substr($Host,4);
+              $Host = "<small>" . $Host . "</small>";
+            }
+            if ( $Host != "" )
+            {
+              if ( !isset($Exemplar["label2"]) || trim($Exemplar["label2"]) == "" ) 
+              {
+                $Exemplar["label2"] = $Host;
+              }
+              elseif ( !isset($Exemplar["label3"]) || trim($Exemplar["label3"]) == "" ) 
+              {
+                $Exemplar["label3"] = $Host;
+              }
+            }
+          }
+    
+          // Action
+          if ( isset($Exemplar["action"]) && trim($Exemplar["action"]) != "" )
+          {
+            $Class  = $BtnClass;
+            $Action = "onclick='$." . $Exemplar["action"] . "(\"" . ((isset($_SESSION["iln"])) ? $_SESSION["iln"] : "") 
+                    . "\",\"" . $this->PPN . "\",\"" . $EPN . "\"," . json_encode($Exams,JSON_HEX_TAG) . ")'";
+          }
+    
+          // Blind
+          if ( !isset($Exemplar["action"]) && !isset($Exemplar["link"]) )
+          {
+            $Class  = $EmptyClass;
+            $Action = "";
+          }
+    
+          $Output .= "<a role='button' " . $Action . " class='" . $Class . "' " . $Title . " id='related_" . $EPN . "'>";
+          if ( isset($Exemplar["cover"])  && trim($Exemplar["cover"]) != "" )
+          {
+            $Output .= "<table width='100%'><tr><td data-toggle='tooltip' title='" . $this->CI->database->code2text($Exemplar["format"]) . "' class='publication-icon'>   ";
+            $Output .= "<span class='gbvicon'>" . $Exemplar["cover"] . "</span></td><td class='text-left'>";
+          }
+          if ( isset($Exemplar["label1"]) && trim($Exemplar["label1"]) != "" ) $Output .= $this->TrimTextNew($Exemplar["label1"],$LineLength) . $Icon . $ExamCase;
+          if ( isset($Exemplar["label2"]) && trim($Exemplar["label2"]) != "" ) $Output .= "<br />" . $this->TrimTextNew($Exemplar["label2"],$LineLength);
+          if ( isset($Exemplar["label3"]) && trim($Exemplar["label3"]) != "" ) $Output .= "<br />" . $this->TrimTextNew($Exemplar["label3"],$LineLength);
+          if ( isset($Exemplar["cover"])  && trim($Exemplar["cover"]) != "" )
+          {
+            $Output .= "</td></tr></table>";
+          }
+          $Output .= "</a>";
+        }
+    
+        if ( count($LinksResolved) && $this->medium["online"] )
+        {
+          foreach ( $LinksResolved as $Solver => $Lk )
+          {
+            $Output .= "<button onclick='$.openLink(\"" . $Lk . "\")' class='". $BtnClass . "'>" . $this->CI->database->code2text("FULLTEXT") . " (" .  $this->CI->   database->code2text( $Solver)  . ")</button>";
+          }
+        }
+        elseif ( $this->medium["online"] )
+        {
+          // LinkResolver Spaceholder for async js
+          $Output .= "<div id='linkresolver_" . $this->dlgid . "'></div>";
+        }
+    
+        $Output .= "</div></div>";
+    
+        // Area remarks after buttons
+        if ( isset($Area["remaft"]) && count($Area["remaft"]) )
+        {
+          $Output .= "<div><small><ul><li>" . implode("</li><li>",$Area["remaft"]) . "</li></ul></small></div>";
+        }
+      }
+    
+      // Finalize Loop
+      $FirstArea = false;
+    }
+    
+    // Ensure Linkresolver (async)
+    if ( $FirstArea && $this->medium["online"] )
+    {
+      $Output .= "<div id='linkresolvercontainer_" . $this->dlgid . "'></div>";
+    }
+    return ($Output);
+  }
+
+  public function searchMARCSubFields($Filter, $Search)
+  {
+    $Output = array();
+    $Search = strtolower(trim($Search));
+    foreach ( $Filter as $Field => $Subfields )
+    {
+      if ( array_key_exists($Field, $this->contents) )
+      {
+        foreach ($this->contents[$Field] as $Record)
+        {
+          foreach ( $Record as $Subrecord )
+          {
+            foreach ( $Subfields as $Sub )
+            {
+              foreach ( $Subrecord as $Key => $Value )
+              {
+                if ( (string)$Key == (string)$Sub && $Search = strtolower(trim($Value)) )
+                {
+                  $Output[$Field][$Sub][] = htmlspecialchars($Value);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return $Output;
+  }
+
+  public function SearchMARCCompleteArray($Contents, $Filter)
+  {
+    $Output = array();
+    foreach ( $Filter as $Field => $Subfields )
+    {
+      if ( array_key_exists($Field, $Contents) )
+      {
+        foreach ($Contents[$Field] as $Record)
+        {
+          $Tmp = array();
+          foreach ( $Record as $Subrecord )
+          {
+            foreach ( $Subfields as $Sub )
+            {
+              foreach ( $Subrecord as $Key => $Value )
+              {
+                if ( (string)$Key == (string)$Sub )
+                {
+                  $Tmp[$Sub][] = htmlspecialchars($Value);
+                }
+              }
+            }
+          }
+          $Output[] = $Tmp;
+        }
+      }
+    }
+    return $Output;
+  }
+
+  public function SearchMARCSimpleArray($Contents, $Filter)
+  {
+    $Output = array();
+    foreach ( $Filter as $Field => $Subfields )
+    {
+      if ( array_key_exists($Field, $Contents) )
+      {
+        foreach ($Contents[$Field] as $Record)
+        {
+          foreach ( $Record as $Subrecord )
+          {
+            foreach ( $Subfields as $Sub )
+            {
+              foreach ( $Subrecord as $Key => $Value )
+              {
+                if ( (string)$Key == (string)$Sub )
+                {
+                  if ( !isset($Output[$Sub]) || !in_array($Value, $Output[$Sub]) )  $Output[$Sub][] = htmlspecialchars($Value);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return $Output;
+  }
+
+  public function SearchMARCExemplar($Contents, $ExpID)
+  {
+    if ( array_key_exists("980", $Contents) )
+    {
+      foreach ($Contents["980"] as $Record)
+      {
+        $Output = array();
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( !isset($Output[$Key]) || !in_array($Value, $Output[$Key]) )  $Output[$Key][] = htmlspecialchars($Value);
+          }
+        }
+        if ( isset($Output["b"]) && in_array($ExpID, $Output["b"]) ) return $Output;
+      }
+    }
+    return array();
+  }
+
 }

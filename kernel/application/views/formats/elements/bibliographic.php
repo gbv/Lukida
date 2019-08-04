@@ -112,7 +112,7 @@ if ( isset($this->pretty["serial"]) && count($this->pretty["serial"]) > 0 )
 }
 
 // In (830 sonst 800)
-if ( isset($this->pretty["in830"]) && count($this->pretty["in830"]) > 0 )
+if ( isset($this->pretty["in830"]) && count($this->pretty["in830"]) > 0 ) 
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("in") . "</td>";
@@ -125,7 +125,7 @@ if ( isset($this->pretty["in830"]) && count($this->pretty["in830"]) > 0 )
     if ( isset($one["b"]) && $one["b"] != "" )  $In .= $one["b"] . " ";
     if ( isset($one["p"]) && $one["p"] != "" )  $In .= $one["p"] . ". ";
     if ( isset($one["v"]) && $one["v"] != "" )  $In .= $one["v"];
-    if ( isset($one["w"]) && substr($one["w"],0,8) == "(DE-601)" )
+    if ( isset($one["w"]) && in_array(substr($one["w"],0,8), array("(DE-601)","(DE-627)") ) )
     {
       $Output .= $this->link("id", trim(substr($one["w"],8)),$In);
     }
@@ -151,7 +151,7 @@ else
       if ( isset($one["a"]) && $one["a"] != "" )  $In .= $one["a"];
       if ( isset($one["t"]) && $one["t"] != "" )  $In .= " : ". $one["t"];
       if ( isset($one["v"]) && $one["v"] != "" )  $In .= " Band: " . $one["v"];
-      if ( isset($one["w"]) && substr($one["w"],0,8) == "(DE-601)" )
+      if ( isset($one["w"]) && in_array(substr($one["w"],0,8), array("(DE-601)","(DE-627)") ) )
       {
         $Output .= $this->link("id", trim(substr($one["w"],8)),$In);
       }
@@ -202,7 +202,7 @@ if ( isset($this->pretty["publisherarticle"]) && count($this->pretty["publishera
   {
     $In = ( !$First ) ? " | " : "";
     if ( isset($one["i"]) && $one["i"] != "" )  $In .= $one["i"] . " ";
-    if ( isset($one["w"]) && substr($one["w"],0,8) == "(DE-601)" )
+    if ( isset($one["w"]) && in_array(substr($one["w"],0,8), array("(DE-601)","(DE-627)") ) )
     {
       if ( isset($one["t"]) && $one["t"] != "" )
       {
@@ -213,9 +213,15 @@ if ( isset($this->pretty["publisherarticle"]) && count($this->pretty["publishera
         $In .= $this->link("id", trim(substr($one["w"],8)),$this->pretty["title"]) . " ";
       }
     }
+    else
+    {
+      if ( isset($one["t"]) && $one["t"] != "" )  $In .= $one["t"] . " ";
+    }
+    if ( isset($one["a"]) && $one["a"] != "" )  $In .= $one["a"] . ", ";
     if ( isset($one["d"]) && $one["d"] != "" )  $In .= $one["d"] . " ";
     if ( isset($one["g"]) && $one["g"] != "" )  $In .= $one["g"] . ". ";
     if ( isset($one["q"]) && $one["q"] != "" )  $In .= "Band: " . $one["q"];
+    if ( isset($one["h"]) && $one["h"] != "" )  $In .= $one["h"];
     $Output .= $In;
     $First = false;
   }
@@ -311,10 +317,23 @@ if ( isset($this->pretty["notes"]) && count($this->pretty["notes"]) > 0 )
 // Includes
 if ( isset($this->pretty["includes"]) && $this->pretty["includes"] != "" )
 {
+  $Size    = 380;
   $Output .=  "<tr>";
-  $Output .=  "<td>" . $this->CI->database->code2text("includes") . "</td>";
-  $Output .=  "<td>" . $this->pretty["includes"] . "</td>";
-  $Output .=  "</tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("includes");
+  $Length = strlen($this->pretty["includes"]);
+  if ( $Length > $Size ) 
+  {
+    $Output .=  "<br /><br /><button class='btn btn-tiny navbar-panel-color' onclick='javascript:$.toggle_area(&quot;bibinc_" . $this->dlgid . "&quot;);'><span class='bibinc_" . $this->dlgid . "down'><i class='fa fa-caret-down'></i></span><span class='bibinc_" . $this->dlgid . "up collapse'><i class='fa fa-caret-up'></i></span></button>";
+  }
+  $Output .=  "</td><td>";
+  $CutPos  = $this->CI->CutPos($this->pretty["includes"], $Size);
+  $Output .=  trim(substr($this->pretty["includes"],0,$CutPos)) . " ...";
+  if ( $Length > $Size ) 
+  {
+    $Output .=  "<tr class='discoverbibinc_" . $this->dlgid . " collapse'><td>&nbsp;</td><td>";
+    $Output .=  "... " . substr($this->pretty["includes"],$CutPos);
+  }
+  $Output .=  "</td></tr>";
 }
 
 // PublishedJournal
@@ -338,52 +357,35 @@ if ( isset($this->pretty["footnote"]) && $this->pretty["footnote"] != "" )
 // Other editions
 if ( isset($this->pretty["othereditions"]) && count($this->pretty["othereditions"]) > 0 )
 {
+  $Output .=  "<tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("othereditions") . "</td>";
+  $Output .=  "<td>";
   $Count = 0;
   $Total = count($this->pretty["othereditions"]);
-  foreach ( $this->pretty["othereditions"] as $record)
+  $First = true;
+  foreach ( $this->pretty["othereditions"] as $one)
   {
-    $FoundText = "";
-    $FoundLink = "";
-    foreach ( $record as $key => $onesubfield )
+    $In = ( !$First ) ? " | " : "";
+    if ( isset($one["i"]) && $one["i"] != "" )  $In .= $one["i"] . " ";
+    if ( isset($one["w"]) && in_array(substr($one["w"],0,8), array("(DE-601)","(DE-627)") ) )
     {
-      foreach ( $onesubfield as $value )
+      if ( isset($one["t"]) && $one["t"] != "" )
       {
-        if ( $key == "i" && trim($value) != "" )  $FoundText .= trim($value);
-        if ( $key == "t" && trim($value) != "" )  $FoundText .= ( $FoundText != "" ) ? ": " . trim($value) : trim($value);
-        if ( $key == "w" && substr(trim($value),0,8) == "(DE-600)" )  $FoundLink = trim($value);
+        $In .= $this->link("id", trim(substr($one["w"],8)),$one["t"]) . " ";
+      }
+      else
+      {
+        $In .= $this->link("id", trim(substr($one["w"],8)),$this->pretty["title"]) . " ";
       }
     }
-
-    if ( $FoundText != "" && $FoundLink != "" )
-    {
-      $Count++;
-      if ( $Count == 1 )
-      {
-        $Output .=  "<tr>";
-        $Output .=  "<td>" . $this->CI->database->code2text("EarlierLater");
-        if ( $Total > 3 ) $Output .=  "<br /><br /><button class='btn btn-tiny navbar-panel-color' onclick='javascript:$.toggle_area(&quot;biboth_" . $this->dlgid . "&quot;);'><span class='biboth_" . $this->dlgid . "down'><i class='fa fa-caret-down'></i></span><span class='biboth_" . $this->dlgid . "up collapse'><i class='fa fa-caret-up'></i></span></button>";
-        $Output .=  "</td><td>";
-        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
-      }
-      if ( $Count >= 2 && $Count <= 3 )
-      {
-        $Output .=  "<br />";
-        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
-      }
-      if ( $Count == 4 )
-      {
-        $Output .=  "</td></tr>";
-        $Output .=  "<tr class='discoverbiboth_" . $this->dlgid . " collapse'><td>&nbsp;</td><td>";
-        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
-      }
-      if ( $Count >= 5 )
-      {
-        $Output .=  "<br />";
-        $Output .= $this->link("foreignid", $FoundLink, $FoundText);
-      }
-    }
+    if ( isset($one["a"]) && $one["a"] != "" )  $In .= $one["a"] . ", ";
+    if ( isset($one["d"]) && $one["d"] != "" )  $In .= $one["d"] . " ";
+    if ( isset($one["g"]) && $one["g"] != "" )  $In .= $one["g"] . ". ";
+    if ( isset($one["q"]) && $one["q"] != "" )  $In .= "Band: " . $one["q"];
+    if ( isset($one["h"]) && $one["h"] != "" )  $In .= $one["h"];
+    $Output .= $In;
+    $First = false;
   }
-  if ( $Count > 0 ) $Output .=  "</td></tr>";
 }
 
 // Remarks
@@ -401,7 +403,7 @@ if ( isset($this->pretty["remarks"]) && count($this->pretty["remarks"]) > 0 )
       {
         if ( $key == "i" && trim($value) != "" )  $FoundText .= trim($value);
         if ( $key == "t" && trim($value) != "" )  $FoundText .= ( $FoundText != "" ) ? ": " . trim($value) : trim($value);
-        if ( $key == "w" && substr(trim($value),0,8) == "(DE-600)" )  $FoundLink = trim($value);
+				if ( $key == "w" && in_array(substr(trim($value),0,8), array("(DE-601)","(DE-627)") ) ) $FoundLink  = trim(substr(trim($value),8));
       }
     }
 
@@ -454,8 +456,8 @@ if ( isset($this->pretty["seealso"]) && count($this->pretty["seealso"]) > 0 )
         if ( $key == "i" && is_array($value) && isset($value[0]) )    $FoundText .= trim($value[0]);
         if ( $key == "t" && trim($value) != "" )                      $FoundText .= ( $FoundText != "" ) ? ": " . trim($value) : trim($value);
         if ( $key == "t" && is_array($value) && isset($value[0]) )    $FoundText .= ( $FoundText != "" ) ? ": " . trim($value[0]) : trim($value[0]);
-        if ( $key == "w" && substr(trim($value),0,8) == "(DE-600)" )  { $FoundLink  = trim(substr(trim($value),8)); $Intern = false;}
-        if ( $key == "w" && substr(trim($value),0,8) == "(DE-601)" )  { $FoundLink  = trim(substr(trim($value),8)); $Intern = true;}
+        if ( $key == "w" && substr(trim($value),0,8) == "(DE-600)" )  { $FoundLink  = $value; $Intern = false;}
+        if ( $key == "w" && in_array(substr(trim($value),0,8), array("(DE-601)","(DE-627)") ) )  { $FoundLink  = trim(substr(trim($value),8)); $Intern = true;}
       }
     }
     if ( $FoundText != "" && $FoundLink != "" )
@@ -559,13 +561,26 @@ if ( isset($this->pretty["ismn"]) && $this->pretty["ismn"] != "" )
   $Output .=  "</tr>";
 }
 
-// Summary
+// Summary 
 if ( isset($this->pretty["summary"]) && $this->pretty["summary"] != "" )
 {
+  $Size    = 380;
   $Output .=  "<tr>";
-  $Output .=  "<td>" . $this->CI->database->code2text("summary") . "</td>";
-  $Output .=  "<td>" . $this->pretty["summary"] . "</td>";
-  $Output .=  "</tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("summary");
+  $Length = strlen($this->pretty["summary"]);
+  if ( $Length > $Size ) 
+  {
+    $Output .=  "<br /><br /><button class='btn btn-tiny navbar-panel-color' onclick='javascript:$.toggle_area(&quot;bibsum_" . $this->dlgid . "&quot;);'><span class='bibsum_" . $this->dlgid . "down'><i class='fa fa-caret-down'></i></span><span class='bibsum_" . $this->dlgid . "up collapse'><i class='fa fa-caret-up'></i></span></button>";
+  }
+  $Output .=  "</td><td>";
+  $CutPos  = $this->CI->CutPos($this->pretty["summary"], $Size);
+  $Output .=  trim(substr($this->pretty["summary"],0,$CutPos)) . " ...";
+  if ( $Length > $Size ) 
+  {
+    $Output .=  "<tr class='discoverbibsum_" . $this->dlgid . " collapse'><td>&nbsp;</td><td>";
+    $Output .=  "... " . substr($this->pretty["summary"],$CutPos);
+  }
+  $Output .=  "</td></tr>";
 }
 
 // Additionalinfo
@@ -727,7 +742,7 @@ if ( isset($this->pretty["siblings"]) && count($this->pretty["siblings"]) > 0 )
   foreach ( $this->pretty["siblings"] as $one)
   {
     if ( ( ( isset($one["i"]) && $one["i"] != "" ) || ( isset($one["n"]) && $one["n"] != "" ) ) 
-          && isset($one["w"]) && $one["w"] != "" && substr($one["w"],0,8) == "(DE-601)" )  $Found = true;
+          && isset($one["w"]) && $one["w"] != "" && in_array(substr($one["w"],0,8), array("(DE-601)","(DE-627)" ) ) )  $Found = true;
   }
 
   if ( $Found )
@@ -754,7 +769,7 @@ if ( isset($this->pretty["siblings"]) && count($this->pretty["siblings"]) > 0 )
           }
           else
           {
-            $Text = $one["i"];
+            $Text = $this->CI->database->code2text($one["i"]);
           }
        	}
        	else
@@ -762,7 +777,7 @@ if ( isset($this->pretty["siblings"]) && count($this->pretty["siblings"]) > 0 )
        		$Text = "";
        	}
       }
-      if ( $Text != "" && isset($one["w"]) && $one["w"] != "" && substr($one["w"],0,8) == "(DE-601)" )
+      if ( $Text != "" && isset($one["w"]) && $one["w"] != "" && in_array(substr($one["w"],0,8),array("(DE-601)","(DE-627)") ) )
       {
         $Output .= $this->link("id", trim(substr($one["w"],8)),$Text);
         $First = false;

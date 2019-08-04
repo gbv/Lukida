@@ -481,6 +481,29 @@ class Vzg_controller extends CI_Controller
     return $CutText;
   }
 
+  public function CutPos($Text, $MaxBreak)
+  {
+    $Text = trim($Text);
+    if ( strlen($Text) > $MaxBreak )
+    {
+      $MinBreak = floor($MaxBreak *.8);
+      $CutText  = substr($Text, 0, $MaxBreak);
+      if ( strrpos($CutText, ' ', $MinBreak) !== false )
+      {
+        return strrpos($CutText, ' ', $MinBreak);
+      }
+      else
+      {
+        return $MaxBreak;
+      }
+    }
+    else
+    {
+      return -1;
+    }
+  }
+
+
   /**
    * Return $val if it is set, $default otherwise.
    *
@@ -2221,7 +2244,7 @@ class Vzg_controller extends CI_Controller
     $container = array
     (
       "start" => 0,
-      "results" => $_SESSION['data']['results']
+      "results" => (isset($_SESSION['data']['results'])) ? $_SESSION['data']['results'] : array()
     );
 
     // Invoke theme format driver

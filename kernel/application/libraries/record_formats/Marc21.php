@@ -40,51 +40,57 @@ class Marc21 extends General
       return;
     }
 
-    $Pos6 = substr($Leader,6,1);
-    $Pos7 = substr($Leader,7,1);
-    $Pos19 = substr($Leader,19,1);
-    $F007 = $this->marc->getFields("007");
-    $F007_0 = ($F007 && $F007[0]) ? substr($F007[0]->getData(),0,1) : "";
+    $Pos6     = substr($Leader,6,1);
+    $Pos7     = substr($Leader,7,1);
+    $Pos19    = substr($Leader,19,1);
+    $F007     = $this->marc->getFields("007");
+    $F007_0   = ($F007 && $F007[0]) ? substr($F007[0]->getData(),0,1) : "";
     $F007_0_2 = ($F007 && $F007[0]) ? substr($F007[0]->getData(),0,2) : "";
-    $F008 = $this->marc->getFields("008");
-    $F008_21 = ($F008 && $F008[0]) ? substr($F008[0],29,1) : "";
+    $F008     = $this->marc->getFields("008");
+    $F008_21  = ($F008 && $F008[0]) ? substr($F008[0],29,1) : "";
+    $F951a    = "";
+    if ( $Tmp = ( $this->marc->getField("951",true) ) )
+    {
+      if ( $Tmp = $Tmp->getSubfield('a') )
+      {
+        $F951a = $Tmp->getData();
+      }
+    }
+    $F338b_0   = "";
+    if ( $Tmp = ( $this->marc->getField("338",true) ) )
+    {
+      if ( $Tmp = $Tmp->getSubfield('b') )
+      {
+        $F338b_0 = substr($Tmp->getData(),0,1);
+      }
+    }
 
-    if     ( $Pos6 == "a" && $Pos7 == "m" && $Pos19 == "a" )                    { $Cover = "R"; $Online = 0; $PPNLink = 1; $Name = "multivolumework"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "m" && $F007_0 == "h" )                   { $Cover = "I"; $Online = 0; $PPNLink = 0; $Name = "microform"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "a" && $F007_0_2 == "cr" )                { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "earticle"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "m" && $F007_0_2 == "cr" )                { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "s" && $F007_0_2 == "cr" )                { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "m" )                                     { $Cover = "B"; $Online = 0; $PPNLink = 0; $Name = "book"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "a" )                                     { $Cover = "A"; $Online = 0; $PPNLink = 0; $Name = "article"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "d" )                                     { $Cover = "F"; $Online = 0; $PPNLink = 0; $Name = "journal"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "s" && in_array($F008_21,array("p","n"))) { $Cover = "F"; $Online = 0; $PPNLink = 0; $Name = "journal"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "s" && $F008_21 == "m" )                  { $Cover = "Q"; $Online = 0; $PPNLink = 1; $Name = "series"; }
-    elseif ( $Pos6 == "c"                 )                                     { $Cover = "H"; $Online = 0; $PPNLink = 0; $Name = "musicalscore"; }
-    elseif ( $Pos6 == "e"                 )                                     { $Cover = "J"; $Online = 0; $PPNLink = 0; $Name = "map"; }
-    elseif ( $Pos6 == "g" && $Pos7 == "a" )                                     { $Cover = "P"; $Online = 0; $PPNLink = 0; $Name = "movieadditionalmaterial"; }
-    elseif ( $Pos6 == "g"                 )                                     { $Cover = "E"; $Online = 0; $PPNLink = 0; $Name = "movie"; }
-    elseif ( $Pos6 == "j" && $Pos7 == "a" )                                     { $Cover = "P"; $Online = 0; $PPNLink = 0; $Name = "audiocarrieradditionalmaterial"; }
-    elseif ( $Pos6 == "j"                 )                                     { $Cover = "C"; $Online = 0; $PPNLink = 0; $Name = "audiocarrier"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "m" && $F007_0_2 == "cu" )                { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datacarrier"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "d" && $F007_0_2 == "cu" )                { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datacarrier"; }
-    
-    // The following line can be removed >= Q2/2018
-    // Old ebook format mm -> new format is "am" + L007_0=c (see above)
-    elseif ( $Pos6 == "m" && $Pos7 == "m" )                                     { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
-
-    // The following line can be removed >= Q2/2018
-    // Old earticle format ma -> new format is "aa" + L007_0=c (see above)
-    elseif ( $Pos6 == "m" && $Pos7 == "a" )                                     { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "earticle"; }
-
-    // The following line can be removed >= Q2/2018
-    // Old ejournal format ms -> new format is "as" + L007_0=c (see above)
-    elseif ( $Pos6 == "m" && $Pos7 == "s" )                                     { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
-
-    elseif ( $Pos6 == "p" && $Pos7 == "m" )                                     { $Cover = "P"; $Online = 0; $PPNLink = 1; $Name = "mixedmaterials"; }
-    elseif ( $Pos6 == "r" && $Pos7 == "m" )                                     { $Cover = "O"; $Online = 0; $PPNLink = 0; $Name = "game"; }
-    elseif ( $Pos6 == "r" && $Pos7 == "a" )                                     { $Cover = "K"; $Online = 0; $PPNLink = 0; $Name = "picture"; }
-    elseif ( $Pos6 == "t"                 )                                     { $Cover = "G"; $Online = 0; $PPNLink = 0; $Name = "manuscript"; }
-    else                                                                        { $Cover = "O"; $Online = 0; $PPNLink = 0; $Name = "unknown"; }
+    if     ( $Pos6 == "a" && $Pos7 == "m" && $Pos19 == "a" && $F951a == "JV" )       { $Cover = "R"; $Online = 0; $PPNLink = 1; $Name = "multivolumework"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "m" && $F007_0 == "h" )                        { $Cover = "I"; $Online = 0; $PPNLink = 0; $Name = "microform"; }
+    elseif ( in_array($Pos6, array("a","m")) && in_array($Pos7, array("a","b")) && $F007_0_2 == "cr" )  { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "earticle"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "m" && $F007_0_2 == "cr" && $F338b_0 == "c" )  { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "s" && $F007_0_2 == "cr" )                     { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
+    elseif ( $Pos6 == "a" && in_array($Pos7, array("m","i")) )                       { $Cover = "B"; $Online = 0; $PPNLink = 0; $Name = "book"; }
+    elseif ( $Pos6 == "a" && in_array($Pos7, array("a","b")) )                       { $Cover = "A"; $Online = 0; $PPNLink = 0; $Name = "article"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "d" )                                          { $Cover = "F"; $Online = 0; $PPNLink = 0; $Name = "journal"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "s" && in_array($F008_21,array("p","n")))      { $Cover = "F"; $Online = 0; $PPNLink = 0; $Name = "journal"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "s" && $F008_21 == "m" )                       { $Cover = "Q"; $Online = 0; $PPNLink = 1; $Name = "series"; }
+    elseif ( $Pos6 == "c"                 )                                          { $Cover = "H"; $Online = 0; $PPNLink = 0; $Name = "musicalscore"; }
+    elseif ( $Pos6 == "e"                 )                                          { $Cover = "J"; $Online = 0; $PPNLink = 0; $Name = "map"; }
+    elseif ( $Pos6 == "g" && $Pos7 == "a" )                                          { $Cover = "P"; $Online = 0; $PPNLink = 0; $Name = "movieadditionalmaterial"; }
+    elseif ( $Pos6 == "g"                 )                                          { $Cover = "E"; $Online = 0; $PPNLink = 0; $Name = "movie"; }
+    elseif ( $Pos6 == "j" && $Pos7 == "a" )                                          { $Cover = "P"; $Online = 0; $PPNLink = 0; $Name = "audiocarrieradditionalmaterial"; }
+    elseif ( $Pos6 == "j"                 )                                          { $Cover = "C"; $Online = 0; $PPNLink = 0; $Name = "audiocarrier"; }
+    elseif ( $Pos6 == "m" && $Pos7 == "m" && $F007_0 == "c" && $F007_0_2 != "cr" )   { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datacarrier"; }
+    elseif ( $Pos6 == "m" && $Pos7 == "d" && $F007_0_2 == "cu" )                     { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datacarrier"; }
+    elseif ( $Pos6 == "m" && $Pos7 == "m" )                                          { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
+    elseif ( $Pos6 == "m" && $Pos7 == "a" )                                          { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "earticle"; }
+    elseif ( $Pos6 == "m" && in_array($Pos7, array("s","i")) )                       { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
+    elseif ( $Pos6 == "p" && $Pos7 == "m" )                                          { $Cover = "P"; $Online = 0; $PPNLink = 1; $Name = "mixedmaterials"; }
+    elseif ( $Pos6 == "r" && $Pos7 == "m" )                                          { $Cover = "O"; $Online = 0; $PPNLink = 0; $Name = "game"; }
+    elseif ( $Pos6 == "r" && $Pos7 == "a" )                                          { $Cover = "K"; $Online = 0; $PPNLink = 0; $Name = "picture"; }
+    elseif ( $Pos6 == "t"                 )                                          { $Cover = "G"; $Online = 0; $PPNLink = 0; $Name = "manuscript"; }
+    else                                                                             { $Cover = "O"; $Online = 0; $PPNLink = 0; $Name = "unknown"; }
 
     $this->format  = $Name;
     $this->cover   = $Cover;
@@ -235,7 +241,7 @@ class Marc21 extends General
           {
             if ( $Key == "w" )
             {
-              if ( substr($Value,0,8) == "(DE-601)" )
+              if ( in_array(substr($Value,0,8), array("(DE-601)","(DE-627)") ) ) 
               {
                 if ( !in_array(trim(substr($Value,8)), $Parents) )
                 {
@@ -257,7 +263,7 @@ class Marc21 extends General
           {
             if ( $Key == "w" )
             {
-              if ( substr($Value,0,8) == "(DE-601)" )
+              if ( in_array(substr($Value,0,8), array("(DE-601)","(DE-627)") ) ) 
               {
                 if ( !in_array(trim(substr($Value,8)), $Parents) )
                 {
@@ -279,7 +285,7 @@ class Marc21 extends General
           {
             if ( $Key == "w" )
             {
-              if ( substr($Value,0,8) == "(DE-601)" )
+              if ( in_array(substr($Value,0,8), array("(DE-601)","(DE-627)") ) ) 
               {
                 if ( !in_array(trim(substr($Value,8)), $Parents) )
                 {
