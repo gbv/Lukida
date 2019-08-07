@@ -546,38 +546,30 @@ class Standard extends General
 */
   protected function getSFX_Link($data)
   {
-    if ((isset($_SESSION["config_general"]["export"]["sfxalsowithoutissn"]) &&
-               $_SESSION["config_general"]["export"]["sfxalsowithoutissn"] == "1") ||
-			  (isset($data["issn"]) && $data["issn"] != "" ))
+    $openurlBase = (isset($_SESSION["config_general"]["export"]["sfxbase"]) &&
+                          $_SESSION["config_general"]["export"]["sfxbase"] != "") 
+                        ? $_SESSION["config_general"]["export"]["sfxbase"] : null;
+    $openurlReferer   = (isset($_SESSION["config_general"]["export"]["openurlreferer"]) &&
+                               $_SESSION["config_general"]["export"]["openurlreferer"] != "") 
+                         ? $_SESSION["config_general"]["export"]["openurlreferer"] 
+                         : "Lukida";
+    $openurlEntry     = $openurlBase 
+                      . "?sid=GBV:" . $openurlReferer . "&ctx_enc=info:ofi/enc:UTF-8";
+    $openurlMetadata  = $this->getOpenURLmetaData($data, "sfx");
+    $sfxlink          = $openurlEntry . $openurlMetadata;
+    if (isset($_SESSION["config_general"]["export"]["sfxonlyfulltext"]) &&
+              $_SESSION["config_general"]["export"]["sfxonlyfulltext"] == "1")
     {
-      $openurlBase = (isset($_SESSION["config_general"]["export"]["sfxbase"]) &&
-                            $_SESSION["config_general"]["export"]["sfxbase"] != "") 
-                          ? $_SESSION["config_general"]["export"]["sfxbase"] : null;
-
-      $openurlReferer   = (isset($_SESSION["config_general"]["export"]["openurlreferer"]) &&
-                                 $_SESSION["config_general"]["export"]["openurlreferer"] != "") 
-                          ? $_SESSION["config_general"]["export"]["openurlreferer"] 
-                          : "Lukida";
-
-      $openurlEntry     = $openurlBase 
-                         . "?sid=GBV:" . $openurlReferer . "&ctx_enc=info:ofi/enc:UTF-8";
-
-      $openurlMetadata  = $this->getOpenURLmetaData($data, "sfx");
-
-      $sfxlink          = $openurlEntry . $openurlMetadata;
-
-      if (isset($_SESSION["config_general"]["export"]["sfxonlyfulltext"]) &&
-                $_SESSION["config_general"]["export"]["sfxonlyfulltext"] == "1")
+      $sfxFullUrl = $this->getSFX_Full($sfxlink);
+      if ( $sfxFullUrl != "")
       {
-        $sfxFullUrl = $this->getSFX_Full($sfxlink);
-        if ( $sfxFullUrl != "")
-        {
-          return $sfxFullUrl;
-        }
+        return $sfxFullUrl;
       }
-	  else { return $sfxlink; }
-	}
-    return "";
+    }
+    else 
+    { 
+      return $sfxlink; 
+    }
   }
 
   protected function getSFX_Full($link)
@@ -586,6 +578,9 @@ class Standard extends General
     //Build the url for the sfx answer
     $sfx_xml_url = $link . "&sfx.response_type=simplexml";
 
+    //Set the default stream context
+    //for the Error: SSL routines:ssl3_get_server_certificate:certificate verify failed:
+    stream_context_set_default(['ssl'=> ['verify_peer' => false, 'verify_peer_name' => false]]);
     //Get the xml answer
 	if ($sfx_xml = @simplexml_load_file($sfx_xml_url)) 
 	{

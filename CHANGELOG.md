@@ -1,4 +1,8 @@
 # Changelog
+**06.08.2019**
+* Fullview 
+  * SFX enhanced
+
 **01.08.2019**
 * Updates
   * NoUISlider 14.0.2
