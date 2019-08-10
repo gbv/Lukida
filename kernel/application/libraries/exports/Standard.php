@@ -601,9 +601,16 @@ class Standard extends General
 					if (!empty($target->target_url))
 					{
 						$returnValue = $target->target_url;
-						break;
+                        if (isset($target->crossref) && $target->crossref == 'yes')
+                        { 
+                          break;
+                        }
 					}
 				}
+                else 
+                {
+                  break;
+                }
 			}
 		}
 	}

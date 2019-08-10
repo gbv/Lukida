@@ -1,4 +1,9 @@
 # Changelog
+
+**10.08.2019**
+* Fullview 
+  * SFX further enhanced
+
 **06.08.2019**
 * Fullview 
   * SFX enhanced
