@@ -812,18 +812,18 @@ class Vzg_controller extends CI_Controller
     {
       $userdata = array();
     }
+
     $username = "";
     if ( isset($userdata["firstname"]) )  $username  = trim($userdata["firstname"]);
     if ( isset($userdata["lastname"]) )   $username .= " " . trim($userdata["lastname"]);
     $username = trim($username);
 
     // Mail subject
-    $this->email->subject($mailsubject . ' von ' . $username );
+    $this->email->subject($mailsubject . ' von ' . $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["username"]);
 
     // Remove Links from message body
     $fullbody=preg_replace("/<a[^>]+\>/i", " ", $fullbody);
     $fullbody=preg_replace("/<\/a>/i", " ", $fullbody);
-
 
     // Body receipient part
     $Mess = "<h3>Empfänger</h3>"; 

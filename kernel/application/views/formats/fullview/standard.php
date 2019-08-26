@@ -57,7 +57,7 @@ if ( $Tab )
   }
   if ( isset($_SESSION["internal"]["daia"]) && $_SESSION["internal"]["daia"] == "1" )
   {
-    $Output .= "<li role='presentation'><a href='#tab4_" . $this->dlgid . "' aria-controls='tab4' role='tab' data-toggle='tab'>" . $this->CI->database->code2text('RECORDDAIA') . "</a></li>";
+    $Output .= "<li role='presentation'><a href='#tab4_" . $this->dlgid . "' aria-controls='tab4' role='tab' data-toggle='tab'>" . $this->CI->database->code2text('RECORDPAIA') . "</a></li>";
   }
   if ( isset($_SESSION["internal"]["item"]) && $_SESSION["internal"]["item"] == "1" )
   {

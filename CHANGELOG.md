@@ -1,5 +1,17 @@
 # Changelog
 
+**19.08.2010**
+* Preview
+  * Double author removed
+* OrderMail
+  * Subject changed to librarynumber 
+* Fullview / MARC-Tab
+  * Display also clients of ILN
+* Fullview / DAIA-Tab
+  * Renamed to PAIA (which includes DAIA)
+* Search
+  * Special char question marc repaired 
+
 **10.08.2019**
 * Fullview 
   * SFX further enhanced

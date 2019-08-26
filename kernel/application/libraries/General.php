@@ -366,7 +366,7 @@ class General
       $pretty["title"]            = $this->PrettyFields(array("245" => array("a" => " : ",
                                                                              "b" => " : ")));
   
-      $pretty["titlesecond"]      = $this->PrettyFields(array("245" => array("c" => " : ")));
+      // $pretty["titlesecond"]      = $this->PrettyFields(array("245" => array("c" => " : ")));
   
       $pretty["author"]           = $this->GetAuthors();
   
@@ -1536,7 +1536,7 @@ class General
     $Exemplars = array();
 
     // Zeitschriften mit Einzelheften
-    $PPNLink  = $this->CI->internal_search("ppnlink",$PPN, "Book,Journal");
+    $PPNLink  = $this->CI->internal_search("ppnlink",$PPN, '("Book","Journal","Serial Volume")');
     $PPNStg   = json_encode(array_keys($PPNLink["results"]));
     $Journals = array();
     $Counter  = 0;
@@ -1879,6 +1879,36 @@ class General
       }
     }
     return array();
+  }
+
+  public function Get856URLs($Contents)
+  {
+    $Array = array();
+    if ( array_key_exists("856", $Contents) )
+    {
+      foreach ($Contents["856"] as $Record)
+      {
+        $One = array();
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( !isset($One[$Key]) )  $One[$Key] = htmlspecialchars(trim($Value));
+          }
+        }
+        // Only URLs Indikator 4
+        if ( isset($One["I1"]) && $One["I1"] == "4" && isset($One["u"]) && $One["u"] != "" )
+        {
+          $One["oa"] = ( isset($One["z"]) && $One["z"] != "" && ( stripos($One["z"], "lf") !== false 
+                                                               || stripos($One["z"], "oa") !== false 
+                                                               || stripos($One["z"], "oalizenz") !== false 
+                                                               || stripos($One["z"], "openaccess") !== false
+                                                               || stripos($One["z"], "kostenfrei") !== false ) ) ? true : false;
+          $Array[] = $One;
+        }
+      }
+    }
+    return $Array;
   }
 
 }

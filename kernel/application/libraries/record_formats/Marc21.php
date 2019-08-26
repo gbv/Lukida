@@ -151,9 +151,8 @@ class Marc21 extends General
             if ( $data->getSubField("a") )
             {
               $Tmp = (string) trim($data->getSubField("a")->getData());
-              // file_put_contents('ILN687_' . microtime() . '.txt', print_r($Tmp, true));
 
-              if ( in_array(substr($Tmp,8), array_values($ILNs)) || 
+              if ( in_array(substr($Tmp,8,3), array_values($ILNs)) || 
                 ( substr($Tmp,0,8) != "GBV_ILN_" && !in_array($Tmp, array("SYSFLAG_1", "SYSFLAG_A"))) ) 
               {
                 $this->contents[$tag][] = $Sub;

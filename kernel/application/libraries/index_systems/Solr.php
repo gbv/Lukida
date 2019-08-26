@@ -37,7 +37,7 @@ class Solr extends General
   // ********************************************
   private function solr_before($search)
   {
-    $search = str_replace("%20", " ", $search);
+    $search = str_replace(array("%20","?"), " ", $search);
     return ($search);
   }
 
