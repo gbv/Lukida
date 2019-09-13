@@ -27,6 +27,10 @@ $GooglePreview = (isset($_SESSION["config_discover"]["fullview"]["googlepreview"
                      && $_SESSION["config_discover"]["fullview"]["googlepreview"] == 1 ) 
                        ? true  : false;
 
+$PrintSignature = (isset($_SESSION["config_general"]["general"]["printsignatures"]) 
+                      && $_SESSION["config_general"]["general"]["printsignatures"] == 1 ) 
+                       ? true  : false;
+
 
 // *****************************************************
 // ************ Section TWO: Create Output *************
@@ -69,13 +73,22 @@ if ( $Tab )
 // ****** Start Tab 1 ******
 $Output .= "<div role='tabpanel' class='tab-pane fade in active' id='tab1_" . $this->dlgid . "'>";
 
+if ( $PrintSignature )  $Output .= "<div id='biblio_" . $this->dlgid . "'>";
+
 $Output .=  "<div class='row'>";
 
 if ( $GoogleCover || $GooglePreview )
 {
   $Output .=  "<div class='col-md-10'>";
 
-    $Output .= "<table id='biblio_" . $this->dlgid . "' class='table rowheight-reduced table-hover borderless small'><tbody>";
+    if ( $PrintSignature )
+    {
+      $Output .= "<table class='table rowheight-reduced table-hover borderless small'><tbody>";
+    }
+    else
+    {
+      $Output .= "<table id='biblio_" . $this->dlgid . "' class='table rowheight-reduced table-hover borderless small'><tbody>";
+    }
 
     // Show elements based on ini-file
     $Output .= $this->LoadTabElements("tab1_elements");
@@ -115,6 +128,8 @@ foreach ( $TabGens as $TabGen )
 {
   $Output .= $this->LoadElement(trim($TabGen));
 }
+
+if ( $PrintSignature )  $Output .= "</div>";
 
 $Output .= "</div>";
 // ****** Ende Tab 1 ******

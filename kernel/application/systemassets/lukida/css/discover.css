@@ -494,11 +494,9 @@ html {
 .empty-exemplar:hover,
 .empty-exemplar:focus
 {
-  vertical-align: top !important;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: normal;
-  padding: 0px;
   min-height:60px;
   cursor: default;
   color: inherit;

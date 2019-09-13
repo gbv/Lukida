@@ -407,7 +407,7 @@ class General
 
       $pretty["summary"]             = $this->PrettyFields(array("520" => array("a" => " | ")));
       
-      $pretty["citation"]            = $this->PrettyFields(array("510" => array("a" => " | ")));
+      $pretty["citation"]            = $this->PrettyFields(array("935" => array("e" => " | ")));
 
       $pretty["computerfile"]        = $this->PrettyFields(array("256" => array("a" => " | ")));
 
@@ -1599,16 +1599,16 @@ class General
 
   public function TrimTextNew($Text, $Length)
   {
-    if (strlen($Text) <= $Length) return addslashes($Text);
+    if (mb_strlen($Text) <= $Length) return addslashes($Text);
 
     //return addslashes(substr($Text, 0, strrpos(substr($Text, 0, $Length), ' ')) . ' ...');
-    return substr($Text, 0, strrpos(substr($Text, 0, $Length), ' ')) . ' ...';
+    return mb_substr($Text, 0, mb_strrpos(mb_substr($Text, 0, $Length), ' ')) . ' ...';
   }
 
   public function OutputButtons($Exemplars, $ButtonSize, $LineLength)
   {
     $Output = "";
-    $Case          = ( strtolower(MODE) == "production" ) ? false : true;
+    $Case   = ( strtolower(MODE) == "production" ) ? false : true;
 
     // Set javascript variable
     $LinksResolved = array();
@@ -1700,11 +1700,11 @@ class General
             {
               if ( !isset($Exemplar["label2"]) || trim($Exemplar["label2"]) == "" ) 
               {
-                $Exemplar["label2"] = $Host;
+                // $Exemplar["label2"] = $Host;
               }
-              elseif ( !isset($Exemplar["label3"]) || trim($Exemplar["label3"]) == "" ) 
+              elseif ( ( !isset($Exemplar["label3"]) || trim($Exemplar["label3"]) == "" ) &&  stripos($Exemplar["label2"], "<br") === false )
               {
-                $Exemplar["label3"] = $Host;
+                // $Exemplar["label3"] = $Host;
               }
             }
           }
@@ -1724,7 +1724,8 @@ class General
             $Action = "";
           }
     
-          $Output .= "<a role='button' " . $Action . " class='" . $Class . "' " . $Title . " id='related_" . $EPN . "'>";
+          //$Output .= "<a role='button' " . $Action . " class='" . $Class . "' " . $Title . " id='related_" . $EPN . "'>";
+          $Output .= "<button " . $Action . " class='" . $Class . "' " . $Title . " id='related_" . $EPN . "'>";
           if ( isset($Exemplar["cover"])  && trim($Exemplar["cover"]) != "" )
           {
             $Output .= "<table width='100%'><tr><td data-toggle='tooltip' title='" . $this->CI->database->code2text($Exemplar["format"]) . "' class='publication-icon'>   ";
@@ -1737,7 +1738,8 @@ class General
           {
             $Output .= "</td></tr></table>";
           }
-          $Output .= "</a>";
+          // $Output .= "</a>";
+          $Output .= "</button>";
         }
     
         if ( count($LinksResolved) && $this->medium["online"] )

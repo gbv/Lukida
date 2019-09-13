@@ -1,6 +1,10 @@
 # Changelog
 
-**19.08.2010**
+**12.09.2019**
+* Fullview / Print
+  * Print with signatures and logo
+
+**19.08.2019**
 * Preview
   * Double author removed
 * OrderMail
