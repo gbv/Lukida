@@ -1,5 +1,17 @@
 # Changelog
 
+**01.10.2019**
+* System
+  * Fixed empty linkresolver bug
+
+**19.09.2019**
+* System
+  * Client added 
+
+**16.09.2019**
+* Search
+  * Signature search added
+
 **12.09.2019**
 * Fullview / Print
   * Print with signatures and logo
@@ -29,7 +41,7 @@
   * NoUISlider 14.0.2
 
 **30.07.2019**
-** Interlibrary loan corrected for collection ÖVK
+* Interlibrary loan corrected for collection ÖVK
 
 **24.07.2019**
 * Fullview

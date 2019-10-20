@@ -112,7 +112,7 @@ class Solr extends General
     // Remove not allowed complex phrases based on used key
     foreach ( $matches[1] as $index => $key )
     {
-      if ( ! in_array(strtolower(trim($key)), array("acqdate","author","autor","class","collection","collection_details","contents","erwdatum","foreignid","format","genre","id","inhalt","isn","jahr","language","ppn","ppnlink","publisher","reihe","sachgebiet","schlagwort","series","sprache","subject","titel","title","verlag","year")) )
+      if ( ! in_array(strtolower(trim($key)), array("acqdate","author","autor","class","collection","collection_details","contents","erwdatum","foreignid","format","genre","id","inhalt","isn","jahr","language","ppn","ppnlink","publisher","reihe","sachgebiet","schlagwort","series","signatur","signature","sprache","subject","titel","title","verlag","year")) )
       {
         unset($matches[0][$index]);
       }
@@ -184,6 +184,10 @@ class Solr extends General
             break;
           case "genre":
             $MainSearch .= "(genre:\"" . $Phrases[0] . "\")";
+            break;
+          case "signatur":
+          case "signature":
+            $MainSearch .= "(signature_iln:\"" . $_SESSION["iln"] . ":" . $Phrases[0] . "\")";
             break;
           case "title":
           case "titel":
@@ -260,6 +264,10 @@ class Solr extends General
             break;
           case "genre":
             $MainSearch .= "(genre:\"" . implode("\" OR genre:\"", $Phrases) . "\")";
+            break;
+          case "signatur":
+          case "signature":
+            $MainSearch .= "(signature_iln:\"" . $_SESSION["iln"] . ":" . implode("\" OR signature_iln:\"" . $_SESSION["iln"] . ":", $Phrases) . "\")";
             break;
           case "title":
           case "titel":

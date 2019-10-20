@@ -321,7 +321,7 @@ class Mysql extends General
     }
     else
     {
-      return array("status" => -1, "links" => array());
+      return array("status" => -1, "links" => "");
     }
   }
 

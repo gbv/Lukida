@@ -1652,7 +1652,11 @@ class General
         // Area remarks before buttons
         if ( isset($Area["rembef"]) && count($Area["rembef"]) )
         {
-          $Output .= "<div><small><ul><li>" . implode("</li><li>",$Area["rembef"]) . "</li></ul></small></div>";
+          foreach ( $Area["rembef"] as $Key => $Val )
+          {
+            $Output .= "<div>" . $this->CI->database->code2text($Key) . "</div>";
+            $Output .= "<ul><li><small>" . implode("</li><li>", $Val) . "</small></li></ul>";
+          }
         }
     
         // Area Buttons
@@ -1760,10 +1764,14 @@ class General
         // Area remarks after buttons
         if ( isset($Area["remaft"]) && count($Area["remaft"]) )
         {
-          $Output .= "<div><small><ul><li>" . implode("</li><li>",$Area["remaft"]) . "</li></ul></small></div>";
+          foreach ( $Area["remaft"] as $Key => $Val )
+          {
+            $Output .= "<div>" . $this->CI->database->code2text($Key) . "</div>";
+            $Output .= "<ul><li><small>" . implode("</li><li>", $Val) . "</small></li></ul>";
+          }
         }
       }
-    
+
       // Finalize Loop
       $FirstArea = false;
     }

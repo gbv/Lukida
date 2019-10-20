@@ -1400,8 +1400,14 @@ class Vzg_controller extends CI_Controller
     if ( isset($_SESSION["config_general"]["general"]["ilnsecond"]) 
             && $_SESSION["config_general"]["general"]["ilnsecond"] != "" )  $ILNs[] = $_SESSION["config_general"]["general"]["ilnsecond"];
 
+    // Determine Client
+    $Client = ( isset($_SESSION["config_general"]["general"]["client"])  && $_SESSION["config_general"]["general"]["client"] != "" ) 
+              ? $_SESSION["config_general"]["general"]["client"]
+              : "";
+
     foreach ( $Contents as $Record )
     {
+      // Skip wrong ILNs
       if (isset($Record[0]["2"]) && !in_array($Record[0]["2"],$ILNs)) continue;
 
       $One = array();
@@ -1420,6 +1426,9 @@ class Vzg_controller extends CI_Controller
           }
         }
       }
+
+      // Skip wrong client
+      if (isset($One["y"]) && $Client != "" && strtolower(substr($One["y"],1)) != $Client) continue;
 
       // Use or create ExpID
       $EPN = ( isset($One["b"]) ) ? $One["b"] : $X++;

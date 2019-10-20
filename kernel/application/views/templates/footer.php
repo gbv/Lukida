@@ -36,9 +36,18 @@ if ( !$front || !isset($_SESSION["config_general"]["general"]["frontpagewithoutl
                      . "<a class='showeng hide' href='" . $Tmp[1] . "' target='_blank'><span class='dataprotection'>" . $this->database->code2text("DATAPROTECTION") . "</span></a>";
     }
   }
-  if ( isset($_SESSION["config_general"]["general"]["about"]) && $_SESSION["config_general"]["general"]["about"] != "" ) 
+  if ( isset($_SESSION["config_general"]["general"]["about"]) && $_SESSION["config_general"]["general"]["about"] != "" )
   {
-    $FooterArray[] = "<a href='" . $_SESSION["config_general"]["general"]["about"] . "' target='_blank'><span class='about'>" .  $this->database->code2text("ABOUT") . "</span></a>";
+    $Tmp = explode(",",$_SESSION["config_general"]["general"]["about"]);
+    if (count($Tmp) == 1)
+    {
+      $FooterArray[] = "<a href='" . $Tmp[0] . "' target='_blank'><span class='about'>" . $this->database->code2text("ABOUT") . "</span></a>";
+    }
+    if (count($Tmp) == 2)
+    {
+      $FooterArray[] = "<a class='showger' href='" . $Tmp[0] . "' target='_blank'><span class='about'>" . $this->database->code2text("ABOUT") . "</span></a>"
+                     . "<a class='showeng hide' href='" . $Tmp[1] . "' target='_blank'><span class='about'>" . $this->database->code2text("ABOUT") . "</span></a>";
+    }
   }
 }
 
