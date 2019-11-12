@@ -249,7 +249,7 @@ class Solr extends General
             break;
           case "isn":
             $MainSearch .= "(issn:\"" . implode("\" OR issn:\"", $Phrases) . "\" OR "
-                         . " ibsn:\"" . implode("\" OR ibsn:\"",$Phrases) . "\")";
+                         . " isbn:\"" . implode("\" OR isbn:\"",$Phrases) . "\")";
             break;
           case "format":
             $MainSearch .= "(format_phy_str_mv:\"" . implode("\" OR format_phy_str_mv:\"", $Phrases) . "\")";

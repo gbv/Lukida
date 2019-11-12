@@ -1,5 +1,9 @@
 # Changelog
 
+**08.11.2019**
+* Search
+  * Fixed Multi-ISBN search
+
 **01.10.2019**
 * System
   * Fixed empty linkresolver bug

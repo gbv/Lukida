@@ -8,7 +8,7 @@ if ( isset($this->pretty["title"]) && $this->pretty["title"] != "" )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("title") . "</td>";
-  $Output .=  "<td>" . $this->pretty["title"] . "</td>";
+  $Output .=  "<td>" . $this->pretty["title"] . "</td>"; 
   $Output .=  "</tr>";
 }
 
