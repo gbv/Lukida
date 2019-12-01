@@ -1,5 +1,19 @@
 # Changelog
 
+**26.11.2019**
+* Start
+  * Centered Version info after brand click
+* Fullview
+  * Fixed Button Alignment
+
+**21.11.2019**
+* Search
+  * Adapted formats to K10plus-Zentral
+
+**15.11.2019**
+* Search
+  * Fixed DOI search containing brackets
+
 **08.11.2019**
 * Search
   * Fixed Multi-ISBN search

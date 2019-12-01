@@ -70,16 +70,19 @@ class Solr extends General
     }
     else
     {
+      // Support DOI brackets
+      $search .= " ";
+
       // Find complex search phrases and move them to $matches
       // First: field(phrase)
-      preg_match_all("/([A-Za-z0-9_]+)\(([^))]+)\)/", $search, $matches);
+      preg_match_all("/([A-Za-z0-9_]+)\(([^))]+)\)\s/", $search, $matches);
       foreach ( $matches[0] as $one )
       {
         $search = str_replace($one, "", $search);
       }
   
       // Second: field:(phrase)
-      preg_match_all("/([A-Za-z0-9_]+):\(([^))]+)\)/", $search, $matchescolon);
+      preg_match_all("/([A-Za-z0-9_]+):\(([^))]+)\)\s/", $search, $matchescolon);
       foreach ( $matchescolon[0] as $one )
       {
         $search = str_replace($one, "", $search);
@@ -93,7 +96,7 @@ class Solr extends General
       }
       
       // Third: field:phrase
-      preg_match_all("/([A-Za-z0-9_]+):([^\s]+)/", $search, $matchescolon2);
+      preg_match_all("/([A-Za-z0-9_]+):([^\s]+)\s/", $search, $matchescolon2);
       foreach ( $matchescolon2[0] as $one )
       {
         $search = str_replace($one, "", $search);
@@ -340,7 +343,7 @@ class Solr extends General
         ->addQueryField("fulltext",5)
         ->addQueryField("description",5)
         ->addQueryField("isbn")
-        ->addQueryField("issn");      
+        ->addQueryField("issn");
 
         if ( $this->phoneticsearch )
         {
@@ -581,7 +584,7 @@ class Solr extends General
     // Store query in session
     $_SESSION["query"] = (string) $dismaxQuery;
 
-    //$this->CI->printArray2File($_SESSION["query"]);
+    // $this->CI->printArray2File($_SESSION["query"]);
 
     // Execute query
     $query_response = $client->query($dismaxQuery);

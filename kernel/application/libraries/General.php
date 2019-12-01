@@ -1490,9 +1490,8 @@ class General
   
     $RelatedPubs = array();
     $PPNLink = $this->CI->internal_search("ppnlink",$PPN);
+
     if ( ! isset($PPNLink["results"]) ) return ($RelatedPubs);
-  
-    //$this->printArray2Screen($PPNLink);
   
     $PPNStg = json_encode(array_keys($PPNLink["results"]));
   
@@ -1693,24 +1692,6 @@ class General
               $Action = "onclick='window.open(\"" . $Exemplar["link"] . "\",\"_blank\")'";
               $Icon   = " <span class='fa fa-external-link'></span>";
             }
-            $Host = "";
-            if ( $Host = parse_url($Exemplar["link"],PHP_URL_HOST) )
-            {
-              if ( $Host == "www.bibliothek.uni-regensburg.de" ) $Host = "Elektr. Zeitschriftenbibliothek";
-              if ( substr($Host,0,4) == "www.")   $Host = substr($Host,4);
-              $Host = "<small>" . $Host . "</small>";
-            }
-            if ( $Host != "" )
-            {
-              if ( !isset($Exemplar["label2"]) || trim($Exemplar["label2"]) == "" ) 
-              {
-                // $Exemplar["label2"] = $Host;
-              }
-              elseif ( ( !isset($Exemplar["label3"]) || trim($Exemplar["label3"]) == "" ) &&  stripos($Exemplar["label2"], "<br") === false )
-              {
-                // $Exemplar["label3"] = $Host;
-              }
-            }
           }
     
           // Action
@@ -1782,6 +1763,16 @@ class General
       $Output .= "<div id='linkresolvercontainer_" . $this->dlgid . "'></div>";
     }
     return ($Output);
+  }
+
+  public function getHost($URL)
+  {
+    if ( $Host = parse_url($URL,PHP_URL_HOST) )
+    {
+      if ( $Host == "www.bibliothek.uni-regensburg.de" ) return "Elektr. Zeitschriftenbibliothek";
+      if ( substr($Host,0,4) == "www.")   return substr($Host,4);
+      return $Host;
+    }
   }
 
   public function searchMARCSubFields($Filter, $Search)

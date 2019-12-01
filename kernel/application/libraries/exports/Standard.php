@@ -28,12 +28,14 @@ class Standard extends General
       { 
         if(strpos($Link,"ovid")!==false) 
              $linkarray["ovid"] = $Link;
+        elseif(strpos($Link,"redi")!==false)
+             $linkarray["redi"] = $Link;
         else $linkarray["sfx"] = $Link;
       }
     }
 
     // LinkResolver Journals Online & Print
-    if ( $_SESSION["config_general"]["export"]["joplink"] == "1" )
+    if ( $_SESSION["config_general"]["export"]["joplink"] == "1" && !( $_SESSION["config_general"]["general"]["iln"] == "63" && $Link !== null ))
     {
       if ( ( $Link = $this->getEZB_Link($this->contents) ) != "")
       {
@@ -553,17 +555,29 @@ class Standard extends General
                                $_SESSION["config_general"]["export"]["openurlreferer"] != "") 
                          ? $_SESSION["config_general"]["export"]["openurlreferer"] 
                          : "Lukida";
-    $openurlEntry     = $openurlBase 
-                      . "?sid=GBV:" . $openurlReferer . "&ctx_enc=info:ofi/enc:UTF-8";
+    $openurlEntry     = $openurlBase . "?sid=GBV:" . $openurlReferer 
+                        . (strpos($openurlBase,"redi")=== false ? "&ctx_enc=info:ofi/enc:UTF-8" : "");
     $openurlMetadata  = $this->getOpenURLmetaData($data, "sfx");
     $sfxlink          = $openurlEntry . $openurlMetadata;
     if (isset($_SESSION["config_general"]["export"]["sfxonlyfulltext"]) &&
               $_SESSION["config_general"]["export"]["sfxonlyfulltext"] == "1")
     {
-      $sfxFullUrl = $this->getSFX_Full($sfxlink);
-      if ( $sfxFullUrl != "")
+      if( strpos($openurlBase,"redi")!== false )
       {
-        return $sfxFullUrl;
+        $sfxlink    = str_replace("&rft.","&",$sfxlink);
+        $headers    = @get_headers($sfxlink);
+        $httpStatus = explode(" ",$headers[14])[1];
+        if( $httpStatus !== "404" )
+          return $sfxlink;
+        else return null;
+      }
+      else
+      {
+        $sfxFullUrl = $this->getSFX_Full($sfxlink);
+        if ( $sfxFullUrl != "")
+        {
+          return $sfxFullUrl;
+        }
       }
     }
     else 

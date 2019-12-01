@@ -31,7 +31,7 @@ if ( substr($this->medium["leader"],7,1) == "s" && substr(Get008($this->contents
 if ( substr($this->medium["leader"],7,1) == "s" && in_array(substr(Get008($this->contents),21,1), array("p","n")) )
 {
   // Zeitschriften mit Einzelheften
-   $IncludedPubs = GetIncludedPubs($this->CI,$this,$this->PPN);
+  $IncludedPubs = GetIncludedPubs($this->CI,$this,$this->PPN);
   $IncJournals  = $IncludedPubs["journals"];
   $IncArticles  = $IncludedPubs["articles"];
 }
@@ -50,13 +50,7 @@ if ( Get951b($this->contents) )
 if ( isset($this->contents[912]) && isset($_SESSION["iln"]) && $_SESSION["iln"] != "" && ( in_array( "GBV_ILN_".$_SESSION["iln"], $this->catalogues) ) )
 {
   // Bibliotheks eigener-Bestand
-  if ( ( substr($this->medium["leader"],6,2) == "ma"
-  || substr($this->medium["leader"],6,2) == "mm"
-  || substr($this->medium["leader"],6,2) == "ms" 
-  || substr($this->medium["leader"],6,2) == "aa" 
-  || substr($this->medium["leader"],6,2) == "am" 
-  || substr($this->medium["leader"],6,2) == "as" )
-  && substr(Get007($this->contents),0,2) == "cr" )
+  if ( substr(Get007($this->contents),0,2) == "cr" )
   {
     // Bibliotheks eigener Online Bestand
 
@@ -98,14 +92,7 @@ if ( isset($this->contents[912]) && isset($_SESSION["iln"]) && $_SESSION["iln"] 
 else
 {
   // Fremdbestand
-  if ( ( ( substr($this->medium["leader"],6,2) == "ma"
-  || substr($this->medium["leader"],6,2) == "mm"
-  || substr($this->medium["leader"],6,2) == "ms"
-  || substr($this->medium["leader"],6,2) == "aa"
-  || substr($this->medium["leader"],6,2) == "am"
-  || substr($this->medium["leader"],6,2) == "as" )
-  && substr(Get007($this->contents),0,2) == "cr" ) 
-  || ( in_array("Gutenberg", $this->collection) ) )
+  if ( substr(Get007($this->contents),0,2) == "cr" )  
   {
     // Online Fremdbestand
     if ( array_key_exists("856", $this->contents) )
@@ -130,7 +117,7 @@ else
         $FLPPN = (substr($this->PPN,0,4) == "OEVK") ? substr($this->PPN,4) : $this->PPN;
         $Interloan[] = array
         (
-          "link"   => "http://gso.gbv.de/DB=" . $CatDB . "/PPNSET?PPN=" . $FLPPN,
+          "link"   => "https://kxp.k10plus.de/DB=" . $CatDB . "/PPNSET?PPN=" . $FLPPN,
           "label1" => $this->CI->database->code2text("INTERLOAN")
         );
       }
@@ -138,6 +125,7 @@ else
   }
 
 }
+
 
 //*************************************
 //***** S T A R T   O U T P U T *******

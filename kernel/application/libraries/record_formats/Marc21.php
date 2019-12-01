@@ -44,10 +44,14 @@ class Marc21 extends General
     $Pos7     = substr($Leader,7,1);
     $Pos19    = substr($Leader,19,1);
     $F007     = $this->marc->getFields("007");
-    $F007_0   = ($F007 && $F007[0]) ? substr($F007[0]->getData(),0,1) : "";
-    $F007_0_2 = ($F007 && $F007[0]) ? substr($F007[0]->getData(),0,2) : "";
+    $F007Max  = count($F007)-1;
+    $F007     = ($F007 && $F007[$F007Max]) ? $F007[$F007Max]->getData() : "";
+
+    $F007_0   = substr($F007,0,1);
+    $F007_1   = substr($F007,1,1);
     $F008     = $this->marc->getFields("008");
-    $F008_21  = ($F008 && $F008[0]) ? substr($F008[0],29,1) : "";
+    $F008Max  = count($F008)-1;
+    $F008_21  = ($F008 && $F008[$F008Max]) ? substr($F008[$F008Max],29,1) : "";
     $F951a    = "";
     if ( $Tmp = ( $this->marc->getField("951",true) ) )
     {
@@ -56,40 +60,59 @@ class Marc21 extends General
         $F951a = $Tmp->getData();
       }
     }
-    $F338b_0   = "";
-    if ( $Tmp = ( $this->marc->getField("338",true) ) )
-    {
-      if ( $Tmp = $Tmp->getSubfield('b') )
-      {
-        $F338b_0 = substr($Tmp->getData(),0,1);
-      }
-    }
 
-    if     ( $Pos6 == "a" && $Pos7 == "m" && $Pos19 == "a" && $F951a == "JV" )       { $Cover = "R"; $Online = 0; $PPNLink = 1; $Name = "multivolumework"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "m" && $F007_0 == "h" )                        { $Cover = "I"; $Online = 0; $PPNLink = 0; $Name = "microform"; }
-    elseif ( in_array($Pos6, array("a","m")) && in_array($Pos7, array("a","b")) && $F007_0_2 == "cr" )  { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "earticle"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "m" && $F007_0_2 == "cr" && $F338b_0 == "c" )  { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "s" && $F007_0_2 == "cr" )                     { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
+    // Pre-Block
+    if ( $F007_0 == "v" )                                                            { $Cover = "E"; $Online = 0; $PPNLink = 0; $Name = "motionpicture"; }
+    elseif ( $Pos7 != "s" && $F007_0 == "h" )                                        { $Cover = "I"; $Online = 0; $PPNLink = 0; $Name = "microform"; }
+
+    // Block A
+    elseif ( $Pos6 == "a" && in_array($Pos7, array("m","i")) && $F951a == "JV" )     { $Cover = "Q"; $Online = 0; $PPNLink = 1; $Name = "serialvolume"; }
+    elseif ( $Pos6 == "a" && in_array($Pos7, array("m","i")) && $F007_0 == "c" )     { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; } 
     elseif ( $Pos6 == "a" && in_array($Pos7, array("m","i")) )                       { $Cover = "B"; $Online = 0; $PPNLink = 0; $Name = "book"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "b" )                                          { $Cover = "A"; $Online = 0; $PPNLink = 0; $Name = "article"; }
+    elseif ( $Pos6 == "a" && $Pos7 == "d" )                                          { $Cover = "Q"; $Online = 0; $PPNLink = 0; $Name = "serialvolume"; }
+    elseif ( $Pos6 == "a" && in_array($Pos7, array("s","i")) && $F007_0 == "c" )     { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
+    elseif ( $Pos6 == "a" && in_array($Pos7, array("s","i")) 
+                          && in_array($F008_21,array("p","n")) )                     { $Cover = "F"; $Online = 0; $PPNLink = 0; $Name = "journal"; }
+    elseif ( $Pos6 == "a" && in_array($Pos7, array("s","i")) && $F008_21 == "m" )    { $Cover = "R"; $Online = 0; $PPNLink = 0; $Name = "monographseries"; }
+    elseif ( $Pos6 == "a" && in_array($Pos7, array("s","i")) )                       { $Cover = "Q"; $Online = 0; $PPNLink = 1; $Name = "serialvolume"; }
+    elseif ( $Pos6 == "a" && in_array($Pos7, array("a","b")) && $F007_0 == "c" )     { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "electronicarticle"; }
     elseif ( $Pos6 == "a" && in_array($Pos7, array("a","b")) )                       { $Cover = "A"; $Online = 0; $PPNLink = 0; $Name = "article"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "d" )                                          { $Cover = "F"; $Online = 0; $PPNLink = 0; $Name = "journal"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "s" && in_array($F008_21,array("p","n")))      { $Cover = "F"; $Online = 0; $PPNLink = 0; $Name = "journal"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "s" && $F008_21 == "m" )                       { $Cover = "Q"; $Online = 0; $PPNLink = 1; $Name = "series"; }
-    elseif ( $Pos6 == "c"                 )                                          { $Cover = "H"; $Online = 0; $PPNLink = 0; $Name = "musicalscore"; }
-    elseif ( $Pos6 == "e"                 )                                          { $Cover = "J"; $Online = 0; $PPNLink = 0; $Name = "map"; }
-    elseif ( $Pos6 == "g" && $Pos7 == "a" )                                          { $Cover = "P"; $Online = 0; $PPNLink = 0; $Name = "movieadditionalmaterial"; }
-    elseif ( $Pos6 == "g"                 )                                          { $Cover = "E"; $Online = 0; $PPNLink = 0; $Name = "movie"; }
-    elseif ( $Pos6 == "j" && $Pos7 == "a" )                                          { $Cover = "P"; $Online = 0; $PPNLink = 0; $Name = "audiocarrieradditionalmaterial"; }
-    elseif ( $Pos6 == "j"                 )                                          { $Cover = "C"; $Online = 0; $PPNLink = 0; $Name = "audiocarrier"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "m" && $F007_0 == "c" && $F007_0_2 != "cr" )   { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datacarrier"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "d" && $F007_0_2 == "cu" )                     { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datacarrier"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "m" )                                          { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "a" )                                          { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "earticle"; }
+
+    // Block M
+    elseif ( $Pos6 == "m" && $Pos7 == "m" && $F007_1 == "r" )                        { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
+    elseif ( $Pos6 == "m" && $Pos7 == "m" && $F007_0 == "c" )                        { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datamedia"; }
+    elseif ( $Pos6 == "m" && $Pos7 == "m" )                                          { $Cover = "D"; $Online = 1; $PPNLink = 0; $Name = "electronicressource"; }
+    elseif ( $Pos6 == "m" && $Pos7 == "b" && $F007_1 == "r" )                        { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "electronicarticle"; }
+    elseif ( $Pos6 == "m" && $Pos7 == "b" && $F007_0 == "c" )                        { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datamedia"; }
+    elseif ( $Pos6 == "m" && $Pos7 == "b" )                                          { $Cover = "D"; $Online = 1; $PPNLink = 0; $Name = "electronicressource"; }
     elseif ( $Pos6 == "m" && in_array($Pos7, array("s","i")) )                       { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
-    elseif ( $Pos6 == "p" && $Pos7 == "m" )                                          { $Cover = "P"; $Online = 0; $PPNLink = 1; $Name = "mixedmaterials"; }
-    elseif ( $Pos6 == "r" && $Pos7 == "m" )                                          { $Cover = "O"; $Online = 0; $PPNLink = 0; $Name = "game"; }
+    elseif ( $Pos6 == "m" && in_array($Pos7, array("a","b")) )                       { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "electronicarticle"; }
+
+    // Block E
+    elseif ( $Pos6 == "e" )                                                          { $Cover = "J"; $Online = 0; $PPNLink = 0; $Name = "map"; }
+
+    // Block D, F, T
+    elseif ( in_array($Pos6, array("d","f","t" )) )                                  { $Cover = "G"; $Online = 0; $PPNLink = 0; $Name = "manuscript"; }
+
+    // Block I, J
+    elseif ( in_array($Pos6, array("i","j")) )                                       { $Cover = "C"; $Online = 0; $PPNLink = 0; $Name = "soundrecording"; }
+
+    // Block G
+    elseif ( $Pos6 == "g" )                                                          { $Cover = "E"; $Online = 0; $PPNLink = 0; $Name = "projectedmedium"; }
+
+    // Block R
     elseif ( $Pos6 == "r" && $Pos7 == "a" )                                          { $Cover = "K"; $Online = 0; $PPNLink = 0; $Name = "picture"; }
-    elseif ( $Pos6 == "t"                 )                                          { $Cover = "G"; $Online = 0; $PPNLink = 0; $Name = "manuscript"; }
+    elseif ( $Pos6 == "r" )                                                          { $Cover = "O"; $Online = 0; $PPNLink = 0; $Name = "game"; }
+
+    // Block C
+    elseif ( $Pos6 == "c" )                                                          { $Cover = "H"; $Online = 0; $PPNLink = 0; $Name = "musicalscore"; }
+
+    // Block P
+    elseif ( $Pos6 == "p" )                                                          { $Cover = "P"; $Online = 0; $PPNLink = 1; $Name = "mixedmaterials"; }
+
+    // Post-Block
+    elseif ( $F007_0 == "c" )                                                        { $Cover = "D"; $Online = 1; $PPNLink = 0; $Name = "electronicressource"; }
     else                                                                             { $Cover = "O"; $Online = 0; $PPNLink = 0; $Name = "unknown"; }
 
     $this->format  = $Name;
