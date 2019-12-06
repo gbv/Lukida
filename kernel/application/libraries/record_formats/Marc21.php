@@ -69,7 +69,6 @@ class Marc21 extends General
     elseif ( $Pos6 == "a" && in_array($Pos7, array("m","i")) && $F951a == "JV" )     { $Cover = "Q"; $Online = 0; $PPNLink = 1; $Name = "serialvolume"; }
     elseif ( $Pos6 == "a" && in_array($Pos7, array("m","i")) && $F007_0 == "c" )     { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; } 
     elseif ( $Pos6 == "a" && in_array($Pos7, array("m","i")) )                       { $Cover = "B"; $Online = 0; $PPNLink = 0; $Name = "book"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "b" )                                          { $Cover = "A"; $Online = 0; $PPNLink = 0; $Name = "article"; }
     elseif ( $Pos6 == "a" && $Pos7 == "d" )                                          { $Cover = "Q"; $Online = 0; $PPNLink = 0; $Name = "serialvolume"; }
     elseif ( $Pos6 == "a" && in_array($Pos7, array("s","i")) && $F007_0 == "c" )     { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
     elseif ( $Pos6 == "a" && in_array($Pos7, array("s","i")) 

@@ -1,5 +1,9 @@
 # Changelog
 
+**06.12.2019**
+* Fullview
+  * Fixed format electronic articles
+
 **26.11.2019**
 * Start
   * Centered Version info after brand click

@@ -464,7 +464,7 @@ function BestandLinks($Contents, $Medium, $CI)
     }
   }
 
-  if ( $Format == "earticle" )
+  if ( $Format == "electronicarticle" )
   {
     // Lese Eltern-Infos aus / Get MARC Parent
     $ParentData = ( isset($Medium["parents"][0]) ) ? $CI->internal_search("id",$Medium["parents"][0]) : array();
