@@ -1402,7 +1402,31 @@ class General
 
   protected function isOwner()  
   {
-    return ( isset($this->contents[912]) && isset($_SESSION["iln"]) && $_SESSION["iln"] != "" && ( in_array( "GBV_ILN_".$_SESSION["iln"], $this->catalogues) ) ) ? true : false;
+    // $this->CI->printArray2Screen($_SESSION["iln"]);
+    // $this->CI->printArray2Screen($this->catalogues);
+    $Client = ( isset($_SESSION["config_general"]["general"]["client"])  && $_SESSION["config_general"]["general"]["client"] != "" ) 
+              ? $_SESSION["config_general"]["general"]["client"]
+              : "";
+
+    if ( isset($this->contents[912]) && isset($_SESSION["iln"]) && $_SESSION["iln"] != "" && ( in_array( "GBV_ILN_".$_SESSION["iln"], $this->catalogues) ) )
+    {
+      if ( $Client == "" )
+      {
+        return true;
+      }
+      else
+      {
+        if ( in_array("GBV_ILN_".$_SESSION["iln"]."_".strtoupper($Client), $this->catalogues) )
+        {
+          return true;
+        }
+        else
+        {
+          return false;
+        }
+      }
+    }
+    return false;
   }
 
   protected function isOnline()

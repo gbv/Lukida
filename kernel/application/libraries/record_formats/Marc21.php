@@ -74,19 +74,19 @@ class Marc21 extends General
     elseif ( $Pos6 == "a" && in_array($Pos7, array("s","i")) 
                           && in_array($F008_21,array("p","n")) )                     { $Cover = "F"; $Online = 0; $PPNLink = 0; $Name = "journal"; }
     elseif ( $Pos6 == "a" && in_array($Pos7, array("s","i")) && $F008_21 == "m" )    { $Cover = "R"; $Online = 0; $PPNLink = 0; $Name = "monographseries"; }
-    elseif ( $Pos6 == "a" && in_array($Pos7, array("s","i")) )                       { $Cover = "Q"; $Online = 0; $PPNLink = 1; $Name = "serialvolume"; }
-    elseif ( $Pos6 == "a" && in_array($Pos7, array("a","b")) && $F007_0 == "c" )     { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "electronicarticle"; }
+    elseif ( $Pos6 == "a" && in_array($Pos7, array("s","i")) )                       { $Cover = "Q"; $Online = 0; $PPNLink = 0; $Name = "serialvolume"; }
+    elseif ( $Pos6 == "a" && in_array($Pos7, array("a","b")) && $F007_0 == "c" )     { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "electronicarticle"; }
     elseif ( $Pos6 == "a" && in_array($Pos7, array("a","b")) )                       { $Cover = "A"; $Online = 0; $PPNLink = 0; $Name = "article"; }
 
     // Block M
     elseif ( $Pos6 == "m" && $Pos7 == "m" && $F007_1 == "r" )                        { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
     elseif ( $Pos6 == "m" && $Pos7 == "m" && $F007_0 == "c" )                        { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datamedia"; }
     elseif ( $Pos6 == "m" && $Pos7 == "m" )                                          { $Cover = "D"; $Online = 1; $PPNLink = 0; $Name = "electronicressource"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "b" && $F007_1 == "r" )                        { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "electronicarticle"; }
+    elseif ( $Pos6 == "m" && $Pos7 == "b" && $F007_1 == "r" )                        { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "electronicarticle"; }
     elseif ( $Pos6 == "m" && $Pos7 == "b" && $F007_0 == "c" )                        { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datamedia"; }
     elseif ( $Pos6 == "m" && $Pos7 == "b" )                                          { $Cover = "D"; $Online = 1; $PPNLink = 0; $Name = "electronicressource"; }
     elseif ( $Pos6 == "m" && in_array($Pos7, array("s","i")) )                       { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
-    elseif ( $Pos6 == "m" && in_array($Pos7, array("a","b")) )                       { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "electronicarticle"; }
+    elseif ( $Pos6 == "m" && in_array($Pos7, array("a","b")) )                       { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "electronicarticle"; }
 
     // Block E
     elseif ( $Pos6 == "e" )                                                          { $Cover = "J"; $Online = 0; $PPNLink = 0; $Name = "map"; }
@@ -177,7 +177,7 @@ class Marc21 extends General
               if ( in_array(substr($Tmp,8,3), array_values($ILNs)) || 
                 ( substr($Tmp,0,8) != "GBV_ILN_" && !in_array($Tmp, array("SYSFLAG_1", "SYSFLAG_A"))) ) 
               {
-                $this->contents[$tag][] = $Sub;
+                if ( empty($this->contents[$tag]) || !in_array($Sub, $this->contents[$tag]) ) $this->contents[$tag][] = $Sub;
                 continue;
               }
             }

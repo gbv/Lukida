@@ -1,5 +1,9 @@
 # Changelog
 
+**11.12.2019**
+* Fullview
+  * Fixed format serial volume
+
 **06.12.2019**
 * Fullview
   * Fixed format electronic articles
