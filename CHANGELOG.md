@@ -1,5 +1,13 @@
 # Changelog
 
+**30.12.2019**
+* Fullview
+  * Multiple link resolvers can be prioritized
+
+**13.12.2019**
+* Search
+  * Internal PPN search added
+  
 **11.12.2019**
 * Fullview
   * Fixed format serial volume

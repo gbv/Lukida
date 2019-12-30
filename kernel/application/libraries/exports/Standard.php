@@ -21,29 +21,64 @@ class Standard extends General
 
     $linkarray = array();
 
-    // LinkResolver SFX
-    if ($_SESSION["config_general"]["export"]["sfxlink"] == "1")
+    $resolver_on = empty($_SESSION["config_general"]["export"]["resolverlink"]) ? false : true;
+    $jop_on      = empty($_SESSION["config_general"]["export"]["joplink"]) ? false : true;
+
+    //Set the variable prio:
+    $fulltextPrios =  "";
+    if( !empty($_SESSION["config_general"]["export"]["fulltextprios"]) )
     {
-      if ( ( $Link = $this->getSFX_Link($this->contents) ) != "")
-      { 
-        if(strpos($Link,"ovid")!==false) 
-             $linkarray["ovid"] = $Link;
-        elseif(strpos($Link,"redi")!==false)
-             $linkarray["redi"] = $Link;
-        else $linkarray["sfx"] = $Link;
+      $fulltextPrios      = $_SESSION["config_general"]["export"]["fulltextprios"] ;
+      $fulltextPriosArray = explode(",",$fulltextPrios);
+      if( !empty($fulltextPriosArray[0]) && $fulltextPriosArray[0] === "multi" && 
+          ( count($fulltextPriosArray) == 1 || ( strpos($fulltextPrios,"resolver")!== false && strpos($fulltextPrios,"jop")!== false ))
+        )
+      {
+        $prio = "multi";
       }
+      else
+      {
+        //Min. array[0]=>"single" or array[0]=>"multi":
+        foreach( $fulltextPriosArray as $prio )
+        {
+          if( strpos("resolver,jop",$prio) !== false )
+          {  
+            break;
+          }
+        }
+      }
+      //If count($fulltextPriosArray) == 1 then possible here $prio is "single"
+    }
+    else 
+    {
+      $prio = "multi";
     }
 
-    // LinkResolver Journals Online & Print
-    if ( $_SESSION["config_general"]["export"]["joplink"] == "1" && !( $_SESSION["config_general"]["general"]["iln"] == "63" && $Link !== null ))
+    //Build the return variable:
+    if( $prio == "resolver" || $prio == "multi"  || $prio == "single" ) 
     {
-      if ( ( $Link = $this->getEZB_Link($this->contents) ) != "")
+      if( $resolver_on )
       {
-		//An quot in the URL caused errors when writing to the database table "links_resolved library":
-		$linkarray["jop"] = str_replace(array(chr(39),chr(32)), array("%27","%22"), $Link);
+          $linkarray = $this->get_resolver_link($this->contents);  
       }
-    }
-	
+      if( $jop_on && ( $prio == "multi" || ( empty($linkarray) && ( $prio == "single" || strpos($fulltextPrios,"jop") !== false ) ) ) 
+          && ( $Link = $this->get_jop_link($this->contents) ) != "" )
+      {
+        $linkarray["jop"] = str_replace(array(chr(39),chr(32)), array("%27","%22"), $Link);
+      } 
+    } 
+    elseif( $prio == "jop" )
+    {
+      //Single jop (or resolver)
+      if( $jop_on && ( $Link = $this->get_jop_link($this->contents) ) != "" )
+      {
+        $linkarray["jop"] = str_replace(array(chr(39),chr(32)), array("%27","%22"), $Link); 
+      }
+      elseif( $resolver_on && strpos($fulltextPrios,"resolver") !== false )
+      {
+        $linkarray = $this->get_resolver_link($this->contents);
+      }
+    } 
     return $linkarray;
   }
 
@@ -432,66 +467,60 @@ class Standard extends General
     return $link;
   }
 /* 
-*****************************
- * EZB                 *
-*****************************
+**********************************
+ * Journal Online & Print (JOP) *
+**********************************
 */ 
-  protected function getEZB_Link($data)
+  protected function get_jop_link($data)
   {
-	$zdbid		= "";
-	if ( empty($metadataISSN) && !empty($data["contents"]["016"]))
-	{
-		foreach ( $data["contents"]["016"] as $subArray016 )
-		{
-			if ( isset($subArray016["1"]["a"]) && $subArray016["1"]["a"] != "" && isset($subArray016["2"]["2"]) && $subArray016["2"]["2"] == "DE-600" )
-			{	
-				$zdbid = $subArray016["1"]["a"];
-				break;
-			}
-		}
-	}
-	$ezbLink	= "";
-	
-	if ( (isset($data["issn"]) && $data["issn"] != "") || !empty($zdbid) )			
+    $zdbid		= "";
+    if ( empty($metadataISSN) && !empty($data["contents"]["016"]))
     {
-      $ezbbibid			= (isset($_SESSION["config_general"]["general"]["ezbbibid"]) &&
-                                 $_SESSION["config_general"]["general"]["ezbbibid"] != "") 
-						  ? $_SESSION["config_general"]["general"]["ezbbibid"] 
-						  : null;
-
-      $isil             = (isset($_SESSION["config_general"]["general"]["isil"]) &&
-                                 $_SESSION["config_general"]["general"]["isil"] != "") 
-                          ? $_SESSION["config_general"]["general"]["isil"] 
-                          : null;
-						  
-	  $bibparam			= utf8_encode(isset($ezbbibid) ? ("bibid%3D" . $ezbbibid) : (isset($isil) ? ("%26isil%3D" . $isil) : ""));
-
-      $openurlReferer   = (isset($_SESSION["config_general"]["export"]["openurlreferer"]) &&
-                                 $_SESSION["config_general"]["export"]["openurlreferer"] != "") 
-                          ? $_SESSION["config_general"]["export"]["openurlreferer"] 
-                          : "Lukida";
-
+    	foreach ( $data["contents"]["016"] as $subArray016 )
+    	{
+    		if ( isset($subArray016["1"]["a"]) && $subArray016["1"]["a"] != "" && isset($subArray016["2"]["2"]) && $subArray016["2"]["2"] == "DE-600" )
+    		{	
+    			$zdbid = $subArray016["1"]["a"];
+    			break;
+    		}
+    	}
+    }
+    $ezbLink	= "";
+    
+    if ( (isset($data["issn"]) && $data["issn"] != "") || !empty($zdbid) )			
+    {
+      $ezbbibid			= empty($_SESSION["config_general"]["general"]["ezbbibid"]) ? null
+    					  : $_SESSION["config_general"]["general"]["ezbbibid"] ;
+    
+      $isil             = empty($_SESSION["config_general"]["general"]["isil"]) ? null
+                          : $_SESSION["config_general"]["general"]["isil"] ;
+    					  
+      $bibparam			= utf8_encode(isset($ezbbibid) ? ("bibid%3D" . $ezbbibid) : (isset($isil) ? ("%26isil%3D" . $isil) : ""));
+    
+      $openurlReferer   = empty($_SESSION["config_general"]["export"]["openurlreferer"]) ? "Lukida"
+                          : $_SESSION["config_general"]["export"]["openurlreferer"] ; 
+    
       $openurlMetadata  = $this->getOpenURLmetaData($data, "jop");
-
+    
       $ezbLinkExtension = "sid=GBV:" . $openurlReferer . $openurlMetadata .
                           ("&pid=" . $bibparam . (!empty($zdbid) ? ("%26zdbid%3D" . $zdbid) : ""));
-						  
+    					  
       $ezbLink          = "https://services.dnb.de/fize-service/gvr/full.xml?" . $ezbLinkExtension;
-
-      $ezbTarget        = $this->getEZB_Full(urlencode($ezbLink), str_replace('%3D', '=', $bibparam));	
+    
+      $ezbTarget        = $this->getJOP_Full($ezbLink, str_replace('%3D', '=', $bibparam));	
       if ( $ezbTarget )   return $ezbTarget;
     }
     return "";
   }
 
-  protected function getEZB_Full($link, $bibparam)
+  protected function getJOP_Full($link, $bibparam)
   {	  
-	$returnValue = "";
 	$joponlyfulltext = (isset($_SESSION["config_general"]["export"]["joponlyfulltext"]) &&
                        $_SESSION["config_general"]["export"]["joponlyfulltext"] == "1") 
                        ? true : null;
-	if ($ezb_xml = @simplexml_load_file($link))
-    {
+    $ezb_xml = @simplexml_load_file($link);
+	if (!empty($ezb_xml))
+    { 
       if (!isset($ezb_xml->Full->Error))
       {
 		$ref = ""; $refUrl = ""; $refUrl = "";
@@ -503,92 +532,131 @@ class Standard extends General
 			$refUrl   = isset($ref->URL) ? $ref->URL : "";
 			$refLabel = isset($ref->Label) ? $ref->Label : "";
 		}
+//var_dump($ezb_xml_result = $ezb_xml->Full->ElectronicData->ResultList->Result);
 		if ( $ezb_xml && isset($ezb_xml->Full->ElectronicData->ResultList->Result) &&
-			 $ezb_xml_result = $ezb_xml->Full->ElectronicData->ResultList->Result )	
+			 !empty($ezb_xml_result = $ezb_xml->Full->ElectronicData->ResultList->Result) )	
 		{
-			$resultStatus = "";  $accessLevel  = "";
-			$resultStatus = json_decode($ezb_xml->Full->ElectronicData->ResultList->Result['state']);
-			$accessLevel  =  $ezb_xml_result->AccessLevel;
-		}
-		//Get the results and select AccessURL. 
-		//State "4" = "not on-licence".
-		//AccessLevel "homepage" = no a good accurate result.
-		if ( $ezb_xml_result && $resultStatus != "" && $resultStatus != "4" && $accessLevel != "homepage" )
-		{
-			if ( isset($ezb_xml_result->AccessURL) && $ezb_xml_result->AccessURL != "" )
-			{
-				//Link to the full text
-				$returnValue = $ezb_xml_result->AccessURL;
-			}
-			elseif ( !isset($joponlyfulltext) && $refUrl != "" && $refLabel == "EZB-Opac" )
-			{
-				//EZB-website to the title with other possible links:
-				$returnValue = $refUrl . "&" . $bibparam;
-			}
-			elseif ( !isset($joponlyfulltext) && isset($ezb_xml_result->JournalURL) && $ezb_xml_result->JournalURL != "" )
-			{
-				//link to the Journal
-				$returnValue = $ezb_xml_result->JournalURL;
-			}
-		} 
-		elseif ( !isset($joponlyfulltext) && $refUrl != "" && $refLabel == "EZB-Opac" )
-		{
-			//EZB-website to the title with other possible links:
-			$returnValue = $refUrl . "&" . $bibparam;
-		}
+          $i = 0;
+          foreach( $ezb_xml_result as $aResult )
+          { 
+			$resultAdditional = ""; $resultStatus = "";  $accessLevel  = "";
+            $resultAdditional   = !empty($aResult->Additionals->Additional) ? (string)$aResult->Additionals->Additional : "";
+            $resultStatus       = !empty($aResult['state']) ? json_decode($aResult['state']) : 0;
+            $accessLevel        = !empty($aResult->Additionals->AccessLevel) ? $ezb_xml_result->AccessLevel : "";
+		    //Get the results and select AccessURL. 
+		    //State "4" = "not on-licence".
+		    //AccessLevel "homepage" = no a good accurate result.
+            if( strpos($resultAdditional,"DFG-gefördert") !== false && $resultStatus != "4" && $accessLevel != "homepage")
+            {
+              return (string)$aResult->AccessURL;
+            }
+            else  
+            {
+              $ezbArray[$i]['state']       = $resultStatus;
+              $ezbArray[$i]['AccessLevel'] = (string)$aResult->AccessLevel;
+              $ezbArray[$i]['AccessURL']   = (string)$aResult->AccessURL;
+              $ezbArray[$i]['JournalURL']  = (string)$aResult->JournalURL;
+              $i++;
+            }
+          }
+          //Get the results and select AccessURL. 
+          //State "4" = "not on-licence".
+          //AccessLevel "homepage" = no a good accurate result.
+          if ( $ezbArray[0]['state'] != "4" && $ezbArray[0]['AccessLevel'] != "homepage" )
+          {
+            if ( !empty($ezbArray[0]['AccessURL']) )
+            {
+            	//Link to the full text
+            	return $ezbArray[0]['AccessURL'];
+            }
+            elseif ( !isset($joponlyfulltext) && !empty($ezbArray[0]['JournalURL']) )
+            {
+            	//link to the Journal
+            	return $ezbArray[0]['JournalURL'];
+            }
+          }
+        }
+        elseif ( !isset($joponlyfulltext) && $refUrl != "" && $refLabel == "EZB-Opac" )
+        {
+          //EZB-website to the title with other possible links:
+          return $refUrl . "&" . $bibparam;
+        }
+        else return "";
 	  }
-	  return array_values((array)$returnValue)[0];		
+      else return "";
+	  //return array_values((array)$returnValue)[0];		
     }
 	return false;
   }  
 /*
-*****************************
- * SFX                 *
-*****************************
+***************************************
+ * Linkresolver: SFX, Ovid oder ReDI *
+***************************************
 */
-  protected function getSFX_Link($data)
+  protected function get_resolver_link($data)
   {
-    $openurlBase = (isset($_SESSION["config_general"]["export"]["sfxbase"]) &&
-                          $_SESSION["config_general"]["export"]["sfxbase"] != "") 
-                        ? $_SESSION["config_general"]["export"]["sfxbase"] : null;
-    $openurlReferer   = (isset($_SESSION["config_general"]["export"]["openurlreferer"]) &&
-                               $_SESSION["config_general"]["export"]["openurlreferer"] != "") 
-                         ? $_SESSION["config_general"]["export"]["openurlreferer"] 
-                         : "Lukida";
+    $return = array();
+
+    $openurlBase      = empty($_SESSION["config_general"]["export"]["resolverbase"]) ? null
+                         : $_SESSION["config_general"]["export"]["resolverbase"] ;
+    $openurlReferer   = empty($_SESSION["config_general"]["export"]["openurlreferer"]) ? "Lukida"
+                         : $_SESSION["config_general"]["export"]["openurlreferer"] ;
     $openurlEntry     = $openurlBase . "?sid=GBV:" . $openurlReferer 
                         . (strpos($openurlBase,"redi")=== false ? "&ctx_enc=info:ofi/enc:UTF-8" : "");
-    $openurlMetadata  = $this->getOpenURLmetaData($data, "sfx");
-    $sfxlink          = $openurlEntry . $openurlMetadata;
-    if (isset($_SESSION["config_general"]["export"]["sfxonlyfulltext"]) &&
-              $_SESSION["config_general"]["export"]["sfxonlyfulltext"] == "1")
+    $openurlMetadata  = $this->getOpenURLmetaData($data, "resolver");
+    $resolverLink     = $openurlEntry . $openurlMetadata;
+	
+    if( strpos($openurlBase,"redi") !== false )
+         $resolver = "redi";
+    elseif( strpos($openurlBase,"ovid") !== false ) 
+         $resolver = "ovid";
+    else $resolver = "sfx";
+
+    if (isset($_SESSION["config_general"]["export"]["resolveronlyfulltext"]) &&
+              $_SESSION["config_general"]["export"]["resolveronlyfulltext"] == "1")
     {
-      if( strpos($openurlBase,"redi")!== false )
+      if( strpos($openurlBase,"redi") !== false )
       {
-        $sfxlink    = str_replace("&rft.","&",$sfxlink);
-        $headers    = @get_headers($sfxlink);
-        $httpStatus = explode(" ",$headers[14])[1];
-        if( $httpStatus !== "404" )
-          return $sfxlink;
-        else return null;
+        $resolverLink = str_replace("&rft.","&",$resolverLink);
+        $headers      = @get_headers($resolverLink);
+        $rediFullUrl  = "";
+        foreach( $headers as $header )
+        { 
+          if( strpos($header,"404 Not Found") !== false )
+          {
+            return $return;
+          }
+          elseif( strpos($header,"301 Moved Permanently") !== false )
+          {
+            $rediFullUrl = "found";
+          }
+          elseif( $rediFullUrl == "found" && substr($header,0,10) == "Location: ")
+          {
+            $return[$resolver] = substr($header,9);
+            return $return;
+          }
+        }
+        return $return;
       }
       else
       {
-        $sfxFullUrl = $this->getSFX_Full($sfxlink);
+        $sfxFullUrl = $this->getSFX_Full($resolverLink);
         if ( $sfxFullUrl != "")
         {
-          return $sfxFullUrl;
+          $return[$resolver] = $sfxFullUrl;
+          return $return;
         }
       }
     }
     else 
     { 
-      return $sfxlink; 
+      $return[$resolver] = $resolverLink;
+      return $return; 
     }
   }
 
   protected function getSFX_Full($link)
   {
-    $returnValue = "";
     //Build the url for the sfx answer
     $sfx_xml_url = $link . "&sfx.response_type=simplexml";
 
@@ -599,36 +667,27 @@ class Standard extends General
 	if ($sfx_xml = @simplexml_load_file($sfx_xml_url)) 
 	{
         //Go on xml tag 'targets'
-		if (isset($sfx_xml->targets)) 
+		if (!empty($sfx_xml_targets = $sfx_xml->targets)) 
 		{
-			$sfx_xml_targets = $sfx_xml->targets;
-
 			//Loop through results and select target_url for service_type 'getFullTxt'
 			foreach ($sfx_xml_targets->target as $target)
 			{
 				if ($target->target_name == 'MESSAGE_NO_FULLTXT')
 				{
-					break;
+					return "";
 				}
 				elseif ($target->service_type == 'getFullTxt')
 				{
 					if (!empty($target->target_url))
 					{
-						$returnValue = $target->target_url;
-                        if (isset($target->crossref) && $target->crossref == 'yes')
-                        { 
-                          break;
-                        }
+						return (string)$target->target_url;
 					}
 				}
-                else 
-                {
-                  break;
-                }
 			}
 		}
+        else return "";
 	}
-    return array_values((array)$returnValue)[0];
+    else return "";
   }
   
 /*  
@@ -812,7 +871,7 @@ class Standard extends General
 			}
 			$metadataOU .= "&rft.isbn=" . $isbnVal;	
 		}
-		if ( $exportformat != "sfx" )
+		if ( $exportformat != "resolver" )
 		{
 			if (isset($data["edition"]) && $data["edition"] != "") 
 			{

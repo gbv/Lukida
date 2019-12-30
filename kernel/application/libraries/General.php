@@ -1429,6 +1429,47 @@ class General
     return false;
   }
 
+  protected function ParentisOwner()  
+  {
+    // Einlesen des Elternteils
+    $ParentContents = array();
+    if ( count($this->medium["parents"]) )
+    {
+      $ParentPPN   = ( isset($this->medium["parents"][0]) ) ? $this->medium["parents"][0]          : "";
+      if ( $ParentPPN != "" && $this->CI->EnsurePPN($ParentPPN) ) 
+      {
+        $ParentContents   = ( isset($_SESSION["data"]["results"][$ParentPPN]["contents"]) )   ? $_SESSION["data"]["results"][$ParentPPN]["contents"]   : "";
+        $ParentCatalogues = ( isset($_SESSION["data"]["results"][$ParentPPN]["catalogues"]) ) ? $_SESSION["data"]["results"][$ParentPPN]["catalogues"] : "";
+      }
+    }
+
+    // $this->CI->printArray2Screen($_SESSION["iln"]);
+    // $this->CI->printArray2Screen($this->catalogues);
+    $Client = ( isset($_SESSION["config_general"]["general"]["client"])  && $_SESSION["config_general"]["general"]["client"] != "" ) 
+              ? $_SESSION["config_general"]["general"]["client"]
+              : "";
+
+    if ( isset($ParentContents[912]) && isset($_SESSION["iln"]) && $_SESSION["iln"] != "" && ( in_array( "GBV_ILN_".$_SESSION["iln"], $ParentCatalogues) ) )
+    {
+      if ( $Client == "" )
+      {
+        return true;
+      }
+      else
+      {
+        if ( in_array("GBV_ILN_".$_SESSION["iln"]."_".strtoupper($Client), $ParentCatalogues) )
+        {
+          return true;
+        }
+        else
+        {
+          return false;
+        }
+      }
+    }
+    return false;
+  }
+
   protected function isOnline()
   {
     return ( ( ( substr($this->medium["leader"],6,2) == "ma"
@@ -1677,8 +1718,11 @@ class General
         {
           foreach ( $Area["rembef"] as $Key => $Val )
           {
-            $Output .= "<div>" . $this->CI->database->code2text($Key) . "</div>";
-            $Output .= "<ul><li><small>" . implode("</li><li>", $Val) . "</small></li></ul>";
+            if ( count($Val) )
+            {
+              $Output .= "<div>" . $this->CI->database->code2text($Key) . "</div>";
+              $Output .= "<ul><li><small>" . implode("</li><li>", $Val) . "</small></li></ul>";
+            }
           }
         }
     
@@ -1706,7 +1750,7 @@ class General
           if ( isset($Exemplar["link"]) && trim($Exemplar["link"]) != "" )
           {
             $Class  = $BtnClass;
-            if ( isset($Exemplar["type"]) && !in_array($Exemplar["type"], array("ppn","external")) )  continue;
+            if ( isset($Exemplar["type"]) && !in_array($Exemplar["type"], array("ppn","external","ppnsearch")) )  continue;
             if ( isset($Exemplar["type"]) && $Exemplar["type"] == "ppn" )
             {
               $Action = "onclick='$.open_fullview(\"" . $EPN . "\"," . json_encode(array_keys($Area["data"])) . ",\"publications\")'";
@@ -1715,6 +1759,10 @@ class General
             {
               $Action = "onclick='window.open(\"" . $Exemplar["link"] . "\",\"_blank\")'";
               $Icon   = " <span class='fa fa-external-link'></span>";
+            }
+            if ( isset($Exemplar["type"]) && $Exemplar["type"] == "ppnsearch" )
+            {
+              $Action = "onclick='$.link_search(\"id\",\"" . $Exemplar["link"] . "\")'";
             }
           }
     
@@ -1771,8 +1819,11 @@ class General
         {
           foreach ( $Area["remaft"] as $Key => $Val )
           {
-            $Output .= "<div>" . $this->CI->database->code2text($Key) . "</div>";
-            $Output .= "<ul><li><small>" . implode("</li><li>", $Val) . "</small></li></ul>";
+            if ( count($Val) )
+            {
+              $Output .= "<div>" . $this->CI->database->code2text($Key) . "</div>";
+              $Output .= "<ul><li><small>" . implode("</li><li>", $Val) . "</small></li></ul>";
+            }
           }
         }
       }

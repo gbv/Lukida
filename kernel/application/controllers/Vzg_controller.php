@@ -1439,6 +1439,68 @@ class Vzg_controller extends CI_Controller
     return ($Items);
   }
 
+  public function GetParentIndexItems($ParentPPN)
+  {
+    // Load Parent PPN
+    $ParentContents = array();
+    if ( $ParentPPN != "" && $this->EnsurePPN($ParentPPN) ) 
+    {
+      $ParentContents   = ( isset($_SESSION["data"]["results"][$ParentPPN]["contents"]) )   ? $_SESSION["data"]["results"][$ParentPPN]["contents"]   : "";
+    }
+
+    // Return empty array when no items attached
+    if ( !isset($_SESSION["data"]["results"][$ParentPPN]["contents"]["980"]) ) return array();
+
+    // Parse MARC records
+    $Contents = $_SESSION["data"]["results"][$ParentPPN]["contents"]["980"];
+    $Items    = array();
+    $X        = 0;
+
+    // Determine First & Second ILN
+    $ILNs = array();
+    if ( isset($_SESSION["iln"]) && isset($_SESSION["iln"]) != "" )         $ILNs[] = $_SESSION["iln"];
+    if ( isset($_SESSION["config_general"]["general"]["ilnsecond"]) 
+            && $_SESSION["config_general"]["general"]["ilnsecond"] != "" )  $ILNs[] = $_SESSION["config_general"]["general"]["ilnsecond"];
+
+    // Determine Client
+    $Client = ( isset($_SESSION["config_general"]["general"]["client"])  && $_SESSION["config_general"]["general"]["client"] != "" ) 
+              ? $_SESSION["config_general"]["general"]["client"]
+              : "";
+
+    foreach ( $Contents as $Record )
+    {
+      // Skip wrong ILNs
+      if (isset($Record[0]["2"]) && !in_array($Record[0]["2"],$ILNs)) continue;
+
+      $One = array();
+      foreach ( $Record as $Subrecord )
+      {
+        foreach ( $Subrecord as $Key => $Value )
+        {
+          // Only use first subfield and skip follow-ups inside one record.
+          if (!isset($One[$Key]))
+          {
+            $One[$Key] = $Value;
+          }
+          else
+          {
+            $One[$Key] .= " | " . $Value;
+          }
+        }
+      }
+
+      // Skip wrong client
+      if (isset($One["y"]) && $Client != "" && strtolower(substr($One["y"],1)) != $Client) continue;
+
+      // Use or create ExpID
+      $EPN = ( isset($One["b"]) ) ? $One["b"] : $X++;
+      $Items[$EPN] = $One;
+    }
+
+    // Return items
+    return ($Items);
+  }
+
   public function GetLBSItems($PPN)
   {
     // Check Params
