@@ -489,6 +489,24 @@ if ( isset($this->pretty["seealso"]) && count($this->pretty["seealso"]) > 0 )
   if ( $Count > 0 ) $Output .=  "</td></tr>";
 }
 
+// DOIs
+/*
+if ( isset($this->pretty["doi"]) && count($this->pretty["doi"]) > 0 )
+{
+  $Output .=  "<tr>";
+  $Output .=  "<td>DOI";
+  $Output .=  "</td><td>";
+  $First   = true;
+  foreach ( $this->pretty["doi"] as $One)
+  {
+    if ( !$First )  $Output .=  " | ";
+    $Output .= $this->link("extern", "https://www.doi.org/" . $One, $One);
+    $First = false;
+  }
+  $Output .=  "<td></tr>";
+}
+*/
+
 // Language Notes
 if ( isset($this->pretty["languagenotes"]) && $this->pretty["languagenotes"] != "" )
 {

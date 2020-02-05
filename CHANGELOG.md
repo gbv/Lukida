@@ -1,5 +1,19 @@
 # Changelog
 
+**04.02.2020**
+* Exemplar-Detail-Window
+  * Liststyle added
+
+**01.02.2020**
+* Fullview
+  * StorageID added to ExampleTab
+* Exports
+  * Improved
+
+**23.01.2020**
+* MailOrder
+  * Message-Area added
+
 **30.12.2019**
 * Fullview
   * Multiple link resolvers can be prioritized

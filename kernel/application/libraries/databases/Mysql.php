@@ -330,7 +330,7 @@ class Mysql extends General
     $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
     if ( $ppn == "" || $iln == "" )  return (-1);
 
-    $this->CI->db->query("replace into links_resolved_library (iln, ppn, resolved,checkdate) values (" . $iln . ", '" . $ppn . "', '" .  $links . "','" . date("y-m-d") . "')");
+    $this->CI->db->query("replace into links_resolved_library (iln, ppn, resolved,checkdate) values (" . $iln . ", '" . $ppn . "', '" .  addslashes($links) . "','" . date("y-m-d") . "')");
   }
 
   public function getCollections()

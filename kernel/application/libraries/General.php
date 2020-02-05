@@ -421,6 +421,8 @@ class General
                                                                    "111" => array("a"),
                                                                    "710" => array("a"),
                                                                    "711" => array("a")));
+
+      // $pretty["doi"]                 = $this->GetDOIs();
   
       $pretty["notes"]               = $this->GetSimpleArray(array("500" => array("a")));
 
@@ -470,7 +472,7 @@ class General
       $pretty["issn"]                = $this->PrettyFields(array("022" => array("a" => " | "),
                                                                  "773" => array("x" => " | ")));
 
-      $pretty["ismn"]                = $this->PrettyFields(array("024" => array("a" => " | ")));
+      // $pretty["ismn"]                = $this->PrettyFields(array("024" => array("a" => " | ")));
 
       $pretty["siblings"]            = $this->GetArray(array("787" => array("i","n","t","w")));
 
@@ -923,6 +925,20 @@ class General
       }
     }
     return $Classification;
+  }
+
+  protected function GetDOIs()
+  {
+    $DOIs = array();
+    if ( array_key_exists("024", $this->contents) )
+    {
+      $DOI = $this->GetArray(array("024" => array("a","2")));
+      foreach ($DOI as $One) 
+      {
+        if ( isset($One["2"]) && isset($One["a"]) && $One["2"] == "doi" && $One["a"] != "" )  $DOIs[] = $One["a"];
+      }
+    }
+    return $DOIs;
   }
 
   protected function SetCover($type = "preview")
@@ -1482,7 +1498,13 @@ class General
     || ( in_array("Gutenberg", $this->collection) ) ) ? true : false;
   }
 
-  protected function isHapticMulti()
+  protected function isOnlineNew()
+  {
+    return ( substr($this->GetMARC($this->contents,"007"),0,2) == "cr" 
+              || in_array("Gutenberg", $this->collection) ) ? true : false;
+  }
+
+  protected function isMulti()
   {
     return ( ( substr($this->medium["leader"],7,1) == "m" && substr($this->medium["leader"],19,1) == "a" )
           || ( substr($this->medium["leader"],7,1) == "s" && substr($this->GetMARC($this->contents,"008"),21,1) == "m" )
@@ -1491,7 +1513,7 @@ class General
           ? true : false;
   }
 
-  protected function getHapticMulti()
+  protected function getMulti()
   {
     $Exemplars = array();
 
@@ -1753,11 +1775,11 @@ class General
             if ( isset($Exemplar["type"]) && !in_array($Exemplar["type"], array("ppn","external","ppnsearch")) )  continue;
             if ( isset($Exemplar["type"]) && $Exemplar["type"] == "ppn" )
             {
-              $Action = "onclick='$.open_fullview(\"" . $EPN . "\"," . json_encode(array_keys($Area["data"])) . ",\"publications\")'";
+              $Action  = "onclick='$.open_fullview(\"" . $EPN . "\"," . json_encode(array_keys($Area["data"])) . ",\"publications\")'";
             }
             if ( isset($Exemplar["type"]) && $Exemplar["type"] == "external" )
             {
-              $Action = "onclick='window.open(\"" . $Exemplar["link"] . "\",\"_blank\")'";
+              $Action = "onclick='window.open(\"" . $Exemplar["link"] . "\",\"_blank\")' data-toggle='tooltip' title='" . $Exemplar["link"] . "'";
               $Icon   = " <span class='fa fa-external-link'></span>";
             }
             if ( isset($Exemplar["type"]) && $Exemplar["type"] == "ppnsearch" )
@@ -1844,8 +1866,8 @@ class General
   {
     if ( $Host = parse_url($URL,PHP_URL_HOST) )
     {
-      if ( $Host == "www.bibliothek.uni-regensburg.de" ) return "Elektr. Zeitschriftenbibliothek";
-      if ( substr($Host,0,4) == "www.")   return substr($Host,4);
+      if ( $Host == "www.bibliothek.uni-regensburg.de" ) return "Elektr.Zeitschriftenbibliothek";
+      if ( substr($Host,0,4) == "www.")                  return substr($Host,4);
       return $Host;
     }
   }

@@ -3,6 +3,7 @@
 class Standard extends General
 {
   protected $CI;
+  private   $configExport, $configGeneral;
 
   public function __construct()
   {
@@ -15,20 +16,21 @@ class Standard extends General
     $this->PPN = $ppn;
     $_SESSION["data"]["results"][$this->PPN] += $this->SetContents("export");
     $this->contents = $_SESSION["data"]["results"][$this->PPN];
-
+    $this->configExport   = $_SESSION["config_general"]["export"];
+    $this->configGeneral  = $_SESSION["config_general"]["general"];
     //$this->CI->printArray2File($this->contents);
     //return (array("sfx"=>"http://www.handball.de","jop"=>"http://www.fussball.de"));
 
     $linkarray = array();
 
-    $resolver_on = empty($_SESSION["config_general"]["export"]["resolverlink"]) ? false : true;
-    $jop_on      = empty($_SESSION["config_general"]["export"]["joplink"]) ? false : true;
+    $resolver_on = empty($this->configExport["resolverlink"]) ? false : true;
+    $jop_on      = empty($this->configExport["joplink"]) ? false : true;
 
     //Set the variable prio:
     $fulltextPrios =  "";
-    if( !empty($_SESSION["config_general"]["export"]["fulltextprios"]) )
+    if( !empty($this->configExport["fulltextprios"]) )
     {
-      $fulltextPrios      = $_SESSION["config_general"]["export"]["fulltextprios"] ;
+      $fulltextPrios      = $this->configExport["fulltextprios"] ;
       $fulltextPriosArray = explode(",",$fulltextPrios);
       if( !empty($fulltextPriosArray[0]) && $fulltextPriosArray[0] === "multi" && 
           ( count($fulltextPriosArray) == 1 || ( strpos($fulltextPrios,"resolver")!== false && strpos($fulltextPrios,"jop")!== false ))
@@ -489,16 +491,16 @@ class Standard extends General
     
     if ( (isset($data["issn"]) && $data["issn"] != "") || !empty($zdbid) )			
     {
-      $ezbbibid			= empty($_SESSION["config_general"]["general"]["ezbbibid"]) ? null
-    					  : $_SESSION["config_general"]["general"]["ezbbibid"] ;
+      $ezbbibid			= empty($this->configGeneral["ezbbibid"]) ? null
+    					  : $this->configGeneral["ezbbibid"] ;
     
-      $isil             = empty($_SESSION["config_general"]["general"]["isil"]) ? null
-                          : $_SESSION["config_general"]["general"]["isil"] ;
+      $isil             = empty($this->configGeneral["isil"]) ? null
+                          : $this->configGeneral["isil"] ;
     					  
       $bibparam			= utf8_encode(isset($ezbbibid) ? ("bibid%3D" . $ezbbibid) : (isset($isil) ? ("%26isil%3D" . $isil) : ""));
     
-      $openurlReferer   = empty($_SESSION["config_general"]["export"]["openurlreferer"]) ? "Lukida"
-                          : $_SESSION["config_general"]["export"]["openurlreferer"] ; 
+      $openurlReferer   = empty($this->configExport["openurlreferer"]) ? "Lukida"
+                          : $this->configExport["openurlreferer"] ; 
     
       $openurlMetadata  = $this->getOpenURLmetaData($data, "jop");
     
@@ -508,15 +510,15 @@ class Standard extends General
       $ezbLink          = "https://services.dnb.de/fize-service/gvr/full.xml?" . $ezbLinkExtension;
     
       $ezbTarget        = $this->getJOP_Full($ezbLink, str_replace('%3D', '=', $bibparam));	
-      if ( $ezbTarget )   return $ezbTarget;
+      return $ezbTarget;
     }
     return "";
   }
 
   protected function getJOP_Full($link, $bibparam)
   {	  
-	$joponlyfulltext = (isset($_SESSION["config_general"]["export"]["joponlyfulltext"]) &&
-                       $_SESSION["config_general"]["export"]["joponlyfulltext"] == "1") 
+    $joponlyfulltext = (isset($this->configExport["joponlyfulltext"]) &&
+                       $this->configExport["joponlyfulltext"] == "1") 
                        ? true : null;
     $ezb_xml = @simplexml_load_file($link);
 	if (!empty($ezb_xml))
@@ -532,7 +534,6 @@ class Standard extends General
 			$refUrl   = isset($ref->URL) ? $ref->URL : "";
 			$refLabel = isset($ref->Label) ? $ref->Label : "";
 		}
-//var_dump($ezb_xml_result = $ezb_xml->Full->ElectronicData->ResultList->Result);
 		if ( $ezb_xml && isset($ezb_xml->Full->ElectronicData->ResultList->Result) &&
 			 !empty($ezb_xml_result = $ezb_xml->Full->ElectronicData->ResultList->Result) )	
 		{
@@ -586,7 +587,7 @@ class Standard extends General
       else return "";
 	  //return array_values((array)$returnValue)[0];		
     }
-	return false;
+	return "";
   }  
 /*
 ***************************************
@@ -597,61 +598,62 @@ class Standard extends General
   {
     $return = array();
 
-    $openurlBase      = empty($_SESSION["config_general"]["export"]["resolverbase"]) ? null
-                         : $_SESSION["config_general"]["export"]["resolverbase"] ;
-    $openurlReferer   = empty($_SESSION["config_general"]["export"]["openurlreferer"]) ? "Lukida"
-                         : $_SESSION["config_general"]["export"]["openurlreferer"] ;
-    $openurlEntry     = $openurlBase . "?sid=GBV:" . $openurlReferer 
-                        . (strpos($openurlBase,"redi")=== false ? "&ctx_enc=info:ofi/enc:UTF-8" : "");
-    $openurlMetadata  = $this->getOpenURLmetaData($data, "resolver");
-    $resolverLink     = $openurlEntry . $openurlMetadata;
-	
-    if( strpos($openurlBase,"redi") !== false )
-         $resolver = "redi";
-    elseif( strpos($openurlBase,"ovid") !== false ) 
-         $resolver = "ovid";
-    else $resolver = "sfx";
-
-    if (isset($_SESSION["config_general"]["export"]["resolveronlyfulltext"]) &&
-              $_SESSION["config_general"]["export"]["resolveronlyfulltext"] == "1")
+    if (!empty($openurlBase = $this->configExport["resolverbase"]) )
     {
+      $openurlReferer   = empty($this->configExport["openurlreferer"]) ? "Lukida"
+                           : $this->configExport["openurlreferer"] ;
+      $openurlEntry     = $openurlBase . "?sid=GBV:" . $openurlReferer 
+                          . (strpos($openurlBase,"redi") === false ? "&ctx_enc=info:ofi/enc:UTF-8" : "");
+      $openurlMetadata  = $this->getOpenURLmetaData($data, "resolver");
+      $resolverLink     = $openurlEntry . $openurlMetadata;
+	  
       if( strpos($openurlBase,"redi") !== false )
+           $resolver = "redi";
+      elseif( strpos($openurlBase,"ovid") !== false ) 
+           $resolver = "ovid";
+      else $resolver = "sfx";
+    
+      if (isset($this->configExport["resolveronlyfulltext"]) &&
+                $this->configExport["resolveronlyfulltext"] == "1")
       {
-        $resolverLink = str_replace("&rft.","&",$resolverLink);
-        $headers      = @get_headers($resolverLink);
-        $rediFullUrl  = "";
-        foreach( $headers as $header )
-        { 
-          if( strpos($header,"404 Not Found") !== false )
-          {
-            return $return;
-          }
-          elseif( strpos($header,"301 Moved Permanently") !== false )
-          {
-            $rediFullUrl = "found";
-          }
-          elseif( $rediFullUrl == "found" && substr($header,0,10) == "Location: ")
-          {
-            $return[$resolver] = substr($header,9);
-            return $return;
-          }
-        }
-        return $return;
-      }
-      else
-      {
-        $sfxFullUrl = $this->getSFX_Full($resolverLink);
-        if ( $sfxFullUrl != "")
+        if( strpos($openurlBase,"redi") !== false )
         {
-          $return[$resolver] = $sfxFullUrl;
+          $resolverLink = str_replace("&rft.","&",$resolverLink);
+          $headers      = @get_headers($resolverLink);
+          $rediFullUrl  = "";
+          foreach( $headers as $header )
+          { 
+            if( strpos($header,"404 Not Found") !== false )
+            {
+              return $return;
+            }
+            elseif( strpos($header,"301 Moved Permanently") !== false )
+            {
+              $rediFullUrl = "found";
+            }
+            elseif( $rediFullUrl == "found" && substr($header,0,10) == "Location: ")
+            {
+              $return[$resolver] = substr($header,9);
+              return $return;
+            }
+          }
+          return $return;
+        }
+        else
+        {
+          $sfxFullUrl = $this->getSFX_Full($resolverLink);
+          if ( $sfxFullUrl != "")
+          {
+            $return[$resolver] = $sfxFullUrl;
+          }
           return $return;
         }
       }
-    }
-    else 
-    { 
-      $return[$resolver] = $resolverLink;
-      return $return; 
+      else 
+      { 
+        $return[$resolver] = $resolverLink;
+        return $return; 
+      }
     }
   }
 

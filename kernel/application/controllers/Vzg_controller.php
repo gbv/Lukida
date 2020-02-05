@@ -1090,7 +1090,7 @@ class Vzg_controller extends CI_Controller
     //  Resolve New PPN
     if ( $Resolved["status"] != "1" )
     {
-      $Resolved["links"] = json_encode($this->export->linkresolver($ppn));
+      $Resolved["links"] = json_encode($this->export->linkresolver($ppn), JSON_FORCE_OBJECT);
 
       // Store resolved link ( even if empty )
       $this->database->store_resolved_link($ppn, $Resolved["links"]);
@@ -1550,6 +1550,12 @@ class Vzg_controller extends CI_Controller
             if ( (isset($Exp["storage"]["content"])) && $Exp["storage"]["content"] != "" )
             {
               $Items[$ExpID]["storage"] = (isset($Exp["storage"]["content"])) ? trim($Exp["storage"]["content"]) : "";
+            }
+
+            // Storage ID Parameter ergänzen
+            if ( (isset($Exp["storage"]["id"])) && $Exp["storage"]["id"] != "" && stripos($Exp["storage"]["id"], "@") !== false )
+            {
+              $Items[$ExpID]["storageid"] = explode("@",$Exp["storage"]["id"])[1];
             }
   
             // Chronology Parameter ergänzen
