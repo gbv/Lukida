@@ -25,7 +25,8 @@ class Solr extends General
       'path'      => (isset($_SESSION["config_general"]["index_system"]["path"]) && $_SESSION["config_general"]["index_system"]["path"] != "" ) 
                      ? $_SESSION["config_general"]["index_system"]["path"] : "index/100",
       'wt'        => (isset($_SESSION["config_general"]["index_system"]["wt"])   && $_SESSION["config_general"]["index_system"]["wt"] != "" ) 
-                     ? $_SESSION["config_general"]["index_system"]["wt"] : "json"
+                     ? $_SESSION["config_general"]["index_system"]["wt"] : "json",
+      'timeout'   => 120
     );
 
     $this->shards = (isset($_SESSION["config_general"]["index_system"]["shards"])   && $_SESSION["config_general"]["index_system"]["shards"] != "" ) 
@@ -587,10 +588,17 @@ class Solr extends General
     // $this->CI->printArray2File($_SESSION["query"]);
 
     // Execute query
-    $query_response = $client->query($dismaxQuery);
+    try 
+    {
+      $query_response = $client->query($dismaxQuery);
 
-    // Store answer
-    return (array_merge((array) $query_response->getResponse(), array("query"=>"http://" . $this->config["hostname"] . "/" . $this->config["path"] . "/select?" . $dismaxQuery)));
+      // Store answer
+      return (array_merge((array) $query_response->getResponse(), array("query"=>"http://" . $this->config["hostname"] . "/" . $this->config["path"] . "/select?" . $dismaxQuery)));
+    }
+    catch (Exception $e) 
+    {
+      return (array("query"=>"http://" . $this->config["hostname"] . "/" . $this->config["path"] . "/select?" . $dismaxQuery));
+    }
   }
 
   private function solr_after($result,$package)

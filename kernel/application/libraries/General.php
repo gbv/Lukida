@@ -1544,7 +1544,6 @@ class General
                            "data"   => GetRelatedPubsNew($this,$this->PPN,3),
                            "remaft" => array());
     }
-    
     if ( substr($this->medium["leader"],7,1) == "s" && in_array(substr($this->GetMARC($this->contents,"008"),21,1), array("p","n")) )
     {
       // Zeitschriften mit Einzelheften
@@ -1623,6 +1622,7 @@ class General
 
     // Zeitschriften mit Einzelheften
     $PPNLink  = $this->CI->internal_search("ppnlink",$PPN, '("Book","Journal","Serial Volume")');
+    // $PPNLink  = $this->CI->internal_search("ppnlink",$PPN);
     $PPNStg   = json_encode(array_keys($PPNLink["results"]));
     $Journals = array();
     $Counter  = 0;
@@ -1630,18 +1630,16 @@ class General
     {
       $Pretty = $T->SetContents("preview");
   
-      if ( substr($One["leader"],7,1) == "m" || substr($One["leader"],7,1) == "d" )
-      {
-        $Counter++;
-        $Title = $this->Get245ab($One["contents"]);
-        if ( $Title == "" )  $Title = $this->Get490av($One["contents"]);
-        if ( $Title == "" )  $Title = "Nr." . $Counter;
+      $Counter++;
+      $Title = $this->Get245ab($One["contents"]);
+      if ( $Title == "" )  $Title = $this->Get490av($One["contents"]);
+      if ( $Title == "" )  $Title = "Nr." . $Counter;
 
-        $Sort  = explode(".", $this->Get490v($One["contents"]));
-        $Sort  = $Sort[0];
+      $Sort  = explode(".", $this->Get490v($One["contents"]));
+      $Sort  = $Sort[0];
   
-        $Journals[$One["id"]] = array
-        (
+      $Journals[$One["id"]] = array
+      (
         "format"    => $One["format"],
         "cover"     => $One["cover"],
         "type"      => "ppn",
@@ -1649,8 +1647,7 @@ class General
         "label1"    => $Title,
         "label2"    => $this->GetPublisherYear($One["contents"]),
         "sort"      => $Sort
-        );
-      }
+      );
     }
     if ( count($Journals) )
     {
@@ -1659,6 +1656,7 @@ class General
   
     // Artikel
     $PPNLink  = $this->CI->internal_search("ppnlink",$PPN, "Article");
+    // $PPNLink  = $this->CI->internal_search("ppnlink",$PPN);
     $PPNStg   = json_encode(array_keys($PPNLink["results"]));
     $Articles = array();
     $Counter  = 0;
@@ -1666,18 +1664,15 @@ class General
     {
       $Pretty = $T->SetContents("preview");
   
-      if ( substr($One["leader"],7,1) == "a" )
-      {
-        $Articles[$One["id"]] = array
-        (
+      $Articles[$One["id"]] = array
+      (
         "format"    => $One["format"],
         "cover"     => $One["cover"],
         "type"      => "ppn",
         "link"      => $One["id"],
         "label1"    => $this->Get245ab($One["contents"]),
         "label2"    => $this->Get952j($One["contents"])
-        );
-      }
+      );
     }
 
     return (array("articles" => $Articles, "journals" => $Journals ));

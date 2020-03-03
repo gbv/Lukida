@@ -1557,6 +1557,12 @@ class Vzg_controller extends CI_Controller
             {
               $Items[$ExpID]["storageid"] = explode("@",$Exp["storage"]["id"])[1];
             }
+
+            // Storage ID Parameter ergänzen
+            if ( (isset($Exp["storage"]["href"])) && $Exp["storage"]["href"] != "" )
+            {
+              $Items[$ExpID]["storagelink"] = $Exp["storage"]["href"];
+            }
   
             // Chronology Parameter ergänzen
             if ( (isset($Exp["chronology"]["about"])) && $Exp["chronology"]["about"] != "" )
@@ -1569,6 +1575,12 @@ class Vzg_controller extends CI_Controller
             {
               $Items[$ExpID]["department"] = (isset($Exp["department"]["content"])) ? trim($Exp["department"]["content"]) : "";
             }
+
+            // Department ID Parameter ergänzen
+            if ( (isset($Exp["department"]["id"])) && $Exp["department"]["id"] != "" && stripos($Exp["department"]["id"], "@") !== false )
+            {
+              $Items[$ExpID]["departmentid"] = explode("@",$Exp["department"]["id"])[1];
+            }
   
             // Label Parameter ergänzen
             if ( (isset($Exp["label"])) && $Exp["label"] != "" )
@@ -1578,15 +1590,19 @@ class Vzg_controller extends CI_Controller
   
             // Label About ergänzen (Immer wegen Sortierung)
             $Items[$ExpID]["about"] = ( (isset($Exp["about"])) && $Exp["about"] != "" ) ? trim($Exp["about"]) : "-";
+
+            $Items[$ExpID]["bandlist"]  = ($Items[$ExpID]["about"] != "-" && stripos($Items[$ExpID]["id"], ":bar:") !== false) ? true : false;
           }
         }
       }
   
+      /*
       // Add bandlist switch 
-      foreach ($Items as $ExpID => $One) 
+      foreach ($Items as $ExpID => $One)
       {
         $Items[$ExpID]["bandlist"]  = (isset($One["epn"]) && isset($ICount["EPN_".$One["epn"]]) && $ICount["EPN_".$One["epn"]] > 1) ? true : false;
       }
+      */
   
       // Sort records by about (volume...)
       uasort($Items, function ($a, $b) { return $a['about'] <=> $b['about']; });
@@ -1761,6 +1777,17 @@ class Vzg_controller extends CI_Controller
           // Sort records by about (volume...)
           ksort($Combined[$LukidaID]);
         }
+
+        // Sortierung erst nach epn (b) und danach nach Signatur (d)
+        uasort($Combined, function($a, $b) 
+        {
+          if ( isset($a['about']) && isset($a['about']) )
+          {
+            $retval = $a['about'] <=> $b['about'];
+            return $retval;
+          }
+        });
+
         //$this->printArray2File($Combined);
         return ($Combined);
       }

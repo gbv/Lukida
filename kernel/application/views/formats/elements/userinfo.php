@@ -13,6 +13,9 @@ foreach ( $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] as $key => $value )
   // Do not show user type
   if ( $key == "type" ) continue;
 
+  // Do not show user note
+  if ( $key == "note" ) continue;
+
   // Format Date
   if ( $key == "expires" )  $value =  $this->CI->date2german($value);
 
@@ -34,4 +37,12 @@ if ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"][
 	$Output .= $_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["messagetext"];
 	$Output .= "</div></div>";
 }
+
+if ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["note"]) && trim($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["note"]) )
+{
+  $Output .= "<div class='col-xs-12'><div class='alert alert-danger'>";
+  $Output .= $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["note"];
+  $Output .= "</div></div>";
+}
+
 ?>

@@ -167,10 +167,11 @@ class Paia2_daia2 extends General
         $user['lastname'] = $user_response['name'];
       }
     }
-    $user['email']   = isset($user_response['email']) ? $user_response['email'] : "";
+    $user['email']   = isset($user_response['email'])   ? $user_response['email']   : "";
+    $user['note']    = isset($user_response['note'])    ? $user_response['note']    : "";
     $user['address'] = isset($user_response['address']) ? $user_response['address'] : "";
     $user['expires'] = isset($user_response['expires']) ? $user_response['expires'] : "";
-    $user['status']  = isset($user_response['status']) ? $user_response['status'] : "";
+    $user['status']  = isset($user_response['status'])  ? $user_response['status']  : "";
     $user['type']    = isset($user_response['type'][0]) ? substr($user_response['type'][0],strripos($user_response['type'][0],"user-type")+10) : "";
     return $user;
   }

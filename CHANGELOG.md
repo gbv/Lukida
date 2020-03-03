@@ -1,5 +1,24 @@
 # Changelog
 
+**03.03.2020**
+* User view
+  * User notes will be shown on login and in user view
+
+**28.02.2020**
+* System
+  * Added disability access link
+
+**26.02.2020**
+* Fullview
+  * Improved bandlist detection 
+
+**19.02.2020**
+* System
+  * Performance Update
+
+**05.02.2020**
+* Tooltips containting links to external systems
+
 **04.02.2020**
 * Exemplar-Detail-Window
   * Liststyle added

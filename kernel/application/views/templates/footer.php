@@ -36,6 +36,19 @@ if ( !$front || !isset($_SESSION["config_general"]["general"]["frontpagewithoutl
                      . "<a class='showeng hide' href='" . $Tmp[1] . "' target='_blank'><span class='dataprotection'>" . $this->database->code2text("DATAPROTECTION") . "</span></a>";
     }
   }
+  if ( isset($_SESSION["config_general"]["general"]["disabilityaccess"]) && $_SESSION["config_general"]["general"]["disabilityaccess"] != "" ) 
+  {
+    $Tmp = explode(",",$_SESSION["config_general"]["general"]["disabilityaccess"]);
+    if (count($Tmp) == 1)
+    {
+      $FooterArray[] = "<a href='" . $Tmp[0] . "' target='_blank'><span class='disabilityaccess'>" . $this->database->code2text("disabilityaccess") . "</span></a>";
+    }
+    if (count($Tmp) == 2)
+    {
+      $FooterArray[] = "<a class='showger' href='" . $Tmp[0] . "' target='_blank'><span class='disabilityaccess'>" . $this->database->code2text("DISABILITYACCESS") . "</span></a>"
+                     . "<a class='showeng hide' href='" . $Tmp[1] . "' target='_blank'><span class='disabilityaccess'>" . $this->database->code2text("DISABILITYACCESS") . "</span></a>";
+    }
+  }
   if ( isset($_SESSION["config_general"]["general"]["about"]) && $_SESSION["config_general"]["general"]["about"] != "" )
   {
     $Tmp = explode(",",$_SESSION["config_general"]["general"]["about"]);
