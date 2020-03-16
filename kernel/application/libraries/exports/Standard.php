@@ -619,6 +619,8 @@ class Standard extends General
         if( strpos($openurlBase,"redi") !== false )
         {
           $resolverLink = str_replace("&rft.","&",$resolverLink);
+          //spaces cause HTTP 400 errors 
+          $resolverLink = str_replace(" ","%20",$resolverLink);
           $headers      = @get_headers($resolverLink);
           $rediFullUrl  = "";
           foreach( $headers as $header )

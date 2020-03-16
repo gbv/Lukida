@@ -1431,7 +1431,7 @@ class Vzg_controller extends CI_Controller
       if (isset($One["y"]) && $Client != "" && strtolower(substr($One["y"],1)) != $Client) continue;
 
       // Use or create ExpID
-      $EPN = ( isset($One["b"]) ) ? $One["b"] : $X++;
+      $EPN = ( isset($One["b"]) ) ? strtoupper($One["b"]) : $X++;
       $Items[$EPN] = $One;
     }
 
@@ -1493,7 +1493,7 @@ class Vzg_controller extends CI_Controller
       if (isset($One["y"]) && $Client != "" && strtolower(substr($One["y"],1)) != $Client) continue;
 
       // Use or create ExpID
-      $EPN = ( isset($One["b"]) ) ? $One["b"] : $X++;
+      $EPN = ( isset($One["b"]) ) ? strtoupper($One["b"]) : $X++;
       $Items[$EPN] = $One;
     }
 
@@ -1525,7 +1525,7 @@ class Vzg_controller extends CI_Controller
           foreach ( $Dok["item"] as $Exp )
           {
             // DAIA 1 & 2 - Check services
-            $ExpID    = (isset($Exp["temporary-hack-do-not-use"])) ? $Exp["temporary-hack-do-not-use"] : explode(":",$Exp["id"])[3];
+            $ExpID    = (isset($Exp["temporary-hack-do-not-use"])) ? strtoupper($Exp["temporary-hack-do-not-use"]) : explode(":",$Exp["id"])[3];
             $OrgExpID = $ExpID;
             $ICount["EPN_" . $ExpID] = (!isset($ICount["EPN_" . $ExpID])) ? 1 : $ICount["EPN_" . $ExpID] + 1;
             if ( array_key_exists($ExpID, $Items) )

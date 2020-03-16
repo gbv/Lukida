@@ -1492,6 +1492,7 @@ class General
     || substr($this->medium["leader"],6,2) == "mm"
     || substr($this->medium["leader"],6,2) == "ms" 
     || substr($this->medium["leader"],6,2) == "aa" 
+    || substr($this->medium["leader"],6,2) == "ab" 
     || substr($this->medium["leader"],6,2) == "am" 
     || substr($this->medium["leader"],6,2) == "as" )
     && substr($this->GetMARC($this->contents,"007"),0,2) == "cr" )

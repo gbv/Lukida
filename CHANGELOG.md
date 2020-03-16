@@ -1,5 +1,9 @@
 # Changelog
 
+**16.03.2020**
+* Export
+  * ReDI link improved
+
 **03.03.2020**
 * User view
   * User notes will be shown on login and in user view
