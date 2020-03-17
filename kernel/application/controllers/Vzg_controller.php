@@ -1781,7 +1781,7 @@ class Vzg_controller extends CI_Controller
         // Sortierung erst nach epn (b) und danach nach Signatur (d)
         uasort($Combined, function($a, $b) 
         {
-          if ( isset($a['about']) && isset($a['about']) )
+          if ( isset($a['about']) && isset($b['about']) )
           {
             $retval = $a['about'] <=> $b['about'];
             return $retval;
