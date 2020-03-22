@@ -1768,7 +1768,7 @@ class General
           if ( isset($Exemplar["link"]) && trim($Exemplar["link"]) != "" )
           {
             $Class  = $BtnClass;
-            if ( isset($Exemplar["type"]) && !in_array($Exemplar["type"], array("ppn","external","ppnsearch")) )  continue;
+            if ( isset($Exemplar["type"]) && !in_array($Exemplar["type"], array("external","idsearch","ppn","ppnlinksearch")) )  continue;
             if ( isset($Exemplar["type"]) && $Exemplar["type"] == "ppn" )
             {
               $Action  = "onclick='$.open_fullview(\"" . $EPN . "\"," . json_encode(array_keys($Area["data"])) . ",\"publications\")'";
@@ -1778,9 +1778,9 @@ class General
               $Action = "onclick='window.open(\"" . $Exemplar["link"] . "\",\"_blank\")' data-toggle='tooltip' title='" . $Exemplar["link"] . "'";
               $Icon   = " <span class='fa fa-external-link'></span>";
             }
-            if ( isset($Exemplar["type"]) && $Exemplar["type"] == "ppnsearch" )
+            if ( isset($Exemplar["type"]) && substr($Exemplar["type"],-6) == "search" )
             {
-              $Action = "onclick='$.link_search(\"id\",\"" . $Exemplar["link"] . "\")'";
+              $Action = "onclick='$.link_search(\"" . substr($Exemplar["type"],0,strpos($Exemplar["type"],"search")) . "\",\"" . $Exemplar["link"] . "\")'";
             }
           }
     

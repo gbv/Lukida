@@ -635,7 +635,7 @@ class Standard extends General
             }
             elseif( $rediFullUrl == "found" && substr($header,0,10) == "Location: ")
             {
-              $return[$resolver] = substr($header,9);
+              $return[$resolver] = substr($header,10);
               return $return;
             }
           }

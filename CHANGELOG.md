@@ -1,5 +1,9 @@
 # Changelog
 
+**20.03.2020**
+* Search 
+  * Improved PPNLINK search
+
 **16.03.2020**
 * Export
   * ReDI link improved
