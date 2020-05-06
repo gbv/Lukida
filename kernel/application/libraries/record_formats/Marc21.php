@@ -168,25 +168,19 @@ class Marc21 extends General
         else
         {
           // 912-area keep only data for configured ilns
-          if ( $tag == "912" && count($ILNs) )
+          if ( $tag == "912" && count($ILNs) && isset($Sub[0]["a"]) )
           {
-            if ( $data->getSubField("a") )
+            if ( in_array(substr($Sub[0]["a"],8,3), array_values($ILNs)) 
+                 || substr($Sub[0]["a"],0,8) != "GBV_ILN_" && !in_array($Sub[0]["a"], array("SYSFLAG_1", "SYSFLAG_A")) )
             {
-              $Tmp = (string) trim($data->getSubField("a")->getData());
-
-              if ( in_array(substr($Tmp,8,3), array_values($ILNs)) || 
-                ( substr($Tmp,0,8) != "GBV_ILN_" && !in_array($Tmp, array("SYSFLAG_1", "SYSFLAG_A"))) ) 
-              {
-                if ( empty($this->contents[$tag]) || !in_array($Sub, $this->contents[$tag]) ) $this->contents[$tag][] = $Sub;
-                continue;
-              }
+              if ( empty($this->contents[$tag]) || !in_array($Sub, $this->contents[$tag]) ) $this->contents[$tag][] = $Sub;
             }
             if ( isset($_SESSION["internal"]["marcfull"]) && $_SESSION["internal"]["marcfull"] == "1" )
             {
               $this->contents["{". $tag."}"][] = $Sub;
             }
           }
-
+  
           // 980-area keep only data for configured iln
           if ( $tag >= "980" && count($ILNs) )
           {

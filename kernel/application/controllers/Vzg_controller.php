@@ -1684,15 +1684,16 @@ class Vzg_controller extends CI_Controller
 
   private function GetLimitation($Limitation)
   {
-    $Str = "";
+    $Lim = array();
+
     foreach ($Limitation as $Limit)
     {
       if ( isset($Limit["id"]) )
       {
-        $Str = ($Str == "") ? parse_url($Limit["id"], PHP_URL_FRAGMENT) : ", " . parse_url($Limit["id"], PHP_URL_FRAGMENT);
+        $Lim[] = explode("#", $Limit["id"])[1];
       }
     }
-    return $Str;
+    return $Lim;
   }
 
   private function GetLBSAction($URI)
@@ -1727,7 +1728,7 @@ class Vzg_controller extends CI_Controller
         $Services[$SName]      += 1;
       }
       $SID = $Services[$SName];
-      $Items[$SName."items"][$SID]["limitation"] = ( isset($One["limitation"]) ) ? $this->GetLimitation($One["limitation"])                     : "-";
+      $Items[$SName."items"][$SID]["limitation"] = ( isset($One["limitation"]) ) ? $this->GetLimitation($One["limitation"])                     : array();
       $Items[$SName."items"][$SID]["expected"]   = ( isset($One["expected"]) )   ? date("d.m.Y", strtotime(strtolower(trim($One["expected"])))) : "-";
       $Items[$SName."items"][$SID]["queue"]      = ( isset($One["queue"]) )      ? trim($One["queue"]) : "0";
       $Items[$SName."items"][$SID]["title"]      = ( isset($One["title"]) )      ? trim($One["title"]) : "-";

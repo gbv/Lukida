@@ -73,7 +73,10 @@ foreach ($LeftSide as $Left)
           $Output .= "<tr><td class='tabcell'>" . $K1 . "</td><td class='tabcell'><table>";
           foreach ( $V1 as $K2 => $V2 )
           {
-            $Output .= "<tr><td class='tabcell'>" . $K2 . "</td><td class='tabcell'>" . $this->CI->CutText($V2,20,true) . "</td></tr>";
+            $Output .= "<tr><td class='tabcell'>" . $K2 . "</td><td class='tabcell'>";
+            $Tmp = ( is_array($V2) ) ? implode(" | ", $V2 ) : $V2;
+            $Output .= $this->CI->CutText($Tmp,60,true);
+            $Output .= "</td></tr>";
           }
           $Output .= "</table></td></tr>";
         }

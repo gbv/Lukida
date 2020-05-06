@@ -1416,36 +1416,12 @@ class General
   // * New functions * 
   // *****************
 
-  protected function isOwner()  
+  private function CheckILN($ILN)
   {
-    // $this->CI->printArray2Screen($_SESSION["iln"]);
-    // $this->CI->printArray2Screen($this->catalogues);
-    $Client = ( isset($_SESSION["config_general"]["general"]["client"])  && $_SESSION["config_general"]["general"]["client"] != "" ) 
-              ? $_SESSION["config_general"]["general"]["client"]
-              : "";
-
-    if ( isset($this->contents[912]) && isset($_SESSION["iln"]) && $_SESSION["iln"] != "" && ( in_array( "GBV_ILN_".$_SESSION["iln"], $this->catalogues) ) )
-    {
-      if ( $Client == "" )
-      {
-        return true;
-      }
-      else
-      {
-        if ( in_array("GBV_ILN_".$_SESSION["iln"]."_".strtoupper($Client), $this->catalogues) )
-        {
-          return true;
-        }
-        else
-        {
-          return false;
-        }
-      }
-    }
-    return false;
+    return ( isset($this->contents[912]) && $ILN && ( in_array( "GBV_ILN_".$ILN, $this->catalogues) ) ) ? true : false;
   }
 
-  protected function ParentisOwner()  
+  private function CheckParentILN($ILN)
   {
     // Einlesen des Elternteils
     $ParentContents = array();
@@ -1458,30 +1434,74 @@ class General
         $ParentCatalogues = ( isset($_SESSION["data"]["results"][$ParentPPN]["catalogues"]) ) ? $_SESSION["data"]["results"][$ParentPPN]["catalogues"] : "";
       }
     }
+    return ( isset($ParentContents[912]) && $ILN && ( in_array( "GBV_ILN_".$ILN, $ParentCatalogues) ) ) ? true : false;
+  }
 
-    // $this->CI->printArray2Screen($_SESSION["iln"]);
-    // $this->CI->printArray2Screen($this->catalogues);
-    $Client = ( isset($_SESSION["config_general"]["general"]["client"])  && $_SESSION["config_general"]["general"]["client"] != "" ) 
-              ? $_SESSION["config_general"]["general"]["client"]
+  protected function isOwner()  
+  {
+    $ILN       = ( isset($_SESSION["iln"]) && $_SESSION["iln"] != "" ) 
+                 ? $_SESSION["iln"] 
+                 : "";
+    $ClientILN = ( isset($_SESSION["config_general"]["general"]["client"])  && $_SESSION["config_general"]["general"]["client"] != "" ) 
+                 ? "GBV_ILN_".$_SESSION["iln"]."_".strtoupper($_SESSION["config_general"]["general"]["client"])
+                 : "";
+
+    return ( $this->CheckILN($ILN) || $this->CheckILN($ClientILN) );
+  }
+
+  protected function isSecondILNOwner()  
+  {
+    $SecILN = ( isset($_SESSION["config_general"]["general"]["ilnsecond"]) && $_SESSION["config_general"]["general"]["ilnsecond"] != "" )
+              ? $_SESSION["config_general"]["general"]["ilnsecond"]
               : "";
 
-    if ( isset($ParentContents[912]) && isset($_SESSION["iln"]) && $_SESSION["iln"] != "" && ( in_array( "GBV_ILN_".$_SESSION["iln"], $ParentCatalogues) ) )
+    return $this->CheckILN($SecILN);
+  }
+
+  protected function isMoreILNOwner()  
+  {
+    $ILNs = ( isset($_SESSION["config_general"]["general"]["ilnmore"]) && $_SESSION["config_general"]["general"]["ilnmore"] != "" )
+            ? array_unique(explode(",",$_SESSION["config_general"]["general"]["ilnmore"]))
+            : array();
+
+    foreach ($ILNs as $ILN)
     {
-      if ( $Client == "" )
-      {
-        return true;
-      }
-      else
-      {
-        if ( in_array("GBV_ILN_".$_SESSION["iln"]."_".strtoupper($Client), $ParentCatalogues) )
-        {
-          return true;
-        }
-        else
-        {
-          return false;
-        }
-      }
+      if ( $this->CheckILN($ILN) )  return true;
+    }
+    return false;
+  }
+
+  protected function ParentisOwner()  
+  {
+
+    $ILN       = ( isset($_SESSION["iln"]) && $_SESSION["iln"] != "" ) 
+                 ? $_SESSION["iln"] 
+                 : "";
+    $ClientILN = ( isset($_SESSION["config_general"]["general"]["client"])  && $_SESSION["config_general"]["general"]["client"] != "" ) 
+                 ? "GBV_ILN_".$_SESSION["iln"]."_".strtoupper($_SESSION["config_general"]["general"]["client"])
+                 : "";
+
+    return ( $this->CheckParentILN($ILN) || $this->CheckParentILN($ClientILN) );
+  }
+
+  protected function ParentisSecondILNOwner()  
+  {
+    $SecILN = ( isset($_SESSION["config_general"]["general"]["ilnsecond"]) && $_SESSION["config_general"]["general"]["ilnsecond"] != "" )
+              ? $_SESSION["config_general"]["general"]["ilnsecond"]
+              : "";
+
+    return $this->CheckParentILN($SecILN);
+  }
+
+  protected function ParentisisMoreILNOwner()  
+  {
+    $ILNs = ( isset($_SESSION["config_general"]["general"]["ilnmore"]) && $_SESSION["config_general"]["general"]["ilnmore"] != "" )
+            ? array_unique(explode(",",$_SESSION["config_general"]["general"]["ilnmore"]))
+            : array();
+
+    foreach ($ILNs as $ILN)
+    {
+      if ( $this->CheckParentILN($ILN) )  return true;
     }
     return false;
   }
@@ -1522,7 +1542,7 @@ class General
     if ( substr($this->medium["leader"],7,1) == "m" && substr($this->medium["leader"],19,1) == "a" )
     {
       // Mehrbändige Werke
-      $Exemplars[] = array("label"  => "RELATEDPUBLICATIONS", 
+      $Exemplars[] = array("label"  => $this->CI->database->code2text("RELATEDPUBLICATIONS"), 
                            "rembef" => array(),
                            "data"   => $this->GetRelatedPubsNew($this,$this->PPN,1),
                            "remaft" => array());
@@ -1531,7 +1551,7 @@ class General
     if ( substr($this->medium["leader"],7,1) == "s" && substr($this->GetMARC($this->contents,"008"),21,1) == "m" )
     {
       // Schriftenreihen
-      $Exemplars[] = array("label"  => "RELATEDPUBLICATIONS",
+      $Exemplars[] = array("label"  => $this->CI->database->code2text("RELATEDPUBLICATIONS"),
                            "rembef" => array(),
                            "data"   => $this->GetRelatedPubsNew($this,$this->PPN,2),
                            "remaft" => array());
@@ -1540,7 +1560,7 @@ class General
     if ( $this->CI->record_format->GetMARCSubfieldFirstString($this->contents, "951", "b") == "j" )
     {
       // Enthaltene Werke
-      $Exemplars[] = array("label"  => "INCLUDEDMEDIA",
+      $Exemplars[] = array("label"  => $this->CI->database->code2text("INCLUDEDMEDIA"),
                            "rembef" => array(),
                            "data"   => GetRelatedPubsNew($this,$this->PPN,3),
                            "remaft" => array());
@@ -1551,14 +1571,14 @@ class General
       $IncludedPubs = $this->GetIncludedPubsNew($this,$this->PPN);
       if ( count($IncludedPubs["journals"]) )
       {
-        $Exemplars[] = array("label"  => "RELATEDJOURNALS",
+        $Exemplars[] = array("label"  => $this->CI->database->code2text("RELATEDJOURNALS"),
                              "rembef" => array(),
                              "data"   => $IncludedPubs["journals"],
                              "remaft" => array());
       }
       if ( count($IncludedPubs["articles"]) )
       {
-        $Exemplars[] = array("label"  => "RELATEDARTICLES",
+        $Exemplars[] = array("label"  => $this->CI->database->code2text("RELATEDARTICLES"),
                              "rembef" => array(),
                              "data"   => $IncludedPubs["articles"],
                              "remaft" => array());
@@ -1716,9 +1736,6 @@ class General
     }
     
     // Create Buttons
-    $BtnClass     = $ButtonSize . " btn btn-default btn-exemplar";
-    $EmptyClass   = $ButtonSize . " btn btn-default empty-exemplar";
-     
     $FirstArea = true;
     foreach ($Exemplars as $Area)
     {
@@ -1728,7 +1745,7 @@ class General
         if ( !$FirstArea ) $Output .= "<div class='space_buttons'></div>";
     
         // Area Label
-        $Label = (isset($Area["label"]) && trim($Area["label"]) != "") ? $this->CI->database->code2text($Area["label"]) : "";
+        $Label = (isset($Area["label"]) && trim($Area["label"]) != "") ? $Area["label"] : "";
         $Output .= "<div>" . $Label . "</div>";
     
         // Area remarks before buttons
@@ -1738,7 +1755,7 @@ class General
           {
             if ( count($Val) )
             {
-              $Output .= "<div>" . $this->CI->database->code2text($Key) . "</div>";
+              if ( $Key ) $Output .= "<div>" . $Key . "</div>";
               $Output .= "<ul><li><small>" . implode("</li><li>", $Val) . "</small></li></ul>";
             }
           }
@@ -1767,8 +1784,10 @@ class General
           // Link
           if ( isset($Exemplar["link"]) && trim($Exemplar["link"]) != "" )
           {
-            $Class  = $BtnClass;
-            if ( isset($Exemplar["type"]) && !in_array($Exemplar["type"], array("external","idsearch","ppn","ppnlinksearch")) )  continue;
+            $Class  = $ButtonSize . " btn btn-default "
+                    . ( ( isset($Exemplar["class"]) && $Exemplar["class"] ) ? $Exemplar["class"] : "btn-exemplar" );
+
+            if ( isset($Exemplar["type"]) && !in_array($Exemplar["type"], array("external","idsearch","ppn","ppnlinksearch","textsearch")) )  continue;
             if ( isset($Exemplar["type"]) && $Exemplar["type"] == "ppn" )
             {
               $Action  = "onclick='$.open_fullview(\"" . $EPN . "\"," . json_encode(array_keys($Area["data"])) . ",\"publications\")'";
@@ -1787,7 +1806,8 @@ class General
           // Action
           if ( isset($Exemplar["action"]) && trim($Exemplar["action"]) != "" )
           {
-            $Class  = $BtnClass;
+            $Class  = $ButtonSize . " btn btn-default "
+                    . ( ( isset($Exemplar["class"]) && $Exemplar["class"] ) ? $Exemplar["class"] : "btn-exemplar" );
             $Action = "onclick='$." . $Exemplar["action"] . "(\"" . ((isset($_SESSION["iln"])) ? $_SESSION["iln"] : "") 
                     . "\",\"" . $this->PPN . "\",\"" . $EPN . "\"," . json_encode($Exams,JSON_HEX_TAG) . ")'";
           }
@@ -1795,7 +1815,8 @@ class General
           // Blind
           if ( !isset($Exemplar["action"]) && !isset($Exemplar["link"]) )
           {
-            $Class  = $EmptyClass;
+            $Class  = $ButtonSize . " btn btn-default "
+                    . ( ( isset($Exemplar["class"]) && $Exemplar["class"] ) ? $Exemplar["class"] : "empty-exemplar" );
             $Action = "";
           }
     
@@ -1819,9 +1840,10 @@ class General
     
         if ( count($LinksResolved) && $this->medium["online"] )
         {
+          $Class  = $ButtonSize . " btn btn-default btn-exemplar";
           foreach ( $LinksResolved as $Solver => $Lk )
           {
-            $Output .= "<button onclick='$.openLink(\"" . $Lk . "\")' class='". $BtnClass . "'>" . $this->CI->database->code2text("FULLTEXT") . " (" .  $this->CI->   database->code2text( $Solver)  . ")</button>";
+            $Output .= "<button onclick='$.openLink(\"" . $Lk . "\")' class='". $Class . "'>" . $this->CI->database->code2text("FULLTEXT") . " (" .  $this->CI->   database->code2text( $Solver)  . ")</button>";
           }
         }
         elseif ( $this->medium["online"] )
@@ -1839,7 +1861,7 @@ class General
           {
             if ( count($Val) )
             {
-              $Output .= "<div>" . $this->CI->database->code2text($Key) . "</div>";
+              if ( $Key ) $Output .= "<div>" . $Key . "</div>";
               $Output .= "<ul><li><small>" . implode("</li><li>", $Val) . "</small></li></ul>";
             }
           }

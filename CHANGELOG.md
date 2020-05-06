@@ -1,5 +1,13 @@
 # Changelog
 
+**09.04.2020**
+* Fullview
+  * Dynamic Buttons Classes
+
+**02.04.2020**
+* Fullview
+  * Added textsearch
+
 **20.03.2020**
 * Search 
   * Improved PPNLINK search
