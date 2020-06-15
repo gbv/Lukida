@@ -1,5 +1,9 @@
 # Changelog
 
+**15.06.2020**
+* LinkResolver
+  * Redi linking improved
+
 **09.04.2020**
 * Fullview
   * Dynamic Buttons Classes

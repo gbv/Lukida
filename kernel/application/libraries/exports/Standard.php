@@ -622,21 +622,38 @@ class Standard extends General
           //spaces cause HTTP 400 errors 
           $resolverLink = str_replace(" ","%20",$resolverLink);
           $headers      = @get_headers($resolverLink);
-          $rediFullUrl  = "";
+          $rediFullUrl  = ""; $cacheControl = "";
           foreach( $headers as $header )
-          { 
+          {
             if( strpos($header,"404 Not Found") !== false )
             {
               return $return;
             }
-            elseif( strpos($header,"301 Moved Permanently") !== false )
+            elseif( strpos($header,"301 Moved Permanently") !== false || strpos($header,"302 Found") !== false )
             {
               $rediFullUrl = "found";
             }
-            elseif( $rediFullUrl == "found" && substr($header,0,10) == "Location: ")
+            elseif( substr($header,0,14) == "Cache-Control:")
             {
-              $return[$resolver] = substr($header,10);
-              return $return;
+              $cacheControl = "found";
+            }
+            elseif( substr($header,0,10) == "Location: ")
+            { 
+              if( $rediFullUrl == "found" && $cacheControl == "" )
+              {
+                if( strpos($header,"www-fr.redi-bw.de") !== false || strpos($header,"ezb.uni-regensburg.de") !== false )
+                { //Location over redi:
+                  if( strpos($header,"www-fr.redi-bw.de") !== false )
+                     $return[$resolver] = substr($header,10);
+                }
+                else
+                { //Direkt location:
+                  $return[$resolver] = substr($header,10);
+                  return $return;
+                }
+              }
+              $rediFullUrl  = "";
+              $cacheControl = "";
             }
           }
           return $return;

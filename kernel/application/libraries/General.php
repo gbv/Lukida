@@ -1443,10 +1443,10 @@ class General
                  ? $_SESSION["iln"] 
                  : "";
     $ClientILN = ( isset($_SESSION["config_general"]["general"]["client"])  && $_SESSION["config_general"]["general"]["client"] != "" ) 
-                 ? "GBV_ILN_".$_SESSION["iln"]."_".strtoupper($_SESSION["config_general"]["general"]["client"])
+                 ? $_SESSION["iln"]."_".strtoupper($_SESSION["config_general"]["general"]["client"])
                  : "";
 
-    return ( $this->CheckILN($ILN) || $this->CheckILN($ClientILN) );
+    return ( ( $this->CheckILN($ILN) && !$ClientILN ) || ( $this->CheckILN($ClientILN) && $ClientILN ) );
   }
 
   protected function isSecondILNOwner()  
@@ -1478,10 +1478,10 @@ class General
                  ? $_SESSION["iln"] 
                  : "";
     $ClientILN = ( isset($_SESSION["config_general"]["general"]["client"])  && $_SESSION["config_general"]["general"]["client"] != "" ) 
-                 ? "GBV_ILN_".$_SESSION["iln"]."_".strtoupper($_SESSION["config_general"]["general"]["client"])
+                 ? $_SESSION["iln"]."_".strtoupper($_SESSION["config_general"]["general"]["client"])
                  : "";
 
-    return ( $this->CheckParentILN($ILN) || $this->CheckParentILN($ClientILN) );
+    return ( ( $this->CheckParentILN($ILN) && !$ClientILN ) || ( $this->CheckParentILN($ClientILN) && $ClientILN ) );
   }
 
   protected function ParentisSecondILNOwner()  
