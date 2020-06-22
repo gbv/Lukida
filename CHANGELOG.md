@@ -1,5 +1,9 @@
 # Changelog
 
+**22.06.2020**
+* General
+  * URL usage improved
+
 **15.06.2020**
 * LinkResolver
   * Redi linking improved
