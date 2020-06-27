@@ -1,5 +1,9 @@
 # Changelog
 
+**25.06.2020**
+* Search
+  * BugFix: Question mark as wildcard character
+
 **22.06.2020**
 * General
   * URL usage improved

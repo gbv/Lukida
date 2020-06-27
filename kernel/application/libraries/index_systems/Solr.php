@@ -38,7 +38,7 @@ class Solr extends General
   // ********************************************
   private function solr_before($search)
   {
-    $search = str_replace(array("%20","?"), " ", $search);
+    $search = str_replace(array("%20"), " ", $search);
     return ($search);
   }
 
@@ -126,6 +126,7 @@ class Solr extends General
     // to build query string MainSearch
     $MainSearch = "";
     $search     = trim($search);
+    // $this->CI->printArray2File($search);
     foreach ( $matches[0] as $index => $complex )
     {
       $CType = strtolower(trim($matches[1][$index]));
