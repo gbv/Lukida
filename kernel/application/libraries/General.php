@@ -910,8 +910,9 @@ class General
     $Classification = array();
     if ( array_key_exists("084", $this->contents) )
     {
-      $Classification = $this->GetCompleteArray(array("084" => array("a","2","9")));
+      $Classification = $this->GetCompleteArray(array("084" => array("a","2")));
     }
+    /*
     // Add Dewey
     if ( array_key_exists("082", $this->contents) )
     {
@@ -924,6 +925,7 @@ class General
                                  );
       }
     }
+    */
     return $Classification;
   }
 
@@ -1527,11 +1529,7 @@ class General
 
   protected function isMulti()
   {
-    return ( ( substr($this->medium["leader"],7,1) == "m" && substr($this->medium["leader"],19,1) == "a" )
-          || ( substr($this->medium["leader"],7,1) == "s" && substr($this->GetMARC($this->contents,"008"),21,1) == "m" )
-          || ( $this->CI->record_format->GetMARCSubfieldFirstString($this->contents, "951", "b") == "j" )
-          || ( substr($this->medium["leader"],7,1) == "s" && in_array(substr($this->GetMARC($this->contents,"008"),21,1), array("p","n")) ) )
-          ? true : false;
+    return ( in_array($this->medium["format"],array("book","ebook","journal","ejournal","monographseries","serialvolume","unknown")) ) ? true : false;
   }
 
   protected function getMulti()
@@ -1539,7 +1537,7 @@ class General
     $Exemplars = array();
 
     // Mehrbändige Werke, Schriftenreihen, Zeitschriften mit Einzelheften
-    if ( substr($this->medium["leader"],7,1) == "m" && substr($this->medium["leader"],19,1) == "a" )
+    if ( in_array($this->medium["format"],array("book","ebook","monographseries","unknown")) )
     {
       // Mehrbändige Werke
       $Exemplars[] = array("label"  => $this->CI->database->code2text("RELATEDPUBLICATIONS"), 
@@ -1548,7 +1546,7 @@ class General
                            "remaft" => array());
     }
     
-    if ( substr($this->medium["leader"],7,1) == "s" && substr($this->GetMARC($this->contents,"008"),21,1) == "m" )
+    if ( in_array($this->medium["format"],array("serialvolume")) )
     {
       // Schriftenreihen
       $Exemplars[] = array("label"  => $this->CI->database->code2text("RELATEDPUBLICATIONS"),
@@ -1556,16 +1554,8 @@ class General
                            "data"   => $this->GetRelatedPubsNew($this,$this->PPN,2),
                            "remaft" => array());
     }
-    
-    if ( $this->CI->record_format->GetMARCSubfieldFirstString($this->contents, "951", "b") == "j" )
-    {
-      // Enthaltene Werke
-      $Exemplars[] = array("label"  => $this->CI->database->code2text("INCLUDEDMEDIA"),
-                           "rembef" => array(),
-                           "data"   => GetRelatedPubsNew($this,$this->PPN,3),
-                           "remaft" => array());
-    }
-    if ( substr($this->medium["leader"],7,1) == "s" && in_array(substr($this->GetMARC($this->contents,"008"),21,1), array("p","n")) )
+   
+    if ( in_array($this->medium["format"],array("journal","ejournal")) )
     {
       // Zeitschriften mit Einzelheften
       $IncludedPubs = $this->GetIncludedPubsNew($this,$this->PPN);

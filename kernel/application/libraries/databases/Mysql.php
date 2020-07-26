@@ -347,6 +347,74 @@ class Mysql extends General
     return ($Data);
   }
 
+  public function existsCentralDB()
+  {
+    return ( isset($_SESSION["config_system"]["central.db"]["host"]) && isset($_SESSION["config_system"]["central.db"]["name"])
+          && isset($_SESSION["config_system"]["central.db"]["user"]) && isset($_SESSION["config_system"]["central.db"]["pass"]) ) ? true : false;
+  }
+
+  public function getCentralDB($Type, $Filter=array())
+  {
+    if ( !isset($_SESSION["config_system"]["central.db"]["host"]) || !isset($_SESSION["config_system"]["central.db"]["name"])
+      || !isset($_SESSION["config_system"]["central.db"]["user"]) || !isset($_SESSION["config_system"]["central.db"]["pass"]) ) return array();
+
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT); // Set MySQLi to throw exceptions 
+    try 
+    {
+      $CDB = mysqli_connect($_SESSION["config_system"]["central.db"]["host"], $_SESSION["config_system"]["central.db"]["user"], 
+                            $_SESSION["config_system"]["central.db"]["pass"], $_SESSION["config_system"]["central.db"]["name"]);
+    } 
+    catch (mysqli_sql_exception $e) 
+    {
+      return array();
+    }
+
+    mysqli_set_charset($CDB,"utf8");
+
+    if ( $Type == "classification" )
+    {
+      $ROWS = array( "classifications" => array(), "details" => array() );
+
+      $SQL  = "SELECT shortcut, name, link FROM classifications";
+      $RES  = mysqli_query($CDB, $SQL);
+      while ($ROW = mysqli_fetch_assoc($RES)) 
+      {
+        $ROWS["classifications"][$ROW["shortcut"]] = array("name" => $ROW["name"], "link" => $ROW["link"]);
+      }
+
+      $SQL = "SELECT classification, code, description, parents FROM classificationstructures";
+      $CNT = 0;
+      foreach ( $Filter as $One )
+      {
+        if ( isset($One["classification"]) && isset($One["code"]) && in_array(strtoupper($One["classification"]), array("BBK", "BKL", "DDC", "RVK")) )
+        {
+          $CNT++;
+          $SQL .= ($CNT == 1) ? " where" : " or";
+          $SQL .= " (classification = '" . $One["classification"] . "' and code='" . $One["code"] . "')";
+        }
+      }
+
+      if ( $CNT )
+      {
+        $RES  = mysqli_query($CDB, $SQL);
+        // $ROWS["details"]         = mysqli_fetch_all($RES, MYSQLI_ASSOC);
+        while ($ROW = mysqli_fetch_assoc($RES)) 
+        {
+          $ROWS["details"][] = array("classification" => $ROW["classification"],
+                                     "code"           => $ROW["code"],
+                                     "description"    => $ROW["description"],
+                                     "parents"        => json_decode($ROW["parents"],true));
+        }      
+      }
+    }
+
+    // Free & Close
+    mysqli_free_result($RES);
+    mysqli_close($CDB);    
+
+    return $ROWS;
+  }
+
   public function get_chart_data($typ, $params=array())
   {
     $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";

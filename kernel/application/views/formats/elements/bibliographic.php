@@ -690,33 +690,101 @@ if ( isset($this->pretty["classification"]) && count($this->pretty["classificati
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("classification") . "</td>";
   $Output .=  "<td>";
-  $First = true;
-  foreach ( $this->pretty["classification"] as $One)
-  {
-    $Nm = "";
-    if ( isset($One["9"]) )
-    {
-    	foreach($One["9"] as $Single)
-    	{
-		    $Nm .= $Single . " ";
-    	}
-    }
-    $Sy = ( isset($One["2"]["0"]) && $One["2"]["0"] != "" ) ? " (" . strtoupper($One["2"]["0"]) . ")" : "";
 
-    if ( isset($One["a"]) )
+  $Classes = array();
+  foreach ($this->pretty["classification"] as $One)
+  {
+    if ( !isset($One["a"]["0"]) || !isset($One["2"]["0"]) ) continue;
+    foreach ( $One["a"] as $OneA )
     {
-    	foreach($One["a"] as $Single)
-    	{
-		    $In = ( !$First ) ? " | " : "";
-		    $Cl = ( $Single != "" ) ? $this->link("class", $Single, trim($Nm)) : ""; 
-  		  if ( $Cl != "" )
-    		{
-    			$Output .= $In . $Cl . $Sy;
-	    		$First = false;
-  	  	}
-  	  }
+      $Classes[strtoupper($One["2"]["0"])."|".$OneA] = array("classification" => strtoupper($One["2"]["0"]), "code" => $OneA);
     }
   }
+
+  if ( $this->CI->database->existsCentralDB() )
+  {
+    $CDBC = $this->CI->database->getCentralDB("classification", $Classes);
+  };
+
+  if ( isset($CDBC["details"]) )
+  {
+    foreach ( $CDBC["details"] as $One ) 
+    {
+      $Output .= $this->link("class", $One["code"], $One["description"]);
+      $Output .= " (" . $One["classification"] . " <a tabindex='0' role='button'";
+      $Output .= " class='btn btn-tiny navbar-panel-color' data-toggle='popover' data-trigger='focus'";
+      $Output .= " data-placement='top' data-title='" . $CDBC["classifications"][$One["classification"]]["name"] . "'";
+      $Output .= " data-html='true' data-content='<a href=\"" . $CDBC["classifications"][$One["classification"]]["link"] . "\" target=\"_blank\">Homepage <i class=\"fa fa-external-link\"></i></a>";
+      $Output .= "<br /><br />" . $this->CI->database->code2text("HIERARCHY") . ":";
+      
+      if ( $One["parents"] ) $Output .= "<ul>";
+      foreach ($One["parents"] as $Code => $Parent)
+      {
+        $Output .= "<li><small><a target=\"_blank\" href=\"/class(" . $Code . ")\">" . $Parent . " <i class=\"fa fa-external-link\"></i></small></li>";
+      }
+      if ( $One["parents"] ) 
+      {
+        $Output .= "<li><small><a target=\"_blank\" href=\"/class(" . $One["code"] . ")\">" . $One["description"] . " <i class=\"fa fa-external-link\"></i></small></li>";
+        $Output .= "</ul>";
+      }
+      $Output .= "'><i class='fa fa-caret-up'></i></a>)<br />";
+      unset($Classes[$One["classification"]."|".$One["code"]]);
+    }
+
+    $First = true;
+    foreach ( $Classes as $One)
+    {
+      $Output .= ( !$First ) ? " | " : "";
+      $Output .= $this->link("class", $One["code"], $One["code"]);
+      if ( array_key_exists($One["classification"], $CDBC["classifications"]) )
+      {
+        $Output .= " (" . $One["classification"] . " <a tabindex='0' role='button'";
+        $Output .= " class='btn btn-tiny navbar-panel-color' data-toggle='popover' data-trigger='focus'";
+        $Output .= " data-placement='top' data-title='" . $CDBC["classifications"][$One["classification"]]["name"] . "'";
+        $Output .= " data-html='true' data-content='<a href=\"" . $CDBC["classifications"][$One["classification"]]["link"] . "\" target=\"_blank\">Homepage <i class=\"fa fa-external-link\"></i></a>";
+        $Output .= "'><i class='fa fa-caret-up'></i></a>)";
+      }
+      else
+      {
+        $Output .= " (" . $One["classification"] . ")";
+      }
+   		$First = false;
+    }
+
+    // Activate Popovers
+    $Output .= "<script>$('[data-toggle=popover]').popover();</script>";
+  }
+  else
+  {
+    $First = true;
+    foreach ( $this->pretty["classification"] as $One)
+    {
+      $Nm = "";
+      if ( isset($One["9"]) )  
+      {
+        foreach($One["9"] as $Single)
+        {
+          $Nm .= $Single . " ";
+        }
+      }
+      $Sy = ( isset($One["2"]["0"]) && $One["2"]["0"] != "" ) ? " (" . strtoupper($One["2"]["0"]) . ")" : "";
+
+      if ( isset($One["a"]) )
+      {
+        foreach($One["a"] as $Single)
+        {
+          $In = ( !$First ) ? " | " : "";
+          $Cl = ( $Single != "" ) ? $this->link("class", $Single, trim($Nm)) : ""; 
+          if ( $Cl != "" )
+          {
+            $Output .= $In . $Cl . $Sy;
+            $First = false;
+          }
+        }
+      }
+    }
+  }
+
   $Output .=  "</td></tr>";
 }
 

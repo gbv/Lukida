@@ -31,7 +31,6 @@ $PrintSignature = (isset($_SESSION["config_general"]["general"]["printsignatures
                       && $_SESSION["config_general"]["general"]["printsignatures"] == 1 ) 
                        ? true  : false;
 
-
 // *****************************************************
 // ************ Section TWO: Create Output *************
 // *****************************************************

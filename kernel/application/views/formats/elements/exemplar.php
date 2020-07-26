@@ -114,10 +114,11 @@ else
       }
       if ( isset($CatDB) && $CatDB != "" )
       {
-        $FLPPN = (substr($this->PPN,0,4) == "OEVK") ? substr($this->PPN,4) : $this->PPN;
+        $FLPPN = ( strpos("GVK,OLC,OEV,KXP",substr($this->PPN,0,3)) !== false && preg_match("/\d{4,}/",$this->PPN,$firstdigit) ) ? 
+                                                substr($this->PPN, strpos($this->PPN, $firstdigit[0])) : $this->PPN;
         $Interloan[] = array
         (
-          "link"   => "https://kxp.k10plus.de/DB=" . $CatDB . "/PPNSET?PPN=" . $FLPPN,
+          "link"   => $CatDB . "/PPNSET?PPN=" . $FLPPN,
           "label1" => $this->CI->database->code2text("INTERLOAN")
         );
       }
@@ -148,8 +149,10 @@ $this->CI->printArray2Screen(array(
 $LinksResolved = array();
 if ( $LinkResolver )
 {
-  if ( ($LinksResolved=$this->CI->internal_linkresolver($this->PPN)) != "" )
+  $Tmp = $this->CI->internal_linkresolver($this->PPN);
+  if ( is_array($Tmp) && count($Tmp) )
   {
+    $LinksResolved = $Tmp; 
     if ( isset($LinksResolved["status"]) && $LinksResolved["status"] == 1 )
     {
       $LinkResolver  = false;
@@ -206,6 +209,9 @@ if ( count($Zugaenge) > 0 || count($LinksResolved) > 0 )
     $Output .= "</button>";
   }
 
+  $this->CI->printArray2Screen("Alex");
+  $this->CI->printArray2Screen($LinksResolved);
+  $this->CI->printArray2Screen(count($LinksResolved));
   if ( count($LinksResolved) > 0 )
   {
     foreach ( $LinksResolved as $Solver => $Lk )

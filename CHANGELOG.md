@@ -1,5 +1,9 @@
 # Changelog
 
+**03.07.2020**
+* Fullview
+  * LinkResolver Improvements
+
 **25.06.2020**
 * Search
   * BugFix: Question mark as wildcard character
