@@ -17,7 +17,6 @@ class General
   protected $online             = "";
   protected $parents            = array();
   protected $PPN                = "";
-  protected $ppnlink            = "";
   protected $pretty             = array();
   protected $words              = "";
   protected $proofofpossession  = array();
@@ -446,7 +445,8 @@ class General
       $pretty["languagenotes"]       = $this->PrettyFields(array("546" => array("a" => " | ")));
       
       $pretty["dissertation"]        = $this->PrettyFields(array("502" => array("a" => " | ")));
-      
+
+      $pretty["recording"]           = $this->GetSimpleArray(array("518" => array("a")));
       
       $pretty["language"]            = $this->GetSimpleArray(array("041" => array("a")));
 
@@ -463,8 +463,14 @@ class General
       $pretty["in800"]               = $this->GetUplink("800");
 
       $pretty["additionalinfo"]      = $this->GetArray(array("856" => array("u","3","y")));
+
+      $pretty["digitalresource"]     = $this->GetArray(array("981" => array("r","y")));
     
-      $pretty["class"]               = $this->GetSimpleArray(array("983" => array("a")));
+      $pretty["contentnotes"]        = $this->GetSimpleArray(array("989" => array("a")));
+
+      $pretty["class"]               = $this->GetSimpleArray(array("983" => array("a","b")));
+
+      $pretty["subjectheadings"]     = $this->GetSimpleArray(array("982" => array("a")));
 
       $pretty["isbn"]                = $this->PrettyFields(array("020" => array("9" => " | ", "a" => " | "),
                                                                  "773" => array("z" => " | ")));
@@ -1529,7 +1535,7 @@ class General
 
   protected function isMulti()
   {
-    return ( in_array($this->medium["format"],array("book","ebook","journal","ejournal","monographseries","serialvolume","unknown")) ) ? true : false;
+    return ( in_array($this->medium["format"],array("book","journal","monographseries","serialvolume","unknown")) ) ? true : false;
   }
 
   protected function getMulti()
@@ -1537,7 +1543,7 @@ class General
     $Exemplars = array();
 
     // Mehrbändige Werke, Schriftenreihen, Zeitschriften mit Einzelheften
-    if ( in_array($this->medium["format"],array("book","ebook","monographseries","unknown")) )
+    if ( in_array($this->medium["format"],array("book","monographseries","unknown")) )
     {
       // Mehrbändige Werke
       $Exemplars[] = array("label"  => $this->CI->database->code2text("RELATEDPUBLICATIONS"), 

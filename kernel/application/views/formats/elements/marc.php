@@ -1,17 +1,16 @@
 <?php
 
-function printMARC($Leader, $Contents)
+function printMARC($Prefix, $Leader, $Contents)
 {
   // Leader
-  $Output = "<tr><td>Lead</td><td>" .  formatLeader($Leader) . "</td></tr>";
-  
+  $Output = "<tr><td>Lead</td><td>"   .  formatLeader($Leader)        . "</td></tr>";
   foreach ($Contents as $Field => $Record)
   {
     if ( substr($Field, -1) == "}" && ( !isset($_SESSION["internal"]["marcfull"]) || $_SESSION["internal"]["marcfull"] == "0" ) ) continue;
   
     $Output .= "<tr>";
     $Output .= ( substr($Field, -1) == "}" ) ? "<td style='color:red'>" : "<td>"; 
-    $Output .= $Field . "</td>";
+    $Output .= $Prefix . $Field . "</td>";
     $First = true;
     if ( ! is_array($Record ) )
     {
@@ -112,7 +111,10 @@ function format008($Str)
   return $Tmp;
 }
 
-$Output .= printMARC($this->leader, $this->contents);
+$Output  = "<tr><td>ID</td><td>"     . $this->PPN                          . "</td></tr>";
+$Output .= "<tr><td>Format</td><td>" . $this->format                       . "</td></tr>";
+$Output .= "<tr><td>Online</td><td>" . (($this->online==1)?"true":"false") . "</td></tr>";
+$Output .= printMARC("M", $this->leader, $this->contents);
 
 $ParentPPN = ( isset($this->medium["parents"][0]) ) ? $this->medium["parents"][0] : "";
 if ( $ParentPPN != "" && $this->CI->EnsurePPN($ParentPPN) ) 
@@ -123,7 +125,7 @@ if ( $ParentPPN != "" && $this->CI->EnsurePPN($ParentPPN) )
   if ( $ParentLeader != "" && $ParentContents != "" )
   {
     $Output .= "<tr><td class='tabcell' style='color:red'>Parent PPN</td><td class='tabcell' style='color:red'>" . $ParentPPN . "</td></tr>";
-    $Output .= printMARC($ParentLeader, $ParentContents);
+    $Output .= printMARC("PM", $ParentLeader, $ParentContents);
   }
 
 }

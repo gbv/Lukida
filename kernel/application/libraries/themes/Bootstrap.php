@@ -190,7 +190,6 @@ class Bootstrap extends General
     $this->leader             = $this->medium["leader"];
     $this->format             = $this->medium["format"];
     $this->online             = $this->medium["online"];
-    $this->ppnlink            = $this->medium["ppnlink"];
     $this->cover              = $this->medium["cover"];
     $this->catalogues         = $this->medium["catalogues"];
     $this->isbn               = $this->medium["isbn"];
@@ -311,7 +310,6 @@ class Bootstrap extends General
     $this->contents   = $this->medium["contents"];
     $this->leader     = $this->medium["leader"];
     $this->format     = $this->medium["format"];
-    $this->ppnlink    = $this->medium["ppnlink"];
     $this->cover      = $this->medium["cover"];
     $this->catalogues = $this->medium["catalogues"];
     $this->isbn       = $this->medium["isbn"];

@@ -1,5 +1,22 @@
 # Changelog
 
+**02.10.2020**
+* Fullview
+  * Added "recording" to bibliographic data
+
+**03.08.2020**
+* Search
+  * Adapted online/print from K10plus-Zentral
+  * Removed empty format "electronic Resource"
+
+**31.07.2020**
+* Search
+  * Adapted formats from K10plus-Zentral
+
+**30.07.2020**
+* Library System
+  * Language support for PAIA2 
+
 **03.07.2020**
 * Fullview
   * LinkResolver Improvements
@@ -89,7 +106,7 @@
 
 **21.11.2019**
 * Search
-  * Adapted formats to K10plus-Zentral
+  * Adapted formats from K10plus-Zentral
 
 **15.11.2019**
 * Search
@@ -501,7 +518,7 @@
   * Performance improved
 
 **23.11.2017**
-* Index System
+* Library System
   * Counter Selection support for PAIA2
 
 **15.11.2017**

@@ -209,9 +209,6 @@ if ( count($Zugaenge) > 0 || count($LinksResolved) > 0 )
     $Output .= "</button>";
   }
 
-  $this->CI->printArray2Screen("Alex");
-  $this->CI->printArray2Screen($LinksResolved);
-  $this->CI->printArray2Screen(count($LinksResolved));
   if ( count($LinksResolved) > 0 )
   {
     foreach ( $LinksResolved as $Solver => $Lk )
@@ -440,13 +437,13 @@ function BestandLinks($Contents, $Medium, $CI)
   foreach ( $Links as $One )
   {
     $Exemplar = array();
-    if ( $Format == "ebook" && isset($One["link"]) && $One["link"] != "" )
+    if ( $Format == "book" && isset($One["link"]) && $One["link"] != "" )
     {
       $Exemplar["label1"] = (isset($One["name"]) && $One["name"] != "") ? $One["name"] : "Online";
       $Exemplar["link"]   = $One["link"];
       $Zugaenge[] = $Exemplar;
     }
-    if ( $Format == "ejournal" && isset($One["link"]) && $One["link"] != "" )
+    if ( $Format == "journal" && isset($One["link"]) && $One["link"] != "" )
     {
       $Exemplar["label1"] = $CI->database->code2text("Online");
       $Exemplar["label2"] = ( Get980($Contents,"g") != "-" ) ? Get980($Contents,"g") : "";
@@ -458,19 +455,19 @@ function BestandLinks($Contents, $Medium, $CI)
   if ( count($Zugaenge) == 0 )
   {
     $Exemplar = array();
-    if ( $Format == "ebook" )
+    if ( $Format == "book" )
     {
       $Exemplar["label1"] = $CI->database->code2text("SEEADDINFO");
       $Zugaenge[] = $Exemplar;
     }
-    if ( $Format == "ejournal" )
+    if ( $Format == "journal" )
     {
       $Exemplar["label1"] = $CI->database->code2text("SEEADDINFO");
       $Zugaenge[] = $Exemplar;
     }
   }
 
-  if ( $Format == "electronicarticle" )
+  if ( $Format == "article" )
   {
     // Lese Eltern-Infos aus / Get MARC Parent
     $ParentData = ( isset($Medium["parents"][0]) ) ? $CI->internal_search("id",$Medium["parents"][0]) : array();

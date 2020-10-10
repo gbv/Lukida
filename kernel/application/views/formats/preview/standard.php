@@ -51,7 +51,7 @@ if ( $Header )
   if (isset($this->pretty["titlesecond"]) && $this->pretty["titlesecond"] != "" ) $Output .= "<br />" . $this->Mark_Text($this->pretty["titlesecond"]);
   if (isset($this->pretty["author"])      && count($this->pretty["author"]) > 0)  $Output .= "<br />" . implode(", ", $this->Mark_Text(array_column($this->pretty["author"], "name")));
 
-  if ( in_array($this->format, array("article", "electronicarticle")) )
+  if ( in_array($this->format, array("article")) )
   {
     // Artikel
     $MaxPublisherArticleLen = (isset($_SESSION["config_discover"]["preview"]["maxpublisherarticlelength"]     ) ) ? $_SESSION["config_discover"]["preview"]["maxpublisherarticlelength"] : 100;

@@ -1,8 +1,5 @@
 <?php
 
-// PPN
-$Output .=  "<tr><td>ID</td><td>" . $this->PPN . "</td></tr>";
-
 // Title
 if ( isset($this->pretty["title"]) && $this->pretty["title"] != "" )
 {
@@ -189,6 +186,22 @@ if ( isset($this->pretty["edition"]) && $this->pretty["edition"] != "" )
     }
     $Output .=  "</td></tr>";
   }
+}
+
+// Recording
+if ( isset($this->pretty["recording"]) && count($this->pretty["recording"]) > 0 )
+{
+  $Output .=  "<tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("recording") . "</td>";
+  $Output .=  "<td>";
+  $First = true;
+  foreach ( $this->pretty["recording"] as $one)
+  {
+    if ( !$First ) $Output .= " | ";
+    $Output .= $one;
+    $First = false;
+  }
+  $Output .=  "</td></tr>";
 }
 
 // Published

@@ -207,11 +207,11 @@ class Solr extends General
             break;
           case "jahr":
           case "year":
-            $MainSearch .= "(publishDateSort :\"" . $Phrases[0] . "\")";
+            $MainSearch .= "(publishDateSort:\"" . $Phrases[0] . "\")";
             break;
           case "id":
           case "ppn":
-            $MainSearch .= "(id :\"" . $Phrases[0] . "\")";
+            $MainSearch .= "(id:\"" . $Phrases[0] . "\")";
             break;
           default:
             $MainSearch .= $CType . ":\"" . $Phrases[0] . "\"";
@@ -294,11 +294,11 @@ class Solr extends General
             break;
           case "jahr":
           case "year":
-            $MainSearch .= "(publishDateSort :\"" . implode("\" OR publishDateSort :\"", $Phrases) . "\")";
+            $MainSearch .= "(publishDateSort:\"" . implode("\" OR publishDateSort:\"", $Phrases) . "\")";
             break;
           case "ppn":
           case "id":
-            $MainSearch .= "(id :\"" . implode("\" OR id :\"", $Phrases) . "\")";
+            $MainSearch .= "(id:\"" . implode("\" OR id:\"", $Phrases) . "\")";
             break;
           default:
             $MainSearch .= "(" . $CType . ":\"" . implode("\" OR " . $CType . ":\"",$Phrases) . "\")";
@@ -471,6 +471,8 @@ class Solr extends General
     ->addField('id')
     ->addField('collection')
     ->addField('collection_details')
+    ->addField('format_phy_str_mv')
+    ->addField('remote_bool')
     ->addField('fullrecord');
 
     // Add shards
@@ -537,7 +539,7 @@ class Solr extends General
             if ( $value != "" && $facets )
             {
               $dismaxQuery
-              ->addFilterQuery('publishDateSort :'.$value);
+              ->addFilterQuery('publishDateSort:'.$value);
             }
             break;
           }

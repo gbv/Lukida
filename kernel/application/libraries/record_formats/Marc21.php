@@ -25,100 +25,36 @@ class Marc21 extends General
     return ($result);
   }
 
+  private function convertFormat($Str)
+  {
+    return strtolower(preg_replace('/\s+/', '', $Str));
+  }
+
   private function SetMarcFormat()
   {
     // Get Leader
-    $Leader = $this->marc->getLeader();
+    $this->leader = $this->marc->getLeader();
 
-    if ( in_array("Gutenberg", $this->collection) )
+    switch ($this->format)
     {
-      $this->leader  = $Leader;
-      $this->format  = "ebook";
-      $this->cover   = "N";
-      $this->ppnlink = 0;
-      $this->online  = 1;
-      return;
+      case "article":            { $this->cover = ($this->online==0) ? "A": "L"; break; }
+      case "journal":            { $this->cover = ($this->online==0) ? "F": "M"; break; }
+      case "book":               { $this->cover = ($this->online==0) ? "B": "N"; break; }
+      case "datamedia":          { $this->cover = "D"; break; }
+      case "game":               { $this->cover = "O"; break; }
+      case "manuscript":         { $this->cover = "G"; break; }
+      case "map":                { $this->cover = "J"; break; }
+      case "microform":          { $this->cover = "I"; break; }
+      case "mixedmaterials":     { $this->cover = "P"; break; }
+      case "monographseries":    { $this->cover = "R"; break; }
+      case "motionpicture":      { $this->cover = "E"; break; }
+      case "musicalscore":       { $this->cover = "H"; break; }
+      case "picture":            { $this->cover = "K"; break; }
+      case "projectedmedium":    { $this->cover = "E"; break; }
+      case "serialvolume":       { $this->cover = "Q"; break; }
+      case "soundrecording":     { $this->cover = "C"; break; }
+      case "unknown":            { $this->cover = "O"; break; }
     }
-
-    $Pos6     = substr($Leader,6,1);
-    $Pos7     = substr($Leader,7,1);
-    $Pos19    = substr($Leader,19,1);
-    $F007     = $this->marc->getFields("007");
-    $F007Max  = count($F007)-1;
-    $F007     = ($F007 && $F007[$F007Max]) ? $F007[$F007Max]->getData() : "";
-
-    $F007_0   = substr($F007,0,1);
-    $F007_1   = substr($F007,1,1);
-    $F008     = $this->marc->getFields("008");
-    $F008Max  = count($F008)-1;
-    $F008_21  = ($F008 && $F008[$F008Max]) ? substr($F008[$F008Max],29,1) : "";
-    $F951a    = "";
-    if ( $Tmp = ( $this->marc->getField("951",true) ) )
-    {
-      if ( $Tmp = $Tmp->getSubfield('a') )
-      {
-        $F951a = $Tmp->getData();
-      }
-    }
-
-    // Pre-Block
-    if ( $F007_0 == "v" )                                                            { $Cover = "E"; $Online = 0; $PPNLink = 0; $Name = "motionpicture"; }
-    elseif ( $Pos7 != "s" && $F007_0 == "h" )                                        { $Cover = "I"; $Online = 0; $PPNLink = 0; $Name = "microform"; }
-
-    // Block A
-    elseif ( $Pos6 == "a" && in_array($Pos7, array("m","i")) && $F951a == "JV" )     { $Cover = "Q"; $Online = 0; $PPNLink = 1; $Name = "serialvolume"; }
-    elseif ( $Pos6 == "a" && in_array($Pos7, array("m","i")) && $F007_0 == "c" )     { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; } 
-    elseif ( $Pos6 == "a" && in_array($Pos7, array("m","i")) )                       { $Cover = "B"; $Online = 0; $PPNLink = 0; $Name = "book"; }
-    elseif ( $Pos6 == "a" && $Pos7 == "d" )                                          { $Cover = "Q"; $Online = 0; $PPNLink = 0; $Name = "serialvolume"; }
-    elseif ( $Pos6 == "a" && in_array($Pos7, array("s","i")) && $F007_0 == "c" )     { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
-    elseif ( $Pos6 == "a" && in_array($Pos7, array("s","i")) 
-                          && in_array($F008_21,array("p","n")) )                     { $Cover = "F"; $Online = 0; $PPNLink = 0; $Name = "journal"; }
-    elseif ( $Pos6 == "a" && in_array($Pos7, array("s","i")) && $F008_21 == "m" )    { $Cover = "R"; $Online = 0; $PPNLink = 0; $Name = "monographseries"; }
-    elseif ( $Pos6 == "a" && in_array($Pos7, array("s","i")) )                       { $Cover = "Q"; $Online = 0; $PPNLink = 0; $Name = "serialvolume"; }
-    elseif ( $Pos6 == "a" && in_array($Pos7, array("a","b")) && $F007_0 == "c" )     { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "electronicarticle"; }
-    elseif ( $Pos6 == "a" && in_array($Pos7, array("a","b")) )                       { $Cover = "A"; $Online = 0; $PPNLink = 0; $Name = "article"; }
-
-    // Block M
-    elseif ( $Pos6 == "m" && $Pos7 == "m" && $F007_1 == "r" )                        { $Cover = "N"; $Online = 1; $PPNLink = 0; $Name = "ebook"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "m" && $F007_0 == "c" )                        { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datamedia"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "m" )                                          { $Cover = "D"; $Online = 1; $PPNLink = 0; $Name = "electronicressource"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "b" && $F007_1 == "r" )                        { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "electronicarticle"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "b" && $F007_0 == "c" )                        { $Cover = "D"; $Online = 0; $PPNLink = 0; $Name = "datamedia"; }
-    elseif ( $Pos6 == "m" && $Pos7 == "b" )                                          { $Cover = "D"; $Online = 1; $PPNLink = 0; $Name = "electronicressource"; }
-    elseif ( $Pos6 == "m" && in_array($Pos7, array("s","i")) )                       { $Cover = "M"; $Online = 1; $PPNLink = 0; $Name = "ejournal"; }
-    elseif ( $Pos6 == "m" && in_array($Pos7, array("a","b")) )                       { $Cover = "L"; $Online = 1; $PPNLink = 0; $Name = "electronicarticle"; }
-
-    // Block E
-    elseif ( $Pos6 == "e" )                                                          { $Cover = "J"; $Online = 0; $PPNLink = 0; $Name = "map"; }
-
-    // Block D, F, T
-    elseif ( in_array($Pos6, array("d","f","t" )) )                                  { $Cover = "G"; $Online = 0; $PPNLink = 0; $Name = "manuscript"; }
-
-    // Block I, J
-    elseif ( in_array($Pos6, array("i","j")) )                                       { $Cover = "C"; $Online = 0; $PPNLink = 0; $Name = "soundrecording"; }
-
-    // Block G
-    elseif ( $Pos6 == "g" )                                                          { $Cover = "E"; $Online = 0; $PPNLink = 0; $Name = "projectedmedium"; }
-
-    // Block R
-    elseif ( $Pos6 == "r" && $Pos7 == "a" )                                          { $Cover = "K"; $Online = 0; $PPNLink = 0; $Name = "picture"; }
-    elseif ( $Pos6 == "r" )                                                          { $Cover = "O"; $Online = 0; $PPNLink = 0; $Name = "game"; }
-
-    // Block C
-    elseif ( $Pos6 == "c" )                                                          { $Cover = "H"; $Online = 0; $PPNLink = 0; $Name = "musicalscore"; }
-
-    // Block P
-    elseif ( $Pos6 == "p" )                                                          { $Cover = "P"; $Online = 0; $PPNLink = 1; $Name = "mixedmaterials"; }
-
-    // Post-Block
-    elseif ( $F007_0 == "c" )                                                        { $Cover = "D"; $Online = 1; $PPNLink = 0; $Name = "electronicressource"; }
-    else                                                                             { $Cover = "O"; $Online = 0; $PPNLink = 0; $Name = "unknown"; }
-
-    $this->format  = $Name;
-    $this->cover   = $Cover;
-    $this->ppnlink = $PPNLink;
-    $this->online  = $Online;
-    $this->leader  = $Leader;
   }
 
   private function SetMarcContents()
@@ -375,8 +311,10 @@ class Marc21 extends General
     $results_reduced	= array();
     foreach ( $container["results"] as $one )
     {
-      $this->collection         = isset($one["collection"])         ? $one["collection"]         : "";
-      $this->collection_details = isset($one["collection_details"]) ? $one["collection_details"] : "";
+      $this->collection         = isset($one["collection"])                                                 ? $one["collection"]                                 : "";
+      $this->collection_details = isset($one["collection_details"])                                         ? $one["collection_details"]                         : "";
+      $this->format             = isset($one["format_phy_str_mv"][0])                                       ? $this->convertFormat($one["format_phy_str_mv"][0]) : "";
+      $this->online             = (isset($one["remote_bool"]) && strtolower($one["remote_bool"]) == "true") ? 1                                                  : 0;
 
       // Load MARC library and pass params
       $this->marc = $this->CI->pearloader->loadmarc('File','MARC', $this->prepare($one["fullrecord"]))->next();
@@ -394,7 +332,6 @@ class Marc21 extends General
         "parents"            => $this->parents,
         "leader"             => $this->leader,
         "format"             => $this->format,
-        "ppnlink"            => $this->ppnlink,
         "cover"              => $this->cover,
         "isbn"               => $this->isbn,
         "online"             => $this->online,

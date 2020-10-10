@@ -5,9 +5,10 @@
 class Paia2_daia2 extends General
 {
   protected $CI;
-  private $isil;
-  private $paia;
-  private $daia;
+  private   $isil;
+  private   $paia;
+  private   $daia;
+  private   $header;
 
   public function __construct($params)
   {
@@ -18,9 +19,11 @@ class Paia2_daia2 extends General
     $this->CI->load->helper('url');
 
     if ( $params["isil"] == "" || $params["paia"] == "" || $params["daia"] == "" )  return false;
-    $this->isil = $params["isil"];
-    $this->paia = $params["paia"] . "/" . $params["isil"];
-    $this->daia = $params["daia"] . "/" . $params["isil"] . "/daia";
+    $this->isil   = $params["isil"];
+    $this->paia   = $params["paia"] . "/" . $params["isil"];
+    $this->daia   = $params["daia"] . "/" . $params["isil"] . "/daia";
+    $this->header = array('Content-type: application/json; charset=UTF-8');
+    if ( $_SESSION["language"] == "eng" ) $this->header[] = 'Accept-Language: en';
   }
 
   // ********************************************
@@ -31,7 +34,9 @@ class Paia2_daia2 extends General
   {
     $http = curl_init();
     curl_setopt($http, CURLOPT_URL, $file);
-    curl_setopt($http, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' .$access_token, 'Content-type: application/json; charset=UTF-8'));
+    $AutoHeader   = $this->header;
+    $AutoHeader[] = 'Authorization: Bearer '.$access_token;
+    curl_setopt($http, CURLOPT_HTTPHEADER, $AutoHeader);
     curl_setopt($http, CURLOPT_RETURNTRANSFER, true);
     if ( substr(PHP_OS,0,3) )
     {
@@ -59,9 +64,11 @@ class Paia2_daia2 extends General
     }
 
     if (isset($access_token)) {
-      curl_setopt($http, CURLOPT_HTTPHEADER, array('Content-type: application/json; charset=UTF-8', 'Authorization: Bearer ' .$access_token));
+    $AutoHeader   = $this->header;
+    $AutoHeader[] = 'Authorization: Bearer '.$access_token;
+      curl_setopt($http, CURLOPT_HTTPHEADER, $AutoHeader);
     } else {
-      curl_setopt($http, CURLOPT_HTTPHEADER, array('Content-type: application/json; charset=UTF-8'));
+      curl_setopt($http, CURLOPT_HTTPHEADER, $this->header);
     }
     curl_setopt($http, CURLOPT_RETURNTRANSFER, true);
 
