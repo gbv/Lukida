@@ -344,9 +344,9 @@ class Solr extends General
         ->addQueryField("allfieldsGer",10)
         ->addQueryField("fulltext",5)
         ->addQueryField("description",5)
-        ->addQueryField("GND_txt_mv")
-        ->addQueryField("isbn")
-        ->addQueryField("issn");
+        ->addQueryField("GND_txt_mv",1)
+        ->addQueryField("isbn",1)
+        ->addQueryField("issn",1);
 
         if ( $this->phoneticsearch )
         {

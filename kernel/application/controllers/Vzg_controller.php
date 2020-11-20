@@ -1511,7 +1511,10 @@ class Vzg_controller extends CI_Controller
 
     // Get data
     $Contents = $this->GetLBS($PPN);
-  
+
+    // Get Format
+    $Format = isset($_SESSION["data"]["results"][$PPN]["format"]) ? $_SESSION["data"]["results"][$PPN]["format"] : "";
+
     // Parse DAIA records
     $Items  = array();
     $ICount = array();
@@ -1590,19 +1593,22 @@ class Vzg_controller extends CI_Controller
   
             // Label About ergänzen (Immer wegen Sortierung)
             $Items[$ExpID]["about"] = ( (isset($Exp["about"])) && $Exp["about"] != "" ) ? trim($Exp["about"]) : "-";
-
-            $Items[$ExpID]["bandlist"]  = ($Items[$ExpID]["about"] != "-" && stripos($Items[$ExpID]["id"], ":bar:") !== false) ? true : false;
           }
         }
       }
   
-      /*
       // Add bandlist switch 
       foreach ($Items as $ExpID => $One)
       {
-        $Items[$ExpID]["bandlist"]  = (isset($One["epn"]) && isset($ICount["EPN_".$One["epn"]]) && $ICount["EPN_".$One["epn"]] > 1) ? true : false;
+        if ( in_array($Format, array("journal", "serialvolume", "monographseries")) )
+        {
+          $Items[$ExpID]["bandlist"]  = ($Items[$ExpID]["about"] != "-" && stripos($Items[$ExpID]["id"], ":bar:") !== false) ? true : false;
+        }
+        else
+        {
+          $Items[$ExpID]["bandlist"]  = (isset($One["epn"]) && isset($ICount["EPN_".$One["epn"]]) && $ICount["EPN_".$One["epn"]] > 1) ? true : false;
+        }
       }
-      */
   
       // Sort records by about (volume...)
       uasort($Items, function ($a, $b) { return $a['about'] <=> $b['about']; });

@@ -1,5 +1,15 @@
 # Changelog
 
+**13.11.2020**
+* LinkResolver
+  * Improved ReDi fulltext detection
+* Index system
+  * Resolved Solr compatibility issues
+
+**05.11.2020**
+* Fullview
+  * Improved bandlist detection
+
 **02.10.2020**
 * Fullview
   * Added "recording" to bibliographic data

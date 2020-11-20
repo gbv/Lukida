@@ -606,72 +606,67 @@ class Standard extends General
                           . (strpos($openurlBase,"redi") === false ? "&ctx_enc=info:ofi/enc:UTF-8" : "");
       $openurlMetadata  = $this->getOpenURLmetaData($data, "resolver");
       $resolverLink     = $openurlEntry . $openurlMetadata;
-	  
+      $onlyFulltex      = (isset($this->configExport["resolveronlyfulltext"]) && $this->configExport["resolveronlyfulltext"] == "1") ? true : false;
+
       if( strpos($openurlBase,"redi") !== false )
            $resolver = "redi";
       elseif( strpos($openurlBase,"ovid") !== false ) 
            $resolver = "ovid";
       else $resolver = "sfx";
     
-      if (isset($this->configExport["resolveronlyfulltext"]) &&
-                $this->configExport["resolveronlyfulltext"] == "1")
+      if( $resolver == "redi" )
       {
-        if( strpos($openurlBase,"redi") !== false )
+        $resolverLink = str_replace("&rft.","&",$resolverLink);
+        //spaces cause HTTP 400 errors 
+        $resolverLink = str_replace(" ","%20",$resolverLink);
+        $headers      = @get_headers($resolverLink);
+        $rediFullUrl  = ""; $cacheControl = "";
+        foreach( $headers as $header )
         {
-          $resolverLink = str_replace("&rft.","&",$resolverLink);
-          //spaces cause HTTP 400 errors 
-          $resolverLink = str_replace(" ","%20",$resolverLink);
-          $headers      = @get_headers($resolverLink);
-          $rediFullUrl  = ""; $cacheControl = "";
-          foreach( $headers as $header )
+          if( strpos($header,"301 Moved Permanently") !== false || strpos($header,"302 Found") !== false )
           {
-            if( strpos($header,"404 Not Found") !== false )
+            $rediFullUrl = "found";
+          }
+          elseif( substr($header,0,14) == "Cache-Control:")
+          {
+            $cacheControl = "found";
+          }
+          elseif( substr($header,0,10) == "Location: ")
+          { 
+            if( $rediFullUrl == "found" && $cacheControl == "" )
             {
-              return $return;
-            }
-            elseif( strpos($header,"301 Moved Permanently") !== false || strpos($header,"302 Found") !== false )
-            {
-              $rediFullUrl = "found";
-            }
-            elseif( substr($header,0,14) == "Cache-Control:")
-            {
-              $cacheControl = "found";
-            }
-            elseif( substr($header,0,10) == "Location: ")
-            { 
-              if( $rediFullUrl == "found" && $cacheControl == "" )
-              {
-                if( strpos($header,"www-fr.redi-bw.de") !== false || strpos($header,"ezb.uni-regensburg.de") !== false )
-                { //Location over redi:
-                  if( strpos($header,"www-fr.redi-bw.de") !== false )
-                     $return[$resolver] = substr($header,10);
-                }
-                else
-                { //Direkt location:
+              if( strpos($header,"www-fr.redi-bw.de") !== false || strpos($header,"ezb.uni-regensburg.de") !== false )
+              { //Location over redi:        
+                if( strpos($header,"www-fr.redi-bw.de") !== false )
                   $return[$resolver] = substr($header,10);
-                  return $return;
-                }
               }
-              $rediFullUrl  = "";
-              $cacheControl = "";
+              elseif( $header != "" )
+              { //Direkt location:
+                $return[$resolver] = substr($header,10);
+                return $return;
+              }
             }
+            $rediFullUrl  = "";
+            $cacheControl = "";
           }
-          return $return;
         }
-        else
-        {
-          $sfxFullUrl = $this->getSFX_Full($resolverLink);
-          if ( $sfxFullUrl != "")
-          {
-            $return[$resolver] = $sfxFullUrl;
-          }
-          return $return;
-        }
+        if( $onlyFulltex  === true )
+          $return = array();
+
+        return $return;
       }
-      else 
-      { 
+      elseif( $resolver == "ovid" )
+      { //Ovid:
         $return[$resolver] = $resolverLink;
-        return $return; 
+      }
+      else
+      { //SFX:
+        $sfxFullUrl = $this->getSFX_Full($resolverLink);
+        if ( $sfxFullUrl != "")
+          $return[$resolver] = $sfxFullUrl;
+        elseif( $onlyFulltex !== true )
+          $return[$resolver] = $resolverLink;
+        return $return;
       }
     }
   }

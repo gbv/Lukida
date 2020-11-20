@@ -159,11 +159,8 @@ if ( $LinkResolver )
     }
     if ( isset($LinksResolved["links"]) )
     {
-      if ( $LinksResolved["links"] == "[]" || $LinksResolved["links"] == "" || count($LinksResolved["links"]) == 0 )
-      {
-        $LinksResolved = array();
-      }
-      else
+      if ( ( !is_array($LinksResolved["links"]) && $LinksResolved["links"] != "[]" && $LinksResolved["links"] != "" )
+        || ( is_array($LinksResolved["links"]) && count($LinksResolved["links"])) )
       {
         $LinksResolved = (array) json_decode($LinksResolved["links"],true);
       }

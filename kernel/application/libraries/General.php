@@ -464,13 +464,15 @@ class General
 
       $pretty["additionalinfo"]      = $this->GetArray(array("856" => array("u","3","y")));
 
-      $pretty["digitalresource"]     = $this->GetArray(array("981" => array("r","y")));
+      $pretty["digitalresource"]     = $this->GetArray(array("981" => array("2","r","y")));
     
-      $pretty["contentnotes"]        = $this->GetSimpleArray(array("989" => array("a")));
+      $pretty["contentnotes"]        = $this->GetArray(array("989" => array("2","a")));
 
       $pretty["class"]               = $this->GetSimpleArray(array("983" => array("a","b")));
 
-      $pretty["subjectheadings"]     = $this->GetSimpleArray(array("982" => array("a")));
+      $pretty["classiln"]            = $this->GetArray(array("983" => array("2","a","b")));
+
+      $pretty["subjectheadings"]     = $this->GetArray(array("982" => array("2","a")));
 
       $pretty["isbn"]                = $this->PrettyFields(array("020" => array("9" => " | ", "a" => " | "),
                                                                  "773" => array("z" => " | ")));
@@ -1697,9 +1699,8 @@ class General
 
   public function TrimTextNew($Text, $Length)
   {
-    if (mb_strlen($Text) <= $Length) return addslashes($Text);
+    if (mb_strlen($Text) <= $Length) return $Text;
 
-    //return addslashes(substr($Text, 0, strrpos(substr($Text, 0, $Length), ' ')) . ' ...');
     return mb_substr($Text, 0, mb_strrpos(mb_substr($Text, 0, $Length), ' ')) . ' ...';
   }
 
