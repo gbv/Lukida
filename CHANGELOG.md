@@ -1,5 +1,9 @@
 # Changelog
 
+**24.11.2020**
+* LinkResolver
+  * Improved ReDi performance
+
 **13.11.2020**
 * LinkResolver
   * Improved ReDi fulltext detection

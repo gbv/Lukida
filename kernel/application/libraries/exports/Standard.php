@@ -609,51 +609,37 @@ class Standard extends General
       $onlyFulltex      = (isset($this->configExport["resolveronlyfulltext"]) && $this->configExport["resolveronlyfulltext"] == "1") ? true : false;
 
       if( strpos($openurlBase,"redi") !== false )
-           $resolver = "redi";
-      elseif( strpos($openurlBase,"ovid") !== false ) 
-           $resolver = "ovid";
-      else $resolver = "sfx";
-    
-      if( $resolver == "redi" )
       {
+        $resolver     = "redi";
         $resolverLink = str_replace("&rft.","&",$resolverLink);
         //spaces cause HTTP 400 errors 
         $resolverLink = str_replace(" ","%20",$resolverLink);
-        $headers      = @get_headers($resolverLink);
-        $rediFullUrl  = ""; $cacheControl = "";
-        foreach( $headers as $header )
+      }
+      elseif( strpos($openurlBase,"ovid") !== false ) 
+        $resolver = "ovid";
+      else 
+        $resolver = "sfx";
+    
+      if( $onlyFulltex !== true )
+        $return[$resolver] = $resolverLink;
+
+      if( $resolver == "redi" )
+      {
+        if( @$headers = get_headers($resolverLink, 1) )
         {
-          if( strpos($header,"301 Moved Permanently") !== false || strpos($header,"302 Found") !== false )
+          if( strpos($headers[1],"301 Moved Permanently") !== false || strpos($headers[1],"302 Found") !== false )
           {
-            $rediFullUrl = "found";
-          }
-          elseif( substr($header,0,14) == "Cache-Control:")
-          {
-            $cacheControl = "found";
-          }
-          elseif( substr($header,0,10) == "Location: ")
-          { 
-            if( $rediFullUrl == "found" && $cacheControl == "" )
+            foreach( $headers["Location"] as $aLocation )
             {
-              if( strpos($header,"www-fr.redi-bw.de") !== false || strpos($header,"ezb.uni-regensburg.de") !== false )
-              { //Location over redi:        
-                if( strpos($header,"www-fr.redi-bw.de") !== false )
-                  $return[$resolver] = substr($header,10);
-              }
-              elseif( $header != "" )
+              if( $aLocation != "" && strpos($aLocation,"http") !== false && 
+                  strpos($aLocation,"www-fr.redi-bw.de") === false && strpos($aLocation,"ezb.uni-regensburg.de") === false )
               { //Direkt location:
-                $return[$resolver] = substr($header,10);
+                $return[$resolver] = $aLocation;
                 return $return;
               }
             }
-            $rediFullUrl  = "";
-            $cacheControl = "";
           }
         }
-        if( $onlyFulltex  === true )
-          $return = array();
-
-        return $return;
       }
       elseif( $resolver == "ovid" )
       { //Ovid:
@@ -664,11 +650,9 @@ class Standard extends General
         $sfxFullUrl = $this->getSFX_Full($resolverLink);
         if ( $sfxFullUrl != "")
           $return[$resolver] = $sfxFullUrl;
-        elseif( $onlyFulltex !== true )
-          $return[$resolver] = $resolverLink;
-        return $return;
       }
     }
+    return $return;
   }
 
   protected function getSFX_Full($link)
