@@ -384,8 +384,8 @@ class Solr extends General
           case "isn":
           {
             $dismaxQuery
-            ->addQueryField("isbn")
-            ->addQueryField("issn");
+            ->addQueryField("isbn",1)
+            ->addQueryField("issn",1);
             break;
           }
           case "subject":
@@ -396,7 +396,7 @@ class Solr extends General
             ->addQueryField("topic",100)
             ->addQueryField("geographic",50)
             ->addQueryField("genre",50)
-            ->addQueryField("era");
+            ->addQueryField("era",40);
             break;
           }
           case "title":
@@ -411,7 +411,7 @@ class Solr extends General
             ->addQueryField("title_new",100)
             ->addQueryField("title_old")
             ->addQueryField("series",100)
-            ->addQueryField("series2");
+            ->addQueryField("series2",100);
 
             if ( $this->phoneticsearch )
             {
@@ -425,7 +425,7 @@ class Solr extends General
           {
             $dismaxQuery
             ->addQueryField("series",100)
-            ->addQueryField("series2");
+            ->addQueryField("series2",100);
             break;
           }
           case "publisher":

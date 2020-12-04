@@ -1,5 +1,9 @@
 # Changelog
 
+**04.12.2020**
+* Index system
+  * Resolved Solr compatibility issues
+
 **24.11.2020**
 * LinkResolver
   * Improved ReDi performance
