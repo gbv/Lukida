@@ -1704,14 +1704,14 @@ class General
     return mb_substr($Text, 0, mb_strrpos(mb_substr($Text, 0, $Length), ' ')) . ' ...';
   }
 
-  public function OutputButtons($Exemplars, $ButtonSize, $LineLength)
+  public function OutputButtons($Exemplars, $ButtonSize, $LineLength,$LinkResolver=true)
   {
     $Output = "";
     $Case   = ( strtolower(MODE) == "production" ) ? false : true;
 
     // Set javascript variable
     $LinksResolved = array();
-    if ( $this->medium["online"] )
+    if ( $this->medium["online"] && $LinkResolver )
     {
       if ( ($LinksStored=$this->CI->internal_linkresolver($this->PPN)) != "" )
       {

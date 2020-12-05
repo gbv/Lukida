@@ -2,6 +2,7 @@
 
 **04.12.2020**
 * Index system
+  * Internal search enhanced
   * Resolved Solr compatibility issues
 
 **24.11.2020**
