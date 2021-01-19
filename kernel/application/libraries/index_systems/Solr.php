@@ -116,7 +116,7 @@ class Solr extends General
     // Remove not allowed complex phrases based on used key
     foreach ( $matches[1] as $index => $key )
     {
-      if ( ! in_array(strtolower(trim($key)), array("abruf", "acqdate","author","autor","call","class","collection","collection_details","contents","erwdatum","foreignid","format","genre","id","inhalt","isn","jahr","language","ppn","ppnlink","publisher","reihe","sachgebiet","schlagwort","series","signatur","signature","sprache","subject","titel","title","verlag","year")) )
+      if ( ! in_array(strtolower(trim($key)), array("abruf", "acqdate","author","autor","call","class","client","collection","collection_details","contents","erwdatum","foreignid","format","genre","id","inhalt","isn","jahr","language","mandant","ppn","ppnlink","publisher","reihe","sachgebiet","schlagwort","series","signatur","signature","sprache","subject","titel","title","verlag","year")) )
       {
         unset($matches[0][$index]);
       }
@@ -189,7 +189,11 @@ class Solr extends General
             break;
           case "abruf":
           case "call":
-            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(abrufzeichen_iln_str_mv:\"" . $_SESSION["iln"] . "@" . $Phrases[0] . "\" )";
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(abrufzeichen_iln_scis_mv:\"" . $_SESSION["iln"] . "@" . $Phrases[0] . "\" )";
+            break;
+          case "mandant":
+          case "client":
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selectbib_iln_str_mv:\"" . $_SESSION["iln"] . "@" . $Phrases[0] . "\" )";
             break;
           case "genre":
             $MainSearch .= "(genre:\"" . $Phrases[0] . "\")";
@@ -273,7 +277,11 @@ class Solr extends General
             break;
           case "abruf":
           case "call":
-            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(abrufzeichen_iln_str_mv:\"" . $_SESSION["iln"] . "@" . implode("\" OR abrufzeichen_iln_str_mv:\"" . $_SESSION["iln"] . "@", $Phrases) . "\")";
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(abrufzeichen_iln_scis_mv:\"" . $_SESSION["iln"] . "@" . implode("\" OR abrufzeichen_iln_scis_mv:\"" . $_SESSION["iln"] . "@", $Phrases) . "\")";
+            break;
+          case "mandant":
+          case "client":
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selectbib_iln_str_mv:\"" . $_SESSION["iln"] . "@" . implode("\" OR selectbib_iln_str_mv:\"" . $_SESSION["iln"] . "@", $Phrases) . "\")";
             break;
           case "genre":
             $MainSearch .= "(genre:\"" . implode("\" OR genre:\"", $Phrases) . "\")";

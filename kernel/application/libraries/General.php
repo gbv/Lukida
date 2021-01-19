@@ -162,7 +162,7 @@ class General
       $Output .= "</td><td class='tabcell'>";
       if ( !is_array($Value) )
       {
-        $Output .= $Value;
+        $Output .= htmlentities($Value,ENT_QUOTES);
       }
       else
       {
@@ -1704,6 +1704,13 @@ class General
     return mb_substr($Text, 0, mb_strrpos(mb_substr($Text, 0, $Length), ' ')) . ' ...';
   }
 
+  public function ShowTags($Text)
+  {
+    $Text = str_replace('%lt%', '&lt;', $Text);
+    $Text = str_replace('%gt%', '&gt;', $Text);
+    return $Text;
+  }
+
   public function OutputButtons($Exemplars, $ButtonSize, $LineLength,$LinkResolver=true)
   {
     $Output = "";
@@ -1775,7 +1782,7 @@ class General
           $Title = "";
           if ( isset($Exemplar["label1"]) && trim($Exemplar["label1"]) && strlen($Exemplar["label1"]) > $LineLength )
           {
-            $Title = "title='".$Exemplar["label1"] . "'";
+            $Title = "title='" . $this->ShowTags($Exemplar["label1"]) . "'";
           }
     
           // Link
@@ -1824,9 +1831,9 @@ class General
             $Output .= "<table width='100%'><tr><td data-toggle='tooltip' title='" . $this->CI->database->code2text($Exemplar["format"]) . "' class='publication-icon'>   ";
             $Output .= "<span class='gbvicon'>" . $Exemplar["cover"] . "</span></td><td class='text-left'>";
           }
-          if ( isset($Exemplar["label1"]) && trim($Exemplar["label1"]) != "" ) $Output .= $this->TrimTextNew($Exemplar["label1"],$LineLength) . $Icon . $ExamCase;
-          if ( isset($Exemplar["label2"]) && trim($Exemplar["label2"]) != "" ) $Output .= "<br />" . $this->TrimTextNew($Exemplar["label2"],$LineLength);
-          if ( isset($Exemplar["label3"]) && trim($Exemplar["label3"]) != "" ) $Output .= "<br />" . $this->TrimTextNew($Exemplar["label3"],$LineLength);
+          if ( isset($Exemplar["label1"]) && trim($Exemplar["label1"]) != "" ) $Output .= $this->ShowTags($this->TrimTextNew($Exemplar["label1"],$LineLength)) . $Icon . $ExamCase;
+          if ( isset($Exemplar["label2"]) && trim($Exemplar["label2"]) != "" ) $Output .= "<br />" . $this->ShowTags($this->TrimTextNew($Exemplar["label2"],$LineLength));
+          if ( isset($Exemplar["label3"]) && trim($Exemplar["label3"]) != "" ) $Output .= "<br />" . $this->ShowTags($this->TrimTextNew($Exemplar["label3"],$LineLength));
           if ( isset($Exemplar["cover"])  && trim($Exemplar["cover"]) != "" )
           {
             $Output .= "</td></tr></table>";

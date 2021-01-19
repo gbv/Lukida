@@ -44,14 +44,17 @@ foreach ($LeftSide as $Left)
     }
     else
     {
-      $Output .= "<tr><td class='tabcell'><a data-toggle='collapse' href='#" . $Left . "items_" . $this->dlgid . "' aria-expanded='false' aria-controls='" . $Left . "items'>" . $Left . "</a></td>";
+      $Output .= "<tr><td class='tabcell'><a data-toggle='collapse' href='#" . $Left . "items_" . $this->dlgid 
+              . "' aria-expanded='false' aria-controls='" . $Left . "items'>" . $Left . "</a></td>";
     }
 
     // Next columns
     foreach ( $Combined as $LID => $Item2 )
     {
       if (isset($Item2[$Left]) && is_bool($Item2[$Left]))  { $Item2[$Left] = ( $Item2[$Left] ) ? "true" : "false";  }
-      $Output .= "<td class='tabcell'>" . ( (isset($Item2[$Left]) && !is_array($Item2[$Left]) ) ? $this->CI->CutText($Item2[$Left],30,true) : "&nbsp;") . "</td>";
+      $Output .= "<td class='tabcell'>" . ( (isset($Item2[$Left]) && !is_array($Item2[$Left]) ) 
+                                          ? $this->CI->CutTextHTML($Item2[$Left],30,true)
+                                          : "&nbsp;") . "</td>";
     }
     $Output .= "</tr>";
   }
@@ -70,12 +73,12 @@ foreach ($LeftSide as $Left)
         $Output .= "<td class='tabcell'><table>";
         foreach ( $Item2[$Left] as $K1 => $V1 )
         {
-          $Output .= "<tr><td class='tabcell'>" . $K1 . "</td><td class='tabcell'><table>";
+          $Output .= "<tr><td class='tabcell'>" . html_entity_decode($K1,ENT_QUOTES) . "Ö</td><td class='tabcell'><table>";
           foreach ( $V1 as $K2 => $V2 )
           {
-            $Output .= "<tr><td class='tabcell'>" . $K2 . "</td><td class='tabcell'>";
-            $Tmp = ( is_array($V2) ) ? implode(" | ", $V2 ) : $V2;
-            $Output .= $this->CI->CutText($Tmp,60,true);
+            $Output .= "<tr><td class='tabcell'>" . html_entity_decode($K2,ENT_QUOTES) . "</td><td class='tabcell'>";
+            $Tmp = ( is_array($V2) ) ? implode(" | ", $V2) : $V2;
+            $Output .= html_entity_decode($this->CI->CutText($Tmp,60,true),ENT_QUOTES);
             $Output .= "</td></tr>";
           }
           $Output .= "</table></td></tr>";

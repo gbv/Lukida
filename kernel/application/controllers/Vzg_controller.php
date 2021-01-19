@@ -481,6 +481,31 @@ class Vzg_controller extends CI_Controller
     return $CutText;
   }
 
+  public function CutTextHTML($Text, $MaxBreak, $ToolTip = false)
+  {
+    $Text = trim($Text);
+    if ( strlen($Text) > $MaxBreak )
+    {
+      $MinBreak = floor($MaxBreak *.8);
+      $CutText  = substr($Text, 0, $MaxBreak);
+      if ( strrpos($CutText, ' ', $MinBreak) !== false )
+      {
+        $CutText = substr($CutText, 0, strrpos($CutText, ' ', $MinBreak));
+      }
+      else
+      {
+        $CutText = substr($CutText, 0, $MaxBreak);
+      }
+      $CutText = htmlentities(trim($CutText),ENT_QUOTES);
+      $CutText = ( $ToolTip ) ? "<a data-toggle='tooltip' title='" . htmlentities($Text,ENT_QUOTES) . "'>" . $CutText . "...</a>" : $CutText . "...";
+    }
+    else
+    {
+      $CutText = htmlentities($Text,ENT_QUOTES);
+    }
+    return $CutText;
+  }
+
   public function CutPos($Text, $MaxBreak)
   {
     $Text = trim($Text);
@@ -730,6 +755,7 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $ppn				 = $this->input->post('ppn');
+    $epn         = $this->input->post('epn');
     $mailfrom		 = $this->input->post('mailfrom');
     $mailto			 = $this->input->post('mailto');
     $mailtoname  = $this->input->post('mailtoname');
@@ -876,6 +902,7 @@ class Vzg_controller extends CI_Controller
     // Body media part
     $Mess .= "<h3>Medium</h3>"; 
     $Mess .= "<p>PPN: " . $ppn . "</p>";
+    $Mess .= "<p>EPN: " . $epn . "</p>";
     $Mess .= "<table border=1>" . json_decode($fullbody) . "</table>";
 
     // Body link part

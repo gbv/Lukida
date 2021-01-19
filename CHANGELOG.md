@@ -1,5 +1,15 @@
 # Changelog
 
+**11.12.2020**
+* Index system
+  * Internal search enhanced
+* MailOrder
+  * EPN added
+
+**08.12.2020**
+* Fullview
+  * Tabs items and paia enhanced for displaying special chars
+
 **04.12.2020**
 * Index system
   * Internal search enhanced
