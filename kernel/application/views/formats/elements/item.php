@@ -35,10 +35,10 @@ $Output .= "</tr>";
 // Following lines
 foreach ($LeftSide as $Left)
 {
-  if ( !in_array($Left,array("loanitems","openaccessitems","presentationitems","remoteitems")) )
+  if ( !in_array($Left,array("loanitems","openaccessitems","presentationitems","remoteitems","interloanitems")) )
   {
     // First column
-    if ( !in_array($Left,array("loan","openaccess","presentation","remote")) )
+    if ( !in_array($Left,array("loan","openaccess","presentation","remote","interloan")) )
     {
       $Output .= "<tr><td class='tabcell'>" . $Left . "</td>";
     }

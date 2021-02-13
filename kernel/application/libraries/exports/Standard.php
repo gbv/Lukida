@@ -319,13 +319,13 @@ class Standard extends General
     {
 	  foreach($data["publisher"][0] as $publisherKey => $publisherValue)
 	  {
-		if ($publisherKey == "a") 
+		if ($publisherKey == "a" && !empty($publisherValue[0])) 
 		{ 
-			$metadataOU .= $tagPrefix . $exportTags["placepublished"][$format] . $publisherValue . $tagExtention;
+			$metadataOU .= $tagPrefix . $exportTags["placepublished"][$format] . $publisherValue[0] . $tagExtention;
 		}
-		elseif ($publisherKey == "b") 
+		elseif ($publisherKey == "b" && !empty($publisherValue[0])) 
 		{ 
-			$metadataOU .= $tagPrefix . $exportTags["publisher"][$format] . $publisherValue . $tagExtention;
+			$metadataOU .= $tagPrefix . $exportTags["publisher"][$format] . $publisherValue[0] . $tagExtention;
 		} 
 	  }
     }
@@ -385,9 +385,9 @@ class Standard extends General
 			if (preg_match("#\((.*?)\)#", $data["publisherarticle"][0]["g"], $year))
 				$metadataOU .= $tagPrefix . $exportTags["year"][$format] . $year[1] . $tagExtention;
 		}
-		elseif (isset($data["publisher"][0]["c"]) && $data["publisher"][0]["c"] != "") 
+		elseif (isset($data["publisher"][0]["c"][0]) && $data["publisher"][0]["c"][0] != "") 
 		{
-			$metadataOU .= $tagPrefix . $exportTags["year"][$format] . $data["publisher"][0]["c"] . $tagExtention;
+			$metadataOU .= $tagPrefix . $exportTags["year"][$format] . $data["publisher"][0]["c"][0] . $tagExtention;
 		}
 		elseif (!empty($data["contents"]["008"]) && ctype_digit(substr($data["contents"]["008"],7,4))) 
 		{
@@ -489,7 +489,7 @@ class Standard extends General
     }
     $ezbLink	= "";
     
-    if ( (isset($data["issn"]) && $data["issn"] != "") || !empty($zdbid) )			
+    if ( !empty($data["issn"]) || !empty($data["isbn"]) || !empty($zdbid) )			
     {
       $ezbbibid			= empty($this->configGeneral["ezbbibid"]) ? null
     					  : $this->configGeneral["ezbbibid"] ;
@@ -505,7 +505,7 @@ class Standard extends General
       $openurlMetadata  = $this->getOpenURLmetaData($data, "jop");
     
       $ezbLinkExtension = "sid=GBV:" . $openurlReferer . $openurlMetadata .
-                          ("&pid=" . $bibparam . (!empty($zdbid) ? ("%26zdbid%3D" . $zdbid) : ""));
+                          ("&pid=" . $bibparam . ((empty($data["issn"]) && empty($data["isbn"]) && !empty($zdbid)) ? ("%26zdbid%3D" . $zdbid) : ""));
     					  
       $ezbLink          = "https://services.dnb.de/fize-service/gvr/full.xml?" . $ezbLinkExtension;
     
@@ -794,9 +794,9 @@ class Standard extends General
 			if (preg_match("#\((.*?)\)#", $data["publisherarticle"][0]["g"], $year))
 				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . $year[1];
 		}
-		elseif (isset($data["publisher"][0]["c"]) && $data["publisher"][0]["c"] != "") 
+		elseif (!empty($data["publisher"][0]["c"][0])) 
 		{
-			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . $data["publisher"][0]["c"];
+			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . $data["publisher"][0]["c"][0];
 		}	
 		elseif (!empty($data["contents"]["008"]) && ctype_digit(substr($data["contents"]["008"],7,4))) 
 		{
@@ -936,13 +936,13 @@ class Standard extends General
 			{
 				foreach($data["publisher"][0] as $publisherKey => $publisherValue)
 				{
-					if ($publisherKey == "a") 
+					if ($publisherKey == "a" && !empty($publisherValue[0])) 
 					{ 
-						$metadataOU .= "&rft.place=" . $data["publisher"][0]["a"];
+						$metadataOU .= "&rft.place=" . $publisherValue[0];
 					}
-					elseif ($publisherKey == "b") 
+					elseif ($publisherKey == "b" && !empty($publisherValue[0])) 
 					{ 
-						$metadataOU .= "&rft.pub=" . $data["publisher"][0]["b"];
+						$metadataOU .= "&rft.pub=" . $publisherValue[0];
 					} 
 				}
 			}

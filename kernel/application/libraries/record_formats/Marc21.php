@@ -17,14 +17,6 @@ class Marc21 extends General
   // ************** MARC-Functions **************
   // ********************************************
 
-  private function prepare($result)
-  {
-    $result  = str_replace("#29;","", $result);
-    $result  = str_replace("#30;",chr(30), $result);
-    $result  = str_replace("#31;",chr(31), $result);
-    return ($result);
-  }
-
   private function convertFormat($Str)
   {
     return strtolower(preg_replace('/\s+/', '', $Str));
@@ -317,7 +309,7 @@ class Marc21 extends General
       $this->online             = (isset($one["remote_bool"]) && strtolower($one["remote_bool"]) == "true") ? 1                                                  : 0;
 
       // Load MARC library and pass params
-      $this->marc = $this->CI->pearloader->loadmarc('File','MARC', $this->prepare($one["fullrecord"]))->next();
+      $this->marc = $this->CI->pearloader->loadmarc('File','MARCXML', $one["fullrecord_marcxml"])->next();
       $this->SetMarcFormat();
       $this->SetMarcContents();
       $this->SetMarcParents();

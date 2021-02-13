@@ -364,6 +364,9 @@ class General
     {
       $pretty["title"]            = $this->PrettyFields(array("245" => array("a" => " : ",
                                                                              "b" => " : ")));
+
+      $pretty["part"]             = $this->PrettyFields(array("245" => array("n" => " | ",
+                                                                             "p" => " : ")));
   
       // $pretty["titlesecond"]      = $this->PrettyFields(array("245" => array("c" => " : ")));
   
@@ -377,9 +380,6 @@ class General
                                                                              "g" => " ",
                                                                              "q" => ". Band: ")));
 
-      $pretty["part"]             = $this->PrettyFields(array("773" => array("g" => " | ",
-                                                                             "p" => " : ")));
-
       $pretty["serial"]           = $this->GetArray(array("490" => array("a","v")));
     
       $pretty["physicaldescription"] = $this->PrettyFields(array("300" => array("a" => ". ",
@@ -392,7 +392,7 @@ class General
 
     if ( $type == "fullview" )
     {
-      $pretty["publisher"]           = $this->GetArrayFirst(array("264" => array("a","b","c")));
+      $pretty["publisher"]           = $this->GetCompleteArray(array("264" => array("a","b","c")));
       if ( empty($pretty["publisher"]) )
       {
         $pretty["publisher"]           = $this->GetArray(array("260" => array("a","b","c")));
@@ -452,7 +452,7 @@ class General
 
       $pretty["languageorigin"]      = $this->GetSimpleArray(array("041" => array("h")));
 
-      $pretty["classification"]      = $this->GetClassification();
+      $pretty["classification"]      = $this->GetCompleteArray(array("084" => array("a","2")));
   
       $pretty["subject"]             = $this->GetSimpleArray(array("689" => array("a")));
 
@@ -464,11 +464,13 @@ class General
 
       $pretty["additionalinfo"]      = $this->GetArray(array("856" => array("u","3","y")));
 
+      $pretty["provenance"]          = $this->GetProvenance();
+
       $pretty["digitalresource"]     = $this->GetArray(array("981" => array("2","r","y")));
     
       $pretty["contentnotes"]        = $this->GetArray(array("989" => array("2","a")));
 
-      $pretty["class"]               = $this->GetSimpleArray(array("983" => array("a","b")));
+      $pretty["class"]               = $this->GetArray(array("983" => array("a","b")));
 
       $pretty["classiln"]            = $this->GetArray(array("983" => array("2","a","b")));
 
@@ -913,28 +915,59 @@ class General
     return $pretty;
   }
 
-  protected function GetClassification()
+  protected function GetProvenance()
   {
-    $Classification = array();
-    if ( array_key_exists("084", $this->contents) )
+    $Provenance = array();
+    if ( array_key_exists("561", $this->contents) )
     {
-      $Classification = $this->GetCompleteArray(array("084" => array("a","2")));
-    }
-    /*
-    // Add Dewey
-    if ( array_key_exists("082", $this->contents) )
-    {
-      $Dewey = $this->GetSimpleArray(array("082" => array("a")));
-      foreach ($Dewey as $One) 
+      $Tmp        = $this->GetArray(array("561" => array("3","5","a")));
+      foreach ( $Tmp as $P )
       {
-        $Classification[] = array(
-                                      "a" => array($One),
-                                      "2" => array("DDC")
-                                 );
+        if ( $_SESSION["filter"]["datapool"] == "local" && isset($P["5"]) && $_SESSION["config_general"]["general"]["isil"] != $P["5"] )  continue;
+        if ( !isset($P["3"]) && !isset($P["a"]) )  continue;
+
+        if ( !isset( $_SESSION["isils"][$P["5"]]) )
+        {
+          $_SESSION["isils"][$P["5"]] = $this->CI->database->getCentralDB("isil", array("isil" => $P["5"]))[$P["5"]];
+        }
+
+        $Text = (isset($_SESSION["isils"][$P["5"]]["shortname"])) ? $_SESSION["isils"][$P["5"]]["shortname"] . " ": "";
+        if ( isset($P["3"]) )
+        {
+          $Teile = explode("Signatur:", $P["3"]);
+          $Text .= (count($Teile) > 1) ? trim($Teile[1])      : trim($P["3"]);
+        }
+        $Text .= (isset($P["3"]) && isset($P["a"])) ? ", "    : "";
+
+        if ( isset($P["a"]) )
+        {
+          $Teile = explode(" ", str_replace("  ", " ", $P["a"]));
+          $Found = false;
+          foreach ($Teile as $Ind => $Teil) 
+          {
+            if ( strripos($Teil, "https://") !== false || strripos($Teil, "http://") !== false )
+            {
+              $Found = true;
+              unset($Teile[$Ind]);
+            }
+          }
+          $Tmp2 = implode(" ", $Teile);
+          if ( $Found ) 
+          {
+            $Teile = explode("§%§", str_replace(array(":", ";"), "§%§", $Tmp2));
+            if ( isset($Teile[1]) && trim($Teile[1]) )
+            {
+              $Teile[0] = $Teile[0] . ":";
+              $Teile[1] = "<a href='javascript:$.link_search(\"author\",\"" . trim(str_replace(","," ",$Teile[1])) . "\")'>" . trim($Teile[1]) . "</a>";
+            }
+            $Tmp2 = implode(" ", $Teile);
+          }
+          $Text .= $Tmp2;
+        }
+        $Provenance[] =  trim($Text);
       }
     }
-    */
-    return $Classification;
+    return $Provenance;
   }
 
   protected function GetDOIs()
@@ -1540,7 +1573,7 @@ class General
     return ( in_array($this->medium["format"],array("book","journal","monographseries","serialvolume","unknown")) ) ? true : false;
   }
 
-  protected function getMulti()
+  protected function getMulti($WithIncludedPubs=true)
   {
     $Exemplars = array();
 
@@ -1565,14 +1598,17 @@ class General
    
     if ( in_array($this->medium["format"],array("journal","ejournal")) )
     {
-      // Zeitschriften mit Einzelheften
       $IncludedPubs = $this->GetIncludedPubsNew($this,$this->PPN);
-      if ( count($IncludedPubs["journals"]) )
+      if ( $WithIncludedPubs )
       {
-        $Exemplars[] = array("label"  => $this->CI->database->code2text("RELATEDJOURNALS"),
-                             "rembef" => array(),
-                             "data"   => $IncludedPubs["journals"],
-                             "remaft" => array());
+        // Zeitschriften mit Einzelheften
+        if ( count($IncludedPubs["journals"]) )
+        {
+          $Exemplars[] = array("label"  => $this->CI->database->code2text("RELATEDJOURNALS"),
+                               "rembef" => array(),
+                               "data"   => $IncludedPubs["journals"],
+                               "remaft" => array());
+        }
       }
       if ( count($IncludedPubs["articles"]) )
       {
@@ -1639,11 +1675,12 @@ class General
   {
     $Exemplars = array();
 
+    $Journals = array();
+    /*
     // Zeitschriften mit Einzelheften
     $PPNLink  = $this->CI->internal_search("ppnlink",$PPN, '("Book","Journal","Serial Volume")');
     // $PPNLink  = $this->CI->internal_search("ppnlink",$PPN);
     $PPNStg   = json_encode(array_keys($PPNLink["results"]));
-    $Journals = array();
     $Counter  = 0;
     foreach ( $PPNLink["results"] as $One )
     {
@@ -1672,6 +1709,7 @@ class General
     {
       uasort($Journals, function ($a, $b) { return $a['sort'] <=> $b['sort']; });
     }
+    */
   
     // Artikel
     $PPNLink  = $this->CI->internal_search("ppnlink",$PPN, "Article");
@@ -1718,7 +1756,7 @@ class General
 
     // Set javascript variable
     $LinksResolved = array();
-    if ( $this->medium["online"] && $LinkResolver )
+    if ( $LinkResolver )
     {
       if ( ($LinksStored=$this->CI->internal_linkresolver($this->PPN)) != "" )
       {
@@ -1842,7 +1880,7 @@ class General
           $Output .= "</button>";
         }
     
-        if ( count($LinksResolved) && $this->medium["online"] )
+        if ( count($LinksResolved) && $LinkResolver )
         {
           $Class  = $ButtonSize . " btn btn-default btn-exemplar";
           foreach ( $LinksResolved as $Solver => $Lk )
@@ -1850,7 +1888,7 @@ class General
             $Output .= "<button onclick='$.openLink(\"" . $Lk . "\")' class='". $Class . "'>" . $this->CI->database->code2text("FULLTEXT") . " (" .  $this->CI->   database->code2text( $Solver)  . ")</button>";
           }
         }
-        elseif ( $this->medium["online"] )
+        elseif ($LinkResolver)
         {
           // LinkResolver Spaceholder for async js
           $Output .= "<div id='linkresolver_" . $this->dlgid . "'></div>";
@@ -1877,7 +1915,7 @@ class General
     }
     
     // Ensure Linkresolver (async)
-    if ( $FirstArea && $this->medium["online"] )
+    if ( $FirstArea && $LinkResolver )
     {
       $Output .= "<div id='linkresolvercontainer_" . $this->dlgid . "'></div>";
     }

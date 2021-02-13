@@ -489,7 +489,7 @@ class Solr extends General
     ->addField('collection_details')
     ->addField('format_phy_str_mv')
     ->addField('remote_bool')
-    ->addField('fullrecord');
+    ->addField('fullrecord_marcxml');
 
     // Add shards
     if ( $this->shards != "" )
@@ -742,6 +742,9 @@ class Solr extends General
       $dismaxQuery
       ->addFilterQuery('collection_details:GBV_ILN_' . $_SESSION['iln']);
     }    
+
+    // Store query in file
+    // $this->CI->printArray2File((string) $dismaxQuery);
 
     // Execute query
     $query_response = $client->query($dismaxQuery);

@@ -1,5 +1,30 @@
 # Changelog
 
+**11.02.2021**
+* Fullview
+  * Classification system SDNB added
+
+**09.02.2021**
+* Fullview
+  * Classification system SFB added incl. hierarchy
+  * ISILs added for improved display of provenances
+
+**30.01.2021**
+* Fullview
+  * Added section Provenance
+  * Title enhanced by M245n and M245p
+  * Seealso: Forced internal linking
+
+**25.01.2021**
+* Fullview
+  * Added interloan section to tab items
+
+**24.01.2021**
+* Fullview
+  * Multiple publisher location supported
+* Index system
+  * Switched to MARCXML
+
 **11.12.2020**
 * Index system
   * Internal search enhanced

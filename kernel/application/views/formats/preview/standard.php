@@ -26,6 +26,7 @@ if ( $Header )
   if ( $this->pretty["title"] != "" )
   {
     $Output .= $this->Mark_Text($this->pretty["title"]);
+    if ( $this->pretty["part"] != "" ) $Output .= " " . $this->Mark_Text($this->pretty["part"]);
   }
   else
   {

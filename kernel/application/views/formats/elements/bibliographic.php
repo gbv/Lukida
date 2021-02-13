@@ -247,15 +247,44 @@ else
     $Output .=  "<tr>";
     $Output .=  "<td>" . $this->CI->database->code2text("published") . "</td>";
     $Output .=  "<td>";
-    $First = true;
+    $First   = true;
     foreach ( $this->pretty["publisher"] as $one)
     {
       $In = ( !$First ) ? " | " : "";
-      if ( isset($one["a"]) && $one["a"] != "" )  $In .= $one["a"];
-      if ( isset($one["b"]) && $one["b"] != "" )  $In .= " : " . $this->link("publisher", $one["b"]);
-      if ( isset($one["c"]) && $one["c"] != "" )  $In .= ", " . $this->link("year", $one["c"]); // filter_var($one["c"], FILTER_SANITIZE_NUMBER_INT));
+      if ( isset($one["a"]) && count($one["a"]) )
+      {
+      	$FO = true;
+      	foreach ($one["a"] as $O)
+      	{
+      		if ( !$FO )	$In .= ", ";
+      		$In .= $O;
+      		$FO  = false;
+      	} 
+      }  
+      if ( isset($one["b"]) && count($one["b"]) )  
+      {
+      	$In .= " : ";
+      	$FO  = true;
+      	foreach ($one["b"] as $O)
+      	{
+      		if ( !$FO )	$In .= ", ";
+      		$In .= $this->link("publisher", $O);
+      		$FO  = false;
+      	} 
+      }  
+      if ( isset($one["c"]) && count($one["c"]) )
+      {
+      	$In .= ", ";
+      	$FO  = true;
+      	foreach ($one["c"] as $O)
+      	{
+      		if ( !$FO )	$In .= ", ";
+      		$In .= $this->link("year", $O); // filter_var($O, FILTER_SANITIZE_NUMBER_INT));
+      		$FO  = false;
+      	} 
+      }  
       $Output .= $In;
-      $First = false;
+      $First   = false;
     }
     $Output .=  "</td></tr>";
   }
@@ -665,6 +694,22 @@ if ( isset($this->pretty["additionalinfo"]) && count($this->pretty["additionalin
   $Output .=  "</td></tr>";   
 }
 
+// Provenance
+if ( isset($this->pretty["provenance"]) && count($this->pretty["provenance"]) )
+{
+  $Output .=  "<tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("PROVENANCE") . "</td>";
+  $Output .=  "<td>"; 
+  $First   = true;
+  foreach ( $this->pretty["provenance"] as $one)
+  {
+    if ( !$First ) $Output .= " <br /> ";
+    $Output .= $one;
+    $First = false;
+  }
+  $Output .=  "</td></tr>";
+}
+
 // Subject
 if ( isset($this->pretty["subject"]) && count($this->pretty["subject"]) > 0 )
 {
@@ -728,7 +773,7 @@ if ( isset($this->pretty["classification"]) && count($this->pretty["classificati
       $Output .= " class='btn btn-tiny navbar-panel-color' data-toggle='popover' data-trigger='focus'";
       $Output .= " data-placement='top' data-title='" . $CDBC["classifications"][$One["classification"]]["name"] . "'";
       $Output .= " data-html='true' data-content='<a href=\"" . $CDBC["classifications"][$One["classification"]]["link"] . "\" target=\"_blank\">Homepage <i class=\"fa fa-external-link\"></i></a>";
-      $Output .= "<br /><br />" . $this->CI->database->code2text("HIERARCHY") . ":";
+      if ( $One["parents"] ) $Output .= "<br /><br />" . $this->CI->database->code2text("HIERARCHY") . ":";
       
       if ( $One["parents"] ) $Output .= "<ul>";
       foreach ($One["parents"] as $Code => $Parent)
@@ -828,7 +873,10 @@ if ( isset($this->pretty["class"]) && count($this->pretty["class"]) > 0 )
   foreach ( $this->pretty["class"] as $one)
   {
     if ( !$First ) $Output .= " | ";
-    $Output .= $this->link("class", trim($one));
+    $Text = ""; $Link = "";
+    if ( isset($one["a"]) )  { $Text  = $one["a"]; $Link = $one["a"]; }
+    if ( isset($one["b"]) )  { $Text .= " " . $one["b"];}
+    $Output .= $this->link("class", $Link, $Text);
     $First = false;
   }
   $Output .=  "</td></tr>";
