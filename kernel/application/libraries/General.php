@@ -393,10 +393,6 @@ class General
     if ( $type == "fullview" )
     {
       $pretty["publisher"]           = $this->GetCompleteArray(array("264" => array("a","b","c")));
-      if ( empty($pretty["publisher"]) )
-      {
-        $pretty["publisher"]           = $this->GetArray(array("260" => array("a","b","c")));
-      }
                                      
       $pretty["publisherarticle"]    = $this->GetArray(array("773" => array("a","i","t","b","d","g","h","q","w")));
 
@@ -887,9 +883,9 @@ class General
         if ( isset($rec["6"]) && ( substr($rec["6"],0,3) == "260" || substr($rec["6"],0,3) == "264" ) )
         {
           $Tmp = array();
-          if ( isset($rec["a"]) && $rec["a"] != "" )  $Tmp["a"] = $rec["a"];
-          if ( isset($rec["b"]) && $rec["b"] != "" )  $Tmp["b"] = $rec["b"];
-          if ( isset($rec["c"]) && $rec["c"] != "" )  $Tmp["c"] = $rec["c"];
+          if ( isset($rec["a"]) && $rec["a"] != "" )  $Tmp["a"] = array($rec["a"]);
+          if ( isset($rec["b"]) && $rec["b"] != "" )  $Tmp["b"] = array($rec["b"]);
+          if ( isset($rec["c"]) && $rec["c"] != "" )  $Tmp["c"] = array($rec["c"]);
           if ( isset($pretty["publisher"]) )
           {
             if ( !in_array($Tmp,$pretty["publisher"]) )
