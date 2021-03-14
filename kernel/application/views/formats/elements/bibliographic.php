@@ -325,7 +325,8 @@ if ( isset($this->pretty["languageorigin"]) && count($this->pretty["languageorig
   foreach ( $this->pretty["languageorigin"] as $one)
   {
     if ( !$First ) $Output .= " | ";
-    $Output .=  $this->CI->database->english_countrycode2speech($one);
+    $Tmp = $this->CI->database->english_countrycode2speech($one);
+    $Output .=  ( intval($Tmp) <0 ) ? $one : $Tmp;
     $First = false;
   }
   $Output .=  "</td></tr>";

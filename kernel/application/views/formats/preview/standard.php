@@ -50,7 +50,13 @@ if ( $Header )
   $Output .= "<small>";
 
   if (isset($this->pretty["titlesecond"]) && $this->pretty["titlesecond"] != "" ) $Output .= "<br />" . $this->Mark_Text($this->pretty["titlesecond"]);
-  if (isset($this->pretty["author"])      && count($this->pretty["author"]) > 0)  $Output .= "<br />" . implode(", ", $this->Mark_Text(array_column($this->pretty["author"], "name")));
+  if (isset($this->pretty["author"])      && count($this->pretty["author"]) > 0)
+  {
+    $Output .= "<br />" . implode(", ", $this->Mark_Text(array_slice(array_column($this->pretty["author"], "name"),0,5)));
+    $Rest    = count($this->pretty["author"]) -5;
+    if ( $Rest == 1 )  $Output .= " " . $this->CI->database->code2text("ANDOTHERPERSON");
+    if ( $Rest >= 2 )  $Output .= " " . str_replace("{count}", $Rest, $this->CI->database->code2text("ANDOTHERPEOPLE"));
+  }  
 
   if ( in_array($this->format, array("article")) )
   {

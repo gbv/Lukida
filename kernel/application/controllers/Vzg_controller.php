@@ -845,7 +845,8 @@ class Vzg_controller extends CI_Controller
     $username = trim($username);
 
     // Mail subject
-    $this->email->subject($mailsubject . ' von ' . $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["username"]);
+    if ( isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"]) )  $mailsubject .= " von " . $_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"];
+    $this->email->subject($mailsubject);
 
     // Remove Links from message body
     $fullbody=preg_replace("/<a[^>]+\>/i", " ", $fullbody);
@@ -867,7 +868,7 @@ class Vzg_controller extends CI_Controller
 
     foreach ( $userdata as $key => $value )
     {
-      if ( $value == "" || $key == "type" )  continue;
+      if ( $value == "" || $key == "type" || $key == "message" || $key == "messagetext" )  continue;
       if ( $UserElements != "all" )
       {
         if ( !in_array($key,explode(",",$UserElements)) ) continue;

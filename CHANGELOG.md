@@ -1,5 +1,31 @@
 # Changelog
 
+**09.03.2021**
+* Fullview
+  * Second ISIL allowed for improved display of provenances
+
+**08.03.2021**
+* Search
+  * Internal search improved
+
+* Mail Order
+  * More user input messages enabled
+
+**02.03.2021**
+* Settings
+  * Removed unused features
+
+**01.03.2021**
+* Preview
+  * Limited to 5 complete authors
+
+**26.02.2021**
+* Improved mailorder messages
+
+**22.02.2021**
+* LBS Login / Logout
+  * Show waiting sysbol during action
+
 **11.02.2021**
 * Fullview
   * Classification system SDNB added

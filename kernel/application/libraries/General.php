@@ -919,7 +919,8 @@ class General
       $Tmp        = $this->GetArray(array("561" => array("3","5","a")));
       foreach ( $Tmp as $P )
       {
-        if ( $_SESSION["filter"]["datapool"] == "local" && isset($P["5"]) && $_SESSION["config_general"]["general"]["isil"] != $P["5"] )  continue;
+        if ( $_SESSION["filter"]["datapool"] == "local" && isset($P["5"]) 
+          && $_SESSION["config_general"]["general"]["isil"] != $P["5"] && $_SESSION["config_general"]["general"]["isil2"] != $P["5"] )  continue;
         if ( !isset($P["3"]) && !isset($P["a"]) )  continue;
 
         if ( !isset( $_SESSION["isils"][$P["5"]]) )
@@ -1011,7 +1012,7 @@ class General
     if ( in_array($Typ,array("id","author","class","foreignid","genre","publisher","series","subject","year")) )
     {
       // Internal links
-      return "<a href='javascript:$.link_search(\"" . $Typ . "\",\"" . str_replace(array('&quot;',"'"),' ', $Value) . "\")'>" . (($Text=="") ? $Value : $Text). " <span class='fa fa-link'></span></a>";
+      return "<a href='javascript:$.link_search(\"" . $Typ . "\",\"" . str_replace(array('&quot;',"'",","),' ', $Value) . "\")'>" . (($Text=="") ? $Value : $Text). " <span class='fa fa-link'></span></a>";
     }
     elseif ($Typ == "web")
     {
@@ -1560,8 +1561,7 @@ class General
 
   protected function isOnlineNew()
   {
-    return ( substr($this->GetMARC($this->contents,"007"),0,2) == "cr" 
-              || in_array("Gutenberg", $this->collection) ) ? true : false;
+    return $this->medium["online"];
   }
 
   protected function isMulti()
