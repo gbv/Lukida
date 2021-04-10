@@ -632,7 +632,7 @@ class Standard extends General
             foreach( $headers["Location"] as $aLocation )
             {
               if( $aLocation != "" && strpos($aLocation,"http") !== false && 
-                  strpos($aLocation,"www-fr.redi-bw.de") === false && strpos($aLocation,"ezb.uni-regensburg.de") === false )
+                  strpos($aLocation,".redi-bw.de") === false && strpos($aLocation,"ezb.uni-regensburg.de") === false )
               { //Direkt location:
                 $return[$resolver] = $aLocation;
                 return $return;

@@ -386,7 +386,7 @@ class Mysql extends General
       $CNT = 0;
       foreach ( $Filter as $One )
       {
-        if ( isset($One["classification"]) && isset($One["code"]) && in_array(strtoupper($One["classification"]), array("BBK", "BKL", "DDC", "RVK", "SDNB", "SFB")) )
+        if ( isset($One["classification"]) && isset($One["code"]) && in_array(strtoupper($One["classification"]), array("BBK", "BKL", "DDC", "RVK", "SDNB", "SFB", "ILN613", "ILN613ENG")) )
         {
           $CNT++;
           $SQL .= ($CNT == 1) ? " where" : " or";

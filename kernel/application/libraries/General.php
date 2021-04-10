@@ -371,6 +371,8 @@ class General
       // $pretty["titlesecond"]      = $this->PrettyFields(array("245" => array("c" => " : ")));
   
       $pretty["author"]           = $this->GetAuthors();
+
+      $pretty["associates"]       = $this->GetAssociates();
   
       $pretty["pv_publisher"]     = $this->GetPublisher();
   
@@ -398,8 +400,6 @@ class General
 
       $pretty["uniformtitle"]        = $this->PrettyFields(array("240" => array("a" => " | ")));
       
-      $pretty["associates"]          = $this->GetAssociates();
-
       $pretty["summary"]             = $this->PrettyFields(array("520" => array("a" => " | ")));
       
       $pretty["citation"]            = $this->PrettyFields(array("935" => array("e" => " | ")));
@@ -920,7 +920,8 @@ class General
       foreach ( $Tmp as $P )
       {
         if ( $_SESSION["filter"]["datapool"] == "local" && isset($P["5"]) 
-          && $_SESSION["config_general"]["general"]["isil"] != $P["5"] && $_SESSION["config_general"]["general"]["isil2"] != $P["5"] )  continue;
+          && isset($_SESSION["config_general"]["general"]["isil"])  && $_SESSION["config_general"]["general"]["isil"]  != $P["5"] 
+          && isset($_SESSION["config_general"]["general"]["isil2"]) && $_SESSION["config_general"]["general"]["isil2"] != $P["5"] )  continue;
         if ( !isset($P["3"]) && !isset($P["a"]) )  continue;
 
         if ( !isset( $_SESSION["isils"][$P["5"]]) )
@@ -1566,32 +1567,23 @@ class General
 
   protected function isMulti()
   {
-    return ( in_array($this->medium["format"],array("book","journal","monographseries","serialvolume","unknown")) ) ? true : false;
+    return ( in_array($this->medium["format"],array("book","journal","monographseries","serialvolume","unknown","musicalscore","soundrecording","map","microform","motionpicture","manuscript")) ) ? true : false;
   }
 
-  protected function getMulti($WithIncludedPubs=true)
+  protected function getMulti($WithIncludedPubs=true, $WithRelatedArticles=true)
   {
     $Exemplars = array();
 
     // Mehrbändige Werke, Schriftenreihen, Zeitschriften mit Einzelheften
-    if ( in_array($this->medium["format"],array("book","monographseries","unknown")) )
+    if ( in_array($this->medium["format"],array("book","monographseries","serialvolume","unknown","musicalscore","soundrecording","map","microform","motionpicture","manuscript")) )
     {
       // Mehrbändige Werke
       $Exemplars[] = array("label"  => $this->CI->database->code2text("RELATEDPUBLICATIONS"), 
                            "rembef" => array(),
-                           "data"   => $this->GetRelatedPubsNew($this,$this->PPN,1),
+                           "data"   => $this->GetRelatedPubsNew($this,$this->PPN),
                            "remaft" => array());
     }
-    
-    if ( in_array($this->medium["format"],array("serialvolume")) )
-    {
-      // Schriftenreihen
-      $Exemplars[] = array("label"  => $this->CI->database->code2text("RELATEDPUBLICATIONS"),
-                           "rembef" => array(),
-                           "data"   => $this->GetRelatedPubsNew($this,$this->PPN,2),
-                           "remaft" => array());
-    }
-   
+
     if ( in_array($this->medium["format"],array("journal","ejournal")) )
     {
       $IncludedPubs = $this->GetIncludedPubsNew($this,$this->PPN);
@@ -1606,19 +1598,22 @@ class General
                                "remaft" => array());
         }
       }
-      if ( count($IncludedPubs["articles"]) )
+      if ( $WithRelatedArticles )
       {
-        $Exemplars[] = array("label"  => $this->CI->database->code2text("RELATEDARTICLES"),
-                             "rembef" => array(),
-                             "data"   => $IncludedPubs["articles"],
-                             "remaft" => array());
+        if ( count($IncludedPubs["articles"]) )
+        {
+          $Exemplars[] = array("label"  => $this->CI->database->code2text("RELATEDARTICLES"),
+                               "rembef" => array(),
+                               "data"   => $IncludedPubs["articles"],
+                               "remaft" => array());
+        }
       }
     }
 
     return $Exemplars;
   }
 
-  public function GetRelatedPubsNew($T, $PPN, $Modus)
+  public function GetRelatedPubsNew($T, $PPN)
   {
     // Modus
     // 1: Mehrbändige Werke
@@ -1637,16 +1632,8 @@ class General
       $Pretty = $T->SetContents("preview");
   
       $Title = "";
-      if ( $Modus == 1 || $Modus == 3 )
-      {
-        $Title = $this->Get245npa($One["contents"], $Modus);
-        $Sort  = $this->Get245n($One["contents"]);
-      }
-      else
-      {
-        $Title = $this->Get245an($One["contents"]);
-        $Sort  = $this->Get490v($One["contents"]);
-      }
+      $Title = $this->Get245ab($One["contents"]);
+      $Sort  = $this->Get245n($One["contents"]);
   
       $Publisher = "";
       $Publisher = $this->Get250a($One["contents"]);

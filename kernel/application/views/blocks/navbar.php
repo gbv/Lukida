@@ -11,6 +11,11 @@ $lbs  = (isset($_SESSION["config_general"]["lbs"]["available"])
             && $_SESSION["config_general"]["lbs"]["available"] != "" ) 
              ? true : false;
 
+$Tabs   = (isset($_SESSION["config_discover"]["userview"]["usertabs"]) 
+              && $_SESSION["config_discover"]["userview"]["usertabs"] != "" )  
+               ? explode(",", $_SESSION["config_discover"]["userview"]["usertabs"]) : array();
+
+
 // User already logged in?
 $Login  = ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]) && $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] != "" ) ? true : false;
 
@@ -89,7 +94,7 @@ $Login  = ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["
         <!-- Favorites -->
         <div class="btn-group">
           <button type="button" onClick="javascript:$.open_favors()" class="favorites btn navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Merkliste" data-container="body">
-            <i class="fa fa-star"></i>
+            <i class="fa fa-star" title="Merkliste"></i>
             <span class='countFavors' data-toggle="tooltip" data-placement="bottom" data-title="Einträge Merkliste" data-trigger="hover manual"> </span>
             <span class="sr-only">Merkliste</span>
           </button>
@@ -114,11 +119,12 @@ $Login  = ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["
             <ul class="dropdown-menu" role="menu">
               <li><a class="myarea2" href="javascript:$.open_user('userrentals')"><i class="fa fa-user"></i> Mein Bereich</a></li>
               <li class="divider"></li>
-              <li><a class="usercollectables" href="javascript:$.open_user('usercollectables')">Abholbare Medien</a></li>
-              <li><a class="userrentals" href="javascript:$.open_user('userrentals')">Ausleihen</a></li>
-              <li><a class="userorders" href="javascript:$.open_user('userorders')">Bestellungen</a></li>
-              <li><a class="userreservations" href="javascript:$.open_user('userreservations')">Vormerkungen</a></li>
-              <li><a class="userfees" href="javascript:$.open_user('userfees')">Geb&uuml;hren</a></li>
+              <?php 
+                foreach ( $Tabs as $Tab )
+                {
+                  echo "<li><a class='" . $Tab . "' href=\"javascript:$.open_user('" . $Tab . "')\">" . $Tab . "</a></li>";
+                }
+              ?>
               <li class="divider"></li>
               <li><a href="javascript:$.logout()"><i class="glyphicon glyphicon-log-out"></i> Logout</a></li>
             </ul>
@@ -135,7 +141,7 @@ $Login  = ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["
           <span class="input-group-btn" style="width:1%;">
             <button type="button" onClick="javascript:$.open_settings()" class="settings btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Einstellungen" data-container="body">
               <i class="fa fa-sliders"></i> 
-              <span class='countSettings' data-toggle="tooltip" data-placement="bottom" title="Aktive Einstellungen" data-trigger="hover manual"> </span>
+              <span class='countSettings' data-toggle="tooltip" data-placement="bottom" data-title="Aktive Einstellungen" data-trigger="hover manual"> </span>
               <span class="sr-only">Einstellungen</span>
             </button>
           </span>
@@ -191,11 +197,12 @@ $Login  = ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["
               <ul class="dropdown-menu" role="menu">
                 <li><a class="myarea2" href="javascript:$.open_user('userrentals')"><i class="fa fa-user"></i> Mein Bereich</a></li>
                 <li class="divider"></li>
-                <li><a class="usercollectables" href="javascript:$.open_user('usercollectables')">Abholbare Medien</a></li>
-                <li><a class="userrentals" href="javascript:$.open_user('userrentals')">Ausleihen</a></li>
-                <li><a class="userorders" href="javascript:$.open_user('userorders')">Bestellungen</a></li>
-                <li><a class="userreservations" href="javascript:$.open_user('userreservations')">Vormerkungen</a></li>
-                <li><a class="userfees" href="javascript:$.open_user('userfees')">Geb&uuml;hren</a></li>
+                <?php 
+                  foreach ( $Tabs as $Tab )
+                  {
+                    echo "<li><a class='" . $Tab . "' href=\"javascript:$.open_user('" . $Tab . "')\">" . $Tab . "</a></li>";
+                  }
+                ?>
                 <li class="divider"></li>
                 <li><a href="javascript:$.logout()"><i class="glyphicon glyphicon-log-out"></i> Logout</a></li>
               </ul>
@@ -206,7 +213,7 @@ $Login  = ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["
           <!-- Favorites -->
           <div class="btn-group pull-right left-padding">
             <button type="button" onClick="javascript:$.open_favors()" class="favorites btn navbar-button-color dropdown-toggle" data-toggle="dropdown" data-tooltip="tooltip" data-placement="left" title="Merkliste" data-container="body">
-              <i class="fa fa-star"></i>
+              <i class="fa fa-star" title="Merkliste"></i>
               <span class='countFavors' data-toggle="tooltip" data-placement="bottom" data-title="Einträge Merkliste" data-trigger="hover manual"> </span>
               <span class="sr-only">Merkliste</span>
             </button>
@@ -265,7 +272,7 @@ $Login  = ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["
           <div style="display:table;" class="input-group">
             <span class="input-group-btn" style="width:1%;">
               <button type="button" onClick="javascript:$.open_settings()" class="settings btn btn-lg navbar-button-color" data-tooltip="tooltip" data-placement="left" title="Einstellungen" data-container="body">
-                <i class="fa fa-sliders"></i> <span class='countSettings' data-toggle="tooltip" data-placement="bottom" title="Aktive Einstellungen" data-trigger="hover manual"> </span>
+                <i class="fa fa-sliders"></i> <span class='countSettings' data-toggle="tooltip" data-placement="bottom" data-title="Aktive Einstellungen" data-trigger="hover manual"> </span>
                 <span class="sr-only">Einstellungen</span>
               </button>
             </span>

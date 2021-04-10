@@ -1,5 +1,13 @@
 # Changelog
 
+**07.04.2021**
+* Preview
+  * When no authors show associates
+
+**29.03.2021**
+* Updates
+  * jQuery 3.6.0
+
 **09.03.2021**
 * Fullview
   * Second ISIL allowed for improved display of provenances

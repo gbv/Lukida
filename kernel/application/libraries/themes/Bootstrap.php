@@ -60,6 +60,7 @@ class Bootstrap extends General
       $this->PPN      = $Erg["id"];
       $this->contents = $Erg["contents"];
       $this->format   = $Erg["format"];
+      $this->online   = $Erg["online"];
       $this->cover    = $Erg["cover"];
       $this->isbn     = $Erg["isbn"];
       $this->pretty   = $Erg;

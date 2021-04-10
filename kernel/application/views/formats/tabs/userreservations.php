@@ -41,7 +41,7 @@ foreach ( $Items as $Item )
   // Cancel Button 
   if ( $CancelReservation )
   {
-    if ( $Item["cancancel"] == "1" )
+    if ( $Item["cancancel"] == "1" && isset($Item["item"]) )
     {
       $Output .= "<td align='right'><button onClick='$.cancel(\"" . $this->getLBSILN($Item["isil"]) . "\",\"" . $Item["item"] . "\"," . $Count . ")' class='btn fullview-button-color'>" . $this->CI->database->code2text("CANCELRESERVATION") . "</button></td>";
     }

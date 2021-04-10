@@ -17,7 +17,7 @@ if ( $Header )
 {
   $Output .= "<div class='panel-heading preview-header'>";
   $Output .= "<div class='table-layout'><div class='table-cell preview-first-col'>";
-  $Output .= "<span data-toggle='tooltip' title='" . $this->CI->database->code2text($this->format) . "' class='preview-icon'>" . $this->SetCover() . "</span>";
+  $Output .= "<span data-toggle='tooltip' title='" . ($this->online ? "e" : "") . $this->CI->database->code2text($this->format) . "' class='preview-icon'>" . $this->SetCover() . "</span>";
   $Output .= "<br />";
   $Output .= "<span class='preview-counter'>" . $this->NR . "</span>";
   $Output .= "</div><div class='table-cell preview-second-col'>";
@@ -56,8 +56,15 @@ if ( $Header )
     $Rest    = count($this->pretty["author"]) -5;
     if ( $Rest == 1 )  $Output .= " " . $this->CI->database->code2text("ANDOTHERPERSON");
     if ( $Rest >= 2 )  $Output .= " " . str_replace("{count}", $Rest, $this->CI->database->code2text("ANDOTHERPEOPLE"));
-  }  
-
+  }
+  elseif (isset($this->pretty["associates"])      && count($this->pretty["associates"]) > 0)
+  {
+    $Output .= "<br />" . implode(", ", $this->Mark_Text(array_slice(array_column($this->pretty["associates"], "name"),0,5)));
+    $Rest    = count($this->pretty["associates"]) -5;
+    if ( $Rest == 1 )  $Output .= " " . $this->CI->database->code2text("ANDOTHERPERSON");
+    if ( $Rest >= 2 )  $Output .= " " . str_replace("{count}", $Rest, $this->CI->database->code2text("ANDOTHERPEOPLE"));
+  }
+  
   if ( in_array($this->format, array("article")) )
   {
     // Artikel
