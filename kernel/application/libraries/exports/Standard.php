@@ -534,50 +534,38 @@ class Standard extends General
 			$refUrl   = isset($ref->URL) ? $ref->URL : "";
 			$refLabel = isset($ref->Label) ? $ref->Label : "";
 		}
-		if ( $ezb_xml && isset($ezb_xml->Full->ElectronicData->ResultList->Result) &&
+		if ( $ezb_xml && isset($joponlyfulltext) && isset($ezb_xml->Full->ElectronicData->ResultList->Result) &&
 			 !empty($ezb_xml_result = $ezb_xml->Full->ElectronicData->ResultList->Result) )	
 		{
-          $i = 0;
+          $i = 0; $accessUrl = "";
           foreach( $ezb_xml_result as $aResult )
           { 
-			$resultAdditional = ""; $resultStatus = "";  $accessLevel  = "";
-            $resultAdditional   = !empty($aResult->Additionals->Additional) ? (string)$aResult->Additionals->Additional : "";
-            $resultStatus       = !empty($aResult['state']) ? json_decode($aResult['state']) : 0;
-            $accessLevel        = !empty($aResult->Additionals->AccessLevel) ? $ezb_xml_result->AccessLevel : "";
+			$resultAdditional = ""; $resultStatus = "";  $resultAccessLevel  = ""; $resultAccessURL = ""; 
+            $resultAdditional   = !empty((string)$aResult->Additionals->Additional) ? (string)$aResult->Additionals->Additional : "";
+            $resultStatus       = !empty((string)$aResult['state']) ? (string)$aResult['state'] : "0";
+            $resultAccessLevel  = !empty((string)$aResult->AccessLevel) ? (string)$aResult->AccessLevel : "";
+            $resultAccessURL    = !empty((string)$aResult->AccessURL) ? (string)$aResult->AccessURL : "";
 		    //Get the results and select AccessURL. 
-		    //State "4" = "not on-licence".
+		    //State "4" = "not on-licence",  "5" except period.
 		    //AccessLevel "homepage" = no a good accurate result.
-            if( strpos($resultAdditional,"DFG-gefördert") !== false && $resultStatus != "4" && $accessLevel != "homepage")
+            if( !empty($resultAccessURL) && ($resultStatus == "0" || $resultStatus == "1" || $resultStatus == "2") )
             {
-              return (string)$aResult->AccessURL;
-            }
-            else  
-            {
-              $ezbArray[$i]['state']       = $resultStatus;
-              $ezbArray[$i]['AccessLevel'] = (string)$aResult->AccessLevel;
-              $ezbArray[$i]['AccessURL']   = (string)$aResult->AccessURL;
-              $ezbArray[$i]['JournalURL']  = (string)$aResult->JournalURL;
-              $i++;
-            }
-          }
-          //Get the results and select AccessURL. 
-          //State "4" = "not on-licence".
-          //AccessLevel "homepage" = no a good accurate result.
-          if ( $ezbArray[0]['state'] != "4" && $ezbArray[0]['AccessLevel'] != "homepage" )
-          {
-            if ( !empty($ezbArray[0]['AccessURL']) )
-            {
-            	//Link to the full text
-            	return $ezbArray[0]['AccessURL'];
-            }
-            elseif ( !isset($joponlyfulltext) && !empty($ezbArray[0]['JournalURL']) )
-            {
-            	//link to the Journal
-            	return $ezbArray[0]['JournalURL'];
+              if( $resultAccessLevel != "homepage" )
+              {
+                if( strpos($resultAdditional,"DFG-gefördert") !== false )
+                {
+                  return $resultAccessURL; //Link to the full text
+                }
+                else
+                {
+                  $accessUrl = $resultAccessURL; 
+                }
+              }
             }
           }
+          return $accessUrl;
         }
-        elseif ( !isset($joponlyfulltext) && $refUrl != "" && $refLabel == "EZB-Opac" )
+        elseif ( $refUrl != "" && $refLabel == "EZB-Opac" )
         {
           //EZB-website to the title with other possible links:
           return $refUrl . "&" . $bibparam;

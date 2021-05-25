@@ -386,7 +386,9 @@ class Mysql extends General
       $CNT = 0;
       foreach ( $Filter as $One )
       {
-        if ( isset($One["classification"]) && isset($One["code"]) && in_array(strtoupper($One["classification"]), array("BBK", "BKL", "DDC", "RVK", "SDNB", "SFB", "ILN613", "ILN613ENG")) )
+        if ( isset($One["classification"]) && isset($One["code"]) && in_array(strtoupper($One["classification"]), 
+                                                                              array("BBK", "BKL", "DDC", "RVK", "SDNB", "SFB", 
+                                                                                    "SSGN", "NATLIZ", "NATLIZENG")) )
         {
           $CNT++;
           $SQL .= ($CNT == 1) ? " where" : " or";
@@ -400,10 +402,11 @@ class Mysql extends General
         // $ROWS["details"]         = mysqli_fetch_all($RES, MYSQLI_ASSOC);
         while ($ROW = mysqli_fetch_assoc($RES)) 
         {
+          $P = json_decode($ROW["parents"],true);
           $ROWS["details"][] = array("classification" => $ROW["classification"],
                                      "code"           => $ROW["code"],
                                      "description"    => $ROW["description"],
-                                     "parents"        => json_decode($ROW["parents"],true));
+                                     "parents"        => (is_array($P)) ? $P : array());
         }      
       }
     }
@@ -425,7 +428,22 @@ class Mysql extends General
       {
         $ROWS[$ROW["isil"]] = array("name" => $ROW["name"],
                                     "type" => $ROW["type"])
-                            + (array) json_decode($ROW["infos"]);
+                            + (array) json_decode($ROW["infos"], true);
+      }
+    }
+
+    if ( $Type == "norm" )
+    {
+      $SQL  = "SELECT ppn, iln, data, parents, modified FROM norms";
+      $SQL .= " where ppn in ('" . implode("','", $Filter) . "')";
+      $RES  = mysqli_query($CDB, $SQL);
+      $ROWS = array();
+      while ($ROW = mysqli_fetch_assoc($RES)) 
+      {
+        $ROWS[$ROW["ppn"]]  = array("iln"      => $ROW["iln"],
+                                    "modified" => $ROW["modified"],
+                                    "parents"  => (array) json_decode($ROW["parents"], true))
+                            + (array) json_decode($ROW["data"], true);
       }
     }
 

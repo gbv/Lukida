@@ -118,7 +118,7 @@ else
                                                 substr($this->PPN, strpos($this->PPN, $firstdigit[0])) : $this->PPN;
         $Interloan[] = array
         (
-          "link"   => $CatDB . "/PPNSET?PPN=" . $FLPPN,
+          "link"   => $CatDB . "/PPNSET?PPN=" . $FLPPN . "&LNG=" . ( $_SESSION["language"] == "ger" ? "DU" : "EN" ),
           "label1" => $this->CI->database->code2text("INTERLOAN")
         );
       }

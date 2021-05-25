@@ -297,6 +297,27 @@ class Bootstrap extends General
     return ( $Output );
   }
 
+  public function passwordview($params)
+  {
+    // Check Session & Parameters
+    if ( ! $this->ParamExits("_SESSION[config_discover][password][passwordview]",$_SESSION,"config_discover","password","passwordview") ) return false;
+    if ( ! $this->FileExits(KERNELFORMATS . "passwordview/" . $_SESSION["config_discover"]["password"]["passwordview"] . ".php") ) return false;
+
+    // Start Output
+    $Output = $this->header();
+
+    // Load module inside div
+    $Output = "<div id='passwordview'>";
+    include(KERNELFORMATS . "passwordview/" . $_SESSION["config_discover"]["password"]["passwordview"] .'.php');
+    $Output .= "</div>";
+
+    // End Output
+    $Output .= $this->footer();
+
+    // Return Output
+    return ( $Output );
+  }
+
   public function mailorderview ( $params )
   {
     // Check Session & Parameters
@@ -330,4 +351,37 @@ class Bootstrap extends General
     // Return Output
     return ( $Output );
   }
-}
+
+  public function specialview ( $params )
+  {
+    // Check Session & Parameters
+    if ( ! $this->ParamExits("param[ppn]", $params,"ppn") ) return false;
+    if ( ! $this->ParamExits("_SESSION[config_discover][mailorderview][mailorderview]",$_SESSION,"config_discover","mailorderview","mailorderview") ) return false;
+    if ( ! $this->FileExits(KERNELFORMATS . "specialview/" . $_SESSION["config_discover"]["specialview"]["specialview"] . ".php") ) return false;
+
+    // Prepare variables for loaded code
+    $this->PPN        = $params['ppn'];
+    $this->exemplar   = $params['exemplar'];
+    $this->medium     = $_SESSION["data"]["results"][$this->PPN];
+    $this->contents   = $this->medium["contents"];
+    $this->leader     = $this->medium["leader"];
+    $this->format     = $this->medium["format"];
+    $this->cover      = $this->medium["cover"];
+    $this->catalogues = $this->medium["catalogues"];
+    $this->isbn       = $this->medium["isbn"];
+    $this->pretty     = $_SESSION["data"]["results"][$this->PPN];
+
+    // Start Output
+    $Output = $this->header();
+
+    // Load module inside div
+    $Output = "<div id='specialview'>";
+    include(KERNELFORMATS . "specialview/" . $_SESSION["config_discover"]["specialview"]["specialview"] .'.php');
+    $Output .= "</div>";
+
+    // End Output
+    $Output .= $this->footer();
+
+    // Return Output
+    return ( $Output );
+  }}

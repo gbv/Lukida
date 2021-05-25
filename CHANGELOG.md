@@ -1,5 +1,35 @@
 # Changelog
 
+**19.05.2021**
+* User view
+  * Links for password rules are now displayed when configured 
+
+* Link Resolver
+  * JOP Interface improved  
+
+**14.05.2021**
+* User view
+  * Indentical texts from PAIA interface not displayed twice
+
+**13.05.2021**
+* Fullview
+  * New linking by norm ids
+
+* Index system
+  * New search queries
+
+**23.04.2021**
+* General
+  * Added special area for library specific enhancements
+
+**16.04.2021**
+* Fullview
+  * Electronic interlibrary loan
+
+**14.04.2021**
+* Fullview
+  * Show license information
+
 **07.04.2021**
 * Preview
   * When no authors show associates

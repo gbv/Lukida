@@ -7,6 +7,7 @@ class General
   protected $collection         = array();
   protected $collection_details = array();
   protected $contents           = array();
+  protected $elecinterloan      = false;
   protected $cover              = "";
   protected $exemplar           = array();
   protected $format             = "";
@@ -412,10 +413,7 @@ class General
       
       $pretty["reproduction"]        = $this->GetArray(array("338" => array("a","b","c","d","e","f","n")));
     
-      $pretty["corporation"]         = $this->GetSimpleArray(array("110" => array("a"),
-                                                                   "111" => array("a"),
-                                                                   "710" => array("a"),
-                                                                   "711" => array("a")));
+      $pretty["corporation"]         = $this->GetCorporation();
 
       // $pretty["doi"]                 = $this->GetDOIs();
   
@@ -449,10 +447,12 @@ class General
       $pretty["languageorigin"]      = $this->GetSimpleArray(array("041" => array("h")));
 
       $pretty["classification"]      = $this->GetCompleteArray(array("084" => array("a","2")));
-  
-      $pretty["subject"]             = $this->GetSimpleArray(array("689" => array("a")));
 
-      $pretty["genre"]               = $this->GetSimpleArray(array("655" => array("a")));
+      $pretty["license"]             = $this->GetArray(array("540" => array("f","u")));
+  
+      $pretty["subject"]             = $this->GetSubject();
+
+      $pretty["genre"]               = $this->GetGenre();
                                                                    
       $pretty["in830"]               = $this->GetUplink("830");
       
@@ -468,9 +468,9 @@ class General
 
       $pretty["class"]               = $this->GetArray(array("983" => array("a","b")));
 
-      $pretty["classiln"]            = $this->GetArray(array("983" => array("2","a","b")));
+      $pretty["classiln"]            = $this->GetArray(array("983" => array("0","2","a","b")));
 
-      $pretty["subjectheadings"]     = $this->GetArray(array("982" => array("2","a")));
+      $pretty["subjectheadings"]     = $this->GetSubjectHeadings();
 
       $pretty["isbn"]                = $this->PrettyFields(array("020" => array("9" => " | ", "a" => " | "),
                                                                  "773" => array("z" => " | ")));
@@ -576,27 +576,37 @@ class General
     return $Output;
   }
 
+  protected function GetNorm($Norms)
+  {
+    if ( !isset($Norms["0"]) )  return "";
+    foreach ( $Norms["0"] as $One ) 
+    {
+      if ( isset($One) && substr($One,0,8) == "(DE-627)" ) return substr($One,8);
+    }
+    return "";
+  }
+
   protected function GetAuthors()
   {
     $Authors   = array();
-
-    $People = $this->GetArray(array("100" => array("a","c","4","e")));
-    foreach ( $People as $One )
+    $Tmp       = $this->GetCompleteArray(array("100" => array("0","a","c","4","e")));
+    foreach ( $Tmp as $One )
     {
-      $Name = 
       $Authors[]   = array("name" => $this->FormatPersonName($One),
-                           "role" => $this->FormatPersonRole($One, true));
+                           "role" => $this->FormatPersonRole($One, true),
+                           "norm" => $this->GetNorm($One));
     }
 
-    $People = $this->GetArray(array("700" => array("a","c","4","e")));
-    foreach ( $People as $One )
+    $Tmp = $this->GetCompleteArray(array("700" => array("0","a","c","4","e")));
+    foreach ( $Tmp as $One )
     {
       // Only catch authors
-      if ( ( isset($One["4"]) && $One["4"] == "aut" ) 
-        || ( isset($One["e"]) && in_array(strtolower(substr($One["e"],0,7)), array("verfass","author")) ) ) 
+      if ( ( isset($One["4"]["0"]) && $One["4"]["0"] == "aut" ) 
+        || ( isset($One["e"]["0"]) && in_array(strtolower(substr($One["e"]["0"],0,7)), array("verfass","author")) ) ) 
       {
         $Authors[]   = array("name" => $this->FormatPersonName($One), 
-                             "role" => $this->FormatPersonRole($One, true));
+                             "role" => $this->FormatPersonRole($One, true),
+                             "norm" => $this->GetNorm($One));
       }
     }
     return $Authors;
@@ -604,52 +614,52 @@ class General
 
   protected function GetAssociates()
   {
-    $Associates = array();
-  
     // Get 700a people
-    $People = $this->GetArray(array("700" => array("a","c","4","e")));
-    foreach ( $People as $One )
+    $Associates = array();
+    $Tmp        = $this->GetCompleteArray(array("700" => array("0","a","c","4","e")));
+    foreach ( $Tmp as $One )
     {
       // Skip 700a author(s)
-      if ( ( isset($One["4"]) && $One["4"] == "aut" ) 
-        || ( isset($One["e"]) && in_array(strtolower(substr($One["e"],0,7)), array("verfass","author")) ) )   continue;
+      if ( ( isset($One["4"]["0"]) && $One["4"]["0"] == "aut" ) 
+        || ( isset($One["e"]["0"]) && in_array(strtolower(substr($One["e"]["0"],0,7)), array("verfass","author")) ) )   continue;
 
       $Associates[]  = array("name" => $this->FormatPersonName($One),
-                             "role" => $this->FormatPersonRole($One, false));
+                             "role" => $this->FormatPersonRole($One, false),
+                             "norm" => $this->GetNorm($One));
     }
     return $Associates;
   }
 
   protected function FormatPersonName($One)
   {
-    if ( isset($One["a"]) && $One["a"] != "" && isset($One["c"]) && $One["c"] != "" )
+    if ( isset($One["a"]["0"]) && $One["a"]["0"] != "" && isset($One["c"]["0"]) && $One["c"]["0"] != "" )
     {
-      return htmlspecialchars($One["a"] . " " . $One["c"]);
+      return htmlspecialchars($One["a"]["0"] . " " . $One["c"]["0"]);
     }
-    if ( !isset($One["a"]) && isset($One["c"]) && $One["c"] != "" )
+    if ( !isset($One["a"]["0"]) && isset($One["c"]["0"]) && $One["c"]["0"] != "" )
     {
-      return htmlspecialchars($One["a"]);
+      return htmlspecialchars($One["a"]["0"]);
     }
-    if ( isset($One["a"]) && $One["a"] != "" && !isset($One["c"]) )
+    if ( isset($One["a"]["0"]) && $One["a"]["0"] != "" && !isset($One["c"]["0"]) )
     {
-      return htmlspecialchars($One["a"]);
+      return htmlspecialchars($One["a"]["0"]);
     }
   }
 
   protected function FormatPersonRole($One, $onlyauthor = true)
   {
     $Role = "";
-    if (isset($One["4"]) ? $One["4"] : "") 
+    if (isset($One["4"]["0"]) ? $One["4"]["0"] : "") 
     {
-      $Role = $this->CI->database->code2text($One["4"]);
+      $Role = $this->CI->database->code2text($One["4"]["0"]);
     }
-    elseif (isset($One["e"]) && $One["e"] != "" && strlen($One["e"]) == 3)
+    elseif (isset($One["e"]["0"]) && $One["e"]["0"] != "" && strlen($One["e"]["0"]) == 3)
     {
-      $Role = $this->CI->database->code2text($One["e"]);
+      $Role = $this->CI->database->code2text($One["e"]["0"]);
     }
-    elseif (isset($One["e"]) && $One["e"] != "") 
+    elseif (isset($One["e"]["0"]) && $One["e"]["0"] != "") 
     {
-      $Tmp = preg_replace("/[^a-zA-Z0-9öäü ]+/", "", strtolower($One["e"]));
+      $Tmp = preg_replace("/[^a-zA-Z0-9öäü ]+/", "", strtolower($One["e"]["0"]));
       if ( in_array($Tmp, array("bearb","begr","hrsg","komp","mitarb","red","ubers","adressat","komm","stecher","verstorb","zeichner","präses","praeses","resp","widmungsempfänger","widmungsempfaenger","zensor","beiträger","beitraeger","beiträger k","beitraeger k","beiträger m","beitraeger m","interpr","verf")) )
       {
         $Tmp = str_replace(
@@ -683,6 +693,59 @@ class General
       $Publisher = $this->PrettyFields(array("952" => array("j" => "~.")));
     }
     return trim($Publisher);
+  }
+
+  protected function GetCorporation()
+  {
+    $Corporations  = array();
+    $Tmp           = $this->GetCompleteArray(array("710" => array("0","a")));
+    foreach ( $Tmp as $One )
+    {
+      if ( !isset($One["a"]["0"]) ) continue;
+      $Corporations[]   = array("name" => $One["a"]["0"],
+                                "norm" => $this->GetNorm($One));
+    }
+    return $Corporations;
+  }
+
+  protected function GetSubjectHeadings()
+  {
+    $SubjectHeadings = array();
+    $Tmp             = $this->GetCompleteArray(array("982" => array("0","2","a")));
+    foreach ( $Tmp as $One )
+    {
+      if ( !isset($One["a"]["0"]) || !isset($One["2"]["0"]) ) continue;
+      $SubjectHeadings[]   = array("name" => $One["a"]["0"],
+                                   "iln"  => $One["2"]["0"],
+                                   "norm" => $this->GetNorm($One));
+    }
+    return $SubjectHeadings;
+  }
+
+  protected function GetGenre()
+  {
+    $Genre = array();
+    $Tmp             = $this->GetCompleteArray(array("655" => array("0","a")));
+    foreach ( $Tmp as $One )
+    {
+      if ( !isset($One["a"]["0"]) ) continue;
+      $Genre[]   = array("name" => $One["a"]["0"],
+                         "norm" => $this->GetNorm($One));
+    }
+    return $Genre;
+  }
+
+  protected function GetSubject()
+  {
+    $Subject = array();
+    $Tmp             = $this->GetCompleteArray(array("689" => array("0","a")));
+    foreach ( $Tmp as $One )
+    {
+      if ( !isset($One["a"]["0"]) ) continue;
+      $Subject[]   = array("name" => $One["a"]["0"],
+                           "norm" => $this->GetNorm($One));
+    }
+    return $Subject;
   }
 
   protected function GetArray($Filter)
@@ -1008,12 +1071,16 @@ class General
     return "<span class='gbvicon center-block'>" . $this->cover . "</span>";
   }
 
-  protected function Link($Typ, $Value, $Text="")
+  public function Link($Typ, $Value, $Text="")
   {
-    if ( in_array($Typ,array("id","author","class","foreignid","genre","publisher","series","subject","year")) )
+    if ( in_array($Typ,array("id","author","class","corporation","foreignid","genre","publisher","series","subject","topic","year")) )
     {
       // Internal links
       return "<a href='javascript:$.link_search(\"" . $Typ . "\",\"" . str_replace(array('&quot;',"'",","),' ', $Value) . "\")'>" . (($Text=="") ? $Value : $Text). " <span class='fa fa-link'></span></a>";
+    }
+    elseif ( in_array($Typ,array("id","norm") ) )
+    {
+      return "<a href='javascript:$.link_search(\"" . $Typ . "\"," . str_replace(array('&quot;',"'",","),' ', $Value) . ")'>" . (($Text=="") ? $Value : $Text). " <span class='fa fa-link'></span></a>";
     }
     elseif ($Typ == "web")
     {
@@ -1570,7 +1637,7 @@ class General
     return ( in_array($this->medium["format"],array("book","journal","monographseries","serialvolume","unknown","musicalscore","soundrecording","map","microform","motionpicture","manuscript")) ) ? true : false;
   }
 
-  protected function getMulti($WithIncludedPubs=true, $WithRelatedArticles=true)
+  protected function getMulti($WithIncludedPubs=true, $WithRelatedArticles=true, $WithIncludedJournals=true)
   {
     $Exemplars = array();
 
@@ -1586,7 +1653,7 @@ class General
 
     if ( in_array($this->medium["format"],array("journal","ejournal")) )
     {
-      $IncludedPubs = $this->GetIncludedPubsNew($this,$this->PPN);
+      $IncludedPubs = $this->GetIncludedPubsNew($this,$this->PPN, $WithIncludedJournals);
       if ( $WithIncludedPubs )
       {
         // Zeitschriften mit Einzelheften
@@ -1654,45 +1721,47 @@ class General
     return ($RelatedPubs);
   }
   
-  public function GetIncludedPubsNew($T, $PPN)
+  public function GetIncludedPubsNew($T, $PPN, $WithIncludedJournals)
   {
     $Exemplars = array();
 
     $Journals = array();
-    /*
-    // Zeitschriften mit Einzelheften
-    $PPNLink  = $this->CI->internal_search("ppnlink",$PPN, '("Book","Journal","Serial Volume")');
-    // $PPNLink  = $this->CI->internal_search("ppnlink",$PPN);
-    $PPNStg   = json_encode(array_keys($PPNLink["results"]));
-    $Counter  = 0;
-    foreach ( $PPNLink["results"] as $One )
+    
+    if ( $WithIncludedJournals )
     {
-      $Pretty = $T->SetContents("preview");
+      // Zeitschriften mit Einzelheften
+      $PPNLink  = $this->CI->internal_search("ppnlink",$PPN, '("Book","Journal","Serial Volume")');
+      // $PPNLink  = $this->CI->internal_search("ppnlink",$PPN);
+      $PPNStg   = json_encode(array_keys($PPNLink["results"]));
+      $Counter  = 0;
+      foreach ( $PPNLink["results"] as $One )
+      {
+        $Pretty = $T->SetContents("preview");
+    
+        $Counter++;
+        $Title = $this->Get245ab($One["contents"]);
+        if ( $Title == "" )  $Title = $this->Get490av($One["contents"]);
+        if ( $Title == "" )  $Title = "Nr." . $Counter;
   
-      $Counter++;
-      $Title = $this->Get245ab($One["contents"]);
-      if ( $Title == "" )  $Title = $this->Get490av($One["contents"]);
-      if ( $Title == "" )  $Title = "Nr." . $Counter;
-
-      $Sort  = explode(".", $this->Get490v($One["contents"]));
-      $Sort  = $Sort[0];
-  
-      $Journals[$One["id"]] = array
-      (
-        "format"    => $One["format"],
-        "cover"     => $One["cover"],
-        "type"      => "ppn",
-        "link"      => $One["id"],
-        "label1"    => $Title,
-        "label2"    => $this->GetPublisherYear($One["contents"]),
-        "sort"      => $Sort
-      );
+        $Sort  = explode(".", $this->Get490v($One["contents"]));
+        $Sort  = $Sort[0];
+    
+        $Journals[$One["id"]] = array
+        (
+          "format"    => $One["format"],
+          "cover"     => $One["cover"],
+          "type"      => "ppn",
+          "link"      => $One["id"],
+          "label1"    => $Title,
+          "label2"    => $this->GetPublisherYear($One["contents"]),
+          "sort"      => $Sort
+        );
+      }
+      if ( count($Journals) )
+      {
+        uasort($Journals, function ($a, $b) { return $a['sort'] <=> $b['sort']; });
+      }
     }
-    if ( count($Journals) )
-    {
-      uasort($Journals, function ($a, $b) { return $a['sort'] <=> $b['sort']; });
-    }
-    */
   
     // Artikel
     $PPNLink  = $this->CI->internal_search("ppnlink",$PPN, "Article");
@@ -1799,8 +1868,8 @@ class General
           $_SESSION["exemplar"][$this->PPN][$EPN] = $Exams;
     
           // General properties
-          $Icon = "";  
-          $Title = "";
+          $Icon   = "";  
+          $Title  = "";
           if ( isset($Exemplar["label1"]) && trim($Exemplar["label1"]) && strlen($Exemplar["label1"]) > $LineLength )
           {
             $Title = "title='" . $this->ShowTags($Exemplar["label1"]) . "'";

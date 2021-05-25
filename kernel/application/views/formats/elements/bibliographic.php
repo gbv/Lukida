@@ -40,7 +40,8 @@ if ( isset($this->pretty["author"]) && count($this->pretty["author"]) > 0 )
   foreach ( $this->pretty["author"] as $one)
   {
     if ( !$First ) $Output .= " | ";
-    $Output .= $this->link("author", $one["name"]);
+    $Output .= ( isset($one["norm"]) && $one["norm"] ) ? $this->link("norm",  $one["norm"], $one["name"]) 
+                                                       : $this->link("author", $one["name"]);
     $First = false;
   }
   $Output .=  "</td></tr>";
@@ -56,7 +57,8 @@ if ( isset($this->pretty["associates"]) && count($this->pretty["associates"]) > 
   foreach ( $this->pretty["associates"] as $one)
   {
     if ( !$First ) $Output .= " | ";
-    $Output .= $this->link("author", $one["name"]);
+    $Output .= ( isset($one["norm"]) && $one["norm"] ) ? $this->link("norm",  $one["norm"], $one["name"]) 
+                                                       : $this->link("author", $one["name"]);
     if ( $one["role"] != "" ) $Output .= " (" . $one["role"] . ")";
     $First = false;
   }
@@ -82,7 +84,8 @@ if ( isset($this->pretty["corporation"]) && count($this->pretty["corporation"]) 
   foreach ( $this->pretty["corporation"] as $one)
   {
     if ( !$First ) $Output .= " | ";
-    $Output .= $this->link("author", trim($one));
+    $Output .= ( isset($one["norm"]) && $one["norm"] ) ? $this->link("norm",        $one["norm"], $one["name"]) 
+                                                       : $this->link("corporation", $one["name"]);
     $First = false;
   }
   $Output .=  "</td></tr>";
@@ -532,24 +535,6 @@ if ( isset($this->pretty["seealso"]) && count($this->pretty["seealso"]) > 0 )
   if ( $Count > 0 ) $Output .=  "</td></tr>";
 }
 
-// DOIs
-/*
-if ( isset($this->pretty["doi"]) && count($this->pretty["doi"]) > 0 )
-{
-  $Output .=  "<tr>";
-  $Output .=  "<td>DOI";
-  $Output .=  "</td><td>";
-  $First   = true;
-  foreach ( $this->pretty["doi"] as $One)
-  {
-    if ( !$First )  $Output .=  " | ";
-    $Output .= $this->link("extern", "https://www.doi.org/" . $One, $One);
-    $First = false;
-  }
-  $Output .=  "<td></tr>";
-}
-*/
-
 // Language Notes
 if ( isset($this->pretty["languagenotes"]) && $this->pretty["languagenotes"] != "" )
 {
@@ -721,7 +706,8 @@ if ( isset($this->pretty["subject"]) && count($this->pretty["subject"]) > 0 )
   foreach ( $this->pretty["subject"] as $one)
   {
     if ( !$First ) $Output .= " | ";
-    $Output .= $this->link("subject", $one);
+    $Output .= ( isset($one["norm"]) && $one["norm"] ) ? $this->link("norm",    $one["norm"], $one["name"]) 
+                                                       : $this->link("subject", $one["name"]);
     $First = false;
   }
   $Output .=  "</td></tr>";
@@ -737,7 +723,8 @@ if ( isset($this->pretty["genre"]) && count($this->pretty["genre"]) > 0 )
   foreach ( $this->pretty["genre"] as $one)
   {
     if ( !$First ) $Output .= " | ";
-    $Output .= $this->link("genre", $one);
+    $Output .= ( isset($one["norm"]) && $one["norm"] ) ? $this->link("norm",  $one["norm"], $one["name"]) 
+                                                       : $this->link("genre", $one["name"]);
     $First = false;
   }
   $Output .=  "</td></tr>";
@@ -760,16 +747,15 @@ if ( isset($this->pretty["classification"]) && count($this->pretty["classificati
     }
   }
 
-  if ( $this->CI->database->existsCentralDB() )
-  {
-    $CDBC = $this->CI->database->getCentralDB("classification", $Classes);
-  };
+  $CDBC = ( $this->CI->database->existsCentralDB() && $Classes ) 
+          ? $this->CI->database->getCentralDB("classification", $Classes) 
+          : array();
 
   if ( isset($CDBC["details"]) )
   {
     foreach ( $CDBC["details"] as $One ) 
     {
-      $Output .= $this->link("class", $One["code"], $One["description"]);
+      $Output .= $this->link("topic", $One["classification"] . " " . $One["code"], $One["description"]);
       $Output .= " (" . $One["classification"] . " <a tabindex='0' role='button'";
       $Output .= " class='btn btn-tiny navbar-panel-color' data-toggle='popover' data-trigger='focus'";
       $Output .= " data-placement='top' data-title='" . $CDBC["classifications"][$One["classification"]]["name"] . "'";
@@ -779,11 +765,11 @@ if ( isset($this->pretty["classification"]) && count($this->pretty["classificati
       if ( $One["parents"] ) $Output .= "<ul>";
       foreach ($One["parents"] as $Code => $Parent)
       {
-        $Output .= "<li><small><a target=\"_blank\" href=\"/class(" . $Code . ")\">" . $Parent . " <i class=\"fa fa-external-link\"></i></small></li>";
+        $Output .= "<li><small><a target=\"_blank\" href=\"/topic(" . $One["classification"] . " " . $Code . ")\">" . $Parent . " <i class=\"fa fa-external-link\"></i></a></small></li>";
       }
       if ( $One["parents"] ) 
       {
-        $Output .= "<li><small><a target=\"_blank\" href=\"/class(" . $One["code"] . ")\">" . $One["description"] . " <i class=\"fa fa-external-link\"></i></small></li>";
+        $Output .= "<li><small><a target=\"_blank\" href=\"/topic(" .$One["classification"] . " " . $One["code"] . ")\">" . $One["description"] . " <i class=\"fa fa-external-link\"></i></a></small></li>";
         $Output .= "</ul>";
       }
       $Output .= "'><i class='fa fa-caret-up'></i></a>)<br />";
@@ -794,7 +780,7 @@ if ( isset($this->pretty["classification"]) && count($this->pretty["classificati
     foreach ( $Classes as $One)
     {
       $Output .= ( !$First ) ? " | " : "";
-      $Output .= $this->link("class", $One["code"], $One["code"]);
+			$Output .= $this->link("topic", $One["classification"] . " " . $One["code"]);
       if ( array_key_exists($One["classification"], $CDBC["classifications"]) )
       {
         $Output .= " (" . $One["classification"] . " <a tabindex='0' role='button'";
@@ -877,6 +863,7 @@ if ( isset($this->pretty["class"]) && count($this->pretty["class"]) > 0 )
     $Text = ""; $Link = "";
     if ( isset($one["a"]) )  { $Text  = $one["a"]; $Link = $one["a"]; }
     if ( isset($one["b"]) )  { $Text .= " " . $one["b"];}
+
     $Output .= $this->link("class", $Link, $Text);
     $First = false;
   }
@@ -933,6 +920,25 @@ if ( isset($this->pretty["siblings"]) && count($this->pretty["siblings"]) > 0 )
     }
     $Output .=  "</td></tr>";
   }
+}
+
+// License
+if ( isset($this->pretty["license"]) && count($this->pretty["license"]) > 0 )
+{
+  $Output .=  "<tr>";
+  $Output .=  "<td>" . $this->CI->database->code2text("license") . "</td>";
+  $Output .=  "<td>";
+  $First = true;
+  foreach ( $this->pretty["license"] as $one)
+  {
+    if ( !$First ) $Output .= " | ";
+    $Text = ""; $Link = "";
+    if ( isset($one["f"]) )  { $Text  = $one["f"]; }
+    if ( isset($one["u"]) )  { $Link  = $one["u"];}
+    $Output .= $this->link("web", $Link, $Text);
+    $First = false;
+  }
+  $Output .=  "</td></tr>";
 }
 
 ?>

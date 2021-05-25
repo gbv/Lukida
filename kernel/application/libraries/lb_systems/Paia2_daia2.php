@@ -436,7 +436,7 @@ class Paia2_daia2 extends General
     if ( isset($change_response["error_description"]) )
     {
       return (array("status" => -2,
-                    "error"  => $change_response["error_description"]));
+                    "error"  => $this->CI->database->code2text("PASSWORDCHANGEFAILED")));
     }
 
     $this->login($_SESSION[$this->isil]["userlogin"], $new);

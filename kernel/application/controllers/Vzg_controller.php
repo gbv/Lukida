@@ -2489,6 +2489,26 @@ class Vzg_controller extends CI_Controller
     echo $this->theme->settingsview(array('settings'=>$settings));
   }
 
+  // Show change password view 
+  public function passwordview()
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+
+    // Check params
+    if ( ! isset($_SESSION["info"]["1"]["isil"]) || ! isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"]) || $_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"] == "" ) return ($this->ajaxreturn("400","login is missing"));
+
+    // Set stats
+    $this->stats("PasswordView");
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","discover","database","theme"));
+
+    // Display view
+    echo $this->theme->passwordview(array());
+  }
+
   // Show mail order large 
   public function mailorderview($PPN,$EPN)
   {
@@ -2511,6 +2531,30 @@ class Vzg_controller extends CI_Controller
 
     // Display view
     echo $this->theme->mailorderview(array('ppn'=>$PPN,'exemplar'=>$_SESSION['exemplar'][$PPN][$EPN]));
+  }  
+
+  // Show mail order large 
+  public function specialview($PPN,$EPN)
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+
+    // Check params
+    if ( $PPN == "" ) return ($this->ajaxreturn("400","ppn is missing"));
+    if ( $EPN == "")  return ($this->ajaxreturn("400","epn is missing"));;
+
+    // Set stats
+    $this->stats("SpecialView");
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","discover","theme"));
+
+    // Ensure required ppn and epn data
+    if ( !$this->ensureEPN($PPN,$EPN)) return ($this->ajaxreturn("400","timeout exemplar data"));;
+
+    // Display view
+    echo $this->theme->specialview(array('ppn'=>$PPN,'exemplar'=>$_SESSION['exemplar'][$PPN][$EPN]));
   }  
 
   // ********************************************

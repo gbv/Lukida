@@ -60,7 +60,13 @@ class Marc21 extends General
             && $_SESSION["config_general"]["general"]["ilnmore"] != "" )    $ILNs = array_unique(array_merge($ILNs,explode(",",$_SESSION["config_general"]["general"]["ilnmore"])));      
     //file_put_contents('ALEX_' . microtime() . '.txt', print_r($ILNs, true));
 
-    $this->contents = array();
+    // Electronic InterlibraryLoan
+    $EILILNs = ( isset($_SESSION["config_general"]["interlibraryloan"]["onlineilns"]) 
+            && $_SESSION["config_general"]["interlibraryloan"]["onlineilns"] != "" ) ? explode(",", $_SESSION["config_general"]["interlibraryloan"]["onlineilns"]) : array();
+
+    $this->contents      = array();
+    $this->elecinterloan = false;
+    $Interloan           = false;
     foreach ($this->marc->getFields() as $tag => $data)
     {
       if ( $data->isControlField() )
@@ -103,6 +109,10 @@ class Marc21 extends General
             {
               if ( empty($this->contents[$tag]) || !in_array($Sub, $this->contents[$tag]) ) $this->contents[$tag][] = $Sub;
             }
+            elseif ( in_array(substr($Sub[0]["a"],8,3), array_values($EILILNs)) && !$Interloan )
+            {
+              $Interloan = true;
+            }
             if ( isset($_SESSION["internal"]["marcfull"]) && $_SESSION["internal"]["marcfull"] == "1" )
             {
               $this->contents["{". $tag."}"][] = $Sub;
@@ -129,6 +139,12 @@ class Marc21 extends General
         }
       }
     }
+
+    if ( $Interloan )
+    {
+      if ( substr($this->leader,7,1) == "s" && isset($this->contents["007"]) && substr($this->contents["007"],0,2) == "cr" )   $this->elecinterloan = true;
+    }
+
   }
 
   private function SetProofOfPossession()
@@ -331,7 +347,8 @@ class Marc21 extends General
         "collection_details" => $this->collection_details,
         "catalogues"         => $this->catalogues,
         "contents"           => $this->contents,
-        "proofofpossession"  => $this->proofofpossession
+        "proofofpossession"  => $this->proofofpossession,
+        "elecinterloan"      => $this->elecinterloan
       );
 
       $results_reduced[$one["id"]]	= $reduced + $this->SetContents("preview");

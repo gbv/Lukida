@@ -42,10 +42,21 @@ class Solr extends General
     return ($search);
   }
 
-  private function CleanForeignID($string)
+  private function CleanID($string)
   {
-    $string = trim($string, " '\"");
-    return substr($string,0,8) . preg_replace("/[^A-Za-z0-9]/", "", substr($string,8));
+    if ( is_array($string) )
+    {
+      foreach ($string as &$one)
+      {
+        $one = $this->CleanID($one);
+      }
+      return $string;
+    }
+    else
+    {
+      $string = trim($string, " '\"");
+      return substr($string,0,8) . preg_replace("/[^A-Za-z0-9]/", "", substr($string,8));
+    }
   }
 
   private function solr_edismax($search,$package,$facets)
@@ -59,7 +70,7 @@ class Solr extends General
       $Tmp = explode(",",substr($search, 10, strlen($search)-11));
       foreach ($Tmp as &$One) 
       {
-        $One = $this->CleanForeignID($One);
+        $One = $this->CleanID($One);
       }
       $matches = array
       (
@@ -116,7 +127,11 @@ class Solr extends General
     // Remove not allowed complex phrases based on used key
     foreach ( $matches[1] as $index => $key )
     {
-      if ( ! in_array(strtolower(trim($key)), array("abruf", "acqdate","author","autor","call","class","client","collection","collection_details","contents","erwdatum","foreignid","format","genre","id","inhalt","isn","jahr","language","mandant","ppn","ppnlink","publisher","reihe","sachgebiet","schlagwort","series","signatur","signature","sprache","subject","titel","title","verlag","year")) )
+      if ( ! in_array(strtolower(trim($key)), array("abruf", "acqdate","author","autor","call","class",
+        "client","collection","collection_details","contents","corporation","erwdatum","foreignid","format",
+        "genre","id","inhalt","isn","jahr","koerper","language","mandant","norm","ppn","ppnlink","publisher",
+        "reihe","sachgebiet","schlagwort","series","signatur","signature","sprache","subject","thema","titel",
+        "title","topic","verlag","year")) )
       {
         unset($matches[0][$index]);
       }
@@ -170,6 +185,10 @@ class Solr extends General
           case "schlagwort":
             $MainSearch .= "(topic:\"" . $Phrases[0] . "\" OR topic_unstemmed:\"" . $Phrases[0] . "\")";
             break;
+          case "koerper":
+          case "corporation":
+            $MainSearch .= "(author_corporate:\"" . $Phrases[0] . "\")";
+            break;
           case "class":
             $MainSearch .= "(class:\"" . $Phrases[0] . "\" )";
             break;
@@ -178,6 +197,44 @@ class Solr extends General
             break;
           case "format":
             $MainSearch .= "(format_phy_str_mv:\"" . $Phrases[0] . "\" )";
+            break;
+          case "norm":
+            $MainSearch .= "(normlink_prefix_str_mv:\"(DE-627)" . $this->CleanID($Phrases[0]) . "\" )";
+            break;
+          case "topic":
+          case "thema":
+            if ( strpos($Phrases[0], "-") !== false )
+            {
+              // topic_browse:["sfb ERD 350" TO "sfb ERD 376"]
+              // topic(SFB POL 965 - 999)
+              $Tmp = explode("-", $Phrases[0]);
+              if ( strpos($Tmp[0], " ") !== false )
+              {
+                $Wmp    = explode(" ", trim($Tmp[0]));
+                $Wmp[0] = strtolower($Wmp[0]);
+                $Left   = trim(array_pop($Wmp));
+                $Base   = trim(implode(" ", $Wmp));
+              }
+              else
+              {
+                $Base = trim($Tmp[0]);
+                $Left = "";
+              }
+              if ( strpos($Tmp[1], " ") !== false )
+              {
+                $Wmp    = explode(" ", trim($Tmp[1]));
+                $Right  = trim(array_pop($Wmp));
+              }
+              else
+              {
+                $Right = trim($Tmp[1]);
+              }
+              $MainSearch .= "(topic_browse:[\"" . $Base . " " . $Left. "\" TO \"" . $Base . " " . $Right . "\"])";
+            }
+            else
+            {
+              $MainSearch .= "(topic:\"" . $Phrases[0] . "\" )";
+            }
             break;
           case "language":
           case "sprache":
@@ -219,7 +276,7 @@ class Solr extends General
             break;
           case "id":
           case "ppn":
-            $MainSearch .= "(id:\"" . $Phrases[0] . "\")";
+            $MainSearch .= "(id:\"" . $this->CleanID($Phrases[0]) . "\")";
             break;
           default:
             $MainSearch .= $CType . ":\"" . $Phrases[0] . "\"";
@@ -245,7 +302,7 @@ class Solr extends General
 
             break;
           case "foreignid":
-            $MainSearch .= "(foreign_ids_str_mv:\"" . implode("\" OR foreign_ids_str_mv:\"", $Phrases) . "\")";
+            $MainSearch .= "(foreign_ids_str_mv:\"" . implode("\" OR foreign_ids_str_mv:\"", $this->CleanID($Phrases)) . "\")";
             break;
           case "series":
           case "reihe":
@@ -257,6 +314,10 @@ class Solr extends General
             $MainSearch .= "(topic:\"" .           implode("\" OR topic:\"", $Phrases) . "\" OR "
                          . " topic_unstemmed:\"" . implode("\" OR topic_unstemmed:\"",$Phrases) . "\")";
             break;
+          case "koerper":
+          case "corporation":
+            $MainSearch .= "(author_corporate:\"" . implode("\" OR author_corporate:\"",$Phrases) . "\")";
+            break;
           case "class":
             $MainSearch .= "(class:\"" . implode("\" OR class:\"", $Phrases) . "\")";
             break;
@@ -266,6 +327,13 @@ class Solr extends General
             break;
           case "format":
             $MainSearch .= "(format_phy_str_mv:\"" . implode("\" OR format_phy_str_mv:\"", $Phrases) . "\")";
+            break;
+          case "norm":
+            $MainSearch .= "(normlink_prefix_str_mv:\"(DE-627)" . implode("\" OR normlink_prefix_str_mv:\"(DE-627)", $this->CleanID($Phrases)) . "\")";
+            break;
+          case "thema":
+          case "topic":
+            $MainSearch .= "(topic:\"" . implode("\" OR topic:\"", $Phrases) . "\")";
             break;
           case "language":
           case "sprache":
@@ -314,7 +382,7 @@ class Solr extends General
             break;
           case "ppn":
           case "id":
-            $MainSearch .= "(id:\"" . implode("\" OR id:\"", $Phrases) . "\")";
+            $MainSearch .= "(id:\"" . implode("\" OR id:\"", $this->CleanID($Phrases)) . "\")";
             break;
           default:
             $MainSearch .= "(" . $CType . ":\"" . implode("\" OR " . $CType . ":\"",$Phrases) . "\")";
