@@ -1,5 +1,9 @@
 # Changelog
 
+**25.05.2021**
+* Search
+  * Norm based search added
+
 **19.05.2021**
 * User view
   * Links for password rules are now displayed when configured 
