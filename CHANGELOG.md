@@ -1,5 +1,38 @@
 # Changelog
 
+**20.12.2021**
+* System
+  * Security Update
+
+**22.11.2021**
+* Search
+  * Supporting default internal search commands
+
+**19.11.2021**
+* Interloan driver
+  * Enhanced
+
+**13.11.2021**
+* Interloan driver
+
+**30.10.2021**
+* System
+  * Performance optimizations
+  * CentralDB optimization
+
+**04.10.2021**
+* User view
+  * Show idle until data is loaded
+
+**21.08.2021**
+* System
+  * Read-Only switch added
+  * Sessions stored in RAM
+
+**10.06.2021**
+* Index system
+  * New search queries
+
 **25.05.2021**
 * Search
   * Norm based search added

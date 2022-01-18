@@ -13,7 +13,8 @@ class Bootstrap extends General
   public function preview($container, $params)
   {
     // Check, if modul is available
-    if ( ! file_exists(KERNELFORMATS . "preview/" . $_SESSION["config_discover"]["preview"]["preview"] .'.php'))
+    if ( ! file_exists(KERNELFORMATS . "preview/" . $_SESSION["config_discover"]["preview"]["preview"] .'.php')
+      && ! file_exists(LIBRARYCODE . $_SESSION["config_discover"]["preview"]["preview"] . ".php") )
     {
       // Whoops, we don't have a page for that!
       show_404();
@@ -78,7 +79,14 @@ class Bootstrap extends General
       {
         $Output .= "<a href='javascript:$.open_fullview(\"" . $this->PPN . "\");'>";
       }
-      include(KERNELFORMATS . "preview/" . $_SESSION["config_discover"]["preview"]["preview"] .'.php');
+      if ( file_exists(LIBRARYCODE . $_SESSION["config_discover"]["preview"]["preview"] . ".php") )
+      {
+        include(LIBRARYCODE . $_SESSION["config_discover"]["preview"]["preview"] .'.php');
+      }
+      else
+      {
+        include(KERNELFORMATS . "preview/" . $_SESSION["config_discover"]["preview"]["preview"] .'.php');
+      }
       $Output .= "</a></div></div>";
       $Ausgabe .= $Output;
     }
@@ -125,7 +133,7 @@ class Bootstrap extends General
 
       // Facetten für Anzeige vorbereiten
       $container["yearmin"] = isset($container["stats"]["publishDateSort"]["min"]) ? $container["stats"]["publishDateSort"]["min"] : "1900";
-      $container["yearmax"] = (isset($container["stats"]["publishDateSort"]["max"]) && $container["stats"]["publishDateSort"]["max"] <= date("Y")) ? $container["stats"]["publishDateSort"]["max"] : date("Y");
+      $container["yearmax"] = (isset($container["stats"]["publishDateSort"]["max"]) && $container["stats"]["publishDateSort"]["max"] <= date("Y")) ? $container["stats"]["publishDateSort"]["max"] : date("Y")+1;
       $container["online"]  = (isset($Filter["online"])) ? $Filter["online"] : "";
       $container["formats"] = (isset($Filter["format"])) ? $Filter["format"] : "";
     }
@@ -352,11 +360,51 @@ class Bootstrap extends General
     return ( $Output );
   }
 
+  public function ilorderview ( $params )
+  {
+    // Check Session & Parameters
+    if ( ! $this->ParamExits("param[iltyp]", $params,"iltyp") ) return false;
+    //     if ( ! $this->ParamExits("param[ppn]", $params,"ppn") ) return false;
+    if ( ! $this->ParamExits("_SESSION[config_discover][ilorderview][ilorderview]",$_SESSION,"config_discover","ilorderview","ilorderview") ) return false;
+    if ( ! $this->FileExits(KERNELFORMATS . "ilorderview/" . $_SESSION["config_discover"]["ilorderview"]["ilorderview"] . ".php") ) return false;
+
+    // Prepare variables for loaded code
+    $this->iltyp       = ( isset($params['iltyp']) )     ? $params['iltyp']     : "";
+    $this->mandatory   = ( isset($params['mandatory']) ) ? $params['mandatory'] : array();
+    $this->optional    = ( isset($params['optional']) )  ? $params['optional']  : array();
+    $this->format      = ( isset($params['format']) )    ? $params['format']    : "";
+
+    /*
+    $this->PPN        = $params['ppn'];
+    $this->exemplar   = $params['exemplar'];
+    $this->medium     = $_SESSION["data"]["results"][$this->PPN];
+    $this->contents   = $this->medium["contents"];
+    $this->leader     = $this->medium["leader"];
+    $this->cover      = $this->medium["cover"];
+    $this->catalogues = $this->medium["catalogues"];
+    $this->isbn       = $this->medium["isbn"];
+    $this->pretty     = $_SESSION["data"]["results"][$this->PPN];
+    */
+    // Start Output
+    $Output = $this->header();
+
+    // Load module inside div
+    $Output = "<div id='ilorderview'><small>";
+    include(KERNELFORMATS . "ilorderview/" . $_SESSION["config_discover"]["ilorderview"]["ilorderview"] .'.php');
+    $Output .= "</small></div>";
+
+    // End Output
+    $Output .= $this->footer();
+
+    // Return Output
+    return ( $Output );
+  }
+
   public function specialview ( $params )
   {
     // Check Session & Parameters
     if ( ! $this->ParamExits("param[ppn]", $params,"ppn") ) return false;
-    if ( ! $this->ParamExits("_SESSION[config_discover][mailorderview][mailorderview]",$_SESSION,"config_discover","mailorderview","mailorderview") ) return false;
+    if ( ! $this->ParamExits("_SESSION[config_discover][specialview][specialview]",$_SESSION,"config_discover","specialview","specialview") ) return false;
     if ( ! $this->FileExits(KERNELFORMATS . "specialview/" . $_SESSION["config_discover"]["specialview"]["specialview"] . ".php") ) return false;
 
     // Prepare variables for loaded code

@@ -4,6 +4,7 @@ class Vzg_controller extends CI_Controller
 {
   private $module;
   private $modules;
+  private $readonly;
     
   public function __construct()
   {
@@ -54,7 +55,8 @@ class Vzg_controller extends CI_Controller
         show_404();
       }
     }
-    $this->modules = explode(",",$config["systemcommon"]["modules"]);
+    $this->modules  = explode(",",$config["systemcommon"]["modules"]);
+    $this->readonly = ($config["systemcommon"]["readonly"] == "1") ? true : false;
     $_SESSION["config_system"] = $config;
 
     // Check, if addition configuration is available
@@ -368,7 +370,20 @@ class Vzg_controller extends CI_Controller
             $_SESSION["info"]["2"]["host"]   = $Params["paia"];
           }
           break;
-        }        
+        } 
+
+        case "special":
+        {
+          $this->load->library('special/special', "", 'special');
+          break;        
+        }
+
+        case "interlibrary":
+        {
+          $this->load->library('interlibrary/interlibrary', "", 'interlibrary');
+          break;        
+        }
+
       }
     }
   }
@@ -402,6 +417,16 @@ class Vzg_controller extends CI_Controller
     $this->output->set_status_header($code); //Triggers the jQuery error callback
     $this->data['message'] = $data;
     echo json_encode($this->data);
+  }
+
+  private function ajaxsreturn($data)
+  {
+    header('X-Frame-Options: DENY');
+    header('X-XSS-Protection: 1; mode=block');
+    header('X-Content-Type-Options: nosniff');
+    header('Strict-Transport-Security: "max-age=31536000; includeSubDomains; preload"');
+    header('X-Permitted-Cross-Domain-Policies: "none"');
+    echo json_encode($data);
   }
 
   // ********************************************
@@ -585,8 +610,9 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $platform = (array)json_decode($this->input->post("platform"));
-    $screen   = (array)json_decode($this->input->post("screen"));
+    $Input    = $this->security->xss_clean($this->input->post());
+    $platform = (isset($Input["platform"])) ? (array) json_decode($Input["platform"], true) : array();
+    $screen   = (isset($Input["screen"]))   ? (array) json_decode($Input["screen"], true)   : array();
 
     // Check params
 
@@ -601,8 +627,8 @@ class Vzg_controller extends CI_Controller
     $container = array
     (
       "devmode"				  => (strtolower(MODE) == "development") ? "1" : "0",
-      "devuser"					=> (isset($_SESSION["config_discover"]["development"]["devuser"]) 	  && $_SESSION["config_discover"]["development"]["devuser"] != "" )					? $_SESSION["config_discover"]["development"]["devuser"]					: "",
-      "devpassword"			=> (isset($_SESSION["config_discover"]["development"]["devpassword"]) && $_SESSION["config_discover"]["development"]["devpassword"] != "" )			? $_SESSION["config_discover"]["development"]["devpassword"]			: "",
+      "devuser"					=> (strtolower(MODE) == "development" && isset($_SESSION["config_discover"]["development"]["devuser"]) 	  && $_SESSION["config_discover"]["development"]["devuser"] != "" )					? $_SESSION["config_discover"]["development"]["devuser"]					: "",
+      "devpassword"			=> (strtolower(MODE) == "development" && isset($_SESSION["config_discover"]["development"]["devpassword"]) && $_SESSION["config_discover"]["development"]["devpassword"] != "" )			? $_SESSION["config_discover"]["development"]["devpassword"]			: "",
       "button_checklist" => (isset($_SESSION["config_discover"]["fullview"]["checklist"]) && $_SESSION["config_discover"]["fullview"]["checklist"] == 1 ) ? true  : false,
       "button_export" => (isset($_SESSION["config_discover"]["fullview"]["export"]) && $_SESSION["config_discover"]["fullview"]["export"] == 1 ) ? true  : false,
       "button_qrcode" => (isset($_SESSION["config_discover"]["fullview"]["qrcode"]) && $_SESSION["config_discover"]["fullview"]["qrcode"] == 1 ) ? true  : false,
@@ -653,7 +679,7 @@ class Vzg_controller extends CI_Controller
       $this->stats("OS_" . $Tmp, "year");
 
     // Return data in jsonformat
-    echo json_encode($container);
+    return $this->ajaxsreturn($container);
   }
   
   public function mailto()
@@ -661,12 +687,13 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $ppnlist		  = (array)json_decode($this->input->post('ppnlist'));
-    $fullbodylist	= (array)json_decode($this->input->post('fullbody'));
-    $mailfrom		  = $this->input->post('mailfrom');
-    $mailto			  = $this->input->post('mailto');
-    $username		  = $this->input->post('username');
-    $msg				  = $this->input->post('msg');
+    $Input        = $this->security->xss_clean($this->input->post());
+    $ppnlist		  = (isset($Input["ppnlist"]))  ? (array) json_decode($Input['ppnlist'], true)  : array();
+    $fullbodylist	= (isset($Input["fullbody"])) ? (array) json_decode($Input['fullbody'], true) : array();
+    $mailfrom		  = (isset($Input["mailfrom"])) ? $Input["mailfrom"]                            : "";
+    $mailto			  = (isset($Input["mailto"]))   ? $Input["mailto"]                              : "";
+    $username		  = (isset($Input["username"])) ? $Input["username"]                            : "";
+    $msg				  = (isset($Input["msg"]))      ? $Input["msg"]                                 : "";
 
     // Check params
     if ( $username == "" ) return ($this->ajaxreturn("400","username is missing"));
@@ -716,13 +743,14 @@ class Vzg_controller extends CI_Controller
 
     // Mail body
     $message = "<p><b>" . $LibraryName . "</b>: <a href='" . base_url() . "'>" . ( $SoftwareName != "" ? $SoftwareName  : base_url() ) . "</a></p>";	
+
     foreach ( $fullbodylist as $ppn  => $fullbody)
     {
       if ( ! in_array($ppn, $ppnlist))  continue;
       
       // Remove Links from message body
-      $fullbody  = preg_replace("/<a[^>]+\>/i", " ", $fullbody);
-      $fullbody  = preg_replace("/<\/a>/i", " ", $fullbody);
+      // $fullbody  = preg_replace("/<a[^>]+\>/i", " ", $fullbody);
+      // $fullbody  = preg_replace("/<\/a>/i", " ", $fullbody);
 
       $fullbody .= "<sub><a style='color:blue;background-color:white;text-decoration:none;font-size:21px;' href='" 
                          . base_url("id%7Bcolon%7D".$ppn) . "'><b>" . $this->database->code2text("CLICKTOOPEN") . "</b></a></sub>";
@@ -754,39 +782,43 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $ppn				 = $this->input->post('ppn');
-    $epn         = $this->input->post('epn');
-    $mailfrom		 = $this->input->post('mailfrom');
-    $mailto			 = $this->input->post('mailto');
-    $mailtoname  = $this->input->post('mailtoname');
-    $fullbody		 = $this->input->post('fullbody');
-    $exemplar		 = (array)json_decode($this->input->post('exemplar'));
-    $userinput   = (array)json_decode($this->input->post('userinput'));
-    $userconfig  = (array)json_decode($this->input->post('userconfig'));
-    $mailtyp     = $this->input->post('mailtyp');
-    $mailsubject = $this->input->post('mailsubject');
+    $Input        = $this->security->xss_clean($this->input->post());
+    $exemplar     = (isset($Input["exemplar"]))    ? (array) json_decode($Input["exemplar"], true)   : array();
+    $userinput    = (isset($Input["userinput"]))   ? (array) json_decode($Input["userinput"], true)  : array();
+    $userconfig   = (isset($Input["userconfig"]))  ? (array) json_decode($Input["userconfig"], true) : array();
+    $fullbody     = (isset($Input["fullbody"]))    ? (array) json_decode($Input["fullbody"], true)   : array();
+    $fullbody     = (is_array($fullbody) && isset($fullbody[0])) ? $fullbody[0] : "";
+    $ppn          = (isset($Input["ppn"]))         ? $Input["ppn"]                                   : "";
+    $epn          = (isset($Input["epn"]))         ? $Input["epn"]                                   : "";
+    $mailfrom     = (isset($Input["mailfrom"]))    ? $Input["mailfrom"]                              : "";
+    $mailto       = (isset($Input["mailto"]))      ? $Input["mailto"]                                : "";
+    $mailtoname   = (isset($Input["mailtoname"]))  ? $Input["mailtoname"]                            : "";
+    $mailtyp      = (isset($Input["mailtyp"]))     ? $Input["mailtyp"]                               : "";
+    $mailsubject  = (isset($Input["mailsubject"])) ? $Input["mailsubject"]                           : "";
 
     // Check params
     if ( $ppn == "" )      return ($this->ajaxreturn("400","ppn is missing"));
     if ( $mailfrom == "" ) return ($this->ajaxreturn("400","mailfrom is missing"));
     if ( $mailto == "" )   return ($this->ajaxreturn("400","mailto is missing"));
-    if ( $fullbody == "" ) return ($this->ajaxreturn("400","mailbody is missing"));
+    if ( $fullbody == "" ) return ($this->ajaxreturn("400","fullbody is missing"));
     if ( ! is_array($exemplar) || count($exemplar) == 0 ) return ($this->ajaxreturn("400","exemplar is missing"));
     if ( $mailtyp == "" ) $mailtyp = "order";
     if ( $mailsubject == "" ) $mailtyp = "Magazinbestellung";
-    if ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["status"]) && $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["status"] >= "1" )
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","discover","database"));
+
+    // Ensure user after config and lbs
+    if ( ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["status"]) && $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["status"] >= "1" )
+      || ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] == "1" && !isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]) ) )
     {
-      echo json_encode(array(
+      return $this->ajaxsreturn(array(
         "status" => -3,
         "error"  => ( isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["message"]) 
                          && $_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["message"] == true 
                    && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["messagetext"])) 
                           ? $_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["messagetext"] : "Error" ));
-      return(0);
     }
-
-    // Ensure required interfaces
-    $this->ensureInterface(array("config","discover","database"));
 
     // Ensure required ppn data
     if ( !$this->ensurePPN($ppn)) return ($this->ajaxreturn("400","ppn not found"));
@@ -904,7 +936,7 @@ class Vzg_controller extends CI_Controller
     $Mess .= "<h3>Medium</h3>"; 
     $Mess .= "<p>PPN: " . $ppn . "</p>";
     $Mess .= "<p>EPN: " . $epn . "</p>";
-    $Mess .= "<table border=1>" . json_decode($fullbody) . "</table>";
+    $Mess .= "<table border=1>" . $fullbody . "</table>";
 
     // Body link part
     $Mess .= "<h3>Direkter Link</h3>"; 
@@ -919,10 +951,11 @@ class Vzg_controller extends CI_Controller
     // Set logs
     $Title = (isset($_SESSION["data"]["results"][$ppn]["title"])) ? substr($_SESSION["data"]["results"][$ppn]["title"],0,99) : "";
     $Data  = $userinput + array("mailto"=>$mailto, "mailtoname"=>$mailtoname);
-    $this->database->store_logs($mailsubject, $Mess, $_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"], $ppn, $Title, substr($username,0,99), serialize($Data));
+    if ( !$this->readonly ) $this->database->store_logs($mailsubject, $Mess, $_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"], 
+                                                        $ppn, $Title, substr($username,0,99), serialize($Data));
 
     // Return data
-    echo json_encode(array("status" => "0"));
+    return $this->ajaxsreturn(array("status" => "0"));
   }
 
   /**
@@ -935,9 +968,10 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $action       = $this->input->post('action');
-    $ppnlist      = (array)json_decode($this->input->post('ppnlist'));
-    $fields       = (array)json_decode($this->input->post('fields'), true);
+    $Input    = $this->security->xss_clean($this->input->post());
+    $action   = (isset($Input["action"]))  ? $Input["action"]                             : "";
+    $ppnlist  = (isset($Input["ppnlist"])) ? (array) json_decode($Input["ppnlist"], true) : array();
+    $fields   = (isset($Input["fields"]))  ? (array) json_decode($Input["fields"], true)  : array();
 
     // Check params
     if ( $action == "" )          return ($this->ajaxreturn("400","action is missing"));
@@ -949,15 +983,198 @@ class Vzg_controller extends CI_Controller
       if ( !$this->ensurePPN($ppn)) return(-2);
     }
 
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","discover","database", "special"));
+
     // Set stats
     $this->stats("LibrarySpecial");
 
     // Load Special Library of Library
-    $this->load->library('special/special', NULL, 'special');
     $container = $this->special->$action($ppnlist, $fields);
 
     // Return data
-    echo json_encode($container);
+    return $this->ajaxsreturn($container);
+  }
+
+  public function checkinterlibrary($ppn)
+  {
+    // Check params
+    if ( $ppn    == "" )   return (array());
+
+    // Ensure required ppn data
+    if ( !$this->ensurePPN($ppn)) return(-2);
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","discover","database", "interlibrary"));
+
+    // Set stats
+    $this->stats("ILCheck");
+
+    // Load Special Library of Library
+    $container = $this->interlibrary->checkLoan($ppn);
+
+    // Return data
+    return $container;
+  }
+
+  public function ilorder()
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+    // Receive params
+    $Input       = $this->security->xss_clean($this->input->post());
+    $action      = (isset($Input["action"]))    ? $Input["action"]                               : "";
+    $ppn         = (isset($Input["ppn"]))       ? $Input["ppn"]                                  : "";
+    $epn         = (isset($Input["epn"]))       ? $Input["epn"]                                  : "";
+    $iltyp       = (isset($Input["iltyp"]))     ? strtoupper($Input["iltyp"])                    : "";
+    $exemplar    = (isset($Input["exemplar"]))  ? (array) json_decode($Input["exemplar"], true)  : array();
+    $userinput   = (isset($Input["userinput"])) ? (array) json_decode($Input["userinput"], true) : array();
+
+    // Check params
+    if ( $ppn == "" )                                     return ($this->ajaxreturn("400","ppn is missing"));
+    if ( ! is_array($exemplar) || count($exemplar) == 0 ) return ($this->ajaxreturn("400","exemplar is missing"));
+    if ( !in_array($iltyp, array("COPY", "LOAN")) )       return ($this->ajaxreturn("400","iltyp is missing"));
+
+    // Ensure required ppn data
+    if ( !$this->ensurePPN($ppn)) return(-2);
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","discover","database", "interlibrary","theme"));
+
+    // Set stats
+    $this->stats("ILOrder");
+
+    $BandVol = ( isset($userinput["ilyear"]) && isset($userinput["ilyear"]) )
+               ? array('mandatory'=>array('P3VLB'=>$userinput["ilyear"],'P3VLC'=>$userinput["ilvolume"]))
+               : array();
+
+    if ( strtolower($action) == "runloan1" )
+    {
+      // Load Special Library of Library
+      $container = $this->interlibrary->runLoan1(array("key" => $userinput["iluser"],
+                                                       "pwd" => $userinput["ilpassword"]),
+                                                 $iltyp,
+                                                 $ppn,
+                                                 0,
+                                                 $BandVol);
+      // $this->printArray2File($container);
+      $Flds = array();
+      if ( isset($container["inputs"]["mandatory"]) )
+      {
+        foreach ( $container["inputs"]["mandatory"] as $Key => $Val )
+        {
+          $Flds[$Key] = array("value" => ($Key != "P3VPW") ? $Val : "",
+                              "man"   => true);
+        }
+      }
+      if ( isset($container["inputs"]["optional"]) )
+      {
+        foreach ( $container["inputs"]["optional"] as $Key => $Val )
+        {
+          $Flds[$Key] = array("value" => ($Key != "P3VPW") ? $Val : "",
+                              "man"   => false);
+        }
+      }
+      $Cands = array();
+      if ( isset($container["inputs"]["candidates"]) )
+      {
+        $Cands = $container["inputs"]["candidates"];
+      }
+      // if ( isset($container["inputs"]) ) unset($container["inputs"]);
+      $container += array("fields" => $Flds,
+                          "cands"  => $Cands);
+    }
+    elseif ( strtolower($action) == "runloan2" )
+    {
+      // $this->printArray2File($userinput);
+
+      // Load Special Library of Library
+      $container = $this->interlibrary->runLoan2(array("key" => $userinput["iluser"],
+                                                       "pwd" => $userinput["ilpassword"]),
+                                                 $iltyp,
+                                                 $ppn,
+                                                 $userinput["inputs"],
+                                                 $BandVol);
+      if ( isset($container["status"]) && $container["status"] >= 0 && isset($container["result"]["Bestellnummer"]) 
+        && isset($container["result"]["Kontostand"]) )
+      {
+        $container += array("ilorderno" => $container["result"]["Bestellnummer"],
+                            "more"      => $container["result"]["Kontostand"]);
+      }
+      if ( isset($container["result"]) ) unset($container["result"]);
+      if ( isset($container["inputs"]) ) unset($container["inputs"]);
+    }
+
+    // Ensure return variables status and message
+    if ( isset($container["code"]) && $container["code"] && ( !isset($container["message"]) || !$container["message"]) )
+    {
+      $container["message"] = $this->database->code2text($container["code"]);
+    }
+    if ( !isset($container["status"]) || !$container["status"] ) 
+    {
+      $container["status"] = -2;
+    }
+    if ( !isset($container["message"]) || !$container["message"] ) 
+    {
+      $container["message"] = $this->database->code2text("GENERALERROR");
+    }
+    if ( isset($container["vfl"]) )
+    {
+      if ( $container["vfl"] )
+      {
+        $container["message"] .= "!<br /><br />" . $this->database->code2text("VFLTEXT") 
+                               . "<br /><br /><a class='customer-link' target='_blank' href='" . $container["vfl"] . "'>"
+                               . $this->database->code2text("VFLLINKITEM") . " <i class='fa fa-external-link'></i></a>";
+        $container["vfl"] = true;
+      }
+      else
+      {
+        $container["vfl"] = false;
+      }
+    }
+
+    // Return data
+    return $this->ajaxsreturn($container);
+  }
+
+  // Show mail order large 
+  public function ilorderview($iltyp,$format)
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+
+    // Check params
+
+    // Set stats
+    $this->stats("ILOrderView");
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","discover","theme"));
+
+    // Ensure required ppn and epn data
+    // if ( !$this->ensureEPN($PPN,$EPN)) return ($this->ajaxreturn("400","timeout exemplar data"));;
+
+    // Display view
+    echo $this->theme->ilorderview(array('iltyp'=>$iltyp,'format'=>$format));
+  }  
+
+  public function imgurl()
+  {
+    // Ajax Method => No view will be loaded, just data is returned
+
+    // Receive params
+    $Input = $this->security->xss_clean($this->input->post());
+    $ppn   = (isset($Input["ppn"]))  ? $Input["ppn"] : "";
+    $url   = (isset($Input["url"]))  ? $Input["url"] : "";
+
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","discover","database"));
+
+    // Store link
+    $this->database->store_imgurl($ppn, $url);
+
+    // Return data
+    return $this->ajaxsreturn(array(0));
   }
 
   public function command()
@@ -965,7 +1182,8 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $cmd		= strtolower($this->input->post('cmd'));
+    $Input = $this->security->xss_clean($this->input->post());
+    $cmd   = (isset($Input["cmd"]))  ? $Input["cmd"] : "";
 
     // Check params
     if ( $cmd == "" ) return ($this->ajaxreturn("400","cmd is missing"));
@@ -1081,7 +1299,8 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $language		= $this->input->post('language');
+    $Input    = $this->security->xss_clean($this->input->post());
+    $language = (isset($Input["language"]))  ? $Input["language"] : "";
 
     // Check params
     if ( $language == "" ) return ($this->ajaxreturn("400","language is missing"));
@@ -1096,7 +1315,7 @@ class Vzg_controller extends CI_Controller
     $_SESSION["language"] = $language;
 
     // Return data in jsonformat
-    echo json_encode($_SESSION['language_'.$_SESSION["language"]]);
+    return $this->ajaxsreturn($_SESSION['language_'.$_SESSION["language"]]);
   }
 
   public function linkresolver()
@@ -1104,7 +1323,8 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $ppn = $this->input->post('ppn');
+    $Input = $this->security->xss_clean($this->input->post());
+    $ppn   = (isset($Input["ppn"]))  ? $Input["ppn"] : "";
 
     // Check params
     if ( $ppn == "" ) return ($this->ajaxreturn("400","PPN is missing"));
@@ -1121,7 +1341,7 @@ class Vzg_controller extends CI_Controller
       $Resolved["links"] = json_encode($this->export->linkresolver($ppn), JSON_FORCE_OBJECT);
 
       // Store resolved link ( even if empty )
-      $this->database->store_resolved_link($ppn, $Resolved["links"]);
+      if ( !$this->readonly ) $this->database->store_resolved_link($ppn, $Resolved["links"]);
     }
 
     // Call export & Return data in jsonformat
@@ -1148,8 +1368,9 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $ppnlist = (array)json_decode($this->input->post('ppnlist'));
-    $format	 = $this->input->post('format');
+    $Input    = $this->security->xss_clean($this->input->post());
+    $format   = (isset($Input["format"]))  ? $Input["format"]                             : "";
+    $ppnlist  = (isset($Input["ppnlist"])) ? (array) json_decode($Input["ppnlist"], true) : array();
 
     // Check params
     if ( $format == "" ) return ($this->ajaxreturn("400","format is missing"));
@@ -1170,7 +1391,7 @@ class Vzg_controller extends CI_Controller
 
       $container[$ppn] = $this->export->exportlink($_SESSION["data"]["results"][$ppn], $format);
     }
-    echo json_encode($container);
+    return $this->ajaxsreturn($container);
   }
   
   public function internal_exportlink($ppn,$format)
@@ -1255,7 +1476,7 @@ class Vzg_controller extends CI_Controller
     $this->ensureInterface(array("config","discover","database"));
 
     // Invoke database driver
-    echo json_encode($this->database->get_words($query));
+    return $this->ajaxsreturn($this->database->get_words($query));
   }
 
   public function statsclient()
@@ -1263,9 +1484,10 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $typ  = $this->input->post('typ');
-    $name = $this->input->post('name');
-    $tot  = $this->input->post('range');
+    $Input    = $this->security->xss_clean($this->input->post());
+    $typ      = (isset($Input["typ"]))   ? $Input["typ"]   : "";
+    $name     = (isset($Input["name"]))  ? $Input["name"]  : "";
+    $tot      = (isset($Input["range"])) ? $Input["range"] : "";
 
     // Check params
     if ( $typ == "" )  return ($this->ajaxreturn("400","typ is missing"));
@@ -1278,7 +1500,7 @@ class Vzg_controller extends CI_Controller
     $this->stats(ucfirst($typ) . "_" . $name, $tot);
 
     // Return 
-    echo json_encode(0);
+    return $this->ajaxsreturn(array(0));
   }  
   
   // ********************************************
@@ -1290,8 +1512,9 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params  
-    $user	= $this->input->post('user');
-    $pw		= $this->input->post('pw');
+    $Input = $this->security->xss_clean($this->input->post());
+    $user  = (isset($Input["user"])) ? $Input["user"] : "";
+    $pw    = (isset($Input["pw"]))   ? $Input["pw"]   : "";
 
     // Check params
     if ( $pw == "" )    return ($this->ajaxreturn("400","pw is missing"));
@@ -1313,11 +1536,10 @@ class Vzg_controller extends CI_Controller
       $_SESSION[$_SESSION["info"]["2"]["isil"]]["login"] = $this->lbs2->login($user, $pw);
       if ( $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] == -1 || $_SESSION[$_SESSION["info"]["2"]["isil"]]["login"] == -1 ) 
       {
-        echo json_encode(-1);
-        return;
+        return $this->ajaxsreturn(-1);
       }
     }
-    echo json_encode($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]);
+    return $this->ajaxsreturn($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]);
   }
 
   public function logout()
@@ -1342,8 +1564,7 @@ class Vzg_controller extends CI_Controller
     {
       $_SESSION[$_SESSION["info"]["2"]["isil"]]["logout"]  = $this->lbs2->logout();
     }
-
-    echo json_encode($_SESSION[$_SESSION["info"]["1"]["isil"]]["logout"]);
+    return $this->ajaxsreturn($_SESSION[$_SESSION["info"]["1"]["isil"]]["logout"]);
   }
 
   public function changepw()
@@ -1351,13 +1572,14 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $old = trim($this->input->post('old'));
-    $new = trim($this->input->post('new'));
+    $Input = $this->security->xss_clean($this->input->post());
+    $old   = (isset($Input["old"])) ? $Input["old"] : "";
+    $new   = (isset($Input["new"])) ? $Input["new"] : "";
 
     // Check params
     if ( ! $this->countLBS() )  return (-1);
-    if ( $old == "" ) echo json_encode(array("status"=>"-2"));
-    if ( $new == "" ) echo json_encode(array("status"=>"-2"));
+    if ( $old == "" ) return $this->ajaxsreturn(array("status"=>"-2"));
+    if ( $new == "" ) return $this->ajaxsreturn(array("status"=>"-2"));
 
     // Ensure required interfaces
     $this->ensureInterface(array("config","discover","lbs"));
@@ -1370,7 +1592,7 @@ class Vzg_controller extends CI_Controller
       // Logout lbs & echo
       echo  json_encode($this->lbs->changepw($old,$new));
     }
-    return (0);
+    return $this->ajaxsreturn(0);
   }
 
   public function GetLBS($PPN)
@@ -1835,10 +2057,11 @@ class Vzg_controller extends CI_Controller
   public function request()
   {
     // Receive params
-    $iln    = $this->input->post('iln');
-    $uri    = $this->input->post('uri');
-    $desk   = $this->input->post('desk');
-    $action = $this->input->post('action');
+    $Input  = $this->security->xss_clean($this->input->post());
+    $iln    = (isset($Input["iln"]))    ? $Input["iln"]    : "";
+    $uri    = (isset($Input["uri"]))    ? $Input["uri"]    : "";
+    $desk   = (isset($Input["desk"]))   ? $Input["desk"]   : "";
+    $action = (isset($Input["action"])) ? $Input["action"] : "";
 
     // Check params
     if ( ! $this->countLBS() )  return array();
@@ -1858,14 +2081,14 @@ class Vzg_controller extends CI_Controller
     // Call LBS
     if ( isset($_SESSION["interfaces"]["lbs2"]) && $_SESSION["interfaces"]["lbs2"] == 1 && isset($_SESSION["config_general"]["general"]["ilnsecond"]) && $iln == $_SESSION["config_general"]["general"]["ilnsecond"] )
     {
-      echo json_encode($this->lbs2->request($iln, $uri, array(
+      return $this->ajaxsreturn($this->lbs2->request($iln, $uri, array(
                                                         "desk" => $desk,
                                                         "feeusertypes" => $feeusertypes
                                                       )));
     }
     else
     {
-      echo json_encode($this->lbs->request($iln, $uri, array(
+      return $this->ajaxsreturn($this->lbs->request($iln, $uri, array(
                                                         "desk" => $desk,
                                                         "feeusertypes" => $feeusertypes
                                                       )));
@@ -1877,8 +2100,9 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $iln = $this->input->post('iln');
-    $uri = $this->input->post('uri');
+    $Input  = $this->security->xss_clean($this->input->post());
+    $iln    = (isset($Input["iln"]))    ? $Input["iln"]    : "";
+    $uri    = (isset($Input["uri"]))    ? $Input["uri"]    : "";
 
     // Check params
     if ( ! $this->countLBS() )  return array();
@@ -1894,11 +2118,11 @@ class Vzg_controller extends CI_Controller
     // Call LBS
     if ( isset($_SESSION["interfaces"]["lbs2"]) && $_SESSION["interfaces"]["lbs2"] == 1 && isset($_SESSION["config_general"]["general"]["ilnsecond"]) && $iln == $_SESSION["config_general"]["general"]["ilnsecond"] )
     {
-      echo json_encode($this->lbs2->cancel($uri));
+      return $this->ajaxsreturn($this->lbs2->cancel($uri));
     }
     else
     {
-      echo json_encode($this->lbs->cancel($uri));
+      return $this->ajaxsreturn($this->lbs->cancel($uri));
     }
   }  
 
@@ -1907,8 +2131,9 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $iln  = $this->input->post('iln');
-    $uri	= $this->input->post('uri');
+    $Input  = $this->security->xss_clean($this->input->post());
+    $iln    = (isset($Input["iln"]))    ? $Input["iln"]    : "";
+    $uri    = (isset($Input["uri"]))    ? $Input["uri"]    : "";
 
     // Check params
     if ( ! $this->countLBS() )  return array();
@@ -1924,11 +2149,11 @@ class Vzg_controller extends CI_Controller
     // Call LBS
     if ( isset($_SESSION["interfaces"]["lbs2"]) && $_SESSION["interfaces"]["lbs2"] == 1 && isset($_SESSION["config_general"]["general"]["ilnsecond"]) && $iln == $_SESSION["config_general"]["general"]["ilnsecond"] )
     {
-      echo json_encode($this->lbs2->renew($uri));
+      return $this->ajaxsreturn($this->lbs2->renew($uri));
     }
     else
     {
-      echo json_encode($this->lbs->renew($uri));
+      return $this->ajaxsreturn($this->lbs->renew($uri));
     }
   }  
 
@@ -1937,6 +2162,8 @@ class Vzg_controller extends CI_Controller
   // ********************************************
   public function stats($name, $total="day")
   {
+    if ( $this->readonly ) return;
+
     // Check params
     if ( $name == "" ) return (-1);
     if ( !isset($_SESSION["statistics"]) || ! $_SESSION["statistics"] ) return (-1);
@@ -1970,17 +2197,18 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $module = trim(strtolower($this->input->post('module')));
-    $pw     = trim($this->input->post('pw'));
+    $Input  = $this->security->xss_clean($this->input->post());
+    $module = (isset($Input["module"])) ? trim(strtolower($Input["module"])) : "";
+    $pw     = (isset($Input["pw"]))     ? trim($Input["pw"])                 : "";
 
     // Check params
-    if ( $pw == "" ) echo json_encode(array("status"=>"-2"));
+    if ( $pw == "" ) return $this->ajaxsreturn(array("status"=>"-2"));
 
     // Ensure required interfaces
     $this->ensureInterface(array("config",$module));
 
     echo ( isset($_SESSION["config_" . $module][$module]["password"]) && $_SESSION["config_" . $module][$module]["password"] != "" 
-        && ( md5($pw) == $_SESSION["config_" . $module][$module]["password"] || md5($pw) == "8185820c0ba3c1c63f3c043c3e89c77a") ) ? json_encode(array("status"=>"1")) : json_encode(array("status"=>"-1"));
+        && ( hash('SHA512', $pw) == $_SESSION["config_" . $module][$module]["password"] || hash('SHA512', $pw) == "ace3c8bc48fe45bbac801016064d19e3f7f09aef5c24d1035adfa376e45f59f119a7625f2503c2cb37fe1e91f07e8ab8f7d9352b25f384d4f5885463ed05d6fa") ) ? json_encode(array("status"=>"1")) : json_encode(array("status"=>"-1"));
   }
 
   public function chart()
@@ -1988,8 +2216,9 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $typ    = strtolower($this->input->post('typ'));
-    $params = (array) json_decode($this->input->post('params'));
+    $Input   = $this->security->xss_clean($this->input->post());
+    $typ     = (isset($Input["typ"]))    ? $Input["typ"]                               : "";
+    $params  = (isset($Input["params"])) ? (array) json_decode($Input["params"], true) : array();
 
     // Check params
     if ( $typ == "" ) return ($this->ajaxreturn("400","typ is missing"));
@@ -2002,7 +2231,7 @@ class Vzg_controller extends CI_Controller
 
     $container = $this->database->get_chart_data($typ, $params);
 
-    echo json_encode($container);
+    return $this->ajaxsreturn($container);
   }
 
   public function log()
@@ -2010,7 +2239,8 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $params = (array) json_decode($this->input->post('params'));
+    $Input   = $this->security->xss_clean($this->input->post());
+    $params  = (isset($Input["params"])) ? (array) json_decode($Input["params"], true) : array();
 
     // Check params
 
@@ -2022,7 +2252,7 @@ class Vzg_controller extends CI_Controller
 
     $container = $this->database->get_log_data($params);
 
-    echo json_encode($container);
+    return $this->ajaxsreturn($container);
   }
 
 
@@ -2031,7 +2261,8 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $params = (array) json_decode($this->input->post('params'));
+    $Input   = $this->security->xss_clean($this->input->post());
+    $params  = (isset($Input["params"])) ? (array) json_decode($Input["params"], true) : array();
 
     // Check params
 
@@ -2043,7 +2274,7 @@ class Vzg_controller extends CI_Controller
 
     $container = $this->database->get_cockpit_data($params);
 
-    echo json_encode($container);
+    return $this->ajaxsreturn($container);
   }
 
   public function settingsstore()
@@ -2051,8 +2282,9 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $name     = (string) json_decode($this->input->post('name'));
-    $settings = (array) json_decode($this->input->post('settings'));
+    $Input    = $this->security->xss_clean($this->input->post());
+    $name     = (isset($Input["name"]))     ? (array) json_decode($Input["name"], true)     : array();
+    $settings = (isset($Input["settings"])) ? (array) json_decode($Input["settings"], true) : array();
 
     // Check params
     if ( $name == "" ) return ($this->ajaxreturn("400","name is missing"));
@@ -2064,9 +2296,9 @@ class Vzg_controller extends CI_Controller
     // Set stats
     $this->stats("SettingsStore");
 
-    $container = $this->database->store_settings($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"], $name, $settings);
+    if ( !$this->readonly ) $container = $this->database->store_settings($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"], $name, $settings);
 
-    echo json_encode($container);
+    return $this->ajaxsreturn($container);
   }
 
   public function settingsload()
@@ -2074,7 +2306,8 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $id     = $this->input->post('id');
+    $Input = $this->security->xss_clean($this->input->post());
+    $id    = (isset($Input["id"]))    ? $Input["id"]    : "";
 
     // Check params
     if ( $id == "" ) return ($this->ajaxreturn("400","id is missing"));
@@ -2088,7 +2321,7 @@ class Vzg_controller extends CI_Controller
 
     $container = $this->database->load_settings($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"], $id);
 
-    echo json_encode($container);
+    return $this->ajaxsreturn($container);
   }
 
   public function settingsdelete()
@@ -2096,7 +2329,8 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $ids     = (array) json_decode($this->input->post('ids'));
+    $Input = $this->security->xss_clean($this->input->post());
+    $ids   = (isset($Input["ids"])) ? (array) json_decode($Input["ids"], true) : array();
 
     // Check params
     if ( $ids == "" ) return ($this->ajaxreturn("400","ids are missing"));
@@ -2110,7 +2344,7 @@ class Vzg_controller extends CI_Controller
 
     $container = $this->database->delete_settings($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"], $ids);
 
-    echo json_encode($container);
+    return $this->ajaxsreturn($container);
   }
 
 
@@ -2174,10 +2408,10 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $search			= $this->input->post('search');
-    $package		= $this->input->post('package');
-    //$typ		    = strtolower($this->input->post('typ'));
-    $facets 		= (array) json_decode($this->input->post('facets'));
+    $Input   = $this->security->xss_clean($this->input->post());
+    $search  = (isset($Input["search"]))  ? $Input["search"]                            : "";
+    $package = (isset($Input["package"])) ? $Input["package"]                           : "";
+    $facets  = (isset($Input["facets"]))  ? (array) json_decode($Input["facets"], true) : array();
 
     // Check params
     if ( $search == "" )                     return ($this->ajaxreturn("400","search is missing"));
@@ -2220,10 +2454,12 @@ class Vzg_controller extends CI_Controller
       // Invoke database, store word suggestions 
       if ( isset($container["words"]) )
       {
+        /*
         if ( trim($container["words"]) != "" )
         {
-          $this->database->store_words($container["words"]);
+          if ( !$this->readonly ) $this->database->store_words($container["words"]);
         }
+        */
         unset($container["words"]);
       }
 
@@ -2233,7 +2469,8 @@ class Vzg_controller extends CI_Controller
       // Transfer records to file
       //$this->printArray2File($container);      
     }
-    echo json_encode($container);
+
+    return $this->ajaxsreturn($container);
   }
 
   // Search media data (invoked by system without optical stuff and includes caching)
@@ -2275,8 +2512,9 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $PPNLink = $this->input->post('ppnlink');
-    $Search  = $this->input->post('search');
+    $Input   = $this->security->xss_clean($this->input->post());
+    $PPNLink = (isset($Input["ppnlink"])) ? $Input["ppnlink"] : "";
+    $Search  = (isset($Input["search"]))  ? $Input["search"]  : "";
 
     // Check params
     if ( $PPNLink == "" ) return ($this->ajaxreturn("400","ppnlink is missing"));
@@ -2302,12 +2540,12 @@ class Vzg_controller extends CI_Controller
         // Invoke theme format driver
         $container = $this->theme->includedview($container);
       }
-      echo json_encode($container);
+      return $this->ajaxsreturn($container);
     }
     catch (Exception $e) 
     {
       // Fehler dokumentieren 
-      echo json_encode(array());
+      return $this->ajaxsreturn(array());
     }
   } 
 
@@ -2316,7 +2554,8 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $PPN     = $this->input->post('ppn');
+    $Input  = $this->security->xss_clean($this->input->post());
+    $PPN    = (isset($Input["ppn"]))    ? $Input["ppn"]    : "";
 
     // Check params
     if ( $PPN == "" ) return ($this->ajaxreturn("400","ppn is missing"));
@@ -2343,12 +2582,12 @@ class Vzg_controller extends CI_Controller
         // Invoke theme format driver
         $container = $this->theme->preview($container, array('collgsize' => '6','useppnlist' => true));
       }
-      echo json_encode($container);
+      return $this->ajaxsreturn($container);
     }
     catch (Exception $e) 
     {
       // Fehler dokumentieren 
-      echo json_encode(array());
+      return $this->ajaxsreturn(array());
     }
   }    
 
@@ -2366,7 +2605,8 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
 
     // Receive params
-    $layout		= $this->input->post('layout');
+    $Input  = $this->security->xss_clean($this->input->post());
+    $layout = (isset($Input["layout"])) ? $Input["layout"] : "";
 
     // Check params
     if ( $layout == "" ) return ($this->ajaxreturn("400","layout is missing"));
@@ -2390,7 +2630,7 @@ class Vzg_controller extends CI_Controller
     $container = $this->theme->preview($container, array('collgsize' => $layout,'facets' => false));
 
     // Echos container in jsonformat
-    echo json_encode($container);
+    return $this->ajaxsreturn($container);
   }
 
   // Show media data large 
@@ -2601,6 +2841,12 @@ class Vzg_controller extends CI_Controller
     $param["initfacets"] = $facets;
 
     $WithFront = ( isset($_SESSION["config_general"]["general"]["frontpage"]) && $_SESSION["config_general"]["general"]["frontpage"] == 1 ) ? true : false;
+
+    header('X-Frame-Options: DENY');
+    header('X-XSS-Protection: 1; mode=block');
+    header('X-Content-Type-Options: nosniff');
+    header('Strict-Transport-Security: "max-age=31536000; includeSubDomains; preload"');
+    header('X-Permitted-Cross-Domain-Policies: "none"');
 
     // Show Frontpage
     if ( $WithFront  && $search == "" && $facets == "" && $this->module == "discover" )

@@ -9,6 +9,8 @@ class Solr extends General
   protected $result;
   protected $config;
   protected $phoneticsearch = false;
+  protected $prefix;
+  protected $postfix;
   protected $shards;
 
   public function __construct()
@@ -31,6 +33,11 @@ class Solr extends General
 
     $this->shards = (isset($_SESSION["config_general"]["index_system"]["shards"])   && $_SESSION["config_general"]["index_system"]["shards"] != "" ) 
                      ? $_SESSION["config_general"]["index_system"]["shards"] : "";
+
+    $this->prefix = (isset($_SESSION["config_discover"]["datapoolfilter"]["prefix"])   && $_SESSION["config_discover"]["datapoolfilter"]["prefix"] != "" ) 
+                     ? $_SESSION["config_discover"]["datapoolfilter"]["prefix"] : "";
+    $this->postfix= (isset($_SESSION["config_discover"]["datapoolfilter"]["postfix"])   && $_SESSION["config_discover"]["datapoolfilter"]["postfix"] != "" ) 
+                     ? $_SESSION["config_discover"]["datapoolfilter"]["postfix"] : "";
   }
 
   // ********************************************
@@ -64,7 +71,12 @@ class Solr extends General
 
     $client = new SolrClient($this->config);
 
-    $search = trim($search);
+    // Add prefix & postfix
+    if ( strpos($search, "(") === false && strpos($search, ")") === false && strpos($search, ":") === false )
+    {
+      $search = $this->prefix . trim($search) . $this->postfix;
+    }
+
     if ( substr($search,0,10) == "foreignid(" && substr($search,strlen($search)-1,1) == ")" )
     {
       $Tmp = explode(",",substr($search, 10, strlen($search)-11));
@@ -128,8 +140,8 @@ class Solr extends General
     foreach ( $matches[1] as $index => $key )
     {
       if ( ! in_array(strtolower(trim($key)), array("abruf", "acqdate","author","autor","call","class",
-        "client","collection","collection_details","contents","corporation","erwdatum","foreignid","format",
-        "genre","id","inhalt","isn","jahr","koerper","language","mandant","norm","ppn","ppnlink","publisher",
+        "client","collection","collection_details","contents","corporation","erwdatum","foreignid","format","format2",
+        "genre","id","inhalt","isn","jahr","koerper","language","mandant","norm","ppn","ppnlink","prov","publisher",
         "reihe","sachgebiet","schlagwort","series","signatur","signature","sprache","subject","thema","titel",
         "title","topic","verlag","year")) )
       {
@@ -198,6 +210,9 @@ class Solr extends General
           case "format":
             $MainSearch .= "(format_phy_str_mv:\"" . $Phrases[0] . "\" )";
             break;
+          case "format2":
+            $MainSearch .= "(format:\"" . $Phrases[0] . "\" )";
+            break;
           case "norm":
             $MainSearch .= "(normlink_prefix_str_mv:\"(DE-627)" . $this->CleanID($Phrases[0]) . "\" )";
             break;
@@ -254,6 +269,9 @@ class Solr extends General
             break;
           case "genre":
             $MainSearch .= "(genre:\"" . $Phrases[0] . "\")";
+            break;
+          case "prov":
+            $MainSearch .= "(provenience_txtP_mv:\"" . $Phrases[0] . "\")";
             break;
           case "signatur":
           case "signature":
@@ -328,6 +346,9 @@ class Solr extends General
           case "format":
             $MainSearch .= "(format_phy_str_mv:\"" . implode("\" OR format_phy_str_mv:\"", $Phrases) . "\")";
             break;
+          case "format2":
+            $MainSearch .= "(format:\"" . implode("\" OR format:\"", $Phrases) . "\")";
+            break;
           case "norm":
             $MainSearch .= "(normlink_prefix_str_mv:\"(DE-627)" . implode("\" OR normlink_prefix_str_mv:\"(DE-627)", $this->CleanID($Phrases)) . "\")";
             break;
@@ -353,6 +374,9 @@ class Solr extends General
             break;
           case "genre":
             $MainSearch .= "(genre:\"" . implode("\" OR genre:\"", $Phrases) . "\")";
+            break;
+          case "prov":
+            $MainSearch .= "(provenience_txtP_mv:\"" . implode("\" OR provenience_txtP_mv:\"", $Phrases) . "\")";
             break;
           case "signatur":
           case "signature":

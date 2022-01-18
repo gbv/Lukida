@@ -14,14 +14,17 @@ class General
   protected $isbn               = "";
   protected $leader             = "";
   protected $marc               = "";
+  protected $mandatory          = array();
   protected $medium             = array();
   protected $online             = "";
+  protected $optional           = array();
   protected $parents            = array();
   protected $PPN                = "";
   protected $pretty             = array();
-  protected $words              = "";
   protected $proofofpossession  = array();
-
+  protected $iltyp              = "";
+  protected $words              = "";
+  
   protected function SessionExits()
   {
     if ( ! isset($_SESSION["config_general"]) )
@@ -209,6 +212,8 @@ class General
 
   protected function Mark_Text($Text)
   {
+    $Text = is_array($Text) ? array_map('html_entity_decode', $Text) : html_entity_decode($Text);
+
     // Do not mark on internal searches
     if ( strpos($_SESSION["data"]["search"], ":") !== false )
     {
@@ -265,14 +270,15 @@ class General
 
       /*** quote the text for regex ***/
       $Word = preg_quote($Word);
+
       /*** highlight the words ***/
       $Text = preg_replace("/($Word)/i", '<span class="markfoundtext">\1</span>', $Text);
-
     }
 
     // Phase two: Do replacements
     $Text   = str_ireplace("<e§m>","<span class='search'>", $Text);
     $Text   = str_ireplace("</e§m>","</span>", $Text);
+
     return $Text;
   }
 
@@ -377,18 +383,25 @@ class General
   
       $pretty["pv_publisher"]     = $this->GetPublisher();
   
-      $pretty["pv_pubarticle"]    = $this->PrettyFields(array("773" => array("i" => " ",
+      $pretty["pv_pubarticle"]    = $this->PrettyFields(array("772" => array("i" => " ",
+                                                                             "t" => " ",
+                                                                             "d" => " ",
+                                                                             "g" => " ",
+                                                                             "q" => ". Band: "),
+                                                              "773" => array("i" => " ",
                                                                              "t" => " ",
                                                                              "d" => " ",
                                                                              "g" => " ",
                                                                              "q" => ". Band: ")));
 
-      $pretty["serial"]           = $this->GetArray(array("490" => array("a","v")));
+      $pretty["serial"]              = $this->GetArray(array("490" => array("a","v")));
     
       $pretty["physicaldescription"] = $this->PrettyFields(array("300" => array("a" => ". ",
                                                                                 "b" => ", ",
                                                                                 "c" => ", ",
                                                                                 "e" => ", ")));
+      $pretty["pv_provenance"]       = $this->GetArray(array("561" => array("3","5","a")));
+
       // Add original characters 
       $pretty = $this->AddOriginalCharacters($pretty,"preview");
     }
@@ -397,7 +410,8 @@ class General
     {
       $pretty["publisher"]           = $this->GetCompleteArray(array("264" => array("a","b","c")));
                                      
-      $pretty["publisherarticle"]    = $this->GetArray(array("773" => array("a","i","t","b","d","g","h","q","w")));
+      $pretty["publisherarticle"]    = $this->GetArray(array("772" => array("a","i","t","b","d","g","h","q","w"),
+                                                             "773" => array("a","i","t","b","d","g","h","q","w")));
 
       $pretty["uniformtitle"]        = $this->PrettyFields(array("240" => array("a" => " | ")));
       
@@ -982,50 +996,61 @@ class General
       $Tmp        = $this->GetArray(array("561" => array("3","5","a")));
       foreach ( $Tmp as $P )
       {
-        if ( $_SESSION["filter"]["datapool"] == "local" && isset($P["5"]) 
-          && isset($_SESSION["config_general"]["general"]["isil"])  && $_SESSION["config_general"]["general"]["isil"]  != $P["5"] 
-          && isset($_SESSION["config_general"]["general"]["isil2"]) && $_SESSION["config_general"]["general"]["isil2"] != $P["5"] )  continue;
-        if ( !isset($P["3"]) && !isset($P["a"]) )  continue;
-
-        if ( !isset( $_SESSION["isils"][$P["5"]]) )
+        if ( !isset($P["a"]) )  continue;
+        if ( isset($P["3"]) && isset($P["a"]) )
         {
-          $_SESSION["isils"][$P["5"]] = $this->CI->database->getCentralDB("isil", array("isil" => $P["5"]))[$P["5"]];
-        }
-
-        $Text = (isset($_SESSION["isils"][$P["5"]]["shortname"])) ? $_SESSION["isils"][$P["5"]]["shortname"] . " ": "";
-        if ( isset($P["3"]) )
-        {
-          $Teile = explode("Signatur:", $P["3"]);
-          $Text .= (count($Teile) > 1) ? trim($Teile[1])      : trim($P["3"]);
-        }
-        $Text .= (isset($P["3"]) && isset($P["a"])) ? ", "    : "";
-
-        if ( isset($P["a"]) )
-        {
-          $Teile = explode(" ", str_replace("  ", " ", $P["a"]));
-          $Found = false;
-          foreach ($Teile as $Ind => $Teil) 
+          if ( $_SESSION["filter"]["datapool"] == "local" 
+            && isset($_SESSION["config_general"]["general"]["isil"])  && $_SESSION["config_general"]["general"]["isil"]  != $P["5"] 
+            && isset($_SESSION["config_general"]["general"]["isil2"]) && $_SESSION["config_general"]["general"]["isil2"] != $P["5"] )  continue;
+  
+          if ( !isset($_SESSION["isils"][$P["5"]]) )
           {
-            if ( strripos($Teil, "https://") !== false || strripos($Teil, "http://") !== false )
+            $Tmp = $this->CI->database->getCentralDB("isil", array("isil" => $P["5"]));
+            if ( isset($Tmp[$P["5"]]) )
             {
-              $Found = true;
-              unset($Teile[$Ind]);
+              $_SESSION["isils"][$P["5"]] = $Tmp[$P["5"]];
             }
           }
-          $Tmp2 = implode(" ", $Teile);
-          if ( $Found ) 
+  
+          $Text = (isset($_SESSION["isils"][$P["5"]]["shortname"])) ? $_SESSION["isils"][$P["5"]]["shortname"] . " ": "";
+          if ( isset($P["3"]) )
           {
-            $Teile = explode("§%§", str_replace(array(":", ";"), "§%§", $Tmp2));
-            if ( isset($Teile[1]) && trim($Teile[1]) )
+            $Teile = explode("Signatur:", $P["3"]);
+            $Text .= (count($Teile) > 1) ? trim($Teile[1])      : trim($P["3"]);
+          }
+          $Text .= (isset($P["3"]) && isset($P["a"])) ? ", "    : "";
+  
+          if ( isset($P["a"]) )
+          {
+            $Teile = explode(" ", str_replace("  ", " ", $P["a"]));
+            $Found = false;
+            foreach ($Teile as $Ind => $Teil) 
             {
-              $Teile[0] = $Teile[0] . ":";
-              $Teile[1] = "<a href='javascript:$.link_search(\"author\",\"" . trim(str_replace(","," ",$Teile[1])) . "\")'>" . trim($Teile[1]) . "</a>";
+              if ( strripos($Teil, "https://") !== false || strripos($Teil, "http://") !== false )
+              {
+                $Found = true;
+                unset($Teile[$Ind]);
+              }
             }
             $Tmp2 = implode(" ", $Teile);
+            if ( $Found ) 
+            {
+              $Teile = explode("§%§", str_replace(array(":", ";"), "§%§", $Tmp2));
+              if ( isset($Teile[1]) && trim($Teile[1]) )
+              {
+                $Teile[0] = $Teile[0] . ":";
+                $Teile[1] = "<a href='javascript:$.link_search(\"author\",\"" . trim(str_replace(","," ",$Teile[1])) . "\")'>" . trim($Teile[1]) . "</a>";
+              }
+              $Tmp2 = implode(" ", $Teile);
+            }
+            $Text .= $Tmp2;
           }
-          $Text .= $Tmp2;
+          $Provenance[] =  trim($Text);
         }
-        $Provenance[] =  trim($Text);
+        else
+        {
+          $Provenance[] =  trim($P["a"]);
+        }
       }
     }
     return $Provenance;
@@ -1634,17 +1659,17 @@ class General
     return $this->medium["online"];
   }
 
-  protected function isMulti()
+  public function isMulti()
   {
     return ( in_array($this->medium["format"],array("book","journal","monographseries","serialvolume","unknown","musicalscore","soundrecording","map","microform","motionpicture","manuscript")) ) ? true : false;
   }
 
-  protected function getMulti($WithIncludedPubs=true, $WithRelatedArticles=true, $WithIncludedJournals=true)
+  public function getMulti($WithIncludedPubs=true, $WithRelatedArticles=true, $WithIncludedJournals=true)
   {
     $Exemplars = array();
 
     // Mehrbändige Werke, Schriftenreihen, Zeitschriften mit Einzelheften
-    if ( in_array($this->medium["format"],array("book","monographseries","serialvolume","unknown","musicalscore","soundrecording","map","microform","motionpicture","manuscript")) )
+    if ( $this->isMulti() )
     {
       // Mehrbändige Werke
       $Exemplars[] = array("label"  => $this->CI->database->code2text("RELATEDPUBLICATIONS"), 
@@ -1653,7 +1678,7 @@ class General
                            "remaft" => array());
     }
 
-    if ( in_array($this->medium["format"],array("journal","ejournal")) )
+    if ( in_array($this->medium["format"],array("journal")) )
     {
       $IncludedPubs = $this->GetIncludedPubsNew($this,$this->PPN, $WithIncludedJournals);
       if ( $WithIncludedPubs )
@@ -1833,10 +1858,13 @@ class General
     
     // Create Buttons
     $FirstArea = true;
-    foreach ($Exemplars as $Area)
+    foreach ($Exemplars as $Ind => $Area)
     {
       if ( isset($Area["data"]) && count($Area["data"]) )
       {
+        // Section div for mails
+        $Output .= "<div class='section_". $Ind . "'>";
+
         // Space above
         if ( !$FirstArea ) $Output .= "<div class='space_buttons'></div>";
     
@@ -1962,6 +1990,9 @@ class General
             }
           }
         }
+
+        // Section end div for mails
+        $Output .= "</div>";
       }
 
       // Finalize Loop

@@ -103,8 +103,8 @@ if ( $GoogleCover || $GooglePreview )
     $T = preg_replace('/[^\dxX]/', '', trim($T));
   }
   $Tmp = implode(" ", array_unique($Tmp));
-  $Output .=  "<div class='text-center' id='isbn_" . $this->dlgid . "' data-isbn='". $Tmp . "'></div>";
-  
+  $Output .=  "<div id='isbn_" . $this->dlgid . "' data-isbn='". $Tmp . "'></div>";
+  $Output .=  "<div id='ppn_" . $this->dlgid . "' data-ppn='". $this->PPN . "'></div>";
   $Output .=  "</div>";
 }
 else

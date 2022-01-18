@@ -66,7 +66,8 @@ class Standard extends General
       if( $jop_on && ( $prio == "multi" || ( empty($linkarray) && ( $prio == "single" || strpos($fulltextPrios,"jop") !== false ) ) ) 
           && ( $Link = $this->get_jop_link($this->contents) ) != "" )
       {
-        $linkarray["jop"] = str_replace(array(chr(39),chr(32)), array("%27","%22"), $Link);
+        //Chr(32),%20 space    chr(39), %27 Single quote    chr(34), %22 Double Quotes    Chr(38), %26 &
+        $linkarray["jop"] = str_replace(array(chr(39),chr(34)), array("%27","%22"), $Link);
       } 
     } 
     elseif( $prio == "jop" )
@@ -74,7 +75,8 @@ class Standard extends General
       //Single jop (or resolver)
       if( $jop_on && ( $Link = $this->get_jop_link($this->contents) ) != "" )
       {
-        $linkarray["jop"] = str_replace(array(chr(39),chr(32)), array("%27","%22"), $Link); 
+        //Chr(32),%20 space    chr(39), %27 Single quote    chr(34), %22 Double Quotes    Chr(38), %26 &
+        $linkarray["jop"] = str_replace(array(chr(39),chr(34)), array("%27","%22"), $Link); 
       }
       elseif( $resolver_on && strpos($fulltextPrios,"resolver") !== false )
       {
@@ -93,13 +95,16 @@ class Standard extends General
         "format"         => array("citavi" => "TY  - ", "endnote" => "%0 ", "bibtex" => "@"            ),
         "id"             => array("citavi" => "ID  - ", "endnote" => "%M ", "bibtex" => "-"            ),
         "title"          => array("citavi" => "T1  - ", "endnote" => "%T ", "bibtex" => "title = {"    ),
+        "booktitle"      => array("citavi" => "BT  - ", "endnote" => "%B ", "bibtex" => "booktitle = {"),
         "subtitle"       => array("citavi" => "T2  - ", "endnote" => "%Q ", "bibtex" => "note = {"     ),
         "series"         => array("citavi" => "T3  - ", "endnote" => "%B ", "bibtex" => "series = {"   ),
         "journal"        => array("citavi" => "JF  - ", "endnote" => "%J ", "bibtex" => "journal = {"  ),
         "author"         => array("citavi" => "A1  - ", "endnote" => "%A ", "bibtex" => "author = {"   ),
         "associates"     => array("citavi" => "A2  - ", "endnote" => "%E ", "bibtex" => "editor = {"   ),
         "language"       => array("citavi" => "LA  - ", "endnote" => "%G ", "bibtex" => "language = {" ),
-        "note"           => array("citavi" => "N1  - ", "endnote" => "%Z ", "bibtex" => "school = {"   ),
+        "note"           => array("citavi" => "N1  - ", "endnote" => "%Z ", "bibtex" => "note = {"     ),
+        "school"         => array(                                          "bibtex" => "school = {"   ),
+        "type"           => array(                                          "bibtex" => "type = {"     ),
         "summary"        => array("citavi" => "N2  - ", "endnote" => "%X ", "bibtex" => "abstract = {" ),
         "issn"           => array("citavi" => "SN  - ", "endnote" => "%@ ", "bibtex" => "issn = {"     ),
         "isbn"           => array("citavi" => "SN  - ", "endnote" => "%@ ", "bibtex" => "isbn = {"     ),
@@ -113,8 +118,9 @@ class Standard extends General
         "startpage"      => array("citavi" => "SP  - "                                                 ),
         "endpage"        => array("citavi" => "EP  - "                                                 ),
         "pages"          => array(                      "endnote" => "%P ", "bibtex" => "pages = {"    ),
-        "subject"        => array("citavi" => "KW  - ", "endnote" => "%K ", "bibtex" => "type = {"     ),
-        "volltext"       => array("citavi" => "UR  - ", "endnote" => "%U "                             ),
+        "doi"            => array("citavi" => "DO  - ", "endnote" => "%R ", "bibtex" => "doi = {"      ),
+        "subject"        => array("citavi" => "KW  - ", "endnote" => "%K ", "bibtex" => "keywords = {" ),
+        "volltext"       => array("citavi" => "UR  - ", "endnote" => "%U ", "bibtex" => "url = {"      ),
         "institute"      => array("citavi" => "S1  - ", "endnote" => "%W "                             ),
         "database"       => array("citavi" => "S2  - ", "endnote" => "%~ "                             ),
         "sid"            => array("citavi" => "S3  - "                                                 ),
@@ -126,7 +132,47 @@ class Standard extends General
     $tagExtention    = $format == "bibtex" ? "},\r\n" : "\r\n";
 
     $metadataOU = "";
-    if (isset($data["format"]) && $data["format"] != "") 
+    if ($format == "bibtex")
+    {
+      if (substr($data["leader"],7,1) == "m" && substr($data["leader"],19,1) == "a")
+        $data["format"] = "collection";
+      elseif (!empty($data["genre"][0]["name"]) && strpos($data["genre"][0]["name"], "Hochschul") !== false) 
+      {
+        if (!empty($data["contents"][502][0][0]["b"]) || !empty($data["contents"][502][0][0]["a"]))
+        {
+          if(strpos($data["contents"][502][0][0]["b"], "Diss") !== false) 
+               $data["format"] = "phdthesis";
+          elseif(strpos($data["contents"][502][0][0]["a"], "Studienarb") !== false)
+               $data["format"] = "techreport";
+          else $data["format"] = "mastersthesis";
+        }
+      }
+      elseif (!empty($data["genre"][0]["name"]) && strpos($data["genre"][0]["name"], "Konferenz") !== false) 
+      {
+        if(strpos($data["contents"][338][0][0]["a"], "Band") !== false)
+             $data["format"] = "proceedings";
+        else $data["format"] = "conference";
+      }
+      elseif (!empty($data["format"]) && $data["format"] != "article" && empty($data["publisher"][0]["b"]))
+      {
+        $data["format"] = "booklet";
+      }
+      elseif (!empty($data["isbn"]) && $data["format"] == "article")
+      {
+        $data["format"] = "inbook";
+      }
+      elseif(!empty($data["isbn"]) && !empty($data["contents"][338][0][0]["a"]) && strpos($data["contents"][338][0][0]["a"], "Band") !== false)
+      {
+        $data["format"] = "incollection";
+      }
+      elseif (!empty($data["format"]) && $data["format"] == "journal")
+        $data["format"] = "periodical";
+      elseif (!empty($data["format"]) && $data["format"] == "unknown")
+        $data["format"] = "unpublished";
+      elseif (!empty($data["format"]) && strpos("article,book,datamedia,game,manuscript,map,microform,mixedmaterials,monographseries,motionpicture,musicalscore,picture,projectedmedium,serialvolume,soundrecording,", $data["format"]) === false)
+        $data["format"] = "misc"; 
+    }
+    if (!empty($data["format"])) 
     {
       $metadataOU = $exportTags["format"][$format] . $data["format"] . ( $format == "bibtex" ? "" : $tagExtention );
     }	
@@ -137,7 +183,13 @@ class Standard extends General
     }
     if (isset($data["title"]) && $data["title"] != "") 
     {
-      $metadataOU .= $tagPrefix . $exportTags["title"][$format] . ($data["title"]) . $tagExtention;
+      if (!empty($data["part"]))
+      {
+         $metadataOU .= $tagPrefix . $exportTags["title"][$format] . htmlspecialchars_decode($data["part"]) . $tagExtention;
+         $metadataOU .= $tagPrefix . $exportTags["booktitle"][$format] . htmlspecialchars_decode($data["title"]) . $tagExtention;
+      }
+      else 
+         $metadataOU .= $tagPrefix . $exportTags["title"][$format] . htmlspecialchars_decode($data["title"]) . $tagExtention;
     }
     if (isset($data["publisherarticle"])) 
     {
@@ -145,13 +197,13 @@ class Standard extends General
       {
         if (count($data["publisherarticle"]) >= 1 && isset($data["publisherarticle"][0]["t"]) && $data["publisherarticle"][0]["t"] != "") 
         {
-          $publisherarticle = $data["publisherarticle"][0]["t"];
+          $publisherarticle = htmlspecialchars_decode($data["publisherarticle"][0]["t"]);
         }
       }
-      else $publisherarticle = $data["publisherarticle"];
+      else $publisherarticle = htmlspecialchars_decode($data["publisherarticle"]);
       if (!empty($publisherarticle)) 
       {
-        $metadataOU .= $tagPrefix . $exportTags["journal"][$format] . (stripos($publisherarticle, "in:") !== false ?
+        $metadataOU .= $tagPrefix . (empty($data["isbn"]) ? $exportTags["journal"][$format] : $exportTags["series"][$format]) . (stripos($publisherarticle, "in:") !== false ?
         trim(substr($publisherarticle,stripos($publisherarticle, "in:") + 3)) :
         $publisherarticle) . $tagExtention;
       }
@@ -169,20 +221,22 @@ class Standard extends General
       {
         if (count($data["serial"]) >= 1) 
         {
+          $seri = 1;
           foreach($data["serial"] as $serial) 
           {
             foreach($serial as $sKey=>$sValue) 
             {
               if (!empty($sValue) && $sKey == "a") 
               {
-                $metadataOU .= $tagPrefix . $exportTags["series"][$format] . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
+                $metadataOU .= (($seri == 1) ? ($tagPrefix . $exportTags["series"][$format]) : " | ") . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
               }
               else 
-			  { $metadataOU .= $tagPrefix . " " . $sValue;
+			  { $metadataOU .= " " . $sValue;
               }
             }
-            $metadataOU .= $tagExtention;
+            $seri++;
           }
+          $metadataOU .= $tagExtention;
         }
       }
       elseif ($data["serial"] != "") 
@@ -192,19 +246,20 @@ class Standard extends General
     }
     if (isset($data["author"])) 
     {
-      if (is_array($data["author"])) 
+      if (!empty($data["author"])) 
       {
-        if (count($data["author"]) >= 1) 
-        {
+          $ai = 1; $metadataAu = "";
           foreach($data["author"] as $author) 
           {
-            $metadataOU .= $tagPrefix . $exportTags["author"][$format] . $author["name"] . $tagExtention;
+            if (!empty($author["name"]))
+            {
+              $metadataAu = ($format == "bibtex") ? ($metadataAu . (($ai > 1) ? " and " : ($tagPrefix . $exportTags["author"][$format])) . $author["name"]) : 
+                             ($tagPrefix . $exportTags["author"][$format] . $author["name"]);
+              $ai++;
+            }
           }
-        }
-      }
-      elseif ($data["author"] != "") 
-      {
-        $metadataOU .= $tagPrefix . $exportTags["author"][$format] . $data["author"] . $tagExtention;
+          if( !empty($metadataAu) ) 
+            $metadataOU .= $metadataAu . $tagExtention;
       }
     }
 	if (!empty($data["language"][0]))
@@ -217,7 +272,7 @@ class Standard extends General
         {
           if (!empty($note) && $note != "") 
           {
-             $metadataOU .= $tagPrefix . $exportTags["note"][$format] . $note . $tagExtention;
+             $metadataOU .= $tagPrefix . $exportTags["note"][$format] . htmlspecialchars_decode($note) . $tagExtention;
           }
         }
     }
@@ -227,25 +282,24 @@ class Standard extends General
     }
 	if (isset($data["summary"]) && $data["summary"] != "")
     {
-		$metadataOU .= $tagPrefix . $exportTags["summary"][$format] . $data["summary"] . $tagExtention;
+		$metadataOU .= $tagPrefix . $exportTags["summary"][$format] . htmlspecialchars_decode($data["summary"]) . $tagExtention;
     }
 	if (isset($data["associates"])) 
     {
-      if (is_array($data["associates"])) 
+      if (!empty($data["associates"])) 
       {
-        if (count($data["associates"]) >= 1) 
-        { 
-		  $counter = 0; 
-		  $associates = "";
+          $assi = 1; $metadataAss = "";
           foreach($data["associates"] as $associate) 
           {
-            $metadataOU .= $tagPrefix . $exportTags["associates"][$format] . $associate["name"] . $tagExtention;
+            if (($format != "bibtex" || $associate["role"] == "Herausgeber") && !empty($associate["name"]))
+            {
+              $metadataAss = ($format == "bibtex") ? ($metadataAss . (($assi > 1) ? " and " : ($tagPrefix . $exportTags["associates"][$format])) . $associate["name"]) : 
+                             ($tagPrefix . $exportTags["author"][$format] . $associate["name"]);
+              $assi++;
+            }
           }
-        }
-      }
-      elseif ($data["associates"] != "") 
-      {
-        $metadataOU .= $tagPrefix . $exportTags["associates"][$format] . $data["associates"]["name"] . $tagExtention;
+          if( !empty($metadataAss) ) 
+            $metadataOU .= $metadataAss . $tagExtention;
       }
     }
 	if (isset($data["computerfile"]) && $data["computerfile"] != "")
@@ -284,7 +338,8 @@ class Standard extends General
 				}
 			}
 		}
-		$metadataOU .= $tagPrefix . $exportTags["isbn"][$format] . $isbnVal . $tagExtention;	
+        if (!empty($isbnVal))
+		  $metadataOU .= $tagPrefix . $exportTags["isbn"][$format] . $isbnVal . $tagExtention;	
 	}
     if (isset($data["issn"])) 
     {
@@ -315,17 +370,29 @@ class Standard extends General
     {
       $metadataOU .= $tagPrefix . $exportTags["phydescription"][$format] . $data["physicaldescription"] . $tagExtention;
     }
+    if (isset($exportTags["school"][$format]) && !empty($data["contents"][502][0][1]["c"]))
+    {
+      $metadataOU .= $tagPrefix . $exportTags["school"][$format] . $data["contents"][502][0][1]["c"] . $tagExtention;
+    }
+    if (isset($exportTags["type"][$format]) && (!empty($data["contents"][502][0][0]["a"]) ||
+        !empty($data["contents"][502][0][0]["b"]) || !empty($data["contents"][338][0][0]["a"])))
+    {
+       $metadataOU .= $tagPrefix . $exportTags["type"][$format] . 
+       (!empty($data["contents"][502][0][0]["a"]) ? $data["contents"][502][0][0]["a"] : (
+        !empty($data["contents"][502][0][0]["b"]) ? $data["contents"][502][0][0]["b"] : (
+        !empty($data["contents"][338][0][0]["a"]) ? $data["contents"][338][0][0]["a"] : ""))) . $tagExtention;
+    }
     if (isset($data["publisher"][0]) && $data["publisher"][0] != "") 
     {
 	  foreach($data["publisher"][0] as $publisherKey => $publisherValue)
 	  {
 		if ($publisherKey == "a" && !empty($publisherValue[0])) 
 		{ 
-			$metadataOU .= $tagPrefix . $exportTags["placepublished"][$format] . $publisherValue[0] . $tagExtention;
+			$metadataOU .= $tagPrefix . $exportTags["placepublished"][$format] . htmlspecialchars_decode($publisherValue[0]) . $tagExtention;
 		}
 		elseif ($publisherKey == "b" && !empty($publisherValue[0])) 
 		{ 
-			$metadataOU .= $tagPrefix . $exportTags["publisher"][$format] . $publisherValue[0] . $tagExtention;
+			$metadataOU .= $tagPrefix . $exportTags["publisher"][$format] . htmlspecialchars_decode($publisherValue[0]) . $tagExtention;
 		} 
 	  }
     }
@@ -394,14 +461,22 @@ class Standard extends General
 			$metadataOU .= $tagPrefix . $exportTags["year"][$format] . substr($data["contents"]["008"],7,4) . $tagExtention;
 		}
 	}
+	if (!empty($data["contents"]["024"]))
+	{
+		foreach($data["contents"]["024"] as $key24=>$value24) 
+		{
+            if (!empty($value24[2][2]) && $value24[2][2] == "doi")
+              $metadataOU .= $tagPrefix . $exportTags["doi"][$format] . ((strpos(strtolower($value24[1]["a"]), "http") === false) ?  "https://doi.org/" : "") . $value24[1]["a"] . $tagExtention;
+        }
+    }
 	if (isset($data["subject"][0]) && $data["subject"][0] != "") 
     {
 		$metadataOU .= $tagPrefix . $exportTags["subject"][$format];
 		foreach($data["subject"] as $aSubjectKey => $aSubject) 
         {
-			if ($aSubject != "") 
+			if ($aSubject['name'] != "") 
 			{
-			$metadataOU .= $aSubject . ((count($data["subject"]) > 1 && $aSubjectKey < count($data["subject"]) - 1) ? " / " : "" );
+			$metadataOU .= $aSubject['name'] . ((count($data["subject"]) > 1 && $aSubjectKey < count($data["subject"]) - 1) ? " / " : "" );
             }
         }
 		$metadataOU .= $tagExtention;
@@ -427,7 +502,9 @@ class Standard extends General
   }
  
   public function exportlink($data, $format)
-  {
+  {//http://swb.bsz-bw.de/DB=2.1/DWN?PPN=1622490614&PRS=bibtex
+   //var_dump(file_get_contents("http://findex.gbv.de/index/discovery/select?q=id:" . $data["id"] . "&fl=id,issn,isbn,ctrlnum,doi_str_mv,language,genre_facet,format,format_phy_str_mv,format_facet,title_full,title_short,hierarchy_top_title,is_hierarchy_title,authorswithroles_txt_mv,author2,author2-role,publisher,publishDate,publishPlace,hochschulschrift_txt_mv,abstract,container_title,container_volume,container_issue,container_start_page,source,url,ausleihindikator_str_mv"));
+   //var_dump($data);
     // Create File Data
     // Um die Daten zu sehen, die folgende Zeile aktivieren
     // $this->CI->printArray2File($data);
@@ -801,14 +878,16 @@ class Standard extends General
 				{
 				if (count($data["publisherarticle"]) >= 1 && isset($data["publisherarticle"][0]["t"]) && $data["publisherarticle"][0]["t"] != "") 
 				{
-					$publisherarticle = str_replace('&', '%22', $data["publisherarticle"][0]["t"]);
+                    //Chr(32),%20 space    chr(39), %27 Single quote    chr(34), %22 Double Quotes    Chr(38), %26 &
+					$publisherarticle = str_replace(array("&amp;","&quot;","&lt;","&gt;","&lsqb;","&rsqb;","&lcub;","&rcub;"), array("%26","%22","%3C","%3E","%5B","%5D","%7B","%7D"),$data["publisherarticle"][0]["t"]);
 				}
 				}
 				else { $publisherarticle = $data["publisherarticle"];
 				}
 				if (!empty($publisherarticle)) 
 				{
-					$metadataOU .= "&rft.atitle=" . str_replace('&', '%22', $data["title"]) . "&rft.title=" . (stripos($publisherarticle, "in:") !== false ?
+                    //Chr(32),%20 space    chr(39), %27 Single quote    chr(34), %22 Double Quotes    Chr(38), %26 &
+					$metadataOU .= "&rft.atitle=" . str_replace(array("&amp;","&quot;","&lt;","&gt;","&lsqb;","&rsqb;","&lcub;","&rcub;"), array("%26","%22","%3C","%3E","%5B","%5D","%7B","%7D"),$data["title"]) . "&rft.title=" . (stripos($publisherarticle, "in:") !== false ?
 					trim(substr($publisherarticle,stripos($publisherarticle, "in:") + 3)) :
 					$publisherarticle);
 				}
@@ -875,7 +954,7 @@ class Standard extends General
 					foreach($data["author"] as $author) 
 					{
 						$aNr += 1;
-						$metadataOU .= "&rft.author=" . $author["name"];
+						$metadataOU .= "&rft.au=" . $author["name"];
 						if ($aNr == 1 && !empty($author["name"]) && strpos($author["name"], ', ') !== false) 
 						{
 							$metadataOU .= "&rft.aulast=" . strstr($author["name"], ', ', true);
@@ -886,7 +965,7 @@ class Standard extends General
 				}
 				elseif ($data["author"] != "") 
 				{
-					$metadataOU .= "&rft.author=" . $data["author"];
+					$metadataOU .= "&rft.au=" . $data["author"];
 					if (strpos($data["author"], ", ")) 
 					{
 						$metadataOU .= "&rft.aulast=" . strstr($data["author"], ', ', true);
@@ -950,6 +1029,14 @@ class Standard extends General
 			{
 				$metadataOU .= "&rft.language=" . $data["language"][0];
 			}
+            if ($exportformat == "zotero" && !empty($data["contents"]["024"]))
+	        {
+	            foreach($data["contents"]["024"] as $key24=>$value24) 
+		        {
+                  if (!empty($value24[2][2]) && $value24[2][2] == "doi")
+                    $metadataOU .= "&rft_id=info:doi/" . ((strpos(strtolower($value24[1]["a"]), "http") === false) ?  "https://doi.org/" : "") . $value24[1]["a"];
+                }
+            }
 		}
 	}
     return $metadataOU;

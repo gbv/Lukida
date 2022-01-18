@@ -304,7 +304,7 @@ class Mysql extends General
   public function get_resolved_link($ppn)
   {
     $iln = ( isset($_SESSION["iln"]) ) ? $_SESSION["iln"] : "";
-    if ( $ppn == "" || $iln == "" )  return (-1);
+    if ( $ppn == "" || $iln == "" )  return array("status" => -1, "links" => "{}");
 
     $this->CI->db->reset_query();
     $this->CI->db->select('resolved');
@@ -355,19 +355,15 @@ class Mysql extends General
 
   public function getCentralDB($Type, $Filter=array())
   {
-    if ( !isset($_SESSION["config_system"]["central.db"]["host"]) || !isset($_SESSION["config_system"]["central.db"]["name"])
-      || !isset($_SESSION["config_system"]["central.db"]["user"]) || !isset($_SESSION["config_system"]["central.db"]["pass"]) ) return array();
+    if ( !$this->existsCentralDB() ) return array();
 
-    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT); // Set MySQLi to throw exceptions 
-    try 
-    {
-      $CDB = mysqli_connect($_SESSION["config_system"]["central.db"]["host"], $_SESSION["config_system"]["central.db"]["user"], 
-                            $_SESSION["config_system"]["central.db"]["pass"], $_SESSION["config_system"]["central.db"]["name"]);
-    } 
-    catch (mysqli_sql_exception $e) 
-    {
-      return array();
-    }
+    $CDB = mysqli_init();
+    if (!$CDB) return array();
+    if (!mysqli_options($CDB, MYSQLI_OPT_CONNECT_TIMEOUT, 2)) return array();
+    if (!mysqli_real_connect($CDB, $_SESSION["config_system"]["central.db"]["host"], 
+                                   $_SESSION["config_system"]["central.db"]["user"], 
+                                   $_SESSION["config_system"]["central.db"]["pass"], 
+                                   $_SESSION["config_system"]["central.db"]["name"])) return array();
 
     mysqli_set_charset($CDB,"utf8");
 
@@ -796,6 +792,15 @@ class Mysql extends General
     $this->CI->db->query("replace into logs_library (iln, userid, username, ppn, title, serialdata, header, body, created) values ('" . $iln . "', '" . $User . "', '" . $username . "','" . $ppn . "', '" .  $this->CI->db->escape_str($title) . "', '" . $serialdata . "', '" . $this->CI->db->escape_str($header) . "', '" . $this->CI->db->escape_str($body) . "', now())");
   
     return 0;
+  }
+
+  public function store_imgurl($ppn, $url)
+  {
+    if ( !trim($ppn) || !trim($url) ) return;
+
+    $this->CI->db->reset_query();
+    $this->CI->db->query("insert into img_urls (ppn, url, created) values ('" . $ppn . "', '" .  $this->CI->db->escape_str($url) . "', now())");
+    return;
   }
 
   public function get_log_data($params=array())

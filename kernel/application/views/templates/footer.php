@@ -136,6 +136,7 @@ if ( ! $front )
 }
 echo "</script>";
 
+/*
 // Sitelinks Searchbox
 echo "<script type='application/ld+json'>";
 echo '{';
@@ -150,6 +151,12 @@ echo '"query-input": "required name=search_term_string"';
 echo '}';
 echo '}';
 echo "</script>";
+*/
+
+if ( file_exists(LIBRARYCODE . "footer.php") )
+{
+  include(LIBRARYCODE . "footer.php");
+}
 
 ?>
 </div></body></html>

@@ -656,21 +656,21 @@ if ( isset($this->pretty["additionalinfo"]) && count($this->pretty["additionalin
         case "Inhaltstext":
         {
           if ( !$First ) $Output .= " | ";
-          $Output .=  $this->link($Text, $one["u"]);
+          $Output .=  $this->link("web", $one["u"], $Text );
           $First = false;
           break; 
         }
         case "Cover":
         {
           if ( !$First ) $Output .= " | ";
-          $Output .=  $this->link("Cover", $one["u"]);
+          $Output .=  $this->link("web", $one["u"], "Cover");
           $First = false;
           break; 
         }
         default:
         {
           if ( !$First ) $Output .= " | ";
-          $Output .=  $this->link("Online", $one["u"]);
+          $Output .=  $this->link("web", $one["u"], "Online");
           $First = false;
           break; 
         }
@@ -697,18 +697,32 @@ if ( isset($this->pretty["provenance"]) && count($this->pretty["provenance"]) )
 }
 
 // Subject
-if ( isset($this->pretty["subject"]) && count($this->pretty["subject"]) > 0 )
+if ( ( isset($this->pretty["subject"]) && count($this->pretty["subject"]) )
+  || ( isset($this->pretty["subjectheadings"]) && count($this->pretty["subjectheadings"]) ) )
 {
   $Output .=  "<tr>";
   $Output .=  "<td>" . $this->CI->database->code2text("subject") . "</td>";
   $Output .=  "<td>";
   $First = true;
-  foreach ( $this->pretty["subject"] as $one)
+  if ( isset($this->pretty["subject"]) && count($this->pretty["subject"]) )
   {
-    if ( !$First ) $Output .= " | ";
-    $Output .= ( isset($one["norm"]) && $one["norm"] ) ? $this->link("norm",    $one["norm"], $one["name"]) 
-                                                       : $this->link("subject", $one["name"]);
-    $First = false;
+    foreach ( $this->pretty["subject"] as $one)
+    {
+      if ( !$First ) $Output .= " | ";
+      $Output .= ( isset($one["norm"]) && $one["norm"] ) ? $this->link("norm",    $one["norm"], $one["name"]) 
+                                                         : $this->link("subject", $one["name"]);
+      $First = false;
+    }
+  }
+  if ( isset($this->pretty["subjectheadings"]) && count($this->pretty["subjectheadings"]) )
+  {
+    foreach ( $this->pretty["subjectheadings"] as $one)
+    {
+      if ( !$First ) $Output .= " | ";
+      $Output .= ( isset($one["norm"]) && $one["norm"] ) ? $this->link("norm",    $one["norm"], $one["name"]) 
+                                                         : $this->link("subject", $one["name"]);
+      $First = false;
+    }
   }
   $Output .=  "</td></tr>";
 }
