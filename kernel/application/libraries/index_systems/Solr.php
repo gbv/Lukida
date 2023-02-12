@@ -62,7 +62,7 @@ class Solr extends General
     else
     {
       $string = trim($string, " '\"");
-      return substr($string,0,8) . preg_replace("/[^A-Za-z0-9]/", "", substr($string,8));
+      return substr($string,0,8) . preg_replace("/[^A-Za-z0-9_]/", "", substr($string,8));
     }
   }
 
@@ -139,10 +139,10 @@ class Solr extends General
     // Remove not allowed complex phrases based on used key
     foreach ( $matches[1] as $index => $key )
     {
-      if ( ! in_array(strtolower(trim($key)), array("abruf", "acqdate","author","autor","call","class",
+      if ( ! in_array(strtolower(trim($key)), array("abruf", "acqdate","author","autor","call","class", "classlocal",
         "client","collection","collection_details","contents","corporation","erwdatum","foreignid","format","format2",
-        "genre","id","inhalt","isn","jahr","koerper","language","mandant","norm","ppn","ppnlink","prov","publisher",
-        "reihe","sachgebiet","schlagwort","series","signatur","signature","sprache","subject","thema","titel",
+        "genre","id","inhalt","isn","jahr","koerper","langcode","language","mandant","norm","ppn","ppnlink","prov","publisher",
+        "reihe","sachgebiet","schlagwort","series","signatur","signature","sprache","sprachcode","subject","thema","titel",
         "title","topic","verlag","year")) )
       {
         unset($matches[0][$index]);
@@ -179,11 +179,12 @@ class Solr extends General
           case "autor":
             if ( $this->phoneticsearch )
             {
-              $MainSearch .= "(author:\"" . $Phrases[0] . "\" OR author2:\"" . $Phrases[0] . "\" OR authorSound:\"" . $Phrases[0] . "\" )";
+              $MainSearch .= "(author:\""      . $Phrases[0] . "\" OR author2:\""           . $Phrases[0] . "\"" 
+                        . " OR authorSound:\"" . $Phrases[0] . "\" OR author_os_txtP_mv:\"" . $Phrases[0] . "\")";
             }
             else
             {
-              $MainSearch .= "(author:\"" . $Phrases[0] . "\" OR author2:\"" . $Phrases[0] . "\")";
+              $MainSearch .= "(author:\"" . $Phrases[0] . "\" OR author2:\"" . $Phrases[0] . "\" OR author_os_txtP_mv:\"" . $Phrases[0] . "\")";
             }
             break;
           case "foreignid":
@@ -195,7 +196,7 @@ class Solr extends General
             break;
           case "subject":
           case "schlagwort":
-            $MainSearch .= "(topic:\"" . $Phrases[0] . "\" OR topic_unstemmed:\"" . $Phrases[0] . "\")";
+            $MainSearch .= "(topic:\"" . $Phrases[0] . "\" OR GND_str_mv:\"" . $Phrases[0] . "\" OR topic_unstemmed:\"" . $Phrases[0] . "\")";
             break;
           case "koerper":
           case "corporation":
@@ -203,6 +204,9 @@ class Solr extends General
             break;
           case "class":
             $MainSearch .= "(class:\"" . $Phrases[0] . "\" )";
+            break;
+          case "classlocal":
+            $MainSearch .= "(class_local:\"" . $Phrases[0] . "\" )";
             break;
           case "isn":
             $MainSearch .= "(issn:\"" . $Phrases[0] . "\" OR isbn:\"" . $Phrases[0] . "\")";
@@ -255,6 +259,10 @@ class Solr extends General
           case "sprache":
             $MainSearch .= "(language:\"" . $Phrases[0] . "\" )";
             break;
+          case "langcode":
+          case "sprachcode":
+            $MainSearch .= "(lang_code:\"" . $Phrases[0] . "\" )";
+            break;
           case "erwdatum":
           case "acqdate":
             if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selektneu_str_mv:\"" . $_SESSION["iln"] . "@" . $Phrases[0] . "\" )";
@@ -306,18 +314,19 @@ class Solr extends General
         {
           case "author":
           case "autor":
-            if ( $this->phoneticsearch )
+            if ( $this->phoneticsearch )  
             {
-              $MainSearch .= "(author:\"" .      implode("\" OR author:\"", $Phrases) . "\" OR "
-                           . " author2:\"" .     implode("\" OR author2:\"",$Phrases) . "\" OR "
-                           . " authorSound:\"" . implode("\" OR authorSound:\"",$Phrases) . "\")";
+              $MainSearch .= "(author:\""            . implode("\" OR author:\"", $Phrases)           . "\" OR "
+                           . " author2:\""           . implode("\" OR author2:\"",$Phrases)           . "\" OR "
+                           . " author_os_txtP_mv:\"" . implode("\" OR author_os_txtP_mv:\"",$Phrases) . "\" OR "
+                           . " authorSound:\""       . implode("\" OR authorSound:\"",$Phrases)       . "\")";
             }
             else
             {
-              $MainSearch .= "(author:\"" .  implode("\" OR author:\"", $Phrases) . "\" OR "
-                           . " author2:\"" . implode("\" OR author2:\"",$Phrases) . "\")";
+              $MainSearch .= "(author:\""            . implode("\" OR author:\"", $Phrases)           . "\" OR "
+                           . " author2:\""           . implode("\" OR author2:\"",$Phrases)           . "\" OR "
+                           . " author_os_txtP_mv:\"" . implode("\" OR author_os_txtP_mv:\"",$Phrases) . "\")";
             }
-
             break;
           case "foreignid":
             $MainSearch .= "(foreign_ids_str_mv:\"" . implode("\" OR foreign_ids_str_mv:\"", $this->CleanID($Phrases)) . "\")";
@@ -329,8 +338,9 @@ class Solr extends General
             break;
           case "subject":
           case "schlagwort":
-            $MainSearch .= "(topic:\"" .           implode("\" OR topic:\"", $Phrases) . "\" OR "
-                         . " topic_unstemmed:\"" . implode("\" OR topic_unstemmed:\"",$Phrases) . "\")";
+            $MainSearch .= "(topic:\""           . implode("\" OR topic:\"", $Phrases)           . "\" OR "
+                         . " GND_str_mv:\""      . implode("\" OR topic_unstemmed:\"",$Phrases)  . "\" OR "
+                         . " topic_unstemmed:\"" . implode("\" OR topic_unstemmed:\"",$Phrases)  . "\")";
             break;
           case "koerper":
           case "corporation":
@@ -359,6 +369,10 @@ class Solr extends General
           case "language":
           case "sprache":
             $MainSearch .= "(language:\"" . implode("\" OR language:\"", $Phrases) . "\")";
+            break;
+          case "langcode":
+          case "sprachcode":
+            $MainSearch .= "(lang_code:\"" . implode("\" OR lang_code:\"", $Phrases) . "\")";
             break;
           case "erwdatum":
           case "acqdate":
@@ -437,9 +451,10 @@ class Solr extends General
         ->addQueryField("title_new",700)
         ->addQueryField("topic_unstemmed",610)
         ->addQueryField("topic",600)
-        ->addQueryField("author",520)
-        ->addQueryField("author2",510)
-        ->addQueryField("author_fuller",500)
+        ->addQueryField("author",530)
+        ->addQueryField("author2",520)
+        ->addQueryField("author_fuller",510)
+        ->addQueryField("author_os_txtP_mv",500)
         ->addQueryField("geographic",210)
         ->addQueryField("genre",200)
         ->addQueryField("series",110)
@@ -479,7 +494,8 @@ class Solr extends General
             $dismaxQuery
             ->addQueryField("author",100)
             ->addQueryField("author_fuller",50)
-            ->addQueryField("author2",10)
+            ->addQueryField("author2",50)
+            ->addQueryField("author_os_txtP_mv",50)
             ->addQueryField("author_additional",10);
 
             if ( $this->phoneticsearch )
@@ -504,7 +520,8 @@ class Solr extends General
             ->addQueryField("topic",100)
             ->addQueryField("geographic",50)
             ->addQueryField("genre",50)
-            ->addQueryField("era",40);
+            ->addQueryField("era",40)
+            ->addQueryField("GND_str_mv", 10);
             break;
           }
           case "title":
@@ -646,8 +663,16 @@ class Solr extends General
           {
             if ( $value != "" && $facets )
             {
-              $dismaxQuery
-              ->addFilterQuery('publishDateSort:'.$value);
+              if (isset($_SESSION["config_discover"]["filter"]["excludenopublishdate"]) && $_SESSION["config_discover"]["filter"]["excludenopublishdate"] == "1")
+              {
+                $dismaxQuery
+                ->addFilterQuery('(publishDateSort:' . $value . ')');
+              }
+              else
+              {
+                $dismaxQuery
+                ->addFilterQuery('(publishDateSort:' . $value . ') OR (*:* NOT publishDateSort:*)');
+              }
             }
             break;
           }

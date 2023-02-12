@@ -60,6 +60,9 @@ class Marc21 extends General
             && $_SESSION["config_general"]["general"]["ilnmore"] != "" )    $ILNs = array_unique(array_merge($ILNs,explode(",",$_SESSION["config_general"]["general"]["ilnmore"])));      
     //file_put_contents('ALEX_' . microtime() . '.txt', print_r($ILNs, true));
 
+    $ISIL = ( isset($_SESSION["config_general"]["general"]["isil"]) 
+                 && $_SESSION["config_general"]["general"]["isil"] != "" ) ? $_SESSION["config_general"]["general"]["isil"] : "";
+
     // Electronic InterlibraryLoan
     $EILILNs = ( isset($_SESSION["config_general"]["interlibraryloan"]["onlineilns"]) 
             && $_SESSION["config_general"]["interlibraryloan"]["onlineilns"] != "" ) ? explode(",", $_SESSION["config_general"]["interlibraryloan"]["onlineilns"]) : array();
@@ -104,18 +107,21 @@ class Marc21 extends General
           // 912-area keep only data for configured ilns
           if ( $tag == "912" && count($ILNs) && isset($Sub[0]["a"]) )
           {
-            if ( in_array(substr($Sub[0]["a"],8,3), array_values($ILNs)) 
-                 || substr($Sub[0]["a"],0,8) != "GBV_ILN_" && !in_array($Sub[0]["a"], array("SYSFLAG_1", "SYSFLAG_A")) )
+            if ( in_array(substr($Sub[0]["a"],8,3), array_values($ILNs)) || $Sub[0]["a"] == ("ISIL_" . $ISIL)
+              || ( substr($Sub[0]["a"],0,8) != "GBV_ILN_"  && substr($Sub[0]["a"],0,7) != "ISIL_DE" && !in_array($Sub[0]["a"], array("SYSFLAG_1", "SYSFLAG_A")) ))
             {
               if ( empty($this->contents[$tag]) || !in_array($Sub, $this->contents[$tag]) ) $this->contents[$tag][] = $Sub;
             }
-            elseif ( in_array(substr($Sub[0]["a"],8,3), array_values($EILILNs)) && !$Interloan )
+            else
             {
-              $Interloan = true;
-            }
-            if ( isset($_SESSION["internal"]["marcfull"]) && $_SESSION["internal"]["marcfull"] == "1" )
-            {
-              $this->contents["{". $tag."}"][] = $Sub;
+              if ( in_array(substr($Sub[0]["a"],8,3), array_values($EILILNs)) && !$Interloan )
+              {
+                $Interloan = true;
+              }
+              if ( isset($_SESSION["internal"]["marcfull"]) && $_SESSION["internal"]["marcfull"] == "1" )
+              {
+                $this->contents["{". $tag."}"][] = $Sub;
+              }
             }
           }
   
@@ -130,10 +136,13 @@ class Marc21 extends General
                 $this->contents[$tag][] = $Sub;
                 continue;
               }
-            }
-            if ( isset($_SESSION["internal"]["marcfull"]) && $_SESSION["internal"]["marcfull"] == "1" )
-            {
-              $this->contents["{". $tag."}"][] = $Sub;
+              else
+              {
+                if ( isset($_SESSION["internal"]["marcfull"]) && $_SESSION["internal"]["marcfull"] == "1" )
+                {
+                  $this->contents["{". $tag."}"][] = $Sub;
+                }
+              }
             }
           }
         }
@@ -325,33 +334,36 @@ class Marc21 extends General
       $this->online             = (isset($one["remote_bool"]) && strtolower($one["remote_bool"]) == "true") ? 1                                                  : 0;
 
       // Load MARC library and pass params
-      $this->marc = $this->CI->pearloader->loadmarc('File','MARCXML', $one["fullrecord_marcxml"])->next();
-      $this->SetMarcFormat();
-      $this->SetMarcContents();
-      $this->SetMarcParents();
-      $this->SetMarcISBN();
-      $this->SetMarcCatalogues();
-      $this->SetProofOfPossession();
+      if (isset($one["fullrecord_marcxml"]) && $one["fullrecord_marcxml"])
+      { 
+        $this->marc = $this->CI->pearloader->loadmarc('File','MARCXML', $one["fullrecord_marcxml"])->next();
+        $this->SetMarcFormat();
+        $this->SetMarcContents();
+        $this->SetMarcParents();
+        $this->SetMarcISBN();
+        $this->SetMarcCatalogues();
+        $this->SetProofOfPossession();
 
-      // Prepare reduced array
-      $reduced = array
-      (
-        "id" 		             => $one["id"],
-        "parents"            => $this->parents,
-        "leader"             => $this->leader,
-        "format"             => $this->format,
-        "cover"              => $this->cover,
-        "isbn"               => $this->isbn,
-        "online"             => $this->online,
-        "collection"         => $this->collection,
-        "collection_details" => $this->collection_details,
-        "catalogues"         => $this->catalogues,
-        "contents"           => $this->contents,
-        "proofofpossession"  => $this->proofofpossession,
-        "elecinterloan"      => $this->elecinterloan
-      );
+        // Prepare reduced array
+        $reduced = array
+        (
+          "id" 		             => $one["id"],
+          "parents"            => $this->parents,
+          "leader"             => $this->leader,
+          "format"             => $this->format,
+          "cover"              => $this->cover,
+          "isbn"               => $this->isbn,
+          "online"             => $this->online,
+          "collection"         => $this->collection,
+          "collection_details" => $this->collection_details,
+          "catalogues"         => $this->catalogues,
+          "contents"           => $this->contents,
+          "proofofpossession"  => $this->proofofpossession,
+          "elecinterloan"      => $this->elecinterloan
+        );
 
-      $results_reduced[$one["id"]]	= $reduced + $this->SetContents("preview");
+        $results_reduced[$one["id"]]	= $reduced + $this->SetContents("preview");
+      }
     }
     $container["results"] = $results_reduced;
 

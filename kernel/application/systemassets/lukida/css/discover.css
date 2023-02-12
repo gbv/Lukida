@@ -819,3 +819,8 @@ input[type="search"]::-webkit-search-results-decoration { display: none; }
     clear: left;
   }
 }
+
+.discoverfacets
+{
+  color:black ;
+}

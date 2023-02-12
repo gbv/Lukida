@@ -825,7 +825,7 @@ class Standard extends General
 				switch ($dKey)
 				{
 				case "j":
-					$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . $dValue;
+					$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . str_replace(array("[","]"),array("",""),$dValue);
 					break;
 				case "a":
 					$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "part=" . $dValue;
@@ -857,15 +857,15 @@ class Standard extends General
 		if (!empty($data["publisherarticle"][0]["g"]))
 		{ 
 			if (preg_match("#\((.*?)\)#", $data["publisherarticle"][0]["g"], $year))
-				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . $year[1];
+				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . str_replace(array("[","]"),array("",""),$year[1]);
 		}
 		elseif (!empty($data["publisher"][0]["c"][0])) 
 		{
-			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . $data["publisher"][0]["c"][0];
+			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . str_replace(array("[","]"),array("",""),$data["publisher"][0]["c"][0]);
 		}	
 		elseif (!empty($data["contents"]["008"]) && ctype_digit(substr($data["contents"]["008"],7,4))) 
 		{
-			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . substr($data["contents"]["008"],7,4);
+			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . str_replace(array("[","]"),array("",""),substr($data["contents"]["008"],7,4));
 		}
 	}
     if ( $exportformat != "jop" )
@@ -940,9 +940,9 @@ class Standard extends General
 		}
 		if ( $exportformat != "resolver" )
 		{
-			if (isset($data["edition"]) && $data["edition"] != "") 
+			if (!empty($data["edition"])) 
 			{
-				$metadataOU .= "&rft.edition=" . $data["edition"];
+				$metadataOU .= "&rft.edition=" . (is_array($data["edition"]) ? (!empty($data["edition"][0]) ? $data["edition"][0] : "") : $data["edition"]);
 			}	
 			if (isset($data["author"]))
 			{

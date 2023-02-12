@@ -20,6 +20,9 @@ class Vzg_controller extends CI_Controller
     $this->load->library('general');
 
     if ( ! isset($_SESSION["marked"]) )	$_SESSION["marked"]	= array();
+
+    // Default timeout on Sockets or 15 Seconds
+    ini_set('default_socket_timeout', 15);
   }
   
   // ********************************************
@@ -189,6 +192,13 @@ class Vzg_controller extends CI_Controller
           $this->load_check_general_config();
 
           // ILN mal vorhanden und mal nicht vorhanden
+          if ( isset($_SESSION["config_general"]["general"]["iln"]) && !trim($_SESSION["config_general"]["general"]["iln"]) )
+          {
+            $_SESSION["iln"]              = "";
+            $_SESSION["info"]["1"]["iln"] = "";
+            $_SESSION["info"]["ilncount"] = 0;
+          }  
+
           if ( isset($_SESSION["config_general"]["general"]["iln"]) && $_SESSION["config_general"]["general"]["iln"] != "" )
           {
             $_SESSION["iln"]              = $_SESSION["config_general"]["general"]["iln"];
@@ -783,19 +793,31 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input        = $this->security->xss_clean($this->input->post());
+
     $exemplar     = (isset($Input["exemplar"]))    ? (array) json_decode($Input["exemplar"], true)   : array();
     $userinput    = (isset($Input["userinput"]))   ? (array) json_decode($Input["userinput"], true)  : array();
     $userconfig   = (isset($Input["userconfig"]))  ? (array) json_decode($Input["userconfig"], true) : array();
-    $fullbody     = (isset($Input["fullbody"]))    ? (array) json_decode($Input["fullbody"], true)   : array();
-    $fullbody     = (is_array($fullbody) && isset($fullbody[0])) ? $fullbody[0] : "";
+
+    $fullbody     = "";
+    if ( isset($Input["fullbody"]) )
+    {
+      $fullbody     = (array) json_decode($Input["fullbody"], true);
+      if ( is_array($fullbody) )
+      {
+        if ( isset($fullbody[0]) ) $fullbody = $fullbody[0];
+      }
+      if ( empty($fullbody) )  $fullbody = $Input["fullbody"];
+    }
+
     $ppn          = (isset($Input["ppn"]))         ? $Input["ppn"]                                   : "";
     $epn          = (isset($Input["epn"]))         ? $Input["epn"]                                   : "";
     $mailfrom     = (isset($Input["mailfrom"]))    ? $Input["mailfrom"]                              : "";
     $mailto       = (isset($Input["mailto"]))      ? $Input["mailto"]                                : "";
     $mailtoname   = (isset($Input["mailtoname"]))  ? $Input["mailtoname"]                            : "";
     $mailtyp      = (isset($Input["mailtyp"]))     ? $Input["mailtyp"]                               : "";
+    $mailprint    = (isset($Input["mailprint"]) && $Input["mailprint"] == "1")                ? true : false;
     $mailsubject  = (isset($Input["mailsubject"])) ? $Input["mailsubject"]                           : "";
-
+  
     // Check params
     if ( $ppn == "" )      return ($this->ajaxreturn("400","ppn is missing"));
     if ( $mailfrom == "" ) return ($this->ajaxreturn("400","mailfrom is missing"));
@@ -806,34 +828,41 @@ class Vzg_controller extends CI_Controller
     if ( $mailsubject == "" ) $mailtyp = "Magazinbestellung";
 
     // Ensure required interfaces
-    $this->ensureInterface(array("config","discover","database"));
+    $this->ensureInterface(array("config","discover","database", "lbs"));
 
     // Ensure user after config and lbs
-    if ( ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["status"]) && $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]["status"] >= "1" )
-      || ( isset($_SESSION["config_general"]["lbs"]["available"]) && $_SESSION["config_general"]["lbs"]["available"] == "1" && !isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]) ) )
+    if ( isset($_SESSION["info"]["1"]["isil"]) )
     {
-      return $this->ajaxsreturn(array(
-        "status" => -3,
-        "error"  => ( isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["message"]) 
-                         && $_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["message"] == true 
-                   && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["messagetext"])) 
-                          ? $_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["messagetext"] : "Error" ));
+      $Status = $this->loginagain();
+      if ( !is_array($Status) || !isset($Status["lastname"]) ) 
+      {
+        return $this->ajaxsreturn(array(
+          "status" => -3,
+          "error"  => ( isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["message"]) 
+                           && $_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["message"] == true 
+                     && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["messagetext"])) 
+                            ? $_SESSION[$_SESSION["info"]["1"]["isil"]]["userstatus"]["messagetext"] : "Error" ));
+      }
     }
 
     // Ensure required ppn data
     if ( !$this->ensurePPN($ppn)) return ($this->ajaxreturn("400","ppn not found"));
+
+    if ( $mailprint )
+    {
+      return $this->mailprintto($mailsubject, $mailtyp, $exemplar, $userinput, $userconfig, $fullbody, $ppn, $epn);
+    }
 
     // Set stats
     $this->stats("Mail".ucfirst($mailtyp));
 
     // Load Mail Library
     $this->load->library('email');
-
+  
     // Mail Config.
-    $config['charset'] 	= 'utf-8';
+    $config['charset']  = 'utf-8';
     $config['mailtype'] = 'html';
     $this->email->initialize($config);
-
     // Mail Adresses
     $FromName = (isset($_SESSION["config_general"]["general"]["softwarename"]) && $_SESSION["config_general"]["general"]["softwarename"] != "" ) 
                 ? $_SESSION["config_general"]["general"]["softwarename"] : "";
@@ -843,7 +872,6 @@ class Vzg_controller extends CI_Controller
     }
     $this->email->from($_SESSION["config_general"]["general"]["mailfrom"], $FromName);
     $this->email->reply_to($_SESSION["config_general"]["general"]["mailfrom"], $FromName);
-
     if ( strtolower(MODE) == "development" && isset($_SESSION["config_discover"]["development"]["mailto"]) 
                                                  && $_SESSION["config_discover"]["development"]["mailto"] != "" )
     {
@@ -958,6 +986,226 @@ class Vzg_controller extends CI_Controller
     return $this->ajaxsreturn(array("status" => "0"));
   }
 
+  private function mail2development($subject, $text)
+  {
+    $this->load->library('email');
+    // Mail Config.
+    $config['charset']  = 'utf-8';
+    $config['mailtype'] = 'html';
+    $this->email->initialize($config);
+    // Mail Adresses
+    $FromName = (isset($_SESSION["config_general"]["general"]["softwarename"]) 
+              && isset($_SESSION["config_general"]["general"]["title"])) 
+        ? $_SESSION["config_general"]["general"]["softwarename"] . " | " . $_SESSION["config_general"]["general"]["title"] 
+        : "";
+    $this->email->from($_SESSION["config_general"]["general"]["mailfrom"], iconv('UTF-8', 'ASCII//TRANSLIT', $FromName));
+    $this->email->to("karim@gbv.de");
+    // Mail subject 
+    $this->email->subject($subject . " " . strtoupper(MODE));
+    // Mail body
+    $this->email->message($text);
+    // Send it away...
+    $this->email->send();
+  }
+
+  private function mailprintto($mailsubject, $mailtyp, $exemplar, $userinput, $userconfig, $fullbody, $ppn, $epn)
+  {
+    $PrintHost = ( isset($_SESSION["config_discover"]["printorderview"]["host"]) 
+                      && $_SESSION["config_discover"]["printorderview"]["host"] != "" ) 
+            ? strtolower($_SESSION["config_discover"]["printorderview"]["host"]) : "";
+    $PrintUser = ( isset($_SESSION["config_discover"]["printorderview"]["user"]) 
+                      && $_SESSION["config_discover"]["printorderview"]["user"] != "" ) 
+            ? strtolower($_SESSION["config_discover"]["printorderview"]["user"]) : "";
+    $PrintPath = ( isset($_SESSION["config_discover"]["printorderview"]["user"]) 
+                      && $_SESSION["config_discover"]["printorderview"]["user"] != "" ) 
+            ? strtolower($_SESSION["config_discover"]["printorderview"]["path"]) : "";
+    $PrintName = ( isset($_SESSION["config_discover"]["printorderview"]["path"]) 
+                      && $_SESSION["config_discover"]["printorderview"]["name"] != "" ) 
+            ? strtolower($_SESSION["config_discover"]["printorderview"]["name"]) : "";
+
+    if ( !$PrintHost || !$PrintUser || !$PrintPath || !$PrintName )
+    {
+      return $this->ajaxsreturn(array(
+        "status" => -3,
+        "error"  => "Error"));
+    }
+
+    function append2Logfile($str)
+    {
+      if (!file_exists('backup')) mkdir('backup',0777, true);
+      file_put_contents('backup/transfer.log', date("Ymd His") . " " . strtoupper(MODE) . " " . $str . "\n", FILE_APPEND);
+    }
+  
+    // Set Timestamp
+    $PrintName = str_replace("<timestamp>", date("YmdHis"), $PrintName);
+
+    // Set stats
+    $this->stats("MailPrint".ucfirst($mailtyp));
+
+    // User-Daten
+    if ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]) 
+      && is_array($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]) && count($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]) )
+    {
+      $userdata = $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"];
+    }
+    elseif ( is_array($userconfig) && count($userconfig) )
+    {
+      $userdata = $userconfig;
+    }
+    else
+    {
+      $userdata = array();
+    }
+
+    $username = "";
+    if ( isset($userdata["firstname"]) )  $username  = trim($userdata["firstname"]);
+    if ( isset($userdata["lastname"]) )   $username .= " " . trim($userdata["lastname"]);
+    $username = trim($username);
+
+    $Mess = "";
+
+    // print subject
+    if ( isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"]) )  $mailsubject .= " von " . $_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"];
+    $mailsubject .= ": "    . $username;
+    $Mess = $mailsubject . PHP_EOL;
+    $Mess .= PHP_EOL; 
+
+    // Remove Links from message body
+    $fullbody=preg_replace("/<a[^>]+\>/i", " ", $fullbody);
+    $fullbody=preg_replace("/<\/a>/i", " ", $fullbody);
+
+    // Remove Tags from message body
+    $fullbody=str_replace("</tr>", PHP_EOL, $fullbody);
+    $fullbody=str_replace("</td><td>", ": ", $fullbody);
+    $fullbody=str_replace(array("<a>","<p>","</p>", "<br>", "<tr>", "<td>", "</td>", "<table>", "</table>", "<tbody>", "</tbody>"), "", $fullbody);
+
+    // Cut message body to 6 lines
+    $tmp = explode(PHP_EOL, $fullbody);
+    array_splice($tmp, 4);
+		$fullbody = implode(PHP_EOL, $tmp);
+
+    // Body receipient part
+    /*
+    $Mess .= "Empfänger" . PHP_EOL; 
+    $Mess .= "=========" . PHP_EOL; 
+    $Mess .= "Druckserver:" . $PrintHost . PHP_EOL;;
+    $Mess .= "Dateiname:  " . $PrintName . PHP_EOL;;
+    $Mess .= PHP_EOL . PHP_EOL; 
+    */
+
+    // Body user part
+    $UserElements = ( isset($_SESSION["config_discover"]["mailorderview"]["usermailelements"]) 
+                         && $_SESSION["config_discover"]["mailorderview"]["usermailelements"] != "" ) 
+               ? strtolower($_SESSION["config_discover"]["mailorderview"]["usermailelements"]) : "";
+ 
+    $Mess .= "Benutzer:" . PHP_EOL; 
+
+    foreach ( $userdata as $key => $value )
+    {
+      if ( !trim($value) )  continue;
+    	if ( in_array($key, array("address", "expires", "message", "messagetext", "type")) )  continue;
+      if ( $UserElements != "all" )
+      {
+        if ( !in_array($key,explode(",",$UserElements)) ) continue;
+      }
+      $Mess .= $this->database->code2text($key) . ": " . $value . PHP_EOL;;
+    }
+    $Mess .= PHP_EOL; 
+
+    // Body sample part
+    $Mess .= "Exemplar:" . PHP_EOL; 
+    foreach ( $exemplar as $key => $value )
+    {
+    	if ( !trim($value)  )  continue;
+      if ( in_array($key, array("action","typ","form","case","method")) )  continue;
+      if ( substr($key,0,4) == "data" ) continue;
+      $Mess .= $value . PHP_EOL;
+    }
+    $Mess .= PHP_EOL; 
+
+    // Userinput  part
+    if ( count($userinput) > 0)
+    {
+      $Mess .= "Benutzereingaben:" . PHP_EOL; 
+      foreach ( $userinput as $key => $value )
+      {
+        $Mess .= $this->database->code2text($key) . ": " . $value . PHP_EOL;
+      }
+      $Mess .= PHP_EOL; 
+    }
+
+    // Body media part
+    $Mess .= "Medium:" . PHP_EOL; 
+    $Mess .= "PPN: " . $ppn . PHP_EOL;
+    $Mess .= "EPN: " . $epn . PHP_EOL;
+    $Mess .= $fullbody;
+
+    try
+    {
+      // Schritt 1: Kopie der Daten ins Backup-Verzeichnis (zur Absicherung) aufgrund Diskussion 10.02.2017
+      // **************************************************************************************************
+      if (!file_exists('backup'))                    mkdir('backup',                   0777, true);
+      if (!file_exists('backup/'.strtolower(MODE)))  mkdir('backup/'.strtolower(MODE), 0777, true);
+      if (!is_writable('backup/'.strtolower(MODE)))
+      {
+        append2Logfile("ERROR Dir not writable");
+        $this->mail2development("ERROR MailPrint", "Dir not writable");
+      }
+      file_put_contents('backup/' . strtolower(MODE) . '/' . $PrintName, $Mess);
+      // file_put_contents("lserver.txt", $PrintHost .PHP_EOL . $PrintUser .PHP_EOL . $PrintPath .PHP_EOL . $PrintName .PHP_EOL);
+      // file_put_contents("lsystem.txt", "rcp " . $PrintName . " " . $PrintUser . "@" . $PrintHost . ":" . $PrintPath);
+      if (!file_exists('backup/' . strtolower(MODE) . '/' . $PrintName))
+      {
+        append2Logfile("ERROR File not found");
+        $this->mail2development("ERROR MailPrint: File not found", $Mess);
+      }
+
+
+      // Schritt 2: Datenübertragung zum LBS PrintServer (Außer Development)
+      // ***************************************************************
+      if ( strtolower(MODE) != "development" )
+      {
+        system("su lukida -c 'rcp backup/" . strtolower(MODE) . "/" . $PrintName . " " . $PrintUser . "@" . $PrintHost . ":" . $PrintPath . "'", $result);
+        // file_put_contents("lresult.txt", $result);
+        // append2Logfile($result);
+        if ( $result >= 0)
+        {
+          append2Logfile("OK  " . $PrintName . ".json");
+          $this->mail2development("OK " . $PrintName, $Mess);
+        }
+        else
+        {
+          append2Logfile("ERROR Übertragung " . $PrintName);
+          $this->mail2development("ERROR Übertragung " . $PrintName, $Mess);
+        }
+      }
+    }
+    catch(Exception $e) 
+    {
+      $Str  = $e->getMessage();
+      $Line = $e->getLine();
+      // Exception in Datei-LogFile 10.02.2017
+      // ************************************************************************************
+      append2Logfile("ERROR Line " . $Line . " " . $Str);
+      // Kopie der Exception per Mail an Alex (zur Absicherung) aufgrund Diskussion 10.02.2017
+      // *************************************************************************************
+      $this->mail2development('ERROR ', "ERROR Line " . $Line . " " . $Str);
+      // *************************************************************************************
+    }
+   
+    // Set logs
+    $Title = (isset($_SESSION["data"]["results"][$ppn]["title"])) ? substr($_SESSION["data"]["results"][$ppn]["title"],0,99) : "";
+    $Data  = $userinput + array("printhost"=>$PrintHost, 
+                                "printuser"=>$PrintUser,
+                                "printpath"=>$PrintPath,
+                                "printname"=>$PrintName);
+    if ( !$this->readonly ) $this->database->store_logs($mailsubject, $Mess, $_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"], 
+                                                        $ppn, $Title, substr($username,0,99), serialize($Data));
+
+    // Return data
+    return $this->ajaxsreturn(array("status" => "0"));
+  }
+
   /**
   * Special activities for a specific library
   *
@@ -1047,9 +1295,29 @@ class Vzg_controller extends CI_Controller
                ? array('mandatory'=>array('P3VLB'=>$userinput["ilyear"],'P3VLC'=>$userinput["ilvolume"]))
                : array();
 
+
+    /*
+    // Use Parent-PPN on OLC
+    if ( strpos("OLC",substr($ppn,0,3)) !== false )
+    {
+      $ParentPPN = isset($_SESSION["data"]["results"][$ppn]["parents"][0]) ? $_SESSION["data"]["results"][$ppn]["parents"][0] : "";
+
+
+      if ( $ParentPPN ) $ppn = $ParentPPN;
+    }
+
+    $this->printArray2File(array("key"     => $userinput["iluser"],
+                                 "pwd"     => $userinput["ilpassword"],
+                                 "iltyp"   => $iltyp,
+                                 "ppn"     => $ppn,
+                                 "Null"    => 0,
+                                 "bandvol" => $BandVol));
+    */
+
+
     if ( strtolower($action) == "runloan1" )
     {
-      // Load Special Library of Library
+       // Load Special Library of Library
       $container = $this->interlibrary->runLoan1(array("key" => $userinput["iluser"],
                                                        "pwd" => $userinput["ilpassword"]),
                                                  $iltyp,
@@ -1057,6 +1325,7 @@ class Vzg_controller extends CI_Controller
                                                  0,
                                                  $BandVol);
       // $this->printArray2File($container);
+
       $Flds = array();
       if ( isset($container["inputs"]["mandatory"]) )
       {
@@ -1085,8 +1354,6 @@ class Vzg_controller extends CI_Controller
     }
     elseif ( strtolower($action) == "runloan2" )
     {
-      // $this->printArray2File($userinput);
-
       // Load Special Library of Library
       $container = $this->interlibrary->runLoan2(array("key" => $userinput["iluser"],
                                                        "pwd" => $userinput["ilpassword"]),
@@ -1112,6 +1379,15 @@ class Vzg_controller extends CI_Controller
     if ( !isset($container["status"]) || !$container["status"] ) 
     {
       $container["status"] = -2;
+    }
+    if ( strtolower($action) == "runloan1" && isset($container["status"]) && $container["status"] >= 0 )
+    {
+      if ( ( !isset($_SESSION["info"]["iluser"]) || $_SESSION["info"]["iluser"] != $userinput["iluser"]) 
+        && ( !isset($_SESSION["info"]["ilpass"]) || $_SESSION["info"]["ilpass"] !=  $userinput["ilpassword"]) )
+      { 
+        $_SESSION["info"]["iluser"] = $userinput["iluser"];
+        $_SESSION["info"]["ilpass"] = $userinput["ilpassword"];
+      }
     }
     if ( !isset($container["message"]) || !$container["message"] ) 
     {
@@ -1157,25 +1433,6 @@ class Vzg_controller extends CI_Controller
     // Display view
     echo $this->theme->ilorderview(array('iltyp'=>$iltyp,'format'=>$format));
   }  
-
-  public function imgurl()
-  {
-    // Ajax Method => No view will be loaded, just data is returned
-
-    // Receive params
-    $Input = $this->security->xss_clean($this->input->post());
-    $ppn   = (isset($Input["ppn"]))  ? $Input["ppn"] : "";
-    $url   = (isset($Input["url"]))  ? $Input["url"] : "";
-
-    // Ensure required interfaces
-    $this->ensureInterface(array("config","discover","database"));
-
-    // Store link
-    $this->database->store_imgurl($ppn, $url);
-
-    // Return data
-    return $this->ajaxsreturn(array(0));
-  }
 
   public function command()
   {
@@ -1523,23 +1780,42 @@ class Vzg_controller extends CI_Controller
     // Set stats
     $this->stats("LBS_Login");
 
+    return $this->ajaxsreturn($this->logininternal($user, $pw));
+  }
+
+  private function logininternal($user, $pw)
+  {
     // Ensure required interfaces
     $this->ensureInterface(array("config","discover","lbs","lbs2","database"));
 
-    if ( $this->countLBS() == 1 )
+    $Status = -1;
+    if ( $this->countLBS() >= 1 )
     {
-      $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] = $this->lbs->login($user, $pw);
+      $Status = $this->lbs->login($user, $pw);
+      if ( is_array($Status) && isset($Status["lastname"]) ) $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] = $Status;
     }
     if ( $this->countLBS() == 2 )
     {
-      $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] = $this->lbs->login($user, $pw);
-      $_SESSION[$_SESSION["info"]["2"]["isil"]]["login"] = $this->lbs2->login($user, $pw);
-      if ( $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] == -1 || $_SESSION[$_SESSION["info"]["2"]["isil"]]["login"] == -1 ) 
-      {
-        return $this->ajaxsreturn(-1);
-      }
+      $Status = $this->lbs2->login($user, $pw);
+      if ( is_array($Status) && isset($Status["lastname"]) ) $_SESSION[$_SESSION["info"]["2"]["isil"]]["login"] = $Status;
     }
-    return $this->ajaxsreturn($_SESSION[$_SESSION["info"]["1"]["isil"]]["login"]);
+    if ( is_array($Status) && isset($Status["lastname"]) ) 
+    {
+      $_SESSION["info"]["user"] = $user;
+      $_SESSION["info"]["pass"] = $pw;
+    }
+    return $Status;
+  }
+
+  private function loginagain()
+  {
+    // Ensure required interfaces
+    $this->ensureInterface(array("config","discover","lbs","lbs2","database"));
+
+    if ( !isset($_SESSION["info"]["user"]) || !trim($_SESSION["info"]["user"]) )  return (-1);
+    if ( !isset($_SESSION["info"]["pass"]) || !trim($_SESSION["info"]["pass"]) )  return (-1);
+
+    return $this->logininternal($_SESSION["info"]["user"], $_SESSION["info"]["pass"]);
   }
 
   public function logout()
@@ -1558,13 +1834,20 @@ class Vzg_controller extends CI_Controller
     $this->stats("LBS_Logout");
 
     // Logout lbs & echo
-    $_SESSION[$_SESSION["info"]["1"]["isil"]]["logout"]  = $this->lbs->logout();
-
+    if ( $this->countLBS() >= 1 )
+    {
+      $Status = $this->lbs->logout();
+      $_SESSION[$_SESSION["info"]["1"]["isil"]]["logout"] = $Status;
+    }
     if ( $this->countLBS() == 2 )
     {
-      $_SESSION[$_SESSION["info"]["2"]["isil"]]["logout"]  = $this->lbs2->logout();
+      $Status = $this->lbs2->logout();
+      $_SESSION[$_SESSION["info"]["2"]["isil"]]["logout"] = $Status;
     }
-    return $this->ajaxsreturn($_SESSION[$_SESSION["info"]["1"]["isil"]]["logout"]);
+    unset($_SESSION["info"]["user"]);
+    unset($_SESSION["info"]["pass"]);
+
+    return $this->ajaxsreturn($Status);
   }
 
   public function changepw()
@@ -1590,9 +1873,12 @@ class Vzg_controller extends CI_Controller
     if ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"]) )
     {
       // Logout lbs & echo
-      echo  json_encode($this->lbs->changepw($old,$new));
+      return $this->ajaxsreturn(json_encode($this->lbs->changepw($old,$new)));
     }
-    return $this->ajaxsreturn(0);
+    else
+    {
+      $this->ajaxsreturn(-2);
+    }
   }
 
   public function GetLBS($PPN)
@@ -1758,7 +2044,6 @@ class Vzg_controller extends CI_Controller
 
     // Return empty array when no lbs attached
     if ( ! isset($_SESSION["interfaces"]["lbs"]) || $_SESSION["interfaces"]["lbs"] != "1" ) return array();
-
     // Get data
     $Contents = $this->GetLBS($PPN);
 
@@ -1862,8 +2147,8 @@ class Vzg_controller extends CI_Controller
   
       // Sort records by about (volume...)
       uasort($Items, function ($a, $b) { return $a['about'] <=> $b['about']; });
-  
     }
+
     if ( isset($Contents["daia2"]["document"]) )
     {
       foreach ( $Contents["daia2"]["document"] as $Dok )
@@ -1932,8 +2217,8 @@ class Vzg_controller extends CI_Controller
   
       // Sort records by about (volume...)
       uasort($Items, function ($a, $b) { return $a['about'] <=> $b['about']; });
-  
     }
+
     // Return items
     return ($Items);
   }
@@ -2006,17 +2291,15 @@ class Vzg_controller extends CI_Controller
   public function GetCombinedItems($PPN)
   {
     $MARCItems = $this->GetIndexItems($PPN);
-    // $this->printArray2Screen($MARCItems);
     $DAIAItems = array();
+    $Combined  = array();
+
     if ( $this->countLBS() )
     {
       if ( isset($_SESSION["interfaces"]["lbs"])  && $_SESSION["interfaces"]["lbs"]  == "1" )  $DAIAItems =  $this->GetLBSItems($PPN);
-      // $this->printArray2Screen($DAIAItems);
       if ( count($DAIAItems) )
       {
         $AllItems  = array_unique(array_merge(array_keys($MARCItems),array_keys($DAIAItems)));
-        $Combined  = array();
-
         // Loop over all Items and merge MARC and DAIA data
         foreach ($AllItems as $LukidaID ) 
         {
@@ -2044,14 +2327,10 @@ class Vzg_controller extends CI_Controller
             return $retval;
           }
         });
-
-        //$this->printArray2File($Combined);
-        return ($Combined);
       }
     }
 
-    // $this->printArray2Screen($MARCItems);
-    return ($MARCItems);
+    return count($Combined) ? $Combined : $MARCItems;
   }
 
   public function request()
@@ -2443,7 +2722,6 @@ class Vzg_controller extends CI_Controller
     if ( isset($container["status"]) && $container["status"] == "0" )
     {
       // Transfer records to file
-      // $this->printArray2File($container["results"]);
 
       // Create PPN list
       $container["ppnlist"] = array_keys($container["results"]);
@@ -2917,6 +3195,8 @@ class Vzg_controller extends CI_Controller
     $search = str_replace("{exma}", "!", $search);
     $search = str_replace("{quma}", "?", $search);
     if ( $search == "{no}" )  $search = "";
+
+    $search = $this->security->xss_clean($search);
     
     // Call main method with parameters
     $this->view("discover",$search,$facets);

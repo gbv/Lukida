@@ -22,7 +22,7 @@ class Paia2_daia2 extends General
     $this->isil   = $params["isil"];
     $this->paia   = $params["paia"] . "/" . $params["isil"];
     $this->daia   = $params["daia"] . "/" . $params["isil"] . "/daia";
-    $this->header = array('Content-type: application/json; charset=UTF-8');
+    $this->header = array('Content-type: application/json; charset=utf-8');
     if ( $_SESSION["language"] == "eng" ) $this->header[] = 'Accept-Language: en';
   }
 
@@ -38,6 +38,9 @@ class Paia2_daia2 extends General
     $AutoHeader[] = 'Authorization: Bearer '.$access_token;
     curl_setopt($http, CURLOPT_HTTPHEADER, $AutoHeader);
     curl_setopt($http, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($http, CURLOPT_CONNECTTIMEOUT, 2); 
+    curl_setopt($http, CURLOPT_TIMEOUT, 20); 
+
     if ( substr(PHP_OS,0,3) )
     {
       curl_setopt ($http, CURLOPT_SSL_VERIFYHOST, 0);
@@ -51,11 +54,14 @@ class Paia2_daia2 extends General
   private function postit($file, $data_to_send, $access_token = null)
   {
     // json-encoding
-    $postData = stripslashes(json_encode($data_to_send));
+    $postData = json_encode($data_to_send);
     $http = curl_init();
     curl_setopt($http, CURLOPT_URL, $file);
     curl_setopt($http, CURLOPT_POST, true);
     curl_setopt($http, CURLOPT_POSTFIELDS, $postData);
+    curl_setopt($http, CURLOPT_CONNECTTIMEOUT, 2); 
+    curl_setopt($http, CURLOPT_TIMEOUT, 20); 
+    curl_setopt($http, CURLOPT_ENCODING ,"utf-8");    
 
     if ( substr(PHP_OS,0,3) )
     {
@@ -64,15 +70,15 @@ class Paia2_daia2 extends General
     }
 
     if (isset($access_token)) {
-    $AutoHeader   = $this->header;
-    $AutoHeader[] = 'Authorization: Bearer '.$access_token;
+      $AutoHeader   = $this->header;
+      $AutoHeader[] = 'Authorization: Bearer '.$access_token;
       curl_setopt($http, CURLOPT_HTTPHEADER, $AutoHeader);
     } else {
       curl_setopt($http, CURLOPT_HTTPHEADER, $this->header);
     }
     curl_setopt($http, CURLOPT_RETURNTRANSFER, true);
 
-    if( ! $data = curl_exec($http))
+    if( ! $data =  utf8_decode(curl_exec($http)))
     {
       trigger_error(curl_error($http));
     }
@@ -234,7 +240,6 @@ class Paia2_daia2 extends General
   public function login ( $user, $pw )
   {
     $post_data = array("username" => $user, "password" => $pw, "grant_type" => "password", "scope" => "read_patron read_fees read_items write_items change_password");
-
     $login_response = $this->postit($this->paia.'/auth/login', $post_data);
     $json_start = strpos($login_response, '{');
     $json_response = substr($login_response, $json_start);

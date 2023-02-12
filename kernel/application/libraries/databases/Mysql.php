@@ -378,13 +378,22 @@ class Mysql extends General
         $ROWS["classifications"][$ROW["shortcut"]] = array("name" => $ROW["name"], "link" => $ROW["link"]);
       }
 
-      $SQL = "SELECT classification, code, description, parents FROM classificationstructures";
+      if ( $_SESSION["language"] == "ger" )
+      {
+        $SQL = "SELECT classification, code, description, parents FROM classificationstructures";
+      }
+      else
+      {
+        $SQL = "SELECT classification, code, description_eng as description, parents_eng as parents FROM classificationstructures";
+      }
+
       $CNT = 0;
       foreach ( $Filter as $One )
       {
-        if ( isset($One["classification"]) && isset($One["code"]) && in_array(strtoupper($One["classification"]), 
-                                                                              array("BBK", "BKL", "DDC", "RVK", "SDNB", "SFB", 
-                                                                                    "SSGN", "NATLIZ", "NATLIZENG")) )
+        if ( isset($One["classification"]) && isset($One["code"]) && in_array(strtoupper($One["classification"]),
+                                                                              array("ASB",  "BBK",  "BKL", "CLC",    "DDC",  "FID",
+                                                                                    "FIVR", "FIVS", "KAB", "NATLIZ", "NLM",
+                                                                                    "RVK",  "SDNB", "SFB", "SSD",    "SSGN", "ZDBS")) )
         {
           $CNT++;
           $SQL .= ($CNT == 1) ? " where" : " or";
@@ -403,7 +412,7 @@ class Mysql extends General
                                      "code"           => $ROW["code"],
                                      "description"    => $ROW["description"],
                                      "parents"        => (is_array($P)) ? $P : array());
-        }      
+        }
       }
     }
 
@@ -424,7 +433,7 @@ class Mysql extends General
       {
         $ROWS[$ROW["isil"]] = array("name" => $ROW["name"],
                                     "type" => $ROW["type"])
-                            + (array) json_decode($ROW["infos"], true);
+                            + (array) json_decode($ROW["infos"], JSON_FORCE_OBJECT);
       }
     }
 
@@ -792,15 +801,6 @@ class Mysql extends General
     $this->CI->db->query("replace into logs_library (iln, userid, username, ppn, title, serialdata, header, body, created) values ('" . $iln . "', '" . $User . "', '" . $username . "','" . $ppn . "', '" .  $this->CI->db->escape_str($title) . "', '" . $serialdata . "', '" . $this->CI->db->escape_str($header) . "', '" . $this->CI->db->escape_str($body) . "', now())");
   
     return 0;
-  }
-
-  public function store_imgurl($ppn, $url)
-  {
-    if ( !trim($ppn) || !trim($url) ) return;
-
-    $this->CI->db->reset_query();
-    $this->CI->db->query("insert into img_urls (ppn, url, created) values ('" . $ppn . "', '" .  $this->CI->db->escape_str($url) . "', now())");
-    return;
   }
 
   public function get_log_data($params=array())

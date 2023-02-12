@@ -385,14 +385,10 @@ class General
   
       $pretty["pv_pubarticle"]    = $this->PrettyFields(array("772" => array("i" => " ",
                                                                              "t" => " ",
-                                                                             "d" => " ",
-                                                                             "g" => " ",
-                                                                             "q" => ". Band: "),
+                                                                             "d" => " "),
                                                               "773" => array("i" => " ",
                                                                              "t" => " ",
-                                                                             "d" => " ",
-                                                                             "g" => " ",
-                                                                             "q" => ". Band: ")));
+                                                                             "d" => " ")));
 
       $pretty["serial"]              = $this->GetArray(array("490" => array("a","v")));
     
@@ -408,12 +404,12 @@ class General
 
     if ( $type == "fullview" )
     {
-      $pretty["publisher"]           = $this->GetCompleteArray(array("264" => array("a","b","c")));
+      $pretty["publisher"]           = $this->GetCompleteArray(array("264" => array("a","b","c", "I2")));
                                      
-      $pretty["publisherarticle"]    = $this->GetArray(array("772" => array("a","i","t","b","d","g","h","q","w"),
-                                                             "773" => array("a","i","t","b","d","g","h","q","w")));
+      $pretty["publisherarticle"]    = $this->GetArray(array("772" => array("a","i","t","b","d","g","h","w"),
+                                                             "773" => array("a","i","t","b","d","g","h","w")));
 
-      $pretty["uniformtitle"]        = $this->PrettyFields(array("240" => array("a" => " | ")));
+      $pretty["uniformtitle"]        = $this->GetUniform();
       
       $pretty["summary"]             = $this->PrettyFields(array("520" => array("a" => " | ")));
       
@@ -423,9 +419,10 @@ class General
 
       $pretty["systemdetails"]       = $this->PrettyFields(array("538" => array("a" => " | ")));
   
-      $pretty["edition"]             = $this->PrettyFields(array("250" => array("a" => " | ")));
+      $pretty["edition"]             = $this->GetSimpleArray(array("348" => array("a"),
+                                                                   "250" => array("a")));
       
-      $pretty["reproduction"]        = $this->GetArray(array("338" => array("a","b","c","d","e","f","n")));
+      // $pretty["reproduction"]        = $this->GetArray(array("348" => array("a")));
     
       $pretty["corporation"]         = $this->GetCorporation();
 
@@ -441,14 +438,14 @@ class General
       $pretty["footnote"]            = $this->PrettyFields(array("338" => array("a" => " ",
                                                                                 "n" => ": ")));
 
-      $pretty["othereditions"]       = $this->GetArray(array("780" => array("a","i","t","b","d","g","h","q","w")));
+      $pretty["othereditions"]       = $this->GetArray(array("780" => array("a","i","t","b","d","g","h","q","w","z")));
 
       $pretty["remarks"]             = $this->GetCompleteArray(array("772" => array("i","t","w"),
                                                                      "770" => array("i","t","w"),
                                                                      "785" => array("i","t","w")));
 
-      $pretty["seealso"]             = $this->GetCompleteArray(array("787" => array("i","t","w"),
-                                                                     "776" => array("i","t","w")));
+      $pretty["seealso"]             = $this->GetCompleteArray(array("787" => array("a","d","i","t","w"),
+                                                                     "776" => array("a","d","i","t","w")));
 
       $pretty["languagenotes"]       = $this->PrettyFields(array("546" => array("a" => " | ")));
       
@@ -460,7 +457,8 @@ class General
 
       $pretty["languageorigin"]      = $this->GetSimpleArray(array("041" => array("h")));
 
-      $pretty["classification"]      = $this->GetCompleteArray(array("084" => array("a","2")));
+      $pretty["classification"]      = $this->GetCompleteArray(array("082" => array("a"),
+                                                                     "084" => array("a","2")));
 
       $pretty["license"]             = $this->GetArray(array("540" => array("f","u")));
   
@@ -494,9 +492,11 @@ class General
 
       // $pretty["ismn"]                = $this->PrettyFields(array("024" => array("a" => " | ")));
 
-      $pretty["siblings"]            = $this->GetArray(array("787" => array("i","n","t","w")));
+      $pretty["siblings"]            = $this->GetArray(array("787" => array("d","i","n","t","w")));
 
       $pretty["originalyear"]        = $this->PrettyFields(array("534" => array("c" => " | ")));
+
+      $pretty["fingerprint"]         = $this->GetFingerprint();
 
       // Add original characters 
       $pretty = $this->AddOriginalCharacters($pretty,"fullview");
@@ -660,6 +660,22 @@ class General
     }
   }
 
+  protected function FormatPersonNameOrig($One)
+  {
+    if ( isset($One["a"]) && $One["a"] != "" && isset($One["c"]) && $One["c"] != "" )
+    {
+      return htmlspecialchars($One["a"] . " " . $One["c"]);
+    }
+    if ( !isset($One["a"]) && isset($One["c"]) && $One["c"] != "" )
+    {
+      return htmlspecialchars($One["a"]);
+    }
+    if ( isset($One["a"]) && $One["a"] != "" && !isset($One["c"]) )
+    {
+      return htmlspecialchars($One["a"]);
+    }
+  }
+
   protected function FormatPersonRole($One, $onlyauthor = true)
   {
     $Role = "";
@@ -674,6 +690,35 @@ class General
     elseif (isset($One["e"]["0"]) && $One["e"]["0"] != "") 
     {
       $Tmp = preg_replace("/[^a-zA-Z0-9öäü ]+/", "", strtolower($One["e"]["0"]));
+      if ( in_array($Tmp, array("bearb","begr","hrsg","komp","mitarb","red","ubers","adressat","komm","stecher","verstorb","zeichner","präses","praeses","resp","widmungsempfänger","widmungsempfaenger","zensor","beiträger","beitraeger","beiträger k","beitraeger k","beiträger m","beitraeger m","interpr","verf")) )
+      {
+        $Tmp = str_replace(
+          array("bearb","begr","hrsg","komp","mitarb","red","ubers","adressat","komm","stecher","verstorb","zeichner","präses","praeses","resp","widmungsempfänger","widmungsempfaenger","zensor","beiträger","beitraeger","beiträger k","beitraeger k","beiträger m","beitraeger m","interpr","verf"), 
+          array("EDI","FDR","EDT","CMP","CBR","PBD","TRL","RCP","CMM","EGR","DCS","DRM","CHM","CHM","RSP","DTE","DTE","CNS","CTL","CTL","CTA","CTA","CTM","CTM","IPT","AUT"), $Tmp);
+        $Role = $this->CI->database->code2text($Tmp);
+      }
+    }
+    else
+    {
+      $Role = ( $onlyauthor ) ? $this->CI->database->code2text("aut") : "";
+    }
+    return $Role;
+  }
+
+  protected function FormatPersonRoleOrig($One, $onlyauthor = true)
+  {
+    $Role = "";
+    if (isset($One["4"]) ? $One["4"] : "") 
+    {
+      $Role = $this->CI->database->code2text($One["4"]);
+    }
+    elseif (isset($One["e"]) && $One["e"] != "" && strlen($One["e"]) == 3)
+    {
+      $Role = $this->CI->database->code2text($One["e"]);
+    }
+    elseif (isset($One["e"]) && $One["e"] != "") 
+    {
+      $Tmp = preg_replace("/[^a-zA-Z0-9öäü ]+/", "", strtolower($One["e"]));
       if ( in_array($Tmp, array("bearb","begr","hrsg","komp","mitarb","red","ubers","adressat","komm","stecher","verstorb","zeichner","präses","praeses","resp","widmungsempfänger","widmungsempfaenger","zensor","beiträger","beitraeger","beiträger k","beitraeger k","beiträger m","beitraeger m","interpr","verf")) )
       {
         $Tmp = str_replace(
@@ -753,6 +798,19 @@ class General
   {
     $Subject = array();
     $Tmp             = $this->GetCompleteArray(array("689" => array("0","a")));
+    foreach ( $Tmp as $One )
+    {
+      if ( !isset($One["a"]["0"]) ) continue;
+      $Subject[]   = array("name" => $One["a"]["0"],
+                           "norm" => $this->GetNorm($One));
+    }
+    return $Subject;
+  }
+
+  protected function GetUniform()
+  {
+    $Subject = array();
+    $Tmp             = $this->GetCompleteArray(array("240" => array("0","a")));
     foreach ( $Tmp as $One )
     {
       if ( !isset($One["a"]["0"]) ) continue;
@@ -913,9 +971,16 @@ class General
         // Author
         if ( isset($rec["6"]) && substr($rec["6"],0,3) == "100" )
         {
-          $pretty["author"][] = array("name" => $this->FormatPersonName($rec),
-                                      "role" => $this->FormatPersonRole($rec, true));
+          $pretty["author"][] = array("name" => $this->FormatPersonNameOrig($rec),
+                                      "role" => $this->FormatPersonRoleOrig($rec, true));
         }
+
+        // Associates
+        if ( isset($rec["6"]) && substr($rec["6"],0,3) == "700" )
+        {
+          $pretty["associates"][] = array("name" => $this->FormatPersonNameOrig($rec),
+                                          "role" => $this->FormatPersonRoleOrig($rec, false));
+         }
 
         // PV_Publisher
         if ( isset($rec["6"]) && ( substr($rec["6"],0,3) == "260" || substr($rec["6"],0,3) == "264" || substr($rec["6"],0,3) == "250" ) )
@@ -948,14 +1013,6 @@ class General
 
       if ( $area == "fullview" )
       {
-
-        // Associates
-        if ( isset($rec["6"]) && substr($rec["6"],0,3) == "700" )
-        {
-          $pretty["associates"][] = array("name" => $this->FormatPersonName($rec),
-                                          "role" => $this->FormatPersonRole($rec, false));
-        }
-
         // Publisher
         if ( isset($rec["6"]) && ( substr($rec["6"],0,3) == "260" || substr($rec["6"],0,3) == "264" ) )
         {
@@ -979,9 +1036,7 @@ class General
         // Edition
         if ( isset($rec["6"]) && substr($rec["6"],0,3) == "250" )
         {
-          $pretty["edition"] = (isset($pretty["edition"]) && $pretty["edition"] != "" ) 
-                             ? $pretty["edition"] . " | " . $rec["a"] 
-                             : $rec["a"];
+          $pretty["edition"][] = $rec["a"];
         }
       }
     }
@@ -1039,7 +1094,7 @@ class General
               if ( isset($Teile[1]) && trim($Teile[1]) )
               {
                 $Teile[0] = $Teile[0] . ":";
-                $Teile[1] = "<a href='javascript:$.link_search(\"author\",\"" . trim(str_replace(","," ",$Teile[1])) . "\")'>" . trim($Teile[1]) . "</a>";
+                $Teile[1] = "<a href='javascript:$.link_search(\"prov\",\"" . trim(str_replace(","," ",$Teile[1])) . "\")'>" . trim($Teile[1]) . "</a>";
               }
               $Tmp2 = implode(" ", $Teile);
             }
@@ -1054,6 +1109,56 @@ class General
       }
     }
     return $Provenance;
+  }
+
+  protected function GetFingerprint()
+  {
+    $FINGER  = ( isset($_SESSION["config_discover"]["filter"]["fingerprint"]) && $_SESSION["config_discover"]["filter"]["fingerprint"] ) 
+               ? trim(strtolower($_SESSION["config_discover"]["filter"]["fingerprint"])) : "";
+    if ( !$FINGER ) return array();
+
+    $Tmp = $this->CI->database->getCentralDB("isil", array("isil" => "DE-1"));
+
+    $Fingerprint = array();
+    if ( array_key_exists("026", $this->contents) )
+    {
+      $Tmp        = $this->GetArray(array("026" => array("5","e")));
+
+      foreach ( $Tmp as $P )
+      {
+        if ( !isset($P["e"]) )  continue;
+        if ( !isset($P["5"]) && $FINGER == "iln" ) continue;
+
+        $Text = $P["e"];
+
+        if ( isset($P["5"]) )
+        {
+          if ( $FINGER == "iln" )
+          {
+            $ISILs = array();
+            if ( isset($_SESSION["config_general"]["general"]["isil"])  && $_SESSION["config_general"]["general"]["isil"]  != "" )  $ISILs[] = $_SESSION["config_general"]["general"]["isil"];
+            if ( isset($_SESSION["config_general"]["general"]["isil2"]) && $_SESSION["config_general"]["general"]["isil2"] != "" )  $ISILs[] = $_SESSION["config_general"]["general"]["isil2"];
+            if ( !in_array($P["5"],$ISILs) )  continue;
+          }
+  
+          if ( !isset($_SESSION["isils"][$P["5"]]) )
+          {
+            $Tmp = $this->CI->database->getCentralDB("isil", array("isil" => $P["5"]));
+            if ( isset($Tmp[$P["5"]]) )
+            {
+              $_SESSION["isils"][$P["5"]] = $Tmp[$P["5"]];
+            }
+          }
+          $Text .= (isset($_SESSION["isils"][$P["5"]]["shortname"])) ? " (" . $_SESSION["isils"][$P["5"]]["shortname"] . ")": "";
+          $Fingerprint[] =  trim($Text);
+        }
+        else
+        {
+          $Fingerprint[] =  trim($P["e"]);
+        }
+      }
+    }
+    return $Fingerprint;
   }
 
   protected function GetDOIs()
@@ -1098,7 +1203,7 @@ class General
 
   public function Link($Typ, $Value, $Text="")
   {
-    if ( in_array($Typ,array("author","class","corporation","foreignid","genre","id","norm","publisher","series","subject","topic","year")) )
+    if ( in_array($Typ,array("author","class","classlocal","corporation","foreignid","genre","id","isn","norm","publisher","series","subject","topic","year")) )
     {
       // Internal links
       return "<a href='javascript:$.link_search(\"" . $Typ . "\",\"" . str_replace(array('&quot;',"'",","),' ', $Value) . "\")'>" . (($Text=="") ? $Value : $Text). " <span class='fa fa-link'></span></a>";
@@ -1643,15 +1748,7 @@ class General
 
   protected function isOnline()
   {
-    return ( ( ( substr($this->medium["leader"],6,2) == "ma"
-    || substr($this->medium["leader"],6,2) == "mm"
-    || substr($this->medium["leader"],6,2) == "ms" 
-    || substr($this->medium["leader"],6,2) == "aa" 
-    || substr($this->medium["leader"],6,2) == "ab" 
-    || substr($this->medium["leader"],6,2) == "am" 
-    || substr($this->medium["leader"],6,2) == "as" )
-    && substr($this->GetMARC($this->contents,"007"),0,2) == "cr" )
-    || ( in_array("Gutenberg", $this->collection) ) ) ? true : false;
+    return $this->medium["online"];
   }
 
   protected function isOnlineNew()

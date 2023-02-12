@@ -1,5 +1,41 @@
 # Changelog
 
+**05.02.2023**
+* Library System
+  * Special chars support for PAIA2 
+
+* System
+  * Timeout set to 15 seconds on all channels
+
+* Fullview
+  * Multiple small corrections
+
+**06.10.2022**
+* Index system
+  * New search queries
+
+* Fullview
+  * Multiple small corrections
+
+* Library System
+  * Login with upper chars only
+
+**07.07.2022**
+* Index system
+  * Support for media without published date
+  * Support for next years media
+
+**08.04.2022**
+* System
+  * ReadOnly Mode added
+  * RAM sessions
+
+* Fullview
+  * Multiple small corrections
+
+* Index system
+  * New search queries
+
 **20.12.2021**
 * System
   * Security Update

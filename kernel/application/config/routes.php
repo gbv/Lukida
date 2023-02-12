@@ -65,7 +65,6 @@ $route['ajax/fullview/(:any)/(:any)']      = 'Vzg_controller/fullview/$1/$2';
 $route['ajax/getwords']                    = 'Vzg_controller/getwords';
 $route['ajax/ilorder']                     = 'Vzg_controller/ilorder';
 $route['ajax/ilorderview/(:any)/(:any)']   = 'Vzg_controller/ilorderview/$1/$2';
-$route['ajax/imgurl']                      = 'Vzg_controller/imgurl';
 $route['ajax/language']                    = 'Vzg_controller/language';
 $route['ajax/layout']                      = 'Vzg_controller/layout';
 $route['ajax/libraryspecial']              = 'Vzg_controller/libraryspecial';
