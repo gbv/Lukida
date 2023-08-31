@@ -126,12 +126,14 @@ class Marc21 extends General
           }
   
           // 980-area keep only data for configured iln
-          if ( $tag >= "980" && count($ILNs) )
+          if ( $tag >= "980" && ( count($ILNs) 
+            || ( isset($_SESSION["config_general"]["general"]["mode"]) && $_SESSION["config_general"]["general"]["mode"] == "BASED_ON_IP") ) ) 
           {
             if ( $data->getSubField("2") )
             {
               $Tmp = $data->getSubField("2")->getData();
-              if ( in_array($Tmp, $ILNs) )
+              if ( in_array($Tmp, $ILNs)
+                || ( isset($_SESSION["config_general"]["general"]["mode"]) && $_SESSION["config_general"]["general"]["mode"] == "BASED_ON_IP") )
               {
                 $this->contents[$tag][] = $Sub;
                 continue;
@@ -224,6 +226,28 @@ class Marc21 extends General
     if ( isset($this->contents["800"]) )
     {
       foreach ( $this->contents["800"] as $Record )
+      {
+        foreach ( $Record as $Subrecord )
+        {
+          foreach ( $Subrecord as $Key => $Value )
+          {
+            if ( $Key == "w" )
+            {
+              if ( in_array(substr($Value,0,8), array("(DE-601)","(DE-627)") ) ) 
+              {
+                if ( !in_array(trim(substr($Value,8)), $Parents) )
+                {
+                  $Parents[]  = trim(substr($Value,8));
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    if ( isset($this->contents["810"]) )
+    {
+      foreach ( $this->contents["810"] as $Record )
       {
         foreach ( $Record as $Subrecord )
         {

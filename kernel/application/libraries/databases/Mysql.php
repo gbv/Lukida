@@ -391,20 +391,19 @@ class Mysql extends General
       foreach ( $Filter as $One )
       {
         if ( isset($One["classification"]) && isset($One["code"]) && in_array(strtoupper($One["classification"]),
-                                                                              array("ASB",  "BBK",  "BKL", "CLC",    "DDC",  "FID",
-                                                                                    "FIVR", "FIVS", "KAB", "NATLIZ", "NLM",
-                                                                                    "RVK",  "SDNB", "SFB", "SSD",    "SSGN", "ZDBS")) )
+                                                                              array("ASB",  "BBK",  "BKL", "CLC", "DDC",    "FID",
+                                                                                    "FIVR", "FIVS", "KAB", "MSC", "NATLIZ", "NLM",
+                                                                                    "RVK",  "SDNB", "SFB", "SSD", "SSGN",   "ZDBS")) )
         {
           $CNT++;
           $SQL .= ($CNT == 1) ? " where" : " or";
-          $SQL .= " (classification = '" . $One["classification"] . "' and code='" . $One["code"] . "')";
+          $SQL .= " (classification = '" . $One["classification"] . "' and code='" . str_replace("'", "", $One["code"]) . "')";
         }
       }
 
       if ( $CNT )
       {
         $RES  = mysqli_query($CDB, $SQL);
-        // $ROWS["details"]         = mysqli_fetch_all($RES, MYSQLI_ASSOC);
         while ($ROW = mysqli_fetch_assoc($RES)) 
         {
           $P = json_decode($ROW["parents"],true);
@@ -418,7 +417,7 @@ class Mysql extends General
 
     if ( $Type == "isil" )
     {
-      $SQL  = "SELECT isil, name, type, infos FROM isils";
+      $SQL  = "SELECT isil, eln, iln, name, type, infos FROM isils";
 
       $First = true;
       foreach ( $Filter as $Field => $Value )
@@ -432,6 +431,8 @@ class Mysql extends General
       while ($ROW = mysqli_fetch_assoc($RES)) 
       {
         $ROWS[$ROW["isil"]] = array("name" => $ROW["name"],
+                                    "eln"  => $ROW["eln"],
+                                    "iln"  => $ROW["iln"],
                                     "type" => $ROW["type"])
                             + (array) json_decode($ROW["infos"], JSON_FORCE_OBJECT);
       }
@@ -603,10 +604,11 @@ class Mysql extends General
       }
       case "usageyear":
       {
-        $Labels  = array();
-        $Values  = array();
-        $Year   = ( isset($params["year"]) && $params["year"] != "" ) ? $params["year"] : date("Y");
-        $Areas   = ( isset($params["areas"]) && $params["areas"] != "" ) ? explode(",",$params["areas"]) : array();
+        $Labels   = array();
+        $Values   = array();
+        $Datasets = array();
+        $Year     = ( isset($params["year"]) && $params["year"] != "" ) ? $params["year"] : date("Y");
+        $Areas    = ( isset($params["areas"]) && $params["areas"] != "" ) ? explode(",",$params["areas"]) : array();
 
         // Create Range Area with 0
         $begin    = $Year . "-01-01";
@@ -664,6 +666,7 @@ class Mysql extends General
         $Year   = ( isset($params["year"]) && $params["year"] != "" ) ? $params["year"] : date("Y");
 
         $query = $this->CI->db->query("select substring(area,8,20) as Screen, month_01 + month_02 + month_03 + month_04 + month_05 + month_06 + month_07 + month_08 + month_09 + month_10 + month_11 + month_12 as Summe FROM stats_year_library  where iln = " . $iln . " and area like 'Screen_%' and year = '" . $Year . "'");
+        $Datasets = array();
         foreach ($query->result() as $row)
         {
           $Tmp = explode("x",$row->Screen);
@@ -878,7 +881,10 @@ class Mysql extends General
 
   private function CockpitExec($StatQuery)
   {
-    return number_format($this->CI->db->query($StatQuery)->row()->anzahl,0,",",".");
+    $Anz = $this->CI->db->query($StatQuery)->row()->anzahl;
+    if ( empty($Anz) )  return 0;
+
+    return number_format($Anz,0,",",".");
   }
 
   private function CockpitYear($Year, $Query)
@@ -924,6 +930,111 @@ class Mysql extends General
                     "values"=>$this->CockpitYear($Year,"select distinct count(*) as anzahl from stats_year_library where iln=" . $iln . " and year={year} and area like 'Product%'"));
      //$query = $this->CI->db->get_compiled_select('logs_library', false );
     return (array("data" => $Data, "status" => 0));
+  }
+
+
+  public function getCentralISILs()
+  {
+     if ( !$this->existsCentralDB() ) return array();
+
+    $CDB = mysqli_init();
+    if (!$CDB) return array();
+    if (!mysqli_options($CDB, MYSQLI_OPT_CONNECT_TIMEOUT, 2)) return array();
+    if (!mysqli_real_connect($CDB, $_SESSION["config_system"]["central.db"]["host"], 
+                                   $_SESSION["config_system"]["central.db"]["user"], 
+                                   $_SESSION["config_system"]["central.db"]["pass"], 
+                                   $_SESSION["config_system"]["central.db"]["name"])) return array();
+
+    mysqli_set_charset($CDB,"utf8");
+
+    $SQL  = "SELECT isil, name, type, iln, infos FROM isils where iln > 0";
+
+    $RES  = mysqli_query($CDB, $SQL);
+    $ROWS = array();
+    while ($ROW = mysqli_fetch_assoc($RES)) 
+    {
+      $Infos  = (array) json_decode($ROW["infos"], true);
+
+      $ROWS[] = array("id"           => $ROW["name"],
+                      "iln"          => $ROW["iln"],
+                      "isil"         => $ROW["isil"],
+                      "title"        => isset($Infos["fullname"])                ? $Infos["fullname"]                : "",
+                      "title_short"  => isset($Infos["shortname"])               ? $Infos["shortname"]               : "",
+                      "sigel"        => isset($Infos["sigel"])                   ? $Infos["sigel"]                   : "",
+                      "country_code" => isset($Infos["addresses"][0]["country"]) ? $Infos["addresses"][0]["country"] : "",
+                      "zip"          => isset($Infos["addresses"][0]["zip"])     ? $Infos["addresses"][0]["zip"]     : "",
+                      "city"         => isset($Infos["addresses"][0]["city"])    ? $Infos["addresses"][0]["city"]    : "");
+    }
+
+    // Free & Close
+    mysqli_free_result($RES);
+    mysqli_close($CDB);    
+
+    return $ROWS;
+   
+  }
+
+  public function getCentralLocation($iln, $shortcut="")
+  {
+     if ( !$this->existsCentralDB() ) return array();
+
+    $CDB = mysqli_init();
+    if (!$CDB) return array();
+    if (!mysqli_options($CDB, MYSQLI_OPT_CONNECT_TIMEOUT, 2)) return array();
+    if (!mysqli_real_connect($CDB, $_SESSION["config_system"]["central.db"]["host"], 
+                                   $_SESSION["config_system"]["central.db"]["user"], 
+                                   $_SESSION["config_system"]["central.db"]["pass"], 
+                                   $_SESSION["config_system"]["central.db"]["name"])) return array();
+
+    mysqli_set_charset($CDB,"utf8");
+
+    $SQL    = "SELECT shortcut,expansion FROM locations WHERE  iln=" .  $iln;
+
+    $RES  = mysqli_query($CDB, $SQL);
+    $ROWS = array();
+
+    while ($ROW = mysqli_fetch_assoc($RES)) 
+    {
+       $ROWS[$ROW["shortcut"]] = $ROW["expansion"];
+    }
+
+    // Free & Close
+    mysqli_free_result($RES);
+    mysqli_close($CDB);    
+
+    return $ROWS;
+  }
+
+  public function getCentralLibData($Fields, $Where="")
+  {
+     if ( !$this->existsCentralDB() ) return array();
+
+    $CDB = mysqli_init();
+    if (!$CDB) return array();
+    if (!mysqli_options($CDB, MYSQLI_OPT_CONNECT_TIMEOUT, 2)) return array();
+    if (!mysqli_real_connect($CDB, $_SESSION["config_system"]["central.db"]["host"], 
+                                   $_SESSION["config_system"]["central.db"]["user"], 
+                                   $_SESSION["config_system"]["central.db"]["pass"], 
+                                   $_SESSION["config_system"]["central.db"]["name"])) return array();
+
+    mysqli_set_charset($CDB,"utf8");
+
+    $Fields = empty($Fields) ? "libraryid, isil, eln, iln, sigel, city, name, mainlib, links" : $Fields;
+    $SQL    = "SELECT " . $Fields . " FROM libraryids " . (empty($Where) ?  "" : ("WHERE  " .  $Where));
+
+    $RES  = mysqli_query($CDB, $SQL);
+    $ROWS = array();
+
+    while ($ROW = mysqli_fetch_assoc($RES)) 
+    {
+       $ROWS[] = $ROW;
+    }
+
+    // Free & Close
+    mysqli_free_result($RES);
+    mysqli_close($CDB);    
+
+    return $ROWS;
   }
 
 }

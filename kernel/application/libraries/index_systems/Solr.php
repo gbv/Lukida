@@ -140,9 +140,9 @@ class Solr extends General
     foreach ( $matches[1] as $index => $key )
     {
       if ( ! in_array(strtolower(trim($key)), array("abruf", "acqdate","author","autor","call","class", "classlocal",
-        "client","collection","collection_details","contents","corporation","erwdatum","foreignid","format","format2",
-        "genre","id","inhalt","isn","jahr","koerper","langcode","language","mandant","norm","ppn","ppnlink","prov","publisher",
-        "reihe","sachgebiet","schlagwort","series","signatur","signature","sprache","sprachcode","subject","thema","titel",
+        "client","collection","collection_details","contents","corporation","country","erwdatum","foreignid","format","format2",
+        "genre","id","inhalt","isn","jahr","koerper","land","langcode","language","location","mandant","norm","ppn","ppnlink","prov","publisher",
+        "reihe","sachgebiet","schlagwort","series","signatur","signature","sprache","sprachcode","standort","subject","thema","titel",
         "title","topic","verlag","year")) )
       {
         unset($matches[0][$index]);
@@ -206,7 +206,7 @@ class Solr extends General
             $MainSearch .= "(class:\"" . $Phrases[0] . "\" )";
             break;
           case "classlocal":
-            $MainSearch .= "(class_local:\"" . $Phrases[0] . "\" )";
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(notation_local_iln_str_mv:\"" . $_SESSION["iln"] . ":" . $Phrases[0] . "\" )";
             break;
           case "isn":
             $MainSearch .= "(issn:\"" . $Phrases[0] . "\" OR isbn:\"" . $Phrases[0] . "\")";
@@ -255,6 +255,10 @@ class Solr extends General
               $MainSearch .= "(topic:\"" . $Phrases[0] . "\" )";
             }
             break;
+          case "country":
+          case "land":
+            $MainSearch .= "(countryofpublication_str_mv:\"" . $Phrases[0] . "\" )";
+            break;
           case "language":
           case "sprache":
             $MainSearch .= "(language:\"" . $Phrases[0] . "\" )";
@@ -276,7 +280,7 @@ class Solr extends General
             if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selectbib_iln_str_mv:\"" . $_SESSION["iln"] . "@" . $Phrases[0] . "\" )";
             break;
           case "genre":
-            $MainSearch .= "(genre:\"" . $Phrases[0] . "\")";
+            $MainSearch .= "(genre_facet:\"" . $Phrases[0] . "\")";
             break;
           case "prov":
             $MainSearch .= "(provenience_txtP_mv:\"" . $Phrases[0] . "\")";
@@ -295,6 +299,10 @@ class Solr extends General
             {
               $MainSearch .= "(title_short:" . $Phrases[0] . " OR title_full_unstemmed:" . $Phrases[0] . " OR title_full:" . $Phrases[0] . " OR title:" . $Phrases[0] . ")";
             }
+            break;
+          case "standort":
+          case "location":
+            $MainSearch .= "(standort_iln_str_mv:\"" . $_SESSION["iln"] . ":" . $Phrases[0] . "\" )";
             break;
           case "jahr":
           case "year":
@@ -349,6 +357,9 @@ class Solr extends General
           case "class":
             $MainSearch .= "(class:\"" . implode("\" OR class:\"", $Phrases) . "\")";
             break;
+          case "classlocal":
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(notation_local_iln_str_mv:\"" . $_SESSION["iln"] . ":" . implode("\" OR notation_local_iln_str_mv:\"" . $_SESSION["iln"] . ":", $Phrases) . "\")";
+            break;
           case "isn":
             $MainSearch .= "(issn:\"" . implode("\" OR issn:\"", $Phrases) . "\" OR "
                          . " isbn:\"" . implode("\" OR isbn:\"",$Phrases) . "\")";
@@ -365,6 +376,10 @@ class Solr extends General
           case "thema":
           case "topic":
             $MainSearch .= "(topic:\"" . implode("\" OR topic:\"", $Phrases) . "\")";
+            break;
+          case "country":
+          case "land":
+            $MainSearch .= "(countryofpublication_str_mv:\"" . implode("\" OR countryofpublication_str_mv:\"", $Phrases) . "\" )";
             break;
           case "language":
           case "sprache":
@@ -387,7 +402,7 @@ class Solr extends General
             if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selectbib_iln_str_mv:\"" . $_SESSION["iln"] . "@" . implode("\" OR selectbib_iln_str_mv:\"" . $_SESSION["iln"] . "@", $Phrases) . "\")";
             break;
           case "genre":
-            $MainSearch .= "(genre:\"" . implode("\" OR genre:\"", $Phrases) . "\")";
+            $MainSearch .= "(genre_facet:\"" . implode("\" OR genre_facet:\"", $Phrases) . "\")";
             break;
           case "prov":
             $MainSearch .= "(provenience_txtP_mv:\"" . implode("\" OR provenience_txtP_mv:\"", $Phrases) . "\")";
@@ -413,6 +428,10 @@ class Solr extends General
                            . " title_full:\"" .           implode("\" OR title_full:\"",$Phrases) . "\" OR "
                            . " title:\"" .                implode("\" OR title:\"",$Phrases) . "\")";
             }
+            break;
+          case "standort":
+          case "location":
+            $MainSearch .= "(standort_iln_str_mv:\"" . $_SESSION["iln"] . ":" . implode("\" OR standort_iln_str_mv:\"" . $_SESSION["iln"] . ":", $Phrases) . "\")";
             break;
           case "jahr":
           case "year":
@@ -456,7 +475,7 @@ class Solr extends General
         ->addQueryField("author_fuller",510)
         ->addQueryField("author_os_txtP_mv",500)
         ->addQueryField("geographic",210)
-        ->addQueryField("genre",200)
+        ->addQueryField("genre_facet",200)
         ->addQueryField("series",110)
         ->addQueryField("series2",100)
         ->addQueryField("contents",10)
@@ -519,7 +538,7 @@ class Solr extends General
             ->addQueryField("topic_unstemmed",150)
             ->addQueryField("topic",100)
             ->addQueryField("geographic",50)
-            ->addQueryField("genre",50)
+            ->addQueryField("genre_facet",50)
             ->addQueryField("era",40)
             ->addQueryField("GND_str_mv", 10);
             break;

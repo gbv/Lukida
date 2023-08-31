@@ -374,8 +374,10 @@ class General
 
       $pretty["part"]             = $this->PrettyFields(array("245" => array("n" => " | ",
                                                                              "p" => " : ")));
-  
-      // $pretty["titlesecond"]      = $this->PrettyFields(array("245" => array("c" => " : ")));
+      if (isset($_SESSION["config_discover"]["preview"]["show245c"]) &&$_SESSION["config_discover"]["preview"]["show245c"] == "1")
+      {
+        $pretty["titlesecond"]      = $this->PrettyFields(array("245" => array("c" => " : ")));
+      }
   
       $pretty["author"]           = $this->GetAuthors();
 
@@ -410,6 +412,9 @@ class General
                                                              "773" => array("a","i","t","b","d","g","h","w")));
 
       $pretty["uniformtitle"]        = $this->GetUniform();
+
+      $pretty["addtitle"]            = $this->GetSimpleArray(array("246" => array("a" => " : ",
+                                                                                  "b" => " : ")));
       
       $pretty["summary"]             = $this->PrettyFields(array("520" => array("a" => " | ")));
       
@@ -418,6 +423,8 @@ class General
       $pretty["computerfile"]        = $this->PrettyFields(array("256" => array("a" => " | ")));
 
       $pretty["systemdetails"]       = $this->PrettyFields(array("538" => array("a" => " | ")));
+
+      $pretty["worktitle"]           = $this->PrettyFields(array("130" => array("a" => " | ")));
   
       $pretty["edition"]             = $this->GetSimpleArray(array("348" => array("a"),
                                                                    "250" => array("a")));
@@ -490,7 +497,7 @@ class General
       $pretty["issn"]                = $this->PrettyFields(array("022" => array("a" => " | "),
                                                                  "773" => array("x" => " | ")));
 
-      // $pretty["ismn"]                = $this->PrettyFields(array("024" => array("a" => " | ")));
+      $pretty["idents"]              = $this->GetArray(array("024" => array("a","2","y")));
 
       $pretty["siblings"]            = $this->GetArray(array("787" => array("d","i","n","t","w")));
 
@@ -797,11 +804,24 @@ class General
   protected function GetSubject()
   {
     $Subject = array();
-    $Tmp             = $this->GetCompleteArray(array("689" => array("0","a")));
+    $Tmp             = $this->GetCompleteArray(array("689" => array("0","a","d","t","f","m","n","o","p","r","s","g","c")));
     foreach ( $Tmp as $One )
     {
       if ( !isset($One["a"]["0"]) ) continue;
-      $Subject[]   = array("name" => $One["a"]["0"],
+
+      $Text = $One["a"]["0"];
+      if ( isset($One["d"]["0"]) )  $Text .= " (" . $One["d"]["0"] . ")";
+      if ( isset($One["t"]["0"]) )  $Text .= ": " . $One["t"]["0"];
+      if ( isset($One["f"]["0"]) )  $Text .= ", " . $One["f"]["0"];
+      if ( isset($One["m"]["0"]) )  $Text .= ", " . $One["m"]["0"];
+      if ( isset($One["n"]["0"]) )  $Text .= ", " . $One["n"]["0"];
+      if ( isset($One["o"]["0"]) )  $Text .= ", " . $One["o"]["0"];
+      if ( isset($One["p"]["0"]) )  $Text .= ", " . $One["p"]["0"];
+      if ( isset($One["r"]["0"]) )  $Text .= ", " . $One["r"]["0"];
+      if ( isset($One["s"]["0"]) )  $Text .= ", " . $One["s"]["0"];
+      if ( isset($One["g"]["0"]) )  $Text .= ", " . $One["g"]["0"];
+      if ( isset($One["c"]["0"]) )  $Text .= ", " . $One["c"]["0"];
+      $Subject[]   = array("name" => $Text,
                            "norm" => $this->GetNorm($One));
     }
     return $Subject;
@@ -965,7 +985,13 @@ class General
           {
             $pretty["title"] .= ( isset($pretty["title"]) && $pretty["title"] != "" ) ? " | " . $rec["b"] : $rec["b"];
           }
-          if ( isset($rec["c"]) && $rec["c"] != "" )     $pretty["title"] .= " " . $rec["c"];
+          if ( isset($rec["c"]) && $rec["c"] != "" )
+          {
+            if (isset($_SESSION["config_discover"]["preview"]["show245c"]) &&$_SESSION["config_discover"]["preview"]["show245c"] == "1")
+            {
+              $pretty["titlesecond"] .= " " . $rec["c"];
+            }
+          }
         }
 
         // Author
@@ -1013,6 +1039,23 @@ class General
 
       if ( $area == "fullview" )
       {
+        // AddTitle
+        if ( isset($rec["6"]) && substr($rec["6"],0,3) == "246" )
+        {
+          if ( isset($rec["a"]) && $rec["a"] != "" && isset($rec["b"]) && $rec["b"] != "" )
+          {
+            $pretty["addtitle"][] .= ( isset($pretty["title"]) && $pretty["title"] != "" ) ? " | " . $rec["a"] . " : " . $rec["b"] : $rec["a"] . " : " . $rec["b"];
+          }
+          if ( isset($rec["a"]) && $rec["a"] != "" && (!isset($rec["b"]) || $rec["b"] == "" ) )
+          {
+            $pretty["addtitle"][] .= ( isset($pretty["title"]) && $pretty["title"] != "" ) ? " | " . $rec["a"] : $rec["a"];
+          }
+          if ( ( !isset($rec["a"]) || $rec["a"] == "" ) && isset($rec["b"]) && $rec["b"] != "" )
+          {
+            $pretty["addtitle"][] .= ( isset($pretty["title"]) && $pretty["title"] != "" ) ? " | " . $rec["b"] : $rec["b"];
+          }
+        }
+
         // Publisher
         if ( isset($rec["6"]) && ( substr($rec["6"],0,3) == "260" || substr($rec["6"],0,3) == "264" ) )
         {
@@ -1055,8 +1098,9 @@ class General
         if ( isset($P["3"]) && isset($P["a"]) )
         {
           if ( $_SESSION["filter"]["datapool"] == "local" 
-            && isset($_SESSION["config_general"]["general"]["isil"])  && $_SESSION["config_general"]["general"]["isil"]  != $P["5"] 
-            && isset($_SESSION["config_general"]["general"]["isil2"]) && $_SESSION["config_general"]["general"]["isil2"] != $P["5"] )  continue;
+            && isset($_SESSION["config_general"]["general"]["isil"])  && $_SESSION["config_general"]["general"]["isil"]  != $P["5"] )  continue;
+          if ( $_SESSION["filter"]["datapool"] == "local" 
+            && isset($_SESSION["config_general"]["general"]["isil2"])  && $_SESSION["config_general"]["general"]["isil2"]  != $P["5"] )  continue;
   
           if ( !isset($_SESSION["isils"][$P["5"]]) )
           {
@@ -1997,6 +2041,7 @@ class General
           // General properties
           $Icon   = "";  
           $Title  = "";
+          $Action = "";
           if ( isset($Exemplar["label1"]) && trim($Exemplar["label1"]) && strlen($Exemplar["label1"]) > $LineLength )
           {
             $Title = "title='" . $this->ShowTags($Exemplar["label1"]) . "'";
@@ -2090,10 +2135,8 @@ class General
 
         // Section end div for mails
         $Output .= "</div>";
+        $FirstArea = false;
       }
-
-      // Finalize Loop
-      $FirstArea = false;
     }
     
     // Ensure Linkresolver (async)

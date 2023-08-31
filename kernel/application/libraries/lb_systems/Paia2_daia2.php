@@ -46,6 +46,7 @@ class Paia2_daia2 extends General
       curl_setopt ($http, CURLOPT_SSL_VERIFYHOST, 0);
       curl_setopt ($http, CURLOPT_SSL_VERIFYPEER, 0);
     }
+
     $data = curl_exec($http);
     curl_close($http);
     return $data;
@@ -78,10 +79,13 @@ class Paia2_daia2 extends General
     }
     curl_setopt($http, CURLOPT_RETURNTRANSFER, true);
 
-    if( ! $data =  utf8_decode(curl_exec($http)))
+    if( ! $data =  curl_exec($http))
     {
       trigger_error(curl_error($http));
     }
+
+    if ( substr($file,-12) == "/auth/change" )  $data = utf8_decode($data);
+
     curl_close($http);
     return $data;
   }
