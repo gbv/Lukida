@@ -14,7 +14,6 @@ class Standard extends General
   public function linkresolver($ppn)
   {
     $this->PPN = $ppn;
-    $_SESSION["data"]["results"][$this->PPN] += $this->SetContents("export");
     $this->contents = $_SESSION["data"]["results"][$this->PPN];
     $this->configExport   = $_SESSION["config_general"]["export"];
     $this->configGeneral  = $_SESSION["config_general"]["general"];
@@ -564,6 +563,14 @@ class Standard extends General
     		}
     	}
     }
+    elseif( !empty($data["contents"]["773"][0]) )
+    {
+    	array_walk_recursive($data["contents"]["773"][0], function($value,$key) use (&$zdbid){if($key === "w" && substr($value,0,8) === "(DE-600)") $zdbid = substr($value,8);}, $zdbid);
+	}
+    elseif( !empty($data["contents"]["830"][0]) )
+    {
+    	array_walk_recursive($data["contents"]["830"][0], function($value,$key) use (&$zdbid){if($key === "w" && substr($value,0,8) === "(DE-600)") $zdbid = substr($value,8);}, $zdbid);
+	}
     $ezbLink	= "";
     
     if ( !empty($data["issn"]) || !empty($data["isbn"]) || !empty($zdbid) )			
@@ -585,7 +592,7 @@ class Standard extends General
                           ("&pid=" . $bibparam . ((empty($data["issn"]) && empty($data["isbn"]) && !empty($zdbid)) ? ("%26zdbid%3D" . $zdbid) : ""));
     					  
       $ezbLink          = "https://services.dnb.de/fize-service/gvr/full.xml?" . $ezbLinkExtension;
-    
+      //$this->CI->printArray2File($ezbLink);
       $ezbTarget        = $this->getJOP_Full($ezbLink, str_replace('%3D', '=', $bibparam));	
       return $ezbTarget;
     }
@@ -671,7 +678,6 @@ class Standard extends General
                           . (strpos($openurlBase,"redi") === false ? "&ctx_enc=info:ofi/enc:UTF-8" : "");
       $openurlMetadata  = $this->getOpenURLmetaData($data, "resolver");
       $resolverLink     = $openurlEntry . $openurlMetadata;
-      //$this->CI->printArray2File($resolverLink);
       $onlyFulltex      = (isset($this->configExport["resolveronlyfulltext"]) && $this->configExport["resolveronlyfulltext"] == "1") ? true : false;
 
       if( strpos($openurlBase,"redi") !== false )
@@ -685,7 +691,7 @@ class Standard extends General
         $resolver = "ovid";
       else 
         $resolver = "sfx";
-    
+      //$this->CI->printArray2File($resolverLink);
       if( $onlyFulltex !== true )
         $return[$resolver] = $resolverLink;
 
@@ -799,7 +805,6 @@ class Standard extends General
     }
 	if (isset($data["issn"])) 
     {
-      $metadataISSN = "";
       if (is_array($data["issn"])) 
       {
         if (count($data["issn"]) >= 1) 
@@ -852,10 +857,17 @@ class Standard extends General
 				case "h":
 					if ( strpos($dValue, "-") !== false ) 
 					{
-						 $metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "spage=" . strstr($dValue, '-', true);
-						 $metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "epage=" . substr(strstr($dValue, "-"), 1);
+						$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "spage=" . strstr($dValue, '-', true);
+						$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "epage=" . substr(strstr($dValue, "-"), 1);
 					}
-					else $metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "pages=" . $dValue;
+					else
+                    {
+                        if( strpos($dValue, ".") === false )
+                        {
+                            $metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "spage=" . $dValue;
+                        }
+                        $metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "pages=" . $dValue;
+                    }
 					break;
 				}
 			}
@@ -881,175 +893,160 @@ class Standard extends General
 			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . str_replace(array("[","]"),array("",""),substr($data["contents"]["008"],7,4));
 		}
 	}
-    if ( $exportformat != "jop" )
+
+	if (isset($data["title"]) && $data["title"] != "") 
 	{
-		if (isset($data["title"]) && $data["title"] != "") 
+		if (isset($data["publisherarticle"])) 
 		{
-			if (isset($data["publisherarticle"])) 
+			if (is_array($data["publisherarticle"])) 
 			{
-				if (is_array($data["publisherarticle"])) 
-				{
-				if (count($data["publisherarticle"]) >= 1 && isset($data["publisherarticle"][0]["t"]) && $data["publisherarticle"][0]["t"] != "") 
-				{
-					$publisherarticle = urlencode(html_entity_decode($data["publisherarticle"][0]["t"]));
-				}
-				}
-				else { $publisherarticle = $data["publisherarticle"];
-				}
-				if (!empty($publisherarticle)) 
-				{
-					$metadataOU .= "&rft.atitle=" . urlencode(html_entity_decode($data["title"])) . "&rft.title=" . (stripos($publisherarticle, "in:") !== false ?
-					trim(substr($publisherarticle,stripos($publisherarticle, "in:") + 3)) :
-					$publisherarticle);
-				}
-				else 
-				{ 
-					$metadataOU .= "&rft.title=" . urlencode(html_entity_decode($data["title"]));
-				}
+			if (count($data["publisherarticle"]) >= 1 && isset($data["publisherarticle"][0]["t"]) && $data["publisherarticle"][0]["t"] != "") 
+			{
+				$publisherarticle = urlencode(html_entity_decode($data["publisherarticle"][0]["t"]));
+			}
+			}
+			else { $publisherarticle = $data["publisherarticle"];
+			}
+			if (!empty($publisherarticle)) 
+			{
+				$metadataOU .= "&rft.atitle=" . urlencode(html_entity_decode($data["title"])) . "&rft.title=" . (stripos($publisherarticle, "in:") !== false ?
+				trim(substr($publisherarticle,stripos($publisherarticle, "in:") + 3)) :
+				$publisherarticle);
 			}
 			else 
 			{ 
-				$metadataOU .= "&rft.title=" . urlencode(html_entity_decode($data["title"]));
+				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "title=" . urlencode(html_entity_decode($data["title"]));
 			}
 		}
-		if (isset($data["isbn"])) 
-		{
-			if (is_array($data["isbn"])) 
-			{
-				if (count($data["isbn"]) >= 1) 
-				{
-				foreach($data["isbn"] as $isbn) 
-				{
-					if ($isbn != "") 
-					{
-						$metadataOU .= "&rft.isbn=" . (strpos($data["isbn"]," ") !== false ?
-						strstr($data["isbn"], ' ', true) : $data["isbn"]);
-						break;
-					}
-				}
-				}
-			}
-			elseif ($data["isbn"] != "") 
-			{
-				$metadataOU .= "&rft.isbn=" . (strpos($data["isbn"]," ") !== false ?
-				strstr($data["isbn"], ' ', true) : $data["isbn"]);
-			}
-		}
-		elseif (!empty($data["contents"]["020"][0])) 
-		{
-			foreach($data["contents"]["020"][0] as $isbnGroup) 
-			{
-				foreach($isbnGroup as $isbnKey => $isbnValue) 
-				{
-					if ($isbnKey == "a" || $isbnKey == "9") 
-					{
-						$isbnVal = $isbnValue;	
-					}
-				}
-			}
-			$metadataOU .= "&rft.isbn=" . $isbnVal;	
-		}
-		if ( $exportformat != "resolver" )
-		{
-			if (!empty($data["edition"])) 
-			{
-				$metadataOU .= "&rft.edition=" . (is_array($data["edition"]) ? (!empty($data["edition"][0]) ? $data["edition"][0] : "") : $data["edition"]);
-			}	
-			if (isset($data["author"]))
-			{
-				if (is_array($data["author"])) 
-				{
-					if (count($data["author"]) >= 1) 
-					{
-					$aNr = 0;
-					foreach($data["author"] as $author) 
-					{
-						$aNr += 1;
-						$metadataOU .= "&rft.au=" . $author["name"];
-						if ($aNr == 1 && !empty($author["name"]) && strpos($author["name"], ', ') !== false) 
-						{
-							$metadataOU .= "&rft.aulast=" . strstr($author["name"], ', ', true);
-							$metadataOU .= "&rft.aufirst=" . substr(strstr($author["name"], ", "), 2);
-						}
-					}
-					}
-				}
-				elseif ($data["author"] != "") 
-				{
-					$metadataOU .= "&rft.au=" . $data["author"];
-					if (strpos($data["author"], ", ")) 
-					{
-						$metadataOU .= "&rft.aulast=" . strstr($data["author"], ', ', true);
-						$metadataOU .= "&rft.aufirst=" . substr(strstr($data["author"], ", "), 2);
-					}
-				}
-			}
-			if (isset($data["serial"])) 
-			{
-				if (is_array($data["serial"])) 
-				{
-					if (count($data["serial"]) >= 1) 
-					{
-						foreach($data["serial"] as $serial) 
-						{
-							foreach($serial as $sKey=>$sValue) 
-							{
-							if (!empty($sValue) && $sKey == "a") 
-							{
-								$metadataOU .= "&rft.series=" . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
-							}
-							else 
-							{ $metadataOU .= " " . $sValue;
-							}
-							}
-						}
-					}
-				}
-				elseif ($data["serial"] != "") 
-				{
-					$metadataOU .= "&rft.series=" . ((stripos($data["serial"], "in:") !== false) ? trim(substr($data["serial"],stripos($data["serial"], "in:") + 3)) : $data["serial"]);
-				}
-			}
-			if (isset($data["publisher"][0]) && $data["publisher"][0] != "") 
-			{
-				foreach($data["publisher"][0] as $publisherKey => $publisherValue)
-				{
-					if ($publisherKey == "a" && !empty($publisherValue[0])) 
-					{ 
-						$metadataOU .= "&rft.place=" . $publisherValue[0];
-					}
-					elseif ($publisherKey == "b" && !empty($publisherValue[0])) 
-					{ 
-						$metadataOU .= "&rft.pub=" . $publisherValue[0];
-					} 
-				}
-			}
-			elseif (isset($data["publisherarticle"][0]["d"]) && $data["publisherarticle"][0]["d"] != "") 
-			{
-				$tmp = explode(" : ", $data["publisherarticle"][0]["d"]);
-				if (isset($tmp[0]) && $tmp[0] != "")
-				{
-					$metadataOU .= "&rft.place=" . $tmp[0];
-				}
-				if (isset($tmp[1]) && $tmp[1] != "")
-				{
-					$metadataOU .= "&rft.pub=" . $tmp[1];
-				}		
-			}
-			if ($exportformat == "zotero" && !empty($data["language"][0]))
-			{
-				$metadataOU .= "&rft.language=" . $data["language"][0];
-			}
-            if ($exportformat == "zotero" && !empty($data["contents"]["024"]))
-	        {
-	            foreach($data["contents"]["024"] as $key24=>$value24) 
-		        {
-                  if (!empty($value24[2][2]) && $value24[2][2] == "doi")
-                    $metadataOU .= "&rft_id=info:doi/" . ((strpos(strtolower($value24[1]["a"]), "http") === false) ?  "https://doi.org/" : "") . $value24[1]["a"];
-                }
-            }
+		else 
+		{ 
+			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "title=" . urlencode(html_entity_decode($data["title"]));
 		}
 	}
+	if (isset($data["isbn"])) 
+	{
+		if (is_array($data["isbn"])) 
+		{
+			if (count($data["isbn"]) >= 1) 
+			{
+			foreach($data["isbn"] as $isbn) 
+			{
+				if ($isbn != "") 
+				{
+					$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "isbn=" . (strpos($data["isbn"]," ") !== false ?
+					strstr($data["isbn"], ' ', true) : $data["isbn"]);
+					break;
+				}
+			}
+			}
+		}
+		elseif ($data["isbn"] != "") 
+		{
+			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "isbn=" . (strpos($data["isbn"]," ") !== false ?
+			strstr($data["isbn"], ' ', true) : $data["isbn"]);
+		}
+	}
+	elseif (!empty($data["contents"]["020"][0])) 
+	{
+		foreach($data["contents"]["020"][0] as $isbnGroup) 
+		{
+			foreach($isbnGroup as $isbnKey => $isbnValue) 
+			{
+				if ($isbnKey == "a" || $isbnKey == "9") 
+				{
+					$isbnVal = $isbnValue;	
+				}
+			}
+		}
+		$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "isbn=" . $isbnVal;	
+	}
+	if (!empty($data["edition"])) 
+	{
+              $edit = (is_array($data["edition"]) && !empty($data["edition"][0])) ? preg_match("/^([0-9]*)([r\. ]|$)/", $data["edition"][0], $edition) : preg_match("/^([0-9]*)([r\. ]|$)/", $data["edition"], $edition);
+		$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "edition=" . $edition[1];
+	}	
+	if (isset($data["author"]))
+	{
+		if (is_array($data["author"])) 
+		{
+			if (count($data["author"]) >= 1) 
+			{
+			$aNr = 0;
+			foreach($data["author"] as $author) 
+			{
+				$aNr += 1;
+				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "au=" . $author["name"];
+				if ($aNr == 1 && !empty($author["name"]) && strpos($author["name"], ', ') !== false) 
+				{
+					$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "aulast=" . strstr($author["name"], ', ', true);
+					$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "aufirst=" . substr(strstr($author["name"], ", "), 2);
+				}
+			}
+			}
+		}
+		elseif ($data["author"] != "") 
+		{
+			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "au=" . $data["author"];
+			if (strpos($data["author"], ", ")) 
+			{
+				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "aulast=" . strstr($data["author"], ', ', true);
+				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "aufirst=" . substr(strstr($data["author"], ", "), 2);
+			}
+		}
+	}
+	if (isset($data["contents"]["830"])) 
+	{
+		foreach($data["contents"]["830"][0] as $serial) 
+		{
+			foreach($serial as $sKey=>$sValue) 
+			{
+				if (!empty($sValue) && $sKey == "a") 
+				{
+					$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "series=" . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
+				}
+			}
+		}
+	}
+	if (isset($data["publisher"][0]) && $data["publisher"][0] != "") 
+	{
+		foreach($data["publisher"][0] as $publisherKey => $publisherValue)
+		{
+			if ($publisherKey == "a" && !empty($publisherValue[0])) 
+			{ 
+				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "place=" . $publisherValue[0];
+			}
+			elseif ($publisherKey == "b" && !empty($publisherValue[0])) 
+			{ 
+				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "pub=" . $publisherValue[0];
+			} 
+		}
+	}
+	elseif (isset($data["publisherarticle"][0]["d"]) && $data["publisherarticle"][0]["d"] != "") 
+	{
+		$tmp = explode(" : ", $data["publisherarticle"][0]["d"]);
+		if (isset($tmp[0]) && $tmp[0] != "")
+		{
+			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "place=" . $tmp[0];
+		}
+		if (isset($tmp[1]) && $tmp[1] != "")
+		{
+			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "pub=" . $tmp[1];
+		}		
+	}
+	if ($exportformat == "zotero" && !empty($data["language"][0]))
+	{
+		$metadataOU .= "&rft.language=" . $data["language"][0];
+	}
+    if (!empty($data["contents"]["024"]))
+	{
+	    foreach($data["contents"]["024"] as $key24=>$value24) 
+	    {
+            if (!empty($value24[2][2]) && $value24[2][2] == "doi")
+               $metadataOU .= ( $exportformat == "zotero") ? ("&rft_id=info:doi/" . ((strpos(strtolower($value24[1]["a"]), "http") === false) ?  "https://doi.org/" : "") . $value24[1]["a"] ) : 
+                              ( ($exportformat == "jop" ? "&id=doi%3A"  : "&rft.doi=") . $value24[1]["a"]);
+        }
+    }
+
     return $metadataOU;
   }
   

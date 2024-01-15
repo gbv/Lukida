@@ -171,6 +171,11 @@ class Solr extends General
 
       if ( $index > 0 ) $MainSearch .= " AND ";
       
+      foreach ( $Phrases as &$P )
+      {
+        $P = str_replace(" ", "\ ", $P);
+      }
+
       if ( count($Phrases) == 1)
       {
         switch ($CType)
@@ -179,46 +184,46 @@ class Solr extends General
           case "autor":
             if ( $this->phoneticsearch )
             {
-              $MainSearch .= "(author:\""      . $Phrases[0] . "\" OR author2:\""           . $Phrases[0] . "\"" 
-                        . " OR authorSound:\"" . $Phrases[0] . "\" OR author_os_txtP_mv:\"" . $Phrases[0] . "\")";
+              $MainSearch .= "(author:"      . $Phrases[0] . " OR author2:"           . $Phrases[0] . "" 
+                        . " OR authorSound:" . $Phrases[0] . " OR author_os_txtP_mv:" . $Phrases[0] . ")";
             }
             else
             {
-              $MainSearch .= "(author:\"" . $Phrases[0] . "\" OR author2:\"" . $Phrases[0] . "\" OR author_os_txtP_mv:\"" . $Phrases[0] . "\")";
+              $MainSearch .= "(author:" . $Phrases[0] . " OR author2:" . $Phrases[0] . " OR author_os_txtP_mv:" . $Phrases[0] . ")";
             }
             break;
           case "foreignid":
-            $MainSearch .= "(foreign_ids_str_mv:\"" . $Phrases[0] . "\")";
+            $MainSearch .= "(foreign_ids_str_mv:" . $Phrases[0] . ")";
             break;
           case "series":
           case "reihe":
-            $MainSearch .= "(series:\"" . $Phrases[0] . "\" OR series2:\"" . $Phrases[0] . "\")";
+            $MainSearch .= "(series:" . $Phrases[0] . " OR series2:" . $Phrases[0] . ")";
             break;
           case "subject":
           case "schlagwort":
-            $MainSearch .= "(topic:\"" . $Phrases[0] . "\" OR GND_str_mv:\"" . $Phrases[0] . "\" OR topic_unstemmed:\"" . $Phrases[0] . "\")";
+            $MainSearch .= "(topic:" . $Phrases[0] . " OR GND_str_mv:" . $Phrases[0] . " OR topic_unstemmed:" . $Phrases[0] . ")";
             break;
           case "koerper":
           case "corporation":
-            $MainSearch .= "(author_corporate:\"" . $Phrases[0] . "\")";
+            $MainSearch .= "(author_corporate:" . $Phrases[0] . ")";
             break;
           case "class":
-            $MainSearch .= "(class:\"" . $Phrases[0] . "\" )";
+            $MainSearch .= "(class:" . $Phrases[0] . ")";
             break;
           case "classlocal":
-            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(notation_local_iln_str_mv:\"" . $_SESSION["iln"] . ":" . $Phrases[0] . "\" )";
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(notation_local_iln_str_mv:" . $_SESSION["iln"] . "\:" . $Phrases[0] . ")";
             break;
           case "isn":
-            $MainSearch .= "(issn:\"" . $Phrases[0] . "\" OR isbn:\"" . $Phrases[0] . "\")";
+            $MainSearch .= "(issn:" . $Phrases[0] . " OR isbn:" . $Phrases[0] . ")";
             break;
           case "format":
-            $MainSearch .= "(format_phy_str_mv:\"" . $Phrases[0] . "\" )";
+            $MainSearch .= "(format_phy_str_mv:" . $Phrases[0] . ")";
             break;
           case "format2":
-            $MainSearch .= "(format:\"" . $Phrases[0] . "\" )";
+            $MainSearch .= "(format:" . $Phrases[0] . ")";
             break;
           case "norm":
-            $MainSearch .= "(normlink_prefix_str_mv:\"(DE-627)" . $this->CleanID($Phrases[0]) . "\" )";
+            $MainSearch .= "(normlink_prefix_str_mv:\(DE\-627\)" . $this->CleanID($Phrases[0]) . ")";
             break;
           case "topic":
           case "thema":
@@ -248,46 +253,46 @@ class Solr extends General
               {
                 $Right = trim($Tmp[1]);
               }
-              $MainSearch .= "(topic_browse:[\"" . $Base . " " . $Left. "\" TO \"" . $Base . " " . $Right . "\"])";
+              $MainSearch .= "(topic_browse:[" . $Base . " " . $Left. " TO " . $Base . " " . $Right . "])";
             }
             else
             {
-              $MainSearch .= "(topic:\"" . $Phrases[0] . "\" )";
+              $MainSearch .= "(topic:" . $Phrases[0] . ")";
             }
             break;
           case "country":
           case "land":
-            $MainSearch .= "(countryofpublication_str_mv:\"" . $Phrases[0] . "\" )";
+            $MainSearch .= "(countryofpublication_str_mv:" . $Phrases[0] . ")";
             break;
           case "language":
           case "sprache":
-            $MainSearch .= "(language:\"" . $Phrases[0] . "\" )";
+            $MainSearch .= "(language:" . $Phrases[0] . ")";
             break;
           case "langcode":
           case "sprachcode":
-            $MainSearch .= "(lang_code:\"" . $Phrases[0] . "\" )";
+            $MainSearch .= "(lang_code:" . $Phrases[0] . ")";
             break;
           case "erwdatum":
           case "acqdate":
-            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selektneu_str_mv:\"" . $_SESSION["iln"] . "@" . $Phrases[0] . "\" )";
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selektneu_str_mv:" . $_SESSION["iln"] . "@" . $Phrases[0] . ")";
             break;
           case "abruf":
           case "call":
-            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(abrufzeichen_iln_scis_mv:\"" . $_SESSION["iln"] . "@" . $Phrases[0] . "\" )";
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(abrufzeichen_iln_scis_mv:" . $_SESSION["iln"] . "@" . $Phrases[0] . ")";
             break;
           case "mandant":
           case "client":
-            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selectbib_iln_str_mv:\"" . $_SESSION["iln"] . "@" . $Phrases[0] . "\" )";
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selectbib_iln_str_mv:" . $_SESSION["iln"] . "@" . $Phrases[0] . ")";
             break;
           case "genre":
-            $MainSearch .= "(genre_facet:\"" . $Phrases[0] . "\")";
+            $MainSearch .= "(genre_facet:" . $Phrases[0] . ")";
             break;
           case "prov":
-            $MainSearch .= "(provenience_txtP_mv:\"" . $Phrases[0] . "\")";
+            $MainSearch .= "(provenience_txtP_mv:" . $Phrases[0] . ")";
             break;
           case "signatur":
           case "signature":
-            $MainSearch .= "(signature_iln:\"" . $_SESSION["iln"] . ":" . $Phrases[0] . "\")";
+            $MainSearch .= "(signature_iln_str_mv:" . $_SESSION["iln"] . "\:" . $Phrases[0] . ")";
             break;
           case "title":
           case "titel":
@@ -302,18 +307,21 @@ class Solr extends General
             break;
           case "standort":
           case "location":
-            $MainSearch .= "(standort_iln_str_mv:\"" . $_SESSION["iln"] . ":" . $Phrases[0] . "\" )";
+            $MainSearch .= "(standort_iln_str_mv:" . $_SESSION["iln"] . "\:" . $Phrases[0] . ")";
             break;
           case "jahr":
           case "year":
-            $MainSearch .= "(publishDateSort:\"" . $Phrases[0] . "\")";
+            $MainSearch .= "(publishDateSort:" . $Phrases[0] . ")";
+            break;
+          case "ppnlink":
+            $MainSearch .= "(id:" . $this->CleanID($Phrases[0]) . ")";
             break;
           case "id":
           case "ppn":
-            $MainSearch .= "(id:\"" . $this->CleanID($Phrases[0]) . "\")";
+            $MainSearch .= "(id:" . $this->CleanID($Phrases[0]) . ")";
             break;
           default:
-            $MainSearch .= $CType . ":\"" . $Phrases[0] . "\"";
+            $MainSearch .= $CType . "\:" . $Phrases[0] . "";
         }
       }
       else
@@ -324,125 +332,128 @@ class Solr extends General
           case "autor":
             if ( $this->phoneticsearch )  
             {
-              $MainSearch .= "(author:\""            . implode("\" OR author:\"", $Phrases)           . "\" OR "
-                           . " author2:\""           . implode("\" OR author2:\"",$Phrases)           . "\" OR "
-                           . " author_os_txtP_mv:\"" . implode("\" OR author_os_txtP_mv:\"",$Phrases) . "\" OR "
-                           . " authorSound:\""       . implode("\" OR authorSound:\"",$Phrases)       . "\")";
+              $MainSearch .= "(author:"            . implode(" OR author:", $Phrases)           . " OR "
+                           . " author2:"           . implode(" OR author2:",$Phrases)           . " OR "
+                           . " author_os_txtP_mv:" . implode(" OR author_os_txtP_mv:",$Phrases) . " OR "
+                           . " authorSound:"       . implode(" OR authorSound:",$Phrases)       . ")";
             }
             else
             {
-              $MainSearch .= "(author:\""            . implode("\" OR author:\"", $Phrases)           . "\" OR "
-                           . " author2:\""           . implode("\" OR author2:\"",$Phrases)           . "\" OR "
-                           . " author_os_txtP_mv:\"" . implode("\" OR author_os_txtP_mv:\"",$Phrases) . "\")";
+              $MainSearch .= "(author:"            . implode(" OR author:", $Phrases)           . " OR "
+                           . " author2:"           . implode(" OR author2:",$Phrases)           . " OR "
+                           . " author_os_txtP_mv:" . implode(" OR author_os_txtP_mv:",$Phrases) . ")";
             }
             break;
           case "foreignid":
-            $MainSearch .= "(foreign_ids_str_mv:\"" . implode("\" OR foreign_ids_str_mv:\"", $this->CleanID($Phrases)) . "\")";
+            $MainSearch .= "(foreign_ids_str_mv:" . implode(" OR foreign_ids_str_mv:", $this->CleanID($Phrases)) . ")";
             break;
           case "series":
           case "reihe":
-            $MainSearch .= "(series:\"" .  implode("\" OR series:\"", $Phrases) . "\" OR "
-                         . " series2:\"" . implode("\" OR series2:\"",$Phrases) . "\")";
+            $MainSearch .= "(series:" .  implode(" OR series:", $Phrases) . " OR "
+                         . " series2:" . implode(" OR series2:",$Phrases) . ")";
             break;
           case "subject":
           case "schlagwort":
-            $MainSearch .= "(topic:\""           . implode("\" OR topic:\"", $Phrases)           . "\" OR "
-                         . " GND_str_mv:\""      . implode("\" OR topic_unstemmed:\"",$Phrases)  . "\" OR "
-                         . " topic_unstemmed:\"" . implode("\" OR topic_unstemmed:\"",$Phrases)  . "\")";
+            $MainSearch .= "(topic:"           . implode(" OR topic:", $Phrases)           . " OR "
+                         . " GND_str_mv:"      . implode(" OR topic_unstemmed:",$Phrases)  . " OR "
+                         . " topic_unstemmed:" . implode(" OR topic_unstemmed:",$Phrases)  . ")";
             break;
           case "koerper":
           case "corporation":
-            $MainSearch .= "(author_corporate:\"" . implode("\" OR author_corporate:\"",$Phrases) . "\")";
+            $MainSearch .= "(author_corporate:" . implode(" OR author_corporate:",$Phrases) . ")";
             break;
           case "class":
-            $MainSearch .= "(class:\"" . implode("\" OR class:\"", $Phrases) . "\")";
+            $MainSearch .= "(class:" . implode(" OR class:", $Phrases) . ")";
             break;
           case "classlocal":
-            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(notation_local_iln_str_mv:\"" . $_SESSION["iln"] . ":" . implode("\" OR notation_local_iln_str_mv:\"" . $_SESSION["iln"] . ":", $Phrases) . "\")";
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(notation_local_iln_str_mv:" . $_SESSION["iln"] . "\:" . implode(" OR notation_local_iln_str_mv:" . $_SESSION["iln"] . "\:", $Phrases) . ")";
             break;
           case "isn":
-            $MainSearch .= "(issn:\"" . implode("\" OR issn:\"", $Phrases) . "\" OR "
-                         . " isbn:\"" . implode("\" OR isbn:\"",$Phrases) . "\")";
+            $MainSearch .= "(issn:" . implode(" OR issn:", $Phrases) . " OR "
+                         . " isbn:" . implode(" OR isbn:",$Phrases) . ")";
             break;
           case "format":
-            $MainSearch .= "(format_phy_str_mv:\"" . implode("\" OR format_phy_str_mv:\"", $Phrases) . "\")";
+            $MainSearch .= "(format_phy_str_mv:" . implode(" OR format_phy_str_mv:", $Phrases) . ")";
             break;
           case "format2":
-            $MainSearch .= "(format:\"" . implode("\" OR format:\"", $Phrases) . "\")";
+            $MainSearch .= "(format:" . implode(" OR format:", $Phrases) . ")";
             break;
           case "norm":
-            $MainSearch .= "(normlink_prefix_str_mv:\"(DE-627)" . implode("\" OR normlink_prefix_str_mv:\"(DE-627)", $this->CleanID($Phrases)) . "\")";
+            $MainSearch .= "(normlink_prefix_str_mv:\(DE\-627\)" . implode(" OR normlink_prefix_str_mv:\(DE\-627\)", $this->CleanID($Phrases)) . ")";
             break;
           case "thema":
           case "topic":
-            $MainSearch .= "(topic:\"" . implode("\" OR topic:\"", $Phrases) . "\")";
+            $MainSearch .= "(topic:" . implode(" OR topic:", $Phrases) . ")";
             break;
           case "country":
           case "land":
-            $MainSearch .= "(countryofpublication_str_mv:\"" . implode("\" OR countryofpublication_str_mv:\"", $Phrases) . "\" )";
+            $MainSearch .= "(countryofpublication_str_mv:" . implode(" OR countryofpublication_str_mv:", $Phrases) . ")";
             break;
           case "language":
           case "sprache":
-            $MainSearch .= "(language:\"" . implode("\" OR language:\"", $Phrases) . "\")";
+            $MainSearch .= "(language:" . implode(" OR language:", $Phrases) . ")";
             break;
           case "langcode":
           case "sprachcode":
-            $MainSearch .= "(lang_code:\"" . implode("\" OR lang_code:\"", $Phrases) . "\")";
+            $MainSearch .= "(lang_code:" . implode(" OR lang_code:", $Phrases) . ")";
             break;
           case "erwdatum":
           case "acqdate":
-            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selektneu_str_mv:\"" . $_SESSION["iln"] . "@" . implode("\" OR selektneu_str_mv:\"" . $_SESSION["iln"] . "@", $Phrases) . "\")";
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selektneu_str_mv:" . $_SESSION["iln"] . "@" . implode(" OR selektneu_str_mv:" . $_SESSION["iln"] . "@", $Phrases) . ")";
             break;
           case "abruf":
           case "call":
-            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(abrufzeichen_iln_scis_mv:\"" . $_SESSION["iln"] . "@" . implode("\" OR abrufzeichen_iln_scis_mv:\"" . $_SESSION["iln"] . "@", $Phrases) . "\")";
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(abrufzeichen_iln_scis_mv:" . $_SESSION["iln"] . "@" . implode(" OR abrufzeichen_iln_scis_mv:" . $_SESSION["iln"] . "@", $Phrases) . ")";
             break;
           case "mandant":
           case "client":
-            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selectbib_iln_str_mv:\"" . $_SESSION["iln"] . "@" . implode("\" OR selectbib_iln_str_mv:\"" . $_SESSION["iln"] . "@", $Phrases) . "\")";
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selectbib_iln_str_mv:" . $_SESSION["iln"] . "@" . implode(" OR selectbib_iln_str_mv:" . $_SESSION["iln"] . "@", $Phrases) . ")";
             break;
           case "genre":
-            $MainSearch .= "(genre_facet:\"" . implode("\" OR genre_facet:\"", $Phrases) . "\")";
+            $MainSearch .= "(genre_facet:" . implode(" OR genre_facet:", $Phrases) . ")";
             break;
           case "prov":
-            $MainSearch .= "(provenience_txtP_mv:\"" . implode("\" OR provenience_txtP_mv:\"", $Phrases) . "\")";
+            $MainSearch .= "(provenience_txtP_mv:" . implode(" OR provenience_txtP_mv:", $Phrases) . ")";
             break;
           case "signatur":
           case "signature":
-            $MainSearch .= "(signature_iln:\"" . $_SESSION["iln"] . ":" . implode("\" OR signature_iln:\"" . $_SESSION["iln"] . ":", $Phrases) . "\")";
+            $MainSearch .= "(signature_iln_str_mv:" . $_SESSION["iln"] . "\:" . implode(" OR signature_iln_str_mv:" . $_SESSION["iln"] . "\:", $Phrases) . ")";
             break;
           case "title":
           case "titel":
             if ( $this->phoneticsearch )
             {
-              $MainSearch .= "(title_short:\"" .          implode("\" OR title_short:\"", $Phrases) . "\" OR "
-                           . " title_full_unstemmed:\"" . implode("\" OR title_full_unstemmed:\"",$Phrases) . "\" OR "
-                           . " title_full:\"" .           implode("\" OR title_full:\"",$Phrases) . "\" OR "
-                           . " title:\"" .                implode("\" OR title:\"",$Phrases) . "\" OR "
-                           . " title_fullSound:\"" .      implode("\" OR title_fullSound:\"",$Phrases) . "\")";
+              $MainSearch .= "(title_short:" .          implode(" OR title_short:", $Phrases) . " OR "
+                           . " title_full_unstemmed:" . implode(" OR title_full_unstemmed:",$Phrases) . " OR "
+                           . " title_full:" .           implode(" OR title_full:",$Phrases) . " OR "
+                           . " title:" .                implode(" OR title:",$Phrases) . " OR "
+                           . " title_fullSound:" .      implode(" OR title_fullSound:",$Phrases) . ")";
             }
             else
             {
-              $MainSearch .= "(title_short:\"" .          implode("\" OR title_short:\"", $Phrases) . "\" OR "
-                           . " title_full_unstemmed:\"" . implode("\" OR title_full_unstemmed:\"",$Phrases) . "\" OR "
-                           . " title_full:\"" .           implode("\" OR title_full:\"",$Phrases) . "\" OR "
-                           . " title:\"" .                implode("\" OR title:\"",$Phrases) . "\")";
+              $MainSearch .= "(title_short:" .          implode(" OR title_short:", $Phrases) . " OR "
+                           . " title_full_unstemmed:" . implode(" OR title_full_unstemmed:",$Phrases) . " OR "
+                           . " title_full:" .           implode(" OR title_full:",$Phrases) . " OR "
+                           . " title:" .                implode(" OR title:",$Phrases) . ")";
             }
             break;
           case "standort":
           case "location":
-            $MainSearch .= "(standort_iln_str_mv:\"" . $_SESSION["iln"] . ":" . implode("\" OR standort_iln_str_mv:\"" . $_SESSION["iln"] . ":", $Phrases) . "\")";
+            $MainSearch .= "(standort_iln_str_mv:" . $_SESSION["iln"] . "\:" . implode(" OR standort_iln_str_mv:" . $_SESSION["iln"] . "\:", $Phrases) . ")";
             break;
           case "jahr":
           case "year":
-            $MainSearch .= "(publishDateSort:\"" . implode("\" OR publishDateSort:\"", $Phrases) . "\")";
+            $MainSearch .= "(publishDateSort:" . implode(" OR publishDateSort:", $Phrases) . ")";
+            break;
+          case "ppnlink":
+            $MainSearch .= "(ppnlink:" . implode(" OR ppnlink:", $this->CleanID($Phrases)) . ")";
             break;
           case "ppn":
           case "id":
-            $MainSearch .= "(id:\"" . implode("\" OR id:\"", $this->CleanID($Phrases)) . "\")";
+            $MainSearch .= "(id:" . implode(" OR id:", $this->CleanID($Phrases)) . ")";
             break;
           default:
-            $MainSearch .= "(" . $CType . ":\"" . implode("\" OR " . $CType . ":\"",$Phrases) . "\")";
+            $MainSearch .= "(" . $CType . ":" . implode(" OR " . $CType . ":",$Phrases) . ")";
         }
       }
     }

@@ -104,8 +104,8 @@ switch (ENVIRONMENT)
   define('KERNEL', 'Lukida');
   # define('MODE', apache_getenv("MODE"));           // Apache MPM prefork
   # define('LIBRARY', apache_getenv("LIBRARY"));     // Apache MPM prefork
-  define('MODE', getenv("MODE"));                    // Apache MPM event
-  define('LIBRARY', getenv("LIBRARY"));              // Apache MPM event
+  define('MODE', $_SERVER["MODE"]);                    // Apache MPM event
+  define('LIBRARY', $_SERVER["LIBRARY"]);              // Apache MPM event
   define('LIBRARYPATH', str_replace(array("/","\\"), DIRECTORY_SEPARATOR, $_SERVER["DOCUMENT_ROOT"]) . DIRECTORY_SEPARATOR);
   define('LIBRARYCODE', LIBRARYPATH . "code" . DIRECTORY_SEPARATOR);
 

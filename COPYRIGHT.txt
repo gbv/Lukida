@@ -1,6 +1,6 @@
 This file is part of Lukida.
 
-Copyright 2015-2023
+Copyright 2015-2024
 Verbundzentrale des GBV (VZG)
 Platz der Göttinger Sieben 1
 37073 Göttingen
