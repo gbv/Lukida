@@ -20,6 +20,12 @@ if ( $Header )
   $Output .= "<span data-toggle='tooltip' title='" . ($this->online ? "e" : "") . $this->CI->database->code2text($this->format) . "' class='preview-icon'>" . $this->SetCover() . "</span>";
   $Output .= "<br />";
   $Output .= "<span class='preview-counter'>" . $this->NR . "</span>";
+  
+  if ( isset($_SESSION["config_discover"]["preview"]["previewyear"]) && $_SESSION["config_discover"]["preview"]["previewyear"] == "1" )
+  {
+    $Output .= "<br />";
+    $Output .= "<span class='preview-year'>" . $this->pretty["pv_year"] . "</span>";  
+  }
   $Output .= "</div><div class='table-cell preview-second-col'>";
   
   // Show title item
@@ -70,14 +76,16 @@ if ( $Header )
     // Artikel
     $MaxPublisherArticleLen = (isset($_SESSION["config_discover"]["preview"]["maxpublisherarticlelength"]     ) ) ? $_SESSION["config_discover"]["preview"]["maxpublisherarticlelength"] : 100;
     $Tmp = $this->Trim_Text($this->pretty["pv_pubarticle"],$MaxPublisherArticleLen);
+    // $Output .= serialize($this->pretty["pv_pubarticle"]);
+    // $Output .= print_r($this->pretty["pv_pubarticle"], true);
   }
   else
   {
     // kein Artikel
-    $Tmp = $this->pretty["pv_publisher"];
+    $Tmp = $this->pretty["pv_year"];
   }
 
-  // PublisherArticle 
+   // PublisherArticle 
   if ( $Tmp == "" )  $Tmp = $this->pretty["physicaldescription"];
 
   $Output .= "<br />" . $Tmp . "</small>";

@@ -90,7 +90,15 @@ html {
     text-align: center;
     font-size: 12px;
     line-height: 8px;
-    width: 36px;
+    width: 72px;
+  }
+  .preview-year
+  {
+    display: inline-block;
+    text-align: center;
+    font-size: 12px;
+    line-height: 8px;
+    width: 72px;
   }
 }
 
@@ -116,6 +124,14 @@ html {
     text-align: center;
     font-size: 12px;
     line-height: 18px;
+    width: 75px;
+  }
+  .preview-year
+  {
+    display: inline-block;
+    text-align: center;
+    font-size: 12px;
+    line-height: 8px;
     width: 75px;
   }
 }

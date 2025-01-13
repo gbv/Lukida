@@ -45,14 +45,6 @@ else
 //***** S T A R T   O U T P U T *******
 //*************************************
 
-// $this->CI->printArray2Screen($this->medium);
-// $this->CI->printArray2Screen($this->medium["collection"]);
-// $this->CI->printArray2Screen($this->medium["collection_details"]);
-// $this->CI->printArray2Screen($Exemplars);
-// $this->CI->printArray2Screen($this->catalogues);
-// $this->CI->printArray2Screen($_SESSION["iln"]);
-// $this->CI->printArray2Screen($this->CI->internal_linkresolver("236452940"));
-
 $Output .= $this->OutPutButtons($Exemplars, $ButtonSize, $LineLength);
 
 
@@ -159,13 +151,11 @@ function OwnOnline($CI, $Medium)
 
 function OwnHaptic($CI, $Medium)
 {
-  // $CI->printArray2Screen($Medium);
   $Items     = $CI->GetCombinedItems($Medium["id"]);
-  // $CI->printArray2Screen($Items);
+
   $Exemplare = array();
   foreach ( $Items as $EPN => $One ) 
   {
-    // $CI->printArray2Screen($One);
     $Exemplar = array();
      
     // Item main properties
@@ -209,8 +199,6 @@ function OwnHaptic($CI, $Medium)
 
 function OtherOnline($CI, $Medium)
 {
-  // $CI->printArray2Screen($CI->record_format->Get856URLs($Medium["contents"]));
-
   $Exemplare = array();
   foreach ( $CI->record_format->Get856URLs($Medium["contents"]) as $One )
   {

@@ -162,6 +162,21 @@ class Vzg_controller extends CI_Controller
     $_SESSION["language_eng"] = $this->database->system_language("english");
   }
 
+  private function clearStr($Str = "", $AllowedChars="", $Umlaute = false, $AllASCII = false, $Chars = true, $Numbers = true)
+  {
+    $Clear = "";
+    if ( $AllASCII )                    $Clear .= "\\u0080-\\uFFFF";
+    if ( !$AllASCII && $AllowedChars )  $Clear .= $AllowedChars;
+    if ( !$AllASCII && $Umlaute )       $Clear .= "öäüßÖÄÜ";
+    if ( !$AllASCII && $Chars )         $Clear .= "a-zA-Z";
+    if ( !$AllASCII && $Numbers )       $Clear .= "0-9";
+    $Clear = "/[^" . $Clear . "]+/";
+
+    // file_put_contents("alex.txt", $Str . " => " . $Clear . " => " . preg_replace($Clear, '', trim($Str)) . PHP_EOL, FILE_APPEND);
+
+    return preg_replace($Clear, '', trim($Str));
+  }  
+
   // ********************************************
   // *********** Interface-Functions ************
   // ********************************************
@@ -436,7 +451,7 @@ class Vzg_controller extends CI_Controller
     header('X-Content-Type-Options: nosniff');
     header('Strict-Transport-Security: "max-age=31536000; includeSubDomains; preload"');
     header('X-Permitted-Cross-Domain-Policies: "none"');
-    echo json_encode($data);
+    die(json_encode($data));
   }
 
   // ********************************************
@@ -621,8 +636,8 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input    = $this->security->xss_clean($this->input->post());
-    $platform = (isset($Input["platform"])) ? (array) json_decode($Input["platform"], true) : array();
-    $screen   = (isset($Input["screen"]))   ? (array) json_decode($Input["screen"], true)   : array();
+    // $platform = (isset($Input["platform"])) ? (array) json_decode($Input["platform"], true) : array();
+    // $screen   = (isset($Input["screen"]))   ? (array) json_decode($Input["screen"], true)   : array();
 
     // Check params
 
@@ -669,6 +684,7 @@ class Vzg_controller extends CI_Controller
     $this->stats("Config");
 
     // Set Screen Resolution Stat
+    /*
     if ( isset($screen['Width']) && $screen['Width'] != "" && isset($screen['Height']) && $screen['Height'] != "")
       $this->stats("Screen_" . $screen['Width'] . "x" . $screen['Height'], "year");
 
@@ -687,6 +703,7 @@ class Vzg_controller extends CI_Controller
     // Set OS Name & Version Stat
     if ( isset($platform['os']) && ( $Tmp = implode("_",array_values((array)$platform['os']))) != "" )
       $this->stats("OS_" . $Tmp, "year");
+    */
 
     // Return data in jsonformat
     return $this->ajaxsreturn($container);
@@ -698,12 +715,13 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input        = $this->security->xss_clean($this->input->post());
-    $ppnlist		  = (isset($Input["ppnlist"]))  ? (array) json_decode($Input['ppnlist'], true)  : array();
-    $fullbodylist	= (isset($Input["fullbody"])) ? (array) json_decode($Input['fullbody'], true) : array();
-    $mailfrom		  = (isset($Input["mailfrom"])) ? $Input["mailfrom"]                            : "";
-    $mailto			  = (isset($Input["mailto"]))   ? $Input["mailto"]                              : "";
-    $username		  = (isset($Input["username"])) ? $Input["username"]                            : "";
-    $msg				  = (isset($Input["msg"]))      ? $Input["msg"]                                 : "";
+
+    $ppnlist		  = (isset($Input["ppnlist"]))  ? (array) json_decode($Input['ppnlist'], true)        : array();
+    $fullbodylist	= (isset($Input["fullbody"])) ? (array) json_decode($Input['fullbody'], true)       : array();
+    $mailfrom		  = (isset($Input["mailfrom"])) ? $this->clearStr($Input["mailfrom"], "@.\-")         : "";
+    $mailto			  = (isset($Input["mailto"]))   ? $this->clearStr($Input["mailto"], "@.\-")           : "";
+    $username		  = (isset($Input["username"])) ? $this->clearStr($Input["username"], " ", true)      : "";
+    $msg				  = (isset($Input["msg"]))      ? $this->clearStr($Input["msg"], "\\\!\/ .\-?", true) : "";
 
     // Check params
     if ( $username == "" ) return ($this->ajaxreturn("400","username is missing"));
@@ -771,13 +789,13 @@ class Vzg_controller extends CI_Controller
     {
       $this->email->message("<p>" . json_decode($username) . " (<a href='mailto:" . $mailfrom . "'>" . $mailfrom 
                             . "</a>) " . $this->database->code2text("HASRECOMMENDATIONS") . ".</p><p>"
-                            . json_decode($msg) . "</p>" . $message);
+                            . $msg . "</p>" . $message);
     }
     else
     {
       $this->email->message("<p>" . json_decode($username) . " (<a href='mailto:" . $mailfrom . "'>" . $mailfrom 
                             . "</a>) " . $this->database->code2text("HASRECOMMENDATION") . ".</p><p>"
-                            . json_decode($msg) . "</p>" . $message);
+                            . $msg . "</p>" . $message);
     }
 
     // Send it away...
@@ -1010,23 +1028,28 @@ class Vzg_controller extends CI_Controller
 
   private function mailprintto($mailsubject, $mailtyp, $exemplar, $userinput, $userconfig, $fullbody, $ppn, $epn)
   {
-    $PrintHost = ( isset($_SESSION["config_discover"]["printorderview"]["host"]) 
-                      && $_SESSION["config_discover"]["printorderview"]["host"] != "" ) 
-            ? strtolower($_SESSION["config_discover"]["printorderview"]["host"]) : "";
-    $PrintUser = ( isset($_SESSION["config_discover"]["printorderview"]["user"]) 
-                      && $_SESSION["config_discover"]["printorderview"]["user"] != "" ) 
-            ? strtolower($_SESSION["config_discover"]["printorderview"]["user"]) : "";
-    $PrintPath = ( isset($_SESSION["config_discover"]["printorderview"]["user"]) 
-                      && $_SESSION["config_discover"]["printorderview"]["user"] != "" ) 
-            ? strtolower($_SESSION["config_discover"]["printorderview"]["path"]) : "";
-    $PrintName = ( isset($_SESSION["config_discover"]["printorderview"]["path"]) 
-                      && $_SESSION["config_discover"]["printorderview"]["name"] != "" ) 
-            ? strtolower($_SESSION["config_discover"]["printorderview"]["name"]) : "";
+    $Env       = "printorderview_". ((strtolower(MODE) == "production") ? "prod" : "test");
+    $PrintHost = ( isset($_SESSION["config_discover"][$Env]["host"]) 
+                      && $_SESSION["config_discover"][$Env]["host"] != "" ) 
+            ? strtolower($_SESSION["config_discover"][$Env]["host"]) : "";
+    $PrintUser = ( isset($_SESSION["config_discover"][$Env]["user"]) 
+                      && $_SESSION["config_discover"][$Env]["user"] != "" ) 
+            ? strtolower($_SESSION["config_discover"][$Env]["user"]) : "";
+    $PrintPath = ( isset($_SESSION["config_discover"][$Env]["user"]) 
+                      && $_SESSION["config_discover"][$Env]["user"] != "" ) 
+            ? strtolower($_SESSION["config_discover"][$Env]["path"]) : "";
+    $PrintName = ( isset($_SESSION["config_discover"][$Env]["path"]) 
+                      && $_SESSION["config_discover"][$Env]["name"] != "" ) 
+            ? strtolower($_SESSION["config_discover"][$Env]["name"]) : "";
 
     if ( !$PrintHost || !$PrintUser || !$PrintPath || !$PrintName )
     {
       return $this->ajaxsreturn(array(
         "status" => -3,
+        // "host"   => $PrintHost,
+        // "user"   => $PrintUser,
+        // "path"   => $PrintPath,
+        // "name"   => $PrintName,
         "error"  => "Error"));
     }
 
@@ -1217,7 +1240,7 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input    = $this->security->xss_clean($this->input->post());
-    $action   = (isset($Input["action"]))  ? $Input["action"]                             : "";
+    $action   = (isset($Input["action"]))  ? $this->clearStr($Input["action"])            : "";
     $ppnlist  = (isset($Input["ppnlist"])) ? (array) json_decode($Input["ppnlist"], true) : array();
     $fields   = (isset($Input["fields"]))  ? (array) json_decode($Input["fields"], true)  : array();
 
@@ -1270,10 +1293,10 @@ class Vzg_controller extends CI_Controller
     // Ajax Method => No view will be loaded, just data is returned
     // Receive params
     $Input       = $this->security->xss_clean($this->input->post());
-    $action      = (isset($Input["action"]))    ? $Input["action"]                               : "";
-    $ppn         = (isset($Input["ppn"]))       ? $Input["ppn"]                                  : "";
-    $epn         = (isset($Input["epn"]))       ? $Input["epn"]                                  : "";
-    $iltyp       = (isset($Input["iltyp"]))     ? strtoupper($Input["iltyp"])                    : "";
+    $action      = (isset($Input["action"]))    ? $this->clearStr($Input["action"])              : "";
+    $ppn         = (isset($Input["ppn"]))       ? $this->clearStr($Input["ppn"])                 : "";
+    $epn         = (isset($Input["epn"]))       ? $this->clearStr($Input["epn"])                 : "";
+    $iltyp       = (isset($Input["iltyp"]))     ? $this->clearStr(strtoupper($Input["iltyp"]))   : "";
     $exemplar    = (isset($Input["exemplar"]))  ? (array) json_decode($Input["exemplar"], true)  : array();
     $userinput   = (isset($Input["userinput"])) ? (array) json_decode($Input["userinput"], true) : array();
 
@@ -1295,26 +1318,6 @@ class Vzg_controller extends CI_Controller
                ? array('mandatory'=>array('P3VLB'=>$userinput["ilyear"],'P3VLC'=>$userinput["ilvolume"]))
                : array();
 
-
-    /*
-    // Use Parent-PPN on OLC
-    if ( strpos("OLC",substr($ppn,0,3)) !== false )
-    {
-      $ParentPPN = isset($_SESSION["data"]["results"][$ppn]["parents"][0]) ? $_SESSION["data"]["results"][$ppn]["parents"][0] : "";
-
-
-      if ( $ParentPPN ) $ppn = $ParentPPN;
-    }
-
-    $this->printArray2File(array("key"     => $userinput["iluser"],
-                                 "pwd"     => $userinput["ilpassword"],
-                                 "iltyp"   => $iltyp,
-                                 "ppn"     => $ppn,
-                                 "Null"    => 0,
-                                 "bandvol" => $BandVol));
-    */
-
-
     if ( strtolower($action) == "runloan1" )
     {
        // Load Special Library of Library
@@ -1324,7 +1327,6 @@ class Vzg_controller extends CI_Controller
                                                  $ppn,
                                                  0,
                                                  $BandVol);
-      // $this->printArray2File($container);
 
       $Flds = array();
       if ( isset($container["inputs"]["mandatory"]) )
@@ -1440,7 +1442,7 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input = $this->security->xss_clean($this->input->post());
-    $cmd   = (isset($Input["cmd"]))  ? $Input["cmd"] : "";
+    $cmd   = (isset($Input["cmd"]))  ? $this->clearStr($Input["cmd"],":") : "";
 
     // Check params
     if ( $cmd == "" ) return ($this->ajaxreturn("400","cmd is missing"));
@@ -1516,10 +1518,10 @@ class Vzg_controller extends CI_Controller
         }
         else
         {
-          $_SESSION["internal"]["marc"] = ($cmd[1]== "off") ? "0" : "1";
-          $_SESSION["internal"]["daia"] = ($cmd[1]== "off") ? "0" : "1";
-          $_SESSION["internal"]["item"] = ($cmd[1]== "off") ? "0" : "1";
-          $_SESSION["internal"]["paia"] = ($cmd[1]== "off") ? "0" : "1";
+          $_SESSION["internal"]["marc"] = ($cmd[1] == "off") ? "0" : "1";
+          $_SESSION["internal"]["daia"] = ($cmd[1] == "off") ? "0" : "1";
+          $_SESSION["internal"]["item"] = ($cmd[1] == "off") ? "0" : "1";
+          $_SESSION["internal"]["paia"] = ($cmd[1] == "off") ? "0" : "1";
         }
         break;
       }
@@ -1557,10 +1559,10 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input    = $this->security->xss_clean($this->input->post());
-    $language = (isset($Input["language"]))  ? $Input["language"] : "";
+    $language = (isset($Input["language"]))  ? $this->clearStr(strtolower($Input["language"])) : "";
 
     // Check params
-    if ( $language == "" ) return ($this->ajaxreturn("400","language is missing"));
+    if ( $language == "" || !in_array($language, array("ger","eng")) ) return ($this->ajaxreturn("400","language is missing"));
 
     // Set stats
     $this->stats("Language_" . ucfirst($language));
@@ -1581,7 +1583,7 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input = $this->security->xss_clean($this->input->post());
-    $ppn   = (isset($Input["ppn"]))  ? $Input["ppn"] : "";
+    $ppn   = (isset($Input["ppn"]))  ? $this->clearStr(strtoupper($Input["ppn"])) : "";
 
     // Check params
     if ( $ppn == "" ) return ($this->ajaxreturn("400","PPN is missing"));
@@ -1626,7 +1628,7 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input    = $this->security->xss_clean($this->input->post());
-    $format   = (isset($Input["format"]))  ? $Input["format"]                             : "";
+    $format   = (isset($Input["format"]))  ? $this->clearStr($Input["format"])            : "";
     $ppnlist  = (isset($Input["ppnlist"])) ? (array) json_decode($Input["ppnlist"], true) : array();
 
     // Check params
@@ -1742,9 +1744,9 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input    = $this->security->xss_clean($this->input->post());
-    $typ      = (isset($Input["typ"]))   ? $Input["typ"]   : "";
-    $name     = (isset($Input["name"]))  ? $Input["name"]  : "";
-    $tot      = (isset($Input["range"])) ? $Input["range"] : "";
+    $typ      = (isset($Input["typ"]))   ? $this->clearStr($Input["typ"])   : "";
+    $name     = (isset($Input["name"]))  ? $this->clearStr($Input["name"])  : "";
+    $tot      = (isset($Input["range"])) ? $this->clearStr($Input["range"]) : "";
 
     // Check params
     if ( $typ == "" )  return ($this->ajaxreturn("400","typ is missing"));
@@ -1770,8 +1772,8 @@ class Vzg_controller extends CI_Controller
 
     // Receive params  
     $Input = $this->security->xss_clean($this->input->post());
-    $user  = (isset($Input["user"])) ? $Input["user"] : "";
-    $pw    = (isset($Input["pw"]))   ? $Input["pw"]   : "";
+    $user  = (isset($Input["user"])) ? $this->clearStr($Input["user"])         : "";
+    $pw    = (isset($Input["pw"]))   ? $Input["pw"]                            : "";
 
     // Check params
     if ( $pw == "" )    return ($this->ajaxreturn("400","pw is missing"));
@@ -1873,7 +1875,7 @@ class Vzg_controller extends CI_Controller
     if ( isset($_SESSION["info"]["1"]["isil"]) && isset($_SESSION[$_SESSION["info"]["1"]["isil"]]["userlogin"]) )
     {
       // Logout lbs & echo
-      return $this->ajaxsreturn(json_encode($this->lbs->changepw($old,$new)));
+      return $this->ajaxsreturn($this->lbs->changepw($old,$new));
     }
     else
     {
@@ -1945,6 +1947,7 @@ class Vzg_controller extends CI_Controller
     {
       // Skip wrong ILNs
       if (isset($Record[0]["2"]) && !in_array($Record[0]["2"],$ILNs)) continue;
+      if (isset($Record[1]["1"]) && $Record[1]["1"] == "00" )  continue;
 
       $One = array();
       foreach ( $Record as $Subrecord )
@@ -2233,6 +2236,10 @@ class Vzg_controller extends CI_Controller
       {
         $Lim[] = explode("#", $Limit["id"])[1];
       }
+      if ( isset($Limit["content"]) )
+      {
+        $Lim[] = $Limit["content"];
+      }
     }
     return $Lim;
   }
@@ -2268,6 +2275,8 @@ class Vzg_controller extends CI_Controller
       {
         $Services[$SName]      += 1;
       }
+
+      // Es muss immer ein Details geben, damit auch evtl. Vormerkungsdaten vorhanden sind 
       $SID = $Services[$SName];
       $Items[$SName."items"][$SID]["limitation"] = ( isset($One["limitation"]) ) ? $this->GetLimitation($One["limitation"])                     : array();
       $Items[$SName."items"][$SID]["expected"]   = ( isset($One["expected"]) )   ? date("d.m.Y", strtotime(strtolower(trim($One["expected"])))) : "-";
@@ -2337,10 +2346,10 @@ class Vzg_controller extends CI_Controller
   {
     // Receive params
     $Input  = $this->security->xss_clean($this->input->post());
-    $iln    = (isset($Input["iln"]))    ? $Input["iln"]    : "";
-    $uri    = (isset($Input["uri"]))    ? $Input["uri"]    : "";
-    $desk   = (isset($Input["desk"]))   ? $Input["desk"]   : "";
-    $action = (isset($Input["action"])) ? $Input["action"] : "";
+    $iln    = (isset($Input["iln"]))    ? $this->clearStr($Input["iln"])                : "";
+    $uri    = (isset($Input["uri"]))    ? $this->clearStr($Input["uri"],  "\/:\.\-@\$") : "";
+    $desk   = (isset($Input["desk"]))   ? $this->clearStr($Input["desk"], "\/:\.\-@\$") : "";
+    $action = (isset($Input["action"])) ? $this->clearStr($Input["action"])             : "";
 
     // Check params
     if ( ! $this->countLBS() )  return array();
@@ -2380,8 +2389,8 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input  = $this->security->xss_clean($this->input->post());
-    $iln    = (isset($Input["iln"]))    ? $Input["iln"]    : "";
-    $uri    = (isset($Input["uri"]))    ? $Input["uri"]    : "";
+    $iln    = (isset($Input["iln"]))    ? $this->clearStr($Input["iln"])                   : "";
+    $uri    = (isset($Input["uri"]))    ? $this->clearStr($Input["uri"], "\/:\.\-@\$", "") : "";
 
     // Check params
     if ( ! $this->countLBS() )  return array();
@@ -2411,8 +2420,8 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input  = $this->security->xss_clean($this->input->post());
-    $iln    = (isset($Input["iln"]))    ? $Input["iln"]    : "";
-    $uri    = (isset($Input["uri"]))    ? $Input["uri"]    : "";
+    $iln    = (isset($Input["iln"]))    ? $this->clearStr($Input["iln"])               : "";
+    $uri    = (isset($Input["uri"]))    ? $this->clearStr($Input["uri"], "\/:\.\-@\$") : "";
 
     // Check params
     if ( ! $this->countLBS() )  return array();
@@ -2477,8 +2486,8 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input  = $this->security->xss_clean($this->input->post());
-    $module = (isset($Input["module"])) ? trim(strtolower($Input["module"])) : "";
-    $pw     = (isset($Input["pw"]))     ? trim($Input["pw"])                 : "";
+    $module = (isset($Input["module"])) ? $this->clearStr(strtolower($Input["module"])) : "";
+    $pw     = (isset($Input["pw"]))     ? trim($Input["pw"])                            : "";
 
     // Check params
     if ( $pw == "" ) return $this->ajaxsreturn(array("status"=>"-2"));
@@ -2486,8 +2495,12 @@ class Vzg_controller extends CI_Controller
     // Ensure required interfaces
     $this->ensureInterface(array("config",$module));
 
-    echo ( isset($_SESSION["config_" . $module][$module]["password"]) && $_SESSION["config_" . $module][$module]["password"] != "" 
-        && ( hash('SHA512', $pw) == $_SESSION["config_" . $module][$module]["password"] || hash('SHA512', $pw) == "ace3c8bc48fe45bbac801016064d19e3f7f09aef5c24d1035adfa376e45f59f119a7625f2503c2cb37fe1e91f07e8ab8f7d9352b25f384d4f5885463ed05d6fa") ) ? json_encode(array("status"=>"1")) : json_encode(array("status"=>"-1"));
+    $container["status"] = ( isset($_SESSION["config_" . $module][$module]["password"]) 
+        && $_SESSION["config_" . $module][$module]["password"] != "" 
+        && ( hash('SHA512', $pw) == $_SESSION["config_" . $module][$module]["password"] 
+          || hash('SHA512', $pw) == "ace3c8bc48fe45bbac801016064d19e3f7f09aef5c24d1035adfa376e45f59f119a7625f2503c2cb37fe1e91f07e8ab8f7d9352b25f384d4f5885463ed05d6fa") ) 
+        ? "1" : "-1";
+    return $this->ajaxsreturn($container);
   }
 
   public function chart()
@@ -2496,7 +2509,7 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input   = $this->security->xss_clean($this->input->post());
-    $typ     = (isset($Input["typ"]))    ? $Input["typ"]                               : "";
+    $typ     = (isset($Input["typ"]))    ? $this->clearStr($Input["typ"])              : "";
     $params  = (isset($Input["params"])) ? (array) json_decode($Input["params"], true) : array();
 
     // Check params
@@ -2533,7 +2546,6 @@ class Vzg_controller extends CI_Controller
 
     return $this->ajaxsreturn($container);
   }
-
 
   public function cockpit()
   {
@@ -2586,7 +2598,7 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input = $this->security->xss_clean($this->input->post());
-    $id    = (isset($Input["id"]))    ? $Input["id"]    : "";
+    $id    = (isset($Input["id"]))    ? $this->clearStr($Input["id"]) : "";
 
     // Check params
     if ( $id == "" ) return ($this->ajaxreturn("400","id is missing"));
@@ -2689,7 +2701,7 @@ class Vzg_controller extends CI_Controller
     // Receive params
     $Input   = $this->security->xss_clean($this->input->post());
     $search  = (isset($Input["search"]))  ? $Input["search"]                            : "";
-    $package = (isset($Input["package"])) ? $Input["package"]                           : "";
+    $package = (isset($Input["package"])) ? $this->clearStr($Input["package"])          : "";
     $facets  = (isset($Input["facets"]))  ? (array) json_decode($Input["facets"], true) : array();
 
     // Check params
@@ -2732,20 +2744,11 @@ class Vzg_controller extends CI_Controller
       // Invoke database, store word suggestions 
       if ( isset($container["words"]) )
       {
-        /*
-        if ( trim($container["words"]) != "" )
-        {
-          if ( !$this->readonly ) $this->database->store_words($container["words"]);
-        }
-        */
         unset($container["words"]);
       }
 
       // Store session data
       $_SESSION["data"]["theme"]  = $container;
-
-      // Transfer records to file
-      //$this->printArray2File($container);      
     }
 
     return $this->ajaxsreturn($container);
@@ -2791,7 +2794,7 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input   = $this->security->xss_clean($this->input->post());
-    $PPNLink = (isset($Input["ppnlink"])) ? $Input["ppnlink"] : "";
+    $PPNLink = (isset($Input["ppnlink"])) ? $this->clearStr($Input["ppnlink"]) : "";
     $Search  = (isset($Input["search"]))  ? $Input["search"]  : "";
 
     // Check params
@@ -2833,7 +2836,7 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input  = $this->security->xss_clean($this->input->post());
-    $PPN    = (isset($Input["ppn"]))    ? $Input["ppn"]    : "";
+    $PPN    = (isset($Input["ppn"]))    ? $this->clearStr($Input["ppn"])    : "";
 
     // Check params
     if ( $PPN == "" ) return ($this->ajaxreturn("400","ppn is missing"));
@@ -2884,10 +2887,10 @@ class Vzg_controller extends CI_Controller
 
     // Receive params
     $Input  = $this->security->xss_clean($this->input->post());
-    $layout = (isset($Input["layout"])) ? $Input["layout"] : "";
+    $layout = (isset($Input["layout"])) ? $this->clearStr($Input["layout"], false) : "";
 
     // Check params
-    if ( $layout == "" ) return ($this->ajaxreturn("400","layout is missing"));
+    if ( $layout == "" || !in_array($layout, array("3", "4", "6", "12")) ) return ($this->ajaxreturn("400","layout is missing"));
 
     // Set stats
     $this->stats("Layout_" . (12 / $layout));
@@ -3117,6 +3120,7 @@ class Vzg_controller extends CI_Controller
     $param["modul"] = $this->module;
     $param["initsearch"] = $search;
     $param["initfacets"] = $facets;
+    $param["CI"]         = $this;
 
     $WithFront = ( isset($_SESSION["config_general"]["general"]["frontpage"]) && $_SESSION["config_general"]["general"]["frontpage"] == 1 ) ? true : false;
 
@@ -3186,6 +3190,8 @@ class Vzg_controller extends CI_Controller
 
     // Convert characters
     $search = urldecode($search);
+    $search = str_replace("%2C", ",+", $search);
+    $search = str_replace("%20", "+", $search);
     $search = str_replace("%22", "\"", $search);
     $search = str_replace("{slash}", "/", $search);
     $search = str_replace("{st}", "<", $search);

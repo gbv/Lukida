@@ -4,12 +4,10 @@ if ( ! isset($_SESSION["iln"]) )  return;
 
 $PPNLink = $this->CI->internal_search("ppnlink",$this->PPN);
 
-// $this->CI->printArray2Screen($PPNLink);
-
 if ( ! isset($PPNLink["results"]) ) return;
 
 $PPNStg = json_encode(array_keys($PPNLink["results"]));
-//$PPNStg = json_encode(array(12,3,2,3,4,2));
+
 foreach ( $PPNLink["results"] as $One )
 {
   $this->contents = $One["contents"];

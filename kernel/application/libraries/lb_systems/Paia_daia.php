@@ -309,7 +309,7 @@ class Paia_daia extends General
 
     $doc = array("doc" => array(array("item" => $uri)));
     $response = $this->postAsArray($this->paia.'/core/' . $_SESSION[$this->isil]["userlogin"] .'/request', $doc);
-    //$this->CI->printArray2File($response);
+    
     if ( isset($response["doc"][0]["error"]) )
     {
       return (array("status" => -2,
@@ -330,7 +330,7 @@ class Paia_daia extends General
 
     $doc = array("doc" => array(array("item" => $uri)));
     $response = $this->postAsArray($this->paia.'/core/' . $_SESSION[$this->isil]["userlogin"] .'/cancel', $doc);
-    //$this->CI->printArray2File($response);
+    
     if ( isset($response["doc"][0]["error"]) )
     {
       return (array("status" => -2,

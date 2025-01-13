@@ -1,7 +1,5 @@
 <?php
 
-//$this->CI->printArray2File($response);
-
 class Paia2_daia2 extends General
 {
   protected $CI;
@@ -84,7 +82,7 @@ class Paia2_daia2 extends General
       trigger_error(curl_error($http));
     }
 
-    if ( substr($file,-12) == "/auth/change" )  $data = utf8_decode($data);
+    // if ( substr($file,-12) == "/auth/change" )  $data = utf8_decode($data);
 
     curl_close($http);
     return $data;
@@ -440,7 +438,9 @@ class Paia2_daia2 extends General
     */
     $post_data = array("patron" => $_SESSION[$this->isil]["userlogin"], "username" => $_SESSION[$this->isil]["userlogin"], "old_password" => $old, "new_password" => $new);
 
-    $change_response = json_decode($this->postit($this->paia.'/auth/change', $post_data, $_SESSION[$this->isil]['paiaToken']),true);
+    $change_response = (array) json_decode($this->postit($this->paia.'/auth/change', $post_data, $_SESSION[$this->isil]['paiaToken']),true);
+
+		file_put_contents("alex.txt", print_r($change_response, true));
 
     if ( isset($change_response["error_description"]) )
     {
@@ -448,6 +448,7 @@ class Paia2_daia2 extends General
                     "error"  => $this->CI->database->code2text("PASSWORDCHANGEFAILED")));
     }
 
+  
     $this->login($_SESSION[$this->isil]["userlogin"], $new);
 
     return (array("status" => 0));

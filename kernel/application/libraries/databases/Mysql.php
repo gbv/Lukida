@@ -391,9 +391,9 @@ class Mysql extends General
       foreach ( $Filter as $One )
       {
         if ( isset($One["classification"]) && isset($One["code"]) && in_array(strtoupper($One["classification"]),
-                                                                              array("ASB",  "BBK",  "BKL", "CLC", "DDC",    "FID",
-                                                                                    "FIVR", "FIVS", "KAB", "MSC", "NATLIZ", "NLM",
-                                                                                    "RVK",  "SDNB", "SFB", "SSD", "SSGN",   "ZDBS")) )
+                                                                              array("ASB",  "BBK",  "BKL", "CLC", "DDC",  "ESSB",   "FID",
+                                                                                    "FIVR", "FIVS", "GHB", "KAB", "MSC",  "NATLIZ", "NLM",
+                                                                                    "RVK",  "SDNB", "SFB", "SSD", "SSGN", "ZDBS")) )
         {
           $CNT++;
           $SQL .= ($CNT == 1) ? " where" : " or";

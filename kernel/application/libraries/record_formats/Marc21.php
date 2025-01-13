@@ -391,8 +391,6 @@ class Marc21 extends General
     }
     $container["results"] = $results_reduced;
 
-    // $this->CI->printArray2File($results_reduced);
-
     return ($container);
   }
 

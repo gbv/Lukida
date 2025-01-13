@@ -19,9 +19,6 @@ if ( isset($DAIA["document"]) && empty($DAIA["document"]) )
 
 if (!is_array($DAIA)) return;
 
-// $this->CI->printArray2Screen($DAIA["document"]);
-// $this->CI->printArray2Screen($DAIA);
-
 // Part Lukida Driver & Host
 $Output .= "<tr><td class='tabcell'>driver <i class='fa fa-arrow-right' aria-hidden='true'></i> host</td><td class='tabcell'><font color='red'>" . $_SESSION["info"]["1"]["driver"] . " <i class='fa fa-arrow-right' aria-hidden='true'></i> " . $_SESSION["info"]["1"]["host"] . "/" . $_SESSION["info"]["1"]["isil"] . "</font></td></tr>";
 

@@ -2,8 +2,6 @@
 
 $PAIA = $_SESSION[$_SESSION["info"]["1"]["isil"]]["login"] + $_SESSION[$_SESSION["info"]["1"]["isil"]]["items"] + $_SESSION[$_SESSION["info"]["1"]["isil"]]["fees"];
 
-// $this->CI->printArray2Screen($PAIA);
-
 // Part Lukida Driver & Host
 $Output .= "<tr><td class='tabcell'>driver <i class='fa fa-arrow-right' aria-hidden='true'></i> host</td><td class='tabcell'><font color='red'>" . $_SESSION["info"]["1"]["driver"] . " <i class='fa fa-arrow-right' aria-hidden='true'></i> " . $_SESSION["info"]["1"]["host"] . "/" . $_SESSION["info"]["1"]["isil"] . "</font></td></tr>";
 

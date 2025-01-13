@@ -1,7 +1,5 @@
 <?php
 
-// $this->CI->printArray2Screen( $_SESSION["usermailorders"] );
-
 $Output .= "<tr><td colspan='5'>" . $this->CI->database->code2text("MAILORDER30") . "</td></tr>";
 $Output .= "<tr><td colspan='5'>" . $this->CI->database->code2text("ORDERSTATUS") . "</td></tr>";
 

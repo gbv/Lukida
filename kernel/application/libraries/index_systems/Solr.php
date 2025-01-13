@@ -66,6 +66,23 @@ class Solr extends General
     }
   }
 
+  private function CleanForeignID($string)
+  {
+    if ( is_array($string) )
+    {
+      foreach ($string as &$one)
+      {
+        $one = $this->CleanID($one);
+      }
+      return $string;
+    }
+    else
+    {
+      $string = trim($string, " '\"");
+      return str_replace(array("(",")"), array("\(","\)"), substr($string,0,8)) . preg_replace("/[^A-Z\(\)a-z0-9_]/", "", substr($string,8));
+    }
+  }
+
   private function solr_edismax($search,$package,$facets)
   {
 
@@ -82,7 +99,7 @@ class Solr extends General
       $Tmp = explode(",",substr($search, 10, strlen($search)-11));
       foreach ($Tmp as &$One) 
       {
-        $One = $this->CleanID($One);
+        $One = $this->CleanForeignID($One);
       }
       $matches = array
       (
@@ -134,12 +151,10 @@ class Solr extends General
       }
     }
 
-    // $this->CI->printArray2File($matches);
-
     // Remove not allowed complex phrases based on used key
     foreach ( $matches[1] as $index => $key )
     {
-      if ( ! in_array(strtolower(trim($key)), array("abruf", "acqdate","author","autor","call","class", "classlocal",
+      if ( ! in_array(strtolower(trim($key)), array("abruf", "acqdate","author","autor","call","class", "classlocal","doi",
         "client","collection","collection_details","contents","corporation","country","erwdatum","foreignid","format","format2",
         "genre","id","inhalt","isn","jahr","koerper","land","langcode","language","location","mandant","norm","ppn","ppnlink","prov","publisher",
         "reihe","sachgebiet","schlagwort","series","signatur","signature","sprache","sprachcode","standort","subject","thema","titel",
@@ -153,7 +168,6 @@ class Solr extends General
     // to build query string MainSearch
     $MainSearch = "";
     $search     = trim($search);
-    // $this->CI->printArray2File($search);
     foreach ( $matches[0] as $index => $complex )
     {
       $CType = strtolower(trim($matches[1][$index]));
@@ -212,6 +226,9 @@ class Solr extends General
             break;
           case "classlocal":
             if ( isset($_SESSION["iln"]) )  $MainSearch .= "(notation_local_iln_str_mv:" . $_SESSION["iln"] . "\:" . $Phrases[0] . ")";
+            break;
+          case "doi":
+            $MainSearch .= "(doi_str_mv:" . $Phrases[0] . ")";
             break;
           case "isn":
             $MainSearch .= "(issn:" . $Phrases[0] . " OR isbn:" . $Phrases[0] . ")";
@@ -274,7 +291,7 @@ class Solr extends General
             break;
           case "erwdatum":
           case "acqdate":
-            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selektneu_str_mv:" . $_SESSION["iln"] . "@" . $Phrases[0] . ")";
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(last_changed_iln_str_mv:" . $_SESSION["iln"] . "@" . $Phrases[0] . ")";
             break;
           case "abruf":
           case "call":
@@ -314,14 +331,15 @@ class Solr extends General
             $MainSearch .= "(publishDateSort:" . $Phrases[0] . ")";
             break;
           case "ppnlink":
-            $MainSearch .= "(id:" . $this->CleanID($Phrases[0]) . ")";
+            $MainSearch .= "(ppnlink:" . $this->CleanID($Phrases[0]) . ")";
             break;
           case "id":
           case "ppn":
             $MainSearch .= "(id:" . $this->CleanID($Phrases[0]) . ")";
             break;
           default:
-            $MainSearch .= $CType . "\:" . $Phrases[0] . "";
+            // Kein Backslash bei diesem Doppelpunkt !!!
+            $MainSearch .= $CType . ":" . $Phrases[0] . "";
         }
       }
       else
@@ -368,6 +386,9 @@ class Solr extends General
           case "classlocal":
             if ( isset($_SESSION["iln"]) )  $MainSearch .= "(notation_local_iln_str_mv:" . $_SESSION["iln"] . "\:" . implode(" OR notation_local_iln_str_mv:" . $_SESSION["iln"] . "\:", $Phrases) . ")";
             break;
+          case "doi":
+            $MainSearch .= "(doi_str_mv:" .  implode(" OR doi_str_mv:", $Phrases) . ")";
+            break;
           case "isn":
             $MainSearch .= "(issn:" . implode(" OR issn:", $Phrases) . " OR "
                          . " isbn:" . implode(" OR isbn:",$Phrases) . ")";
@@ -399,7 +420,7 @@ class Solr extends General
             break;
           case "erwdatum":
           case "acqdate":
-            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(selektneu_str_mv:" . $_SESSION["iln"] . "@" . implode(" OR selektneu_str_mv:" . $_SESSION["iln"] . "@", $Phrases) . ")";
+            if ( isset($_SESSION["iln"]) )  $MainSearch .= "(last_changed_iln_str_mv:" . $_SESSION["iln"] . "@" . implode(" OR last_changed_iln_str_mv:" . $_SESSION["iln"] . "@", $Phrases) . ")";
             break;
           case "abruf":
           case "call":
@@ -453,6 +474,7 @@ class Solr extends General
             $MainSearch .= "(id:" . implode(" OR id:", $this->CleanID($Phrases)) . ")";
             break;
           default:
+            // Kein Backslash bei diesem Doppelpunkt !!!
             $MainSearch .= "(" . $CType . ":" . implode(" OR " . $CType . ":",$Phrases) . ")";
         }
       }
@@ -752,8 +774,6 @@ class Solr extends General
     // Store query in session
     $_SESSION["query"] = (string) $dismaxQuery;
 
-    // $this->CI->printArray2File($_SESSION["query"]);
-
     // Execute query
     try 
     {
@@ -830,7 +850,7 @@ class Solr extends General
     $this->facets = $facets;        
 
     if ( isset($params['phonetic'] ) )  $this->phoneticsearch = $params['phonetic'];
-    
+
     // Before search
     $this->search = $this->solr_before($this->search);
 
@@ -890,16 +910,10 @@ class Solr extends General
       ->addFilterQuery('collection_details:GBV_ILN_' . $_SESSION['iln']);
     }    
 
-    // Store query in file
-    // $this->CI->printArray2File((string) $dismaxQuery);
-
     // Execute query
     $query_response = $client->query($dismaxQuery);
 
     $container = $query_response->getResponse();
-
-    // Store answer in file
-    // $this->CI->printArray2File($container);
 
     $PPNList = array();
     if ( isset($container["moreLikeThis"][1]["docs"]))

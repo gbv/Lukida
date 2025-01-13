@@ -68,8 +68,6 @@ class Bootstrap extends General
 
       $this->words .= " " . $this->pretty["title"] . " " . implode(" ",array_column($this->pretty["author"], "name"));
 
-      // $this->CI->printArray2File($_SESSION["data"]["results"][$this->PPN]);
- 
       $Output = "<div id='" . $this->PPN . "' class='medium " . $columns . "'><div class='panel'>";
       if ( $PPNList )
       {
@@ -205,8 +203,6 @@ class Bootstrap extends General
 
     $_SESSION["data"]["results"][$this->PPN] = array_merge($_SESSION["data"]["results"][$this->PPN],$this->SetContents("fullview"));
     $this->pretty                            = $_SESSION["data"]["results"][$this->PPN];
-
-    // $this->CI->printArray2File($_SESSION["data"]["results"][$this->PPN]);
 
     // Start Output
     $Output = $this->header();

@@ -544,8 +544,8 @@ if ( isset($this->pretty["seealso"]) && count($this->pretty["seealso"]) > 0 )
         if ( $key == "t" && is_array($value) && isset($value[0]) )    $FoundText .= ( $FoundText != "" ) ? ": " . trim($value[0]) : trim($value[0]);
         if ( $key == "d" && trim($value) != "" )                      $FoundText .= ", " . trim($value);
         if ( $key == "d" && is_array($value) && isset($value[0]) )    $FoundText .= ", " . trim($value[0]);
-        if ( $key == "w" && substr(trim($value),0,8) == "(DE-600)" )  { $FoundLink  = $value; $Intern = false;}
-        if ( $key == "w" && in_array(substr(trim($value),0,8), array("(DE-601)","(DE-627)") ) )  { $FoundLink  = trim(substr(trim($value),8)); $Intern = true;}
+        if ( $key == "w" && !$FoundLink && in_array(substr(trim($value),0,8), array("(DE-601)","(DE-627)") ) )  { $FoundLink  = trim(substr(trim($value),8)); $Intern = true;}
+        if ( $key == "w" && !$FoundLink && substr(trim($value),0,8) == "(DE-600)" )  { $FoundLink  = $value; $Intern = false;}
       }
     }
     if ( $FoundText != "" && $FoundLink != "" )
@@ -783,6 +783,7 @@ if ( isset($this->pretty["genre"]) && count($this->pretty["genre"]) > 0 )
     if ( !$First ) $Output .= " | ";
     $Output .= ( isset($one["norm"]) && $one["norm"] ) ? $this->link("norm",  $one["norm"], $one["name"])
                                                        : $this->link("genre", $one["name"]);
+    if ( isset($one["more"]) && $one["more"] )	$Output .= $one["more"];
     $First = false;
   }
   $Output .=  "</td></tr>";

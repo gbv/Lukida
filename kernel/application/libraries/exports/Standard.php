@@ -17,8 +17,6 @@ class Standard extends General
     $this->contents = $_SESSION["data"]["results"][$this->PPN];
     $this->configExport   = $_SESSION["config_general"]["export"];
     $this->configGeneral  = $_SESSION["config_general"]["general"];
-    //$this->CI->printArray2File($this->contents);
-    //return (array("sfx"=>"http://www.handball.de","jop"=>"http://www.fussball.de"));
 
     $linkarray = array();
 
@@ -48,7 +46,6 @@ class Standard extends General
           }
         }
       }
-      //If count($fulltextPriosArray) == 1 then possible here $prio is "single"
     }
     else 
     {
@@ -87,426 +84,11 @@ class Standard extends General
 
   public function exportfile($data, $format)
   {
-    // Create File Data
-    // Um die Daten zu sehen, die folgende Zeile aktivieren:
-    // $this->CI->printArray2File($data);
-    $exportTags = array( 
-        "format"         => array("citavi" => "TY  - ", "endnote" => "%0 ", "bibtex" => "@"            ),
-        "id"             => array("citavi" => "ID  - ", "endnote" => "%M ", "bibtex" => "-"            ),
-        "title"          => array("citavi" => "T1  - ", "endnote" => "%T ", "bibtex" => "title = {"    ),
-        "booktitle"      => array("citavi" => "BT  - ", "endnote" => "%B ", "bibtex" => "booktitle = {"),
-        "subtitle"       => array("citavi" => "T2  - ", "endnote" => "%Q ", "bibtex" => "note = {"     ),
-        "series"         => array("citavi" => "T3  - ", "endnote" => "%B ", "bibtex" => "series = {"   ),
-        "journal"        => array("citavi" => "JF  - ", "endnote" => "%J ", "bibtex" => "journal = {"  ),
-        "author"         => array("citavi" => "A1  - ", "endnote" => "%A ", "bibtex" => "author = {"   ),
-        "associates"     => array("citavi" => "A2  - ", "endnote" => "%E ", "bibtex" => "editor = {"   ),
-        "language"       => array("citavi" => "LA  - ", "endnote" => "%G ", "bibtex" => "language = {" ),
-        "note"           => array("citavi" => "N1  - ", "endnote" => "%Z ", "bibtex" => "note = {"     ),
-        "school"         => array(                                          "bibtex" => "school = {"   ),
-        "type"           => array(                                          "bibtex" => "type = {"     ),
-        "summary"        => array("citavi" => "N2  - ", "endnote" => "%X ", "bibtex" => "abstract = {" ),
-        "issn"           => array("citavi" => "SN  - ", "endnote" => "%@ ", "bibtex" => "issn = {"     ),
-        "isbn"           => array("citavi" => "SN  - ", "endnote" => "%@ ", "bibtex" => "isbn = {"     ),
-        "edition"        => array("citavi" => "ET  - ", "endnote" => "%7 ", "bibtex" => "edition = {"  ),
-        "phydescription" => array("citavi" => "U1  - ", "endnote" => "%P ", "bibtex" => "note = {"     ),
-        "placepublished" => array("citavi" => "CY  - ", "endnote" => "%C ", "bibtex" => "address = {"  ),
-        "publisher"      => array("citavi" => "PB  - ", "endnote" => "%I ", "bibtex" => "publisher = {"),
-        "year"           => array("citavi" => "PY  - ", "endnote" => "%D ", "bibtex" => "year = {"     ),
-        "volume"         => array("citavi" => "VL  - ", "endnote" => "%V ", "bibtex" => "volume = {"   ),
-        "issue"          => array("citavi" => "IS  - ", "endnote" => "%N ", "bibtex" => "number = {"   ),
-        "startpage"      => array("citavi" => "SP  - "                                                 ),
-        "endpage"        => array("citavi" => "EP  - "                                                 ),
-        "pages"          => array(                      "endnote" => "%P ", "bibtex" => "pages = {"    ),
-        "doi"            => array("citavi" => "DO  - ", "endnote" => "%R ", "bibtex" => "doi = {"      ),
-        "subject"        => array("citavi" => "KW  - ", "endnote" => "%K ", "bibtex" => "keywords = {" ),
-        "volltext"       => array("citavi" => "UR  - ", "endnote" => "%U ", "bibtex" => "url = {"      ),
-        "institute"      => array("citavi" => "S1  - ", "endnote" => "%W "                             ),
-        "database"       => array("citavi" => "S2  - ", "endnote" => "%~ "                             ),
-        "sid"            => array("citavi" => "S3  - "                                                 ),
-        "url"            => array("citavi" => "L3  - "                                                 ),
-        "endtag"         => array("citavi" => "ER  - ",                     "bibtex" => "}"            )
-    )
-    ;
-    $tagPrefix       = $format == "bibtex" ? "\t" : "";
-    $tagExtention    = $format == "bibtex" ? "},\r\n" : "\r\n";
-
-    $metadataOU = "";
-    if ($format == "bibtex")
-    {
-      if (substr($data["leader"],7,1) == "m" && substr($data["leader"],19,1) == "a")
-        $data["format"] = "collection";
-      elseif (!empty($data["genre"][0]["name"]) && strpos($data["genre"][0]["name"], "Hochschul") !== false) 
-      {
-        if (!empty($data["contents"][502][0][0]["b"]) || !empty($data["contents"][502][0][0]["a"]))
-        {
-          if(strpos($data["contents"][502][0][0]["b"], "Diss") !== false) 
-               $data["format"] = "phdthesis";
-          elseif(strpos($data["contents"][502][0][0]["a"], "Studienarb") !== false)
-               $data["format"] = "techreport";
-          else $data["format"] = "mastersthesis";
-        }
-      }
-      elseif (!empty($data["genre"][0]["name"]) && strpos($data["genre"][0]["name"], "Konferenz") !== false) 
-      {
-        if(strpos($data["contents"][338][0][0]["a"], "Band") !== false)
-             $data["format"] = "proceedings";
-        else $data["format"] = "conference";
-      }
-      elseif (!empty($data["format"]) && $data["format"] != "article" && empty($data["publisher"][0]["b"]))
-      {
-        $data["format"] = "booklet";
-      }
-      elseif (!empty($data["isbn"]) && $data["format"] == "article")
-      {
-        $data["format"] = "inbook";
-      }
-      elseif(!empty($data["isbn"]) && !empty($data["contents"][338][0][0]["a"]) && strpos($data["contents"][338][0][0]["a"], "Band") !== false)
-      {
-        $data["format"] = "incollection";
-      }
-      elseif (!empty($data["format"]) && $data["format"] == "journal")
-        $data["format"] = "periodical";
-      elseif (!empty($data["format"]) && $data["format"] == "unknown")
-        $data["format"] = "unpublished";
-      elseif (!empty($data["format"]) && strpos("article,book,datamedia,game,manuscript,map,microform,mixedmaterials,monographseries,motionpicture,musicalscore,picture,projectedmedium,serialvolume,soundrecording,", $data["format"]) === false)
-        $data["format"] = "misc"; 
-    }
-    if (!empty($data["format"])) 
-    {
-      $metadataOU = $exportTags["format"][$format] . $data["format"] . ( $format == "bibtex" ? "" : $tagExtention );
-    }	
-	if ($format === "bibtex") { $metadataOU .= "{GBV"; }
-    if (isset($data["id"]) && $data["id"] != "") 
-    {
-      $metadataOU .= $exportTags["id"][$format] . $data["id"] . ( $format == "bibtex" ? ",\r\n" : $tagExtention );
-    }
-    if (isset($data["title"]) && $data["title"] != "") 
-    {
-      if (!empty($data["part"]))
-      {
-         $metadataOU .= $tagPrefix . $exportTags["title"][$format] . htmlspecialchars_decode($data["part"]) . $tagExtention;
-         $metadataOU .= $tagPrefix . $exportTags["booktitle"][$format] . htmlspecialchars_decode($data["title"]) . $tagExtention;
-      }
-      else 
-         $metadataOU .= $tagPrefix . $exportTags["title"][$format] . htmlspecialchars_decode($data["title"]) . $tagExtention;
-    }
-    if (isset($data["publisherarticle"])) 
-    {
-      if (is_array($data["publisherarticle"])) 
-      {
-        if (count($data["publisherarticle"]) >= 1 && isset($data["publisherarticle"][0]["t"]) && $data["publisherarticle"][0]["t"] != "") 
-        {
-          $publisherarticle = htmlspecialchars_decode($data["publisherarticle"][0]["t"]);
-        }
-      }
-      else $publisherarticle = htmlspecialchars_decode($data["publisherarticle"]);
-      if (!empty($publisherarticle)) 
-      {
-        $metadataOU .= $tagPrefix . (empty($data["isbn"]) ? $exportTags["journal"][$format] : $exportTags["series"][$format]) . (stripos($publisherarticle, "in:") !== false ?
-        trim(substr($publisherarticle,stripos($publisherarticle, "in:") + 3)) :
-        $publisherarticle) . $tagExtention;
-      }
-    }
-	if (isset($data["contents"]["240"][0][0]["a"]) && $data["contents"]["240"][0][0]["a"] != "")
-	{
-		$metadataOU .= $tagPrefix . $exportTags["subtitle"][$format] . $data["contents"]["240"][0][0]["a"] . $tagExtention;
-	}
-	elseif (isset($data["contents"]["246"][0][1]["a"]) && $data["contents"]["246"][0][1]["a"] != "") {
-		$metadataOU .= $tagPrefix . $exportTags["subtitle"][$format] . $data["contents"]["246"][0][1]["a"] . $tagExtention;
-	}
-    if (isset($data["serial"])) 
-    {
-      if (is_array($data["serial"])) 
-      {
-        if (count($data["serial"]) >= 1) 
-        {
-          $seri = 1;
-          foreach($data["serial"] as $serial) 
-          {
-            foreach($serial as $sKey=>$sValue) 
-            {
-              if (!empty($sValue) && $sKey == "a") 
-              {
-                $metadataOU .= (($seri == 1) ? ($tagPrefix . $exportTags["series"][$format]) : " | ") . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
-              }
-              else 
-			  { $metadataOU .= " " . $sValue;
-              }
-            }
-            $seri++;
-          }
-          $metadataOU .= $tagExtention;
-        }
-      }
-      elseif ($data["serial"] != "") 
-      {
-        $metadataOU .= $tagPrefix . $exportTags["series"][$format] . ((stripos($data["serial"], "in: ") !== false) ? trim(substr($data["serial"],stripos($data["serial"], "in:") + 3)) : $data["serial"]) . $tagExtention;
-      }
-    }
-    if (isset($data["author"])) 
-    {
-      if (!empty($data["author"])) 
-      {
-          $ai = 1; $metadataAu = "";
-          foreach($data["author"] as $author) 
-          {
-            if (!empty($author["name"]))
-            {
-              $metadataAu .= ($format == "bibtex") ? ((($ai > 1) ? " and " : ($tagPrefix . $exportTags["author"][$format])) . $author["name"]) : 
-                             ($tagPrefix . $exportTags["author"][$format] . $author["name"] . $tagExtention);
-              $ai++;
-            }
-          }
-          if( !empty($metadataAu) ) 
-            $metadataOU .= $metadataAu . (($format == "bibtex") ? $tagExtention : "");
-      }
-    }
-	if (!empty($data["language"][0]))
-	{
-		$metadataOU .= $tagPrefix . $exportTags["language"][$format] . $data["language"][0] . $tagExtention;
-	}
-	if (is_array($data["notes"]) && count($data["notes"]) >= 1) 
-    {
-        foreach($data["notes"] as $note) 
-        {
-          if (!empty($note) && $note != "") 
-          {
-             $metadataOU .= $tagPrefix . $exportTags["note"][$format] . htmlspecialchars_decode($note) . $tagExtention;
-          }
-        }
-    }
-	if (isset($data["dissertation"]) && $data["dissertation"] != "")
-    {
-		$metadataOU .= $tagPrefix . $exportTags["note"][$format] . $data["dissertation"] . $tagExtention;
-    }
-	if (isset($data["summary"]) && $data["summary"] != "")
-    {
-		$metadataOU .= $tagPrefix . $exportTags["summary"][$format] . htmlspecialchars_decode($data["summary"]) . $tagExtention;
-    }
-	if (isset($data["associates"])) 
-    {
-      if (!empty($data["associates"])) 
-      {
-          $assi = 1; $metadataAss = "";
-          foreach($data["associates"] as $associate) 
-          {
-            if (($format != "bibtex" || $associate["role"] == "Herausgeber") && !empty($associate["name"]))
-            {
-              $metadataAss .= ($format == "bibtex") ? ((($assi > 1) ? " and " : ($tagPrefix . $exportTags["associates"][$format])) . $associate["name"]) : 
-                              ($tagPrefix . $exportTags["associates"][$format] . $associate["name"] . $tagExtention);
-              $assi++;
-            }
-          }
-          if( !empty($metadataAss) ) 
-            $metadataOU .= $metadataAss . (($format == "bibtex") ? $tagExtention : "");
-      }
-    }
-	if (isset($data["computerfile"]) && $data["computerfile"] != "")
-	{
-		$metadataOU .= $tagPrefix . $exportTags["note"][$format] . $data["computerfile"] . $tagExtention;
-	}
-	if (!empty($data["isbn"])) 
-	{
-		if (is_array($data["isbn"])) 
-		{
-			if (count($data["isbn"]) >= 1) 
-			{
-				foreach($data["isbn"] as $isbn) 
-				{
-					if ($isbn != "") 
-					{
-						$metadataOU .= $tagPrefix . $exportTags["isbn"][$format] . $isbn . $tagExtention;
-						break;
-					}
-				}
-			}
-		}
-		elseif ($data["isbn"] != "") 
-		{
-			$metadataOU .= $tagPrefix . $exportTags["isbn"][$format] . $data["isbn"] . $tagExtention;
-		}
-	}
-	elseif (!empty($data["contents"]["020"][0])) {
-		foreach($data["contents"]["020"][0] as $isbnGroup) 
-		{
-			foreach($isbnGroup as $isbnKey => $isbnValue) 
-			{
-				if ($isbnKey == "a" || $isbnKey == "9") 
-				{
-					$isbnVal = $isbnValue;	
-				}
-			}
-		}
-        if (!empty($isbnVal))
-		  $metadataOU .= $tagPrefix . $exportTags["isbn"][$format] . $isbnVal . $tagExtention;	
-	}
-    if (isset($data["issn"])) 
-    {
-      if (is_array($data["issn"])) 
-      {
-        if (count($data["issn"]) >= 1) 
-        {
-          foreach($data["issn"] as $issn) 
-          {
-            if ($issn != "") 
-            {
-              $metadataOU .= $tagPrefix . $exportTags["issn"][$format] . $issn . $tagExtention;
-              break;
-            }
-          }
-        }
-      }
-      elseif ($data["issn"] != "") 
-      {
-        $metadataOU .= $tagPrefix . $exportTags["issn"][$format] . $data["issn"] . $tagExtention;
-      }
-    }
-    if (isset($data["edition"]) && !empty($data["edition"])) 
-    {
-      $metadataOU .= $tagPrefix . $exportTags["edition"][$format] . (is_array($data["edition"]) ? $data["edition"][0] : $data["edition"]) . $tagExtention;
-    }
-	if (isset($data["physicaldescription"]) && $data["physicaldescription"] != "") 
-    {
-      $metadataOU .= $tagPrefix . $exportTags["phydescription"][$format] . $data["physicaldescription"] . $tagExtention;
-    }
-    if (isset($exportTags["school"][$format]) && !empty($data["contents"][502][0][1]["c"]))
-    {
-      $metadataOU .= $tagPrefix . $exportTags["school"][$format] . $data["contents"][502][0][1]["c"] . $tagExtention;
-    }
-    if (isset($exportTags["type"][$format]) && (!empty($data["contents"][502][0][0]["a"]) ||
-        !empty($data["contents"][502][0][0]["b"]) || !empty($data["contents"][338][0][0]["a"])))
-    {
-       $metadataOU .= $tagPrefix . $exportTags["type"][$format] . 
-       (!empty($data["contents"][502][0][0]["a"]) ? $data["contents"][502][0][0]["a"] : (
-        !empty($data["contents"][502][0][0]["b"]) ? $data["contents"][502][0][0]["b"] : (
-        !empty($data["contents"][338][0][0]["a"]) ? $data["contents"][338][0][0]["a"] : ""))) . $tagExtention;
-    }
-    if (isset($data["publisher"][0]) && $data["publisher"][0] != "") 
-    {
-	  foreach($data["publisher"][0] as $publisherKey => $publisherValue)
-	  {
-		if ($publisherKey == "a" && !empty($publisherValue[0])) 
-		{ 
-			$metadataOU .= $tagPrefix . $exportTags["placepublished"][$format] . htmlspecialchars_decode($publisherValue[0]) . $tagExtention;
-		}
-		elseif ($publisherKey == "b" && !empty($publisherValue[0])) 
-		{ 
-			$metadataOU .= $tagPrefix . $exportTags["publisher"][$format] . htmlspecialchars_decode($publisherValue[0]) . $tagExtention;
-		} 
-	  }
-    }
-	elseif (isset($data["publisherarticle"][0]["d"]) && $data["publisherarticle"][0]["d"] != "") 
-    {
-		$tmp = explode(" : ", $data["publisherarticle"][0]["d"]);
-		if (isset($tmp[0]) && $tmp[0] != "")
-		{
-			$exportTags["placepublished"][$format] . $tmp[0] . $tagExtention;
-		}
-		if (isset($tmp[1]) && $tmp[1] != "")
-		{
-			$exportTags["publisher"][$format] . $tmp[1] . $tagExtention;
-		}
-    }
-	if (!empty($data["contents"]["952"][0]))
-	{
-		foreach($data["contents"]["952"][0] as $detailValue) 
-		{
-			foreach($detailValue as $dKey=>$dValue) 
-			{
-				switch ($dKey)
-				{
-				case "j":
-					$metadataOU .= $tagPrefix . $exportTags["year"][$format] . $dValue . $tagExtention;
-					break;
-				case "d":
-					$metadataOU .= $tagPrefix . $exportTags["volume"][$format] . $dValue . $tagExtention;
-					break;
-				case "e":
-					$metadataOU .= $tagPrefix . $exportTags["issue"][$format] . $dValue . $tagExtention;
-					break;
-				case "h":
-					if ( $format == "citavi" )
-					{
-						if ( strpos($dValue, "-") !== false )
-						{
-						 $metadataOU .= $tagPrefix . $exportTags["startpage"][$format] . strstr($dValue, '-', true) . $tagExtention;
-						 $metadataOU .= $tagPrefix . $exportTags["endpage"][$format] . substr(strstr($dValue, "-"), 1) . $tagExtention;
-						}
-						else $metadataOU .= $tagPrefix . $exportTags["startpage"][$format] . $dValue . $tagExtention;
-					}
-					else $metadataOU .= $tagPrefix . $exportTags["pages"][$format] . $dValue . $tagExtention;
-					break;
-				}
-			}
-		}
-	}
-	else
-	{
-		if (!empty($data["in830"][0]["v"]))
-		{
-			$metadataOU .= $tagPrefix . $exportTags["volume"][$format] . $data["in830"][0]["v"] . $tagExtention;
-		}
-		if (!empty($data["publisherarticle"][0]["g"]))
-		{ 
-			if (preg_match("#\((.*?)\)#", $data["publisherarticle"][0]["g"], $year))
-				$metadataOU .= $tagPrefix . $exportTags["year"][$format] . $year[1] . $tagExtention;
-		}
-		elseif (isset($data["publisher"][0]["c"][0]) && $data["publisher"][0]["c"][0] != "") 
-		{
-			$metadataOU .= $tagPrefix . $exportTags["year"][$format] . $data["publisher"][0]["c"][0] . $tagExtention;
-		}
-		elseif (!empty($data["contents"]["008"]) && ctype_digit(substr($data["contents"]["008"],7,4))) 
-		{
-			$metadataOU .= $tagPrefix . $exportTags["year"][$format] . substr($data["contents"]["008"],7,4) . $tagExtention;
-		}
-	}
-	if (!empty($data["contents"]["024"]))
-	{
-		foreach($data["contents"]["024"] as $key24=>$value24) 
-		{
-            if (!empty($value24[2][2]) && $value24[2][2] == "doi")
-              $metadataOU .= $tagPrefix . $exportTags["doi"][$format] . ((strpos(strtolower($value24[1]["a"]), "http") === false) ?  "https://doi.org/" : "") . $value24[1]["a"] . $tagExtention;
-        }
-    }
-	if (isset($data["subject"][0]) && $data["subject"][0] != "") 
-    {
-		$metadataOU .= $tagPrefix . $exportTags["subject"][$format];
-		foreach($data["subject"] as $aSubjectKey => $aSubject) 
-        {
-			if ($aSubject['name'] != "") 
-			{
-			$metadataOU .= $aSubject['name'] . ((count($data["subject"]) > 1 && $aSubjectKey < count($data["subject"]) - 1) ? " / " : "" );
-            }
-        }
-		$metadataOU .= $tagExtention;
-    }
-	if (isset($exportTags["volltext"][$format]) && isset($data["additionalinfo"][0]["u"]) && $data["additionalinfo"][0]["u"] != "") 
-    {
-      $metadataOU .= $tagPrefix . $exportTags["volltext"][$format] . $data["additionalinfo"][0]["u"] . $tagExtention;
-    }
-	if (isset($exportTags["institute"][$format]))
-		$metadataOU .= $tagPrefix . $exportTags["institute"][$format] . "Gemeinsamer Bibliotheksverbund (GBV) / Verbundzentrale des GBV (VZG)\r\n";
-	if (isset($exportTags["database"][$format]))
-		$metadataOU .= $tagPrefix . $exportTags["database"][$format] . $_SESSION["config_general"]["general"]["title"] . $tagExtention;
-	if (isset($exportTags["sid"][$format]))
-		$metadataOU .= $tagPrefix . $exportTags["sid"][$format] . $_SESSION["config_general"]["export"]["openurlreferer"] . $tagExtention;
-	if (isset($exportTags["url"][$format]))
-		$metadataOU .= $tagPrefix . $exportTags["url"][$format] . base_url() . "id%7Bcolon%7D" . $data["id"] . $tagExtention;
-	if ($format == "bibtex")
-		// Delete the last comma
-		$metadataOU = substr($metadataOU, 0, -3) . "\r\n";
-	if (isset($exportTags["endtag"][$format]))
-		$metadataOU .= $tagPrefix . $exportTags["endtag"][$format];
-    return $metadataOU;	
+    return $this->getOpenURLmetaData($data,$format);
   }
  
   public function exportlink($data, $format)
-  {//http://swb.bsz-bw.de/DB=2.1/DWN?PPN=1622490614&PRS=bibtex
-   //var_dump(file_get_contents("http://findex.gbv.de/index/discovery/select?q=id:" . $data["id"] . "&fl=id,issn,isbn,ctrlnum,doi_str_mv,language,genre_facet,format,format_phy_str_mv,format_facet,title_full,title_short,hierarchy_top_title,is_hierarchy_title,authorswithroles_txt_mv,author2,author2-role,publisher,publishDate,publishPlace,hochschulschrift_txt_mv,abstract,container_title,container_volume,container_issue,container_start_page,source,url,ausleihindikator_str_mv"));
-   //var_dump($data);
-    // Create File Data
-    // Um die Daten zu sehen, die folgende Zeile aktivieren
-    // $this->CI->printArray2File($data);
+  {
     $openurlEntry    = "";    $openurlBase     = "";
     $openurlReferer  = "";    $openurlMetadata = "";    
     
@@ -522,18 +104,31 @@ class Standard extends General
 
     if ($openurlBase != "") 
     {
+      $zoteroFormats = array
+      (
+          "article"      =>"journal&rft.genre=article",     "book"          =>"book",
+          "conference"   =>"dc&rft.type=presentation",      "inbook"        =>"book&rft.genre=bookitem",
+          "journal"      =>"journal",                       "manuscript"    =>"dc&rft.type=manuscript",
+          "mastersthesis"=>"dc&rft.type=thesis",            "map"           =>"dc&rft.type=map",
+          "motionpicture"=>"dc&rft.type=film",              "musicalscore"  =>"dc&rft.type=audioRecording",
+          "phdthesis"    =>"dc&rft.type=thesis",            "soundrecording"=>"dc&rft.type=audioRecording",
+          "techreport"   =>"dc&rft.type=report"        
+      );
+      $libGenre951   = isset($data["contents"]["951"][0]) ? $this->getArrValue($data["contents"]["951"][0], "a") : "";
+      $genreZotero   = isset($zoteroFormats[$data["format"]]) ? $data["format"] : ((substr($data["leader"],7,1) == "m" || $libGenre951 == "ST")
+                       ? ((substr($data["leader"],19,1) == "b" || substr($data["leader"],19,1) == "c") ? "inbook" : "book") 
+                       : ($libGenre951 == "AR" ? "article" : ($libGenre951 == "JT" ? "journal" : $data["format"] ))); 
+
       $openurlReferer  = (isset($_SESSION["config_general"]["export"]["openurlreferer"]) &&
                                 $_SESSION["config_general"]["export"]["openurlreferer"] != "") 
                               ? $_SESSION["config_general"]["export"]["openurlreferer"] : "Lukida";
 
-      $openurlEntry    = $openurlBase . ($format == "zotero" ? "&" : "?") . 
-                          "sid=GBV:" . $openurlReferer . "&ctx_enc=info:ofi/enc:UTF-8" . 
-                          ($format == "zotero" ? ("&rft_val_fmt=info:ofi/fmt:kev:mtx:" .                        
-                          ((isset($data["format"]) && (strpos($data["format"], 'article') !== false ||
-						                               strpos($data["format"], 'journal') !== false)) ? "journal" : "book")) : "") . 
+      $openurlEntry    = $openurlBase . ($format == "zotero" ? "&rfr_id=info:sid/" : "?sid=") . 
+                          "GBV:" . $openurlReferer . "&ctx_enc=info:ofi/enc:UTF-8" . 
+                          ($format == "zotero" ? ("&rft_val_fmt=info:ofi/fmt:kev:mtx:" . (isset($zoteroFormats[$genreZotero]) ? $zoteroFormats[$genreZotero] : $genreZotero)) : "") . 
 						  ($format == "zotero" ? ("&rft_id=" . base_url() . "id%7Bcolon%7D" . $data["id"]) : "");
 
-      $openurlMetadata = $this->getOpenURLmetaData($data,$format);
+      $openurlMetadata = $this->getOpenURLmetaData($data,(($format == "refworks") ? "zotero" : $format));
 
       $link            = $openurlEntry . (($format == "refworks") ? str_replace("&rft.","&",$openurlMetadata) : $openurlMetadata);
     }
@@ -552,25 +147,28 @@ class Standard extends General
   protected function get_jop_link($data)
   {
     $zdbid		= "";
-    if ( empty($metadataISSN) && !empty($data["contents"]["016"]))
+    if(empty($data["issn"]) && empty($data["isbn"]))
     {
-    	foreach ( $data["contents"]["016"] as $subArray016 )
-    	{
-    		if ( isset($subArray016["1"]["a"]) && $subArray016["1"]["a"] != "" && isset($subArray016["2"]["2"]) && $subArray016["2"]["2"] == "DE-600" )
-    		{	
-    			$zdbid = $subArray016["1"]["a"];
-    			break;
-    		}
-    	}
+		if (!empty($data["contents"]["016"]))
+		{
+			foreach ( $data["contents"]["016"] as $subArray016 )
+			{
+				if ( isset($subArray016["1"]["a"]) && $subArray016["1"]["a"] != "" && isset($subArray016["2"]["2"]) && $subArray016["2"]["2"] == "DE-600" )
+				{	
+					$zdbid = $subArray016["1"]["a"];
+					break;
+				}
+			}
+		}
+		elseif( !empty($data["contents"]["773"][0]) )
+		{
+			array_walk_recursive($data["contents"]["773"][0], function($value,$key) use (&$zdbid){if($key === "w" && substr($value,0,8) === "(DE-600)") $zdbid = substr($value,8);}, $zdbid);
+		}
+		elseif( !empty($data["contents"]["830"][0]) )
+		{
+			array_walk_recursive($data["contents"]["830"][0], function($value,$key) use (&$zdbid){if($key === "w" && substr($value,0,8) === "(DE-600)") $zdbid = substr($value,8);}, $zdbid);
+		}
     }
-    elseif( !empty($data["contents"]["773"][0]) )
-    {
-    	array_walk_recursive($data["contents"]["773"][0], function($value,$key) use (&$zdbid){if($key === "w" && substr($value,0,8) === "(DE-600)") $zdbid = substr($value,8);}, $zdbid);
-	}
-    elseif( !empty($data["contents"]["830"][0]) )
-    {
-    	array_walk_recursive($data["contents"]["830"][0], function($value,$key) use (&$zdbid){if($key === "w" && substr($value,0,8) === "(DE-600)") $zdbid = substr($value,8);}, $zdbid);
-	}
     $ezbLink	= "";
     
     if ( !empty($data["issn"]) || !empty($data["isbn"]) || !empty($zdbid) )			
@@ -589,10 +187,10 @@ class Standard extends General
       $openurlMetadata  = $this->getOpenURLmetaData($data, "jop");
     
       $ezbLinkExtension = "sid=GBV:" . $openurlReferer . $openurlMetadata .
-                          ("&pid=" . $bibparam . ((empty($data["issn"]) && empty($data["isbn"]) && !empty($zdbid)) ? ("%26zdbid%3D" . $zdbid) : ""));
+                          ("&pid=online%3D1%26" . $bibparam . ((empty($data["issn"]) && empty($data["isbn"]) && !empty($zdbid)) ? ("%26zdbid%3D" . $zdbid) : ""));
     					  
       $ezbLink          = "https://services.dnb.de/fize-service/gvr/full.xml?" . $ezbLinkExtension;
-      //$this->CI->printArray2File($ezbLink);
+
       $ezbTarget        = $this->getJOP_Full($ezbLink, str_replace('%3D', '=', $bibparam));	
       return $ezbTarget;
     }
@@ -605,7 +203,7 @@ class Standard extends General
                        $this->configExport["joponlyfulltext"] == "1") 
                        ? true : null;
     $ezb_xml = @simplexml_load_file($link);
-	if (!empty($ezb_xml))
+  	if (!empty($ezb_xml))
     { 
       if (!isset($ezb_xml->Full->Error))
       {
@@ -691,14 +289,13 @@ class Standard extends General
         $resolver = "ovid";
       else 
         $resolver = "sfx";
-      //$this->CI->printArray2File($resolverLink);
       if( $onlyFulltex !== true )
         $return[$resolver] = $resolverLink;
 
       if( $resolver == "redi" )
       {
         if( @$headers = get_headers($resolverLink, 1) )
-        { //$this->CI->printArray2File($headers);
+        { 
           if( isset($headers[0]) && (strpos($headers[0],"301 Moved Permanently") !== false || strpos($headers[0],"302 Found") !== false) )
           {
             if( is_array($headers["Location"]) )
@@ -773,279 +370,439 @@ class Standard extends General
 	}
     else return "";
   }
-  
+
+  protected function getArrValue($arr, $arrKey)
+  {
+    $return = "";
+    if( !empty($arr) )
+    {
+        $arr_values=array("key"=>$arrKey, "val"=>"");
+        array_walk_recursive($arr, function($value,$key) use (&$arr_values) {if($key === $arr_values["key"]) $arr_values["val"] = $value;}, $arr_values);
+        $return = $arr_values["val"];
+    }
+    return $return;
+  } 
+
+  protected function getText($text, $format)
+  {
+    return (($format == "citavi" ||  $format == "endnote" || $format == "bibtex") ? htmlspecialchars_decode($text) : urlencode(html_entity_decode($text)));
+  } 
 /*  
 *****************************
  * METADATA                *
 *****************************
 */
-    /*
-    // Die folgenden DInge sind im Array $pretty["details"] enthalten
-      $pretty["part"]             "952" => array("a" => " | ")
-      $pretty["year"]             "952" => array("j" => " | ")
-      $pretty["volume"]           "952" => array("d" => " | ")
-      $pretty["issue"]            "952" => array("e" => " | ")
-      $pretty["pages"]            "952" => array("h" => " | ")
-
-    // Die folgenden Dinge sind im Array $pretty["publisher"] enthalten
-      $pretty["place"]            "260" => array("a" => " | ")
-      $pretty["publisherOnly"]    "260" => array("b" => " | ")
-
-    // Die folgenden Dinge sind im Array $pretty["publisher"] enthalten
-      $pretty["publisherOnly"]    "773" => array("d" => " | ")
- */
- 
-  public function getOpenURLmetaData($data,$exportformat)
+  public function getOpenURLmetaData($data,$expFormat)
   {
-    $metadataOU = "";
-    if (isset($data["format"])) 
+    $exportTags = array( 
+        "format"         => array("citavi" => "TY  - ", "endnote" => "%0 ", "bibtex" => "@",               "jop" => "&genre=",                                     "resolver" => "&rft.genre="  ),
+        "id"             => array("citavi" => "ID  - ", "endnote" => "%M ", "bibtex" => ",-"                                                                                                    ),
+        "title"          => array("citavi" => "T1  - ", "endnote" => "%T ", "bibtex" => "\ttitle = {",     "jop" => "&title=",    "zotero" => "&rft.title=",       "resolver" => "&rft.title="  ),
+        "booktitle"      => array("citavi" => "BT  - ", "endnote" => "%B ", "bibtex" => "\tbooktitle = {",                        "zotero" => "&rft.btitle=",      "resolver" => "&rft.btitle=" ),
+        "subtitle"       => array("citavi" => "T2  - ", "endnote" => "%Q ", "bibtex" => "\tnote = {"                                                                                            ),
+        "series"         => array("citavi" => "T3  - ", "endnote" => "%B ", "bibtex" => "\tseries = {",                           "zotero" => "&rft.series=",      "resolver" => "&rft.series=" ),
+        "article"        => array("citavi" => "T1  - ", "endnote" => "%T ", "bibtex" => "\ttitle = {",     "jop" => "&atitle=",   "zotero" => "&rft.atitle=",      "resolver" => "&rft.atitle=" ),
+        "journal"        => array("citavi" => "JF  - ", "endnote" => "%J ", "bibtex" => "\tjournal = {",   "jop" => "&title=",    "zotero" => "&rft.title=",       "resolver" => "&rft.title="  ),
+        "author"         => array("citavi" => "A1  - ", "endnote" => "%A ", "bibtex" => "\tauthor = {",                           "zotero" => "&rft.au=",          "resolver" => "&rft.au="     ),
+        "aulast"         => array(                                                                         "jop" => "&aulast=",   "zotero" => "&rft.aulast=",      "resolver" => "&rft.aulast=" ),
+        "aufirst"        => array(                                                                         "jop" => "&aufirst=",  "zotero" => "&rft.aufirst=",     "resolver" => "&rft.aufirst="),
+        "associates"     => array("citavi" => "A2  - ", "endnote" => "%E ", "bibtex" => "\teditor = {",                           "zotero" => "&rft.au=",                                       ),
+        "language"       => array("citavi" => "LA  - ", "endnote" => "%G ", "bibtex" => "\tlanguage = {",                         "zotero" => "&rft.language="                                  ),
+        "note"           => array("citavi" => "N1  - ", "endnote" => "%Z ", "bibtex" => "\tnote = {"                                                                                            ),
+        "school"         => array(                                          "bibtex" => "\tschool = {"                                                                                          ),
+        "type"           => array(                                          "bibtex" => "\ttype = {"                                                                                            ),
+        "summary"        => array("citavi" => "N2  - ", "endnote" => "%X ", "bibtex" => "\tabstract = {"                                                                                        ),
+        "issn"           => array("citavi" => "SS  - ", "endnote" => "%@ ", "bibtex" => "\tissn = {",      "jop" => "&issn=",     "zotero" => "&rft.issn=",        "resolver" => "&rft.issn="   ),
+        "isbn"           => array("citavi" => "SN  - ", "endnote" => "%@ ", "bibtex" => "\tisbn = {",      "jop" => "&isbn=",     "zotero" => "&rft.isbn=",        "resolver" => "&rft.isbn="   ),
+        "edition"        => array("citavi" => "ET  - ", "endnote" => "%7 ", "bibtex" => "\tedition = {",                          "zotero" => "&rft.edition=",     "resolver" => "&rft.edition="),
+        "phydescription" => array("citavi" => "U1  - ", "endnote" => "%P ", "bibtex" => "\tnote = {",                             "zotero" => "&rft.tpages="                                    ),
+        "placepublished" => array("citavi" => "CY  - ", "endnote" => "%C ", "bibtex" => "\taddress = {",                          "zotero" => "&rft.place=",       "resolver" => "&rft.place="  ),
+        "publisher"      => array("citavi" => "PB  - ", "endnote" => "%I ", "bibtex" => "\tpublisher = {",                        "zotero" => "&rft.pub=",         "resolver" => "&rft.pub="    ),
+        "year"           => array("citavi" => "PY  - ", "endnote" => "%D ", "bibtex" => "\tyear = {",      "jop" => "&date=",     "zotero" => "&rft.date=",        "resolver" => "&rft.date="   ),
+        "part"           => array(                                                                         "jop" => "&part=",     "zotero" => "&rft.part=",        "resolver" => "&rft.part="   ),
+        "volume"         => array("citavi" => "VL  - ", "endnote" => "%V ", "bibtex" => "\tvolume = {",    "jop" => "&volume=",   "zotero" => "&rft.volume=",      "resolver" => "&rft.volume=" ),
+        "issue"          => array("citavi" => "IS  - ", "endnote" => "%N ", "bibtex" => "\tnumber = {",    "jop" => "&issue=",    "zotero" => "&rft.issue=",       "resolver" => "&rft.issue="  ),
+        "startpage"      => array("citavi" => "SP  - ",                                                    "jop" => "&spage=",    "zotero" => "&rft.spage=",       "resolver" => "&rft.spage="  ),
+        "endpage"        => array("citavi" => "EP  - ",                                                    "jop" => "&epage=",    "zotero" => "&rft.epage=",       "resolver" => "&rft.epage="  ),
+        "pages"          => array(                      "endnote" => "%P ", "bibtex" => "\tpages = {",     "jop" => "&pages=",    "zotero" => "&rft.pages=",       "resolver" => "&rft.pages="  ),
+        "doi"            => array("citavi" => "DO  - ", "endnote" => "%R ", "bibtex" => "\tdoi = {",       "jop" => "&id=doi%3A", "zotero" => "&rft_id=info:doi/", "resolver" => "&rft.doi="    ),
+        "subject"        => array("citavi" => "KW  - ", "endnote" => "%K ", "bibtex" => "\tkeywords = {"                                                                                        ),
+        "volltext"       => array("citavi" => "UR  - ", "endnote" => "%U ", "bibtex" => "\turl = {"                                                                                             ),
+        "institute"      => array("citavi" => "S1  - ", "endnote" => "%W "                                                                                                                      ),
+        "database"       => array("citavi" => "S2  - ", "endnote" => "%~ "                                                                                                                      ),
+        "sid"            => array("citavi" => "S3  - "                                                                                                                                          ),
+        "url"            => array("citavi" => "L3  - "                                                                                                                                          ),
+        "endtag"         => array("citavi" => "ER  - ",                     "bibtex" => "}"                                                                                                     )
+    );
+
+    $exportFormats = array
+    (
+        "article"        => array("bibtex" => "Article",       "endnote" => "Journal Article",        "citavi" => "Journal Article"                       ),
+        "book"           => array("bibtex" => "Book",          "endnote" => "Book",                   "citavi" => "Book"                                  ),
+        "journal"        => array("bibtex" => "Periodical",    "endnote" => "Journal Article",        "citavi" => "Journal Article"                       ),
+        "manuscript"     => array("bibtex" => "Unpublished",   "endnote" => "Manuscript",             "citavi" => "Manuscript"                            ),
+        "map"            => array("bibtex" => "Misc",          "endnote" => "Map",                    "citavi" => "Map"                                   ),
+        "motionpicture"  => array("bibtex" => "Misc",          "endnote" => "Film or Broadcast",      "citavi" => "Movie"                                 ),
+        "musicalscore"   => array("bibtex" => "Misc",          "endnote" => "Generic",                "citavi" => "Musical Work"                          ),
+        "unknown"        => array("bibtex" => "Misc",          "endnote" => "Generic",                "citavi" => "Unknown"                               ),
+        "booklet"        => array("bibtex" => "Booklet",       "endnote" => "Edited Book",            "citavi" => "Edited Book"                           ),
+        "collection"     => array("bibtex" => "Collection",    "endnote" => "Edited Book",            "citavi" => "Edited Book"                           ),
+        "conference"     => array("bibtex" => "Conference",    "endnote" => "Conference Paper",       "citavi" => "Contribution in Conference Proceedings"),
+        "inbook"         => array("bibtex" => "Inbook",        "endnote" => "Book Section",           "citavi" => "Contribution in an Edited Book"        ),
+        "incollection"   => array("bibtex" => "Incollection",  "endnote" => "Book Section",           "citavi" => "Contribution in an Edited Book"        ),
+        "mastersthesis"  => array("bibtex" => "Mastersthesis", "endnote" => "Thesis",                 "citavi" => "Thesis"                                ),
+        "phdthesis"      => array("bibtex" => "Phdthesis",     "endnote" => "Thesis",                 "citavi" => "Thesis"                                ),
+        "proceedings"    => array("bibtex" => "Proceedings",   "endnote" => "Conference Proceedings", "citavi" => "Conference Proceedings"                ),
+        "techreport"     => array("bibtex" => "Techreport",    "endnote" => "Report",                 "citavi" => "Report"                                ),
+        "unpublished"    => array("bibtex" => "Unpublished",   "endnote" => "Unpublished Work",       "citavi" => "Report"                                ),
+    );
+    $expClass     = ($expFormat == "zotero" || $expFormat == "resolver") ? "resolver" : "other";
+    $tagExtention = ($expFormat == "citavi" || $expFormat == "endnote") ? "\r\n" : (($expFormat == "bibtex") ? "},\r\n" : "");
+    $metadataOU   = "";
+
+    $libGenre951 = isset($data["contents"]["951"][0]) ? $this->getArrValue($data["contents"]["951"][0], "a") : "";
+    $libGenre    = (substr($data["leader"],7,1) == "m"  || $libGenre951 == "ST")
+                   ? ((substr($data["leader"],19,1) == "b" || substr($data["leader"],19,1) == "c") ? "bookitem" : "book") 
+                   : ($libGenre951 == "AR" ? "article" : ($libGenre951 == "JT" ? "journal" : $data["format"] ));  
+    if( $expFormat == "bibtex" || $expFormat == "endnote" || $expFormat == "citavi" )
     {
-	  $metadataOU = $exportformat == "jop" ? ( "&genre=" . ((strpos(strtolower($data["format"]),"article") !== false) ? "article" : "journal") ) :
-                    ( "&rft.genre=" . $data["format"] );
-    }
-	if (isset($data["issn"])) 
-    {
-      if (is_array($data["issn"])) 
-      {
-        if (count($data["issn"]) >= 1) 
+        if (substr($data["leader"],7,1) == "m" && substr($data["leader"],19,1) == "a")
+            $data["format"] = $exportFormats["collection"][$expFormat];
+        elseif (!empty($data["genre"][0]["name"]) && strpos($data["genre"][0]["name"], "Hochschul") !== false) 
         {
-          foreach($data["issn"] as $issn) 
-          {
-            if ($issn != "") {
-              $metadataISSN = $issn;
-              break;
+            if (!empty($data["contents"][502][0][0]["b"]) || !empty($data["contents"][502][0][0]["a"]))
+            {
+                if(strpos($data["contents"][502][0][0]["b"], "Diss") !== false) 
+                     $data["format"] = $exportFormats["phdthesis"][$expFormat];
+                elseif(strpos($data["contents"][502][0][0]["a"], "Studienarb") !== false)
+                     $data["format"] = $exportFormats["techreport"][$expFormat];
+                else $data["format"] = $exportFormats["mastersthesis"][$expFormat];
             }
-          }
         }
-      }
-      elseif ($data["issn"] != "") 
-      {
-        $metadataISSN = $data["issn"];
-      }
-      if ($metadataISSN != "") 
-      {
-        if (strpos($metadataISSN," ") !== false) 
+        elseif (!empty($data["genre"][0]["name"]) && strpos($data["genre"][0]["name"], "Konferenz") !== false) 
         {
-          $metadataISSN = strstr($metadataISSN, ' ', true);
+            if(strpos($data["contents"][338][0][0]["a"], "Band") !== false)
+                 $data["format"] = $exportFormats["proceedings"][$expFormat];
+            else $data["format"] = $exportFormats["conference"][$expFormat];
         }
-        if ($metadataISSN != "" && strpos($metadataISSN,"-") === false) 
+        elseif (!empty($data["format"]) && $data["format"] != "article" && empty($data["publisher"][0]["b"]))
         {
-          $metadataISSN = substr($metadataISSN,0,4) . '-' . substr($metadataISSN,4);
+            $data["format"] = $exportFormats["booklet"][$expFormat];
         }
-        $metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "issn=" . $metadataISSN;
-      }
+        elseif (!empty($libGenre) && $libGenre == "bookitem")
+        {
+            $data["format"] = $exportFormats["inbook"][$expFormat];
+        }
+        elseif(!empty($data["isbn"]) && !empty($data["contents"][338][0][0]["a"]) && strpos($data["contents"][338][0][0]["a"], "Band") !== false)
+        {
+            $data["format"] = $exportFormats["incollection"][$expFormat];
+        }
+        elseif (!empty($data["format"]) && $data["format"] == "journal")
+            $data["format"] = $exportFormats["journal"][$expFormat];
+        elseif (!empty($data["format"]) && $data["format"] == "unknown")
+            $data["format"] = $exportFormats["unpublished"][$expFormat];
+        elseif (!empty($data["format"]) && strpos("article,book,datamedia,game,manuscript,map,microform,mixedmaterials,monographseries,motionpicture,musicalscore,picture,projectedmedium,serialvolume,soundrecording,", $data["format"]) === false)
+            $data["format"] = $exportFormats["unknown"][$expFormat]; 
+        elseif (isset($exportFormats[$data["format"]])) 
+            $data["format"] = $exportFormats[$data["format"]][$expFormat];
     }
+
+    //***** FORMAT ***********************************************************
+    if (isset($data["format"]) && !empty($exportTags["format"][$expFormat])) 
+    {
+	    $metadataOU = $exportTags["format"][$expFormat] . ($expFormat == "jop" ? ((strpos(strtolower($data["format"]),"article") !== false) ? "article" : "journal")
+                      : (($expFormat == "resolver") ? $libGenre : ucfirst($data["format"])))
+                      . ( $expFormat == "bibtex" ? "{GBV" : $tagExtention );
+    }
+
+    //***** ID ***************************************************************
+    if (!empty($exportTags["id"][$expFormat]) && isset($data["id"]) && $data["id"] != "") 
+    {
+        $metadataOU .= $exportTags["id"][$expFormat] . $data["id"] . ( $expFormat == "bibtex" ? ",\r\n" : $tagExtention );
+    }
+
+    //***** ISBN, ISSN *******************************************************
+    $isbn = isset($data["contents"]["020"][0][0]["a"]) ? $data["contents"]["020"][0][0]["a"] : (isset($data["contents"]["773"][0]) ? $this->getArrValue($data["contents"]["773"][0], "z") : "");
+    $metadataOU .= empty($isbn) ? "" : ($exportTags["isbn"][$expFormat] . $isbn . $tagExtention);
+
+    $issn = isset($data["contents"]["022"][0][0]["a"]) ? $data["contents"]["022"][0][0]["a"] : (isset($data["contents"]["022"][0][0]["y"]) ? $data["contents"]["022"][0][0]["y"] : (isset($data["contents"]["776"][0]) ? $this->getArrValue($data["contents"]["776"][0], "x") : (isset($data["contents"]["773"][0]) ? $this->getArrValue($data["contents"]["773"][0], "x") : "")));
+    $metadataOU .= empty($issn) ? "" : ($exportTags["issn"][$expFormat] . ((strpos($issn,"-") === false) ? (substr($issn,0,4) . '-' . substr($issn,4)) : ((strpos($issn," ") === false) ? $issn : strstr($issn, ' ', true))) . $tagExtention);
+
+    //***** TITLE ************************************************************
+    $tit         = empty($data["contents"]["245"][0]) ? "" : array_walk_recursive($data["contents"]["245"][0], function($value,$key) use (&$title){if($key === "a") $title = $value; elseif($key === "b") $title = ($title . " : " . $value);}, $title);
+    $mainTit     = !empty($data["contents"]["772"][0]) ? $this->getArrValue($data["contents"]["772"][0], "t") : (empty($data["contents"]["773"][0]) ? "" : $this->getArrValue($data["contents"]["773"][0], "t"));
+    $partTit     = empty($data["contents"]["245"][0]) ? "" : array_walk_recursive($data["contents"]["245"][0], function($value,$key) use (&$pTitle){if($key === "n") $pTitle = $value; elseif($key === "p") $pTitle = ($pTitle . " : " . $value);}, $pTitle);
+    $collTit     = empty($data["contents"]["800"][0]) ? "" : array_walk_recursive($data["contents"]["800"][0], function($value,$key) use (&$collTitle){if($key === "t") $collTitle = $value; elseif($key === "v") $collTitle = ($collTitle . " ; " . $value);}, $collTitle);
+
+    if( !empty($pTitle) )
+    {
+        $metadataOU .= (($expClass == "resolver") ? $exportTags["article"][$expFormat] : $exportTags["title"][$expFormat]) . $this->getText($pTitle,$expFormat) . $tagExtention;
+        if( !empty($title) && isset($exportTags["booktitle"][$expFormat]) )
+        {
+            $metadataOU .= $exportTags["booktitle"][$expFormat] . $this->getText($title,$expFormat) . $tagExtention;   
+        }
+    }
+    elseif( !empty($title) )
+    {
+        $metadataOU .= ((ucfirst($libGenre) == "Article" || ($expClass == "resolver" && !empty($collTitle))) ? $exportTags["article"][$expFormat] 
+                        : $exportTags["title"][$expFormat]) . $this->getText($title,$expFormat) . $tagExtention;   
+    }
+    if( !empty($mainTit) )
+    {
+        $metadataOU .= (($expClass == "resolver") ? $exportTags["title"][$expFormat] : (ucfirst($libGenre) == "Article" ? $exportTags["journal"][$expFormat] : (isset($exportTags["booktitle"][$expFormat]) ? $exportTags["booktitle"][$expFormat] : "")))
+                        . $this->getText(((stripos($mainTit, "in:") !== false) ? trim(substr($mainTit,stripos($mainTit, "in:") + 3)) : $mainTit),$expFormat) . $tagExtention;
+    }
+    if( !empty($collTitle) && isset($exportTags["booktitle"][$expFormat]) )
+    {
+        $metadataOU .= $exportTags["booktitle"][$expFormat] . $this->getText($collTitle,$expFormat) . $tagExtention;
+    }
+
+    if( isset($exportTags["series"][$expFormat]) )
+    {
+        $seriesTit   = !empty($data["contents"]["830"][0]) ? array_walk_recursive($data["contents"]["830"][0], function($value,$key) use (&$series){if($key === "a") $series = ((stripos($value, "in:") !== false) ? trim(substr($value,stripos($value, "in:") + 3)) : $value); elseif($key === "v") $series = ($series . " ; " . $value);}, $series) : 
+                       (empty($data["contents"]["490"][0]) ? "" : array_walk_recursive($data["contents"]["490"][0], function($value,$key) use (&$series){if($key === "a") $series = $value; elseif($key === "v") $series = ($series . " ; " . $value);}, $series));
+        if( !empty($series) )
+        {
+            $metadataOU .= $exportTags["series"][$expFormat] . $this->getText($series,$expFormat) . $tagExtention;
+        }
+    }
+    $subTitle    = !empty($data["contents"]["240"][0]) ? $this->getArrValue($data["contents"]["240"][0], "a") : (empty($data["contents"]["246"][0]) ? "" : $this->getArrValue($data["contents"]["246"][0], "a"));
+    $metadataOU .= (empty($subTitle) || empty($exportTags["subtitle"][$expFormat])) ? "" : ($exportTags["subtitle"][$expFormat] . $this->getText($subTitle,$expFormat) . $tagExtention);
+
+    //***** EDITION **********************************************************
+    if( isset($exportTags["edition"][$expFormat]) )
+    {
+        $edition  = isset($data["contents"]["348"][0]) ? $this->getArrValue($data["contents"]["348"][0], "a") : (isset($data["contents"]["250"][0]) ? $this->getArrValue($data["contents"]["250"][0], "a") : "");
+        if( !empty($edition) )
+        {
+            $metadataOU .= $exportTags["edition"][$expFormat] . $edition . $tagExtention;
+        }
+    }
+    //***** PLACE, PUB, DATE *************************************************
+    if( !empty($data["contents"]["264"][0]) )
+    {
+        foreach( $data["contents"]["264"][0] as $value264)
+        {
+            if( array_key_first($value264) == "a" )  $place = $value264["a"];
+            if( array_key_first($value264) == "b" )  $pub   = $value264["b"];
+            if( array_key_first($value264) == "c" )  $date  = $value264["c"];
+        }
+    }
+	if( empty($date) && !empty($data["contents"]["008"]) && ctype_digit(substr($data["contents"]["008"],7,4)) ) 
+	{
+		$date = str_replace(array("[","]"),array("",""),substr($data["contents"]["008"],7,4));
+	}
+	if( empty($date) ) 
+	{
+        $year = (isset($data["contents"]["772"][0]) ? $this->getArrValue($data["contents"]["772"][0], "g") : (isset($data["contents"]["773"][0]) ? $this->getArrValue($data["contents"]["773"][0], "g") : ""));
+		preg_match("#\((.*?)\)#", $year, $yearArr);
+		$date = empty($yearArr[1]) ? "" : ("date=" . trim(str_replace(array("[","]"),array("",""),$yearArr[1]), " -"));
+    }
+    if( (empty($place) || empty($pub) || empty($date)) && !empty($data["contents"]["773"][0]) )
+    {
+		array_walk_recursive($data["contents"]["773"][0], function($value,$key) use (&$placePub){if($key === "d") $placePub = $value;}, $placePub);
+        $place = (empty($place) && strpos($placePub, " : ") !== false) ? strstr($placePub, " : ", true) : "";
+        if( empty($pub) )
+        {
+            $pub   = (strpos($placePub, " : ") === false) ? $placePub : substr(strstr($placePub, " : "),3);
+            $pub   = (strpos($pub, ", ") === false) ? $pub : strstr($pub, ", ", true);
+        }
+        $date  = (empty($date) && strpos($date, ", ") !== false) ? substr(strstr($date, ", "),2) : $date;
+    }
+    $metadataOU .= (empty($exportTags["placepublished"][$expFormat]) || empty($place)) ? "" : ($exportTags["placepublished"][$expFormat] . $place . $tagExtention);
+    $metadataOU .= (empty($exportTags["publisher"][$expFormat]) || empty($pub)) ? "" : ($exportTags["publisher"][$expFormat] . $this->getText($pub, $expFormat) . $tagExtention);
+    $metadataOU .= empty($date) ? "" : ($exportTags["year"][$expFormat] . trim($date, " -") . $tagExtention);
+
+    //***** AUTHOR ***********************************************************
+    $authorContent = empty($data["contents"]["100"]) ? "" : $data["contents"]["100"];
+    if( !empty($data["contents"]["700"]) )
+    {
+        $authorContent = empty($authorContent) ? $data["contents"]["700"] : array_merge($authorContent, $data["contents"]["700"]);
+    }
+	if (!empty($authorContent))
+	{
+        $ai = 1; $metadataAu = "";
+        foreach( $authorContent as $contentAu )
+        {
+        	array_walk_recursive($contentAu, function($value,$key) use (&$author){if($key === "a") $author["name"] = $value; if($key === 4 || $key=== "e") $author["spec"] = $value;}, $author=array("name"=>"", "spec"=>""));    
+            if( !empty($author["name"]) )
+            {
+                $tagPrefixAu = ($author["spec"] == "aut" || strpos($author["spec"],"verfasser") !== false  || empty($exportTags["associates"][$expFormat])) ? (empty($exportTags["author"][$expFormat]) ? "" : $exportTags["author"][$expFormat]) : $exportTags["associates"][$expFormat];
+		        $metadataAu .= empty($tagPrefixAu) ? "" : (($expFormat == "bibtex") ? ((($ai > 1) ? " and " : ($tagPrefixAu)) . $author["name"]) : 
+                                                                                                    ($tagPrefixAu . $author["name"] . $tagExtention));
+		        if (($author["spec"] == "aut" || strpos($author["spec"],"verfasser") !== false) && strpos($author["name"], ', ') !== false && !empty($exportTags["aulast"][$expFormat]) && ($ai == 1 || $expFormat != "zotero")) 
+		        {
+		            $metadataAu .= empty($exportTags["aulast"][$expFormat]) ? "" : ($exportTags["aulast"][$expFormat] . strstr($author["name"], ', ', true) . $tagExtention);
+		            $metadataAu .= empty($exportTags["aufirst"][$expFormat]) ? "" : ($exportTags["aufirst"][$expFormat] . substr(strstr($author["name"], ", "), 2) . $tagExtention);
+		        }
+ 		        if ($expFormat == "resolver" || $expFormat == "jop") break;           
+                $ai++;
+		    }
+		}
+		if( !empty($metadataAu) )
+        {
+            $metadataOU .= $metadataAu . (($expFormat == "bibtex") ? $tagExtention : "");
+        }
+    }
+
+    //***** DATE, PART, VOLUME, ISSUE, PAGES *********************************
 	if (!empty($data["contents"]["952"][0]))
 	{
-		foreach($data["contents"]["952"][0] as $detailValue) {
+		foreach($data["contents"]["952"][0] as $detailValue)
+		{
 			foreach($detailValue as $dKey=>$dValue) 
 			{
 				switch ($dKey)
 				{
-				case "j":
-					$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . str_replace(array("[","]"),array("",""),$dValue);
-					break;
-				case "a":
-					$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "part=" . $dValue;
-					break;
-				case "d":
-					$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "volume=" . $dValue;
-					break;
-				case "e":
-					$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "issue=" . $dValue;
-					break;
-				case "h":
-					if ( strpos($dValue, "-") !== false ) 
-					{
-						$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "spage=" . strstr($dValue, '-', true);
-						$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "epage=" . substr(strstr($dValue, "-"), 1);
-					}
-					else
-                    {
-                        if( strpos($dValue, ".") === false )
-                        {
-                            $metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "spage=" . $dValue;
-                        }
-                        $metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "pages=" . $dValue;
-                    }
-					break;
+					case "j":
+						$metadataOU .= empty($date) ? ($exportTags["year"][$expFormat] . trim(str_replace(array("[","]"),array("",""),$dValue), " -") . $tagExtention) : "";
+						break;
+					case "a":
+						$metadataOU .= empty($exportTags["part"][$expFormat]) ? "" : ($exportTags["part"][$expFormat] . $dValue . $tagExtention);
+						break;
+					case "d":
+						$metadataOU .= $exportTags["volume"][$expFormat] . $dValue . $tagExtention;
+						break;
+					case "e":
+						$metadataOU .= $exportTags["issue"][$expFormat] . $dValue . $tagExtention;
+						break;
+					case "h":
+						if ( strpos($dValue, "-") !== false ) 
+						{
+							$metadataOU .= empty($exportTags["startpage"][$expFormat]) ? "" : ($exportTags["startpage"][$expFormat] . strstr($dValue, '-', true) . $tagExtention);
+							$metadataOU .= empty($exportTags["endpage"][$expFormat]) ? "" : ($exportTags["endpage"][$expFormat] . substr(strstr($dValue, "-"), 1) . $tagExtention);
+						}
+						else
+						{
+							if( strpos($dValue, ".") === false )
+							{
+								$metadataOU .= empty($exportTags["startpage"][$expFormat]) ? "" : ($exportTags["startpage"][$expFormat] . $dValue . $tagExtention);
+							}
+							$metadataOU .= empty($exportTags["pages"][$expFormat]) ? "" : ($exportTags["pages"][$expFormat] . $dValue . $tagExtention);
+						}
+						break;
 				}
 			}
 		}
 	}
-	else
+	if( empty($volume) && !empty($data["contents"]["830"][0]) )
 	{
-		if (!empty($data["in830"][0]["v"]))
-		{
-			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "volume=" . $data["in830"][0]["v"];
-		}
-		if (!empty($data["publisherarticle"][0]["g"]))
-		{ 
-			if (preg_match("#\((.*?)\)#", $data["publisherarticle"][0]["g"], $year))
-				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . str_replace(array("[","]"),array("",""),$year[1]);
-		}
-		elseif (!empty($data["publisher"][0]["c"][0])) 
-		{
-			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . str_replace(array("[","]"),array("",""),$data["publisher"][0]["c"][0]);
-		}	
-		elseif (!empty($data["contents"]["008"]) && ctype_digit(substr($data["contents"]["008"],7,4))) 
-		{
-			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "date=" . str_replace(array("[","]"),array("",""),substr($data["contents"]["008"],7,4));
-		}
+		array_walk_recursive($data["contents"]["830"][0], function($value,$key) use (&$volume){if($key === "v") $volume = $value;}, $volume);
+		$metadataOU .= $exportTags["volume"][$expFormat] . $volume . $tagExtention;
 	}
 
-	if (isset($data["title"]) && $data["title"] != "") 
-	{
-		if (isset($data["publisherarticle"])) 
-		{
-			if (is_array($data["publisherarticle"])) 
+    //***** LANGUAGE *********************************************************
+	if( isset($exportTags["language"][$expFormat]) )
+    {
+        $language     = empty($data["contents"]["041"]) ? "" : $this->getArrValue($data["contents"]["041"][0], "a");
+		$metadataOU .= empty($language) ? "" : $exportTags["language"][$expFormat] . htmlspecialchars_decode($language) . $tagExtention;
+    }
+
+    //***** NOTE *************************************************************
+    if( isset($exportTags["note"][$expFormat]) )
+    {
+        array_walk_recursive($data["contents"]["500"], function($value,$key) use (&$notes){if($key === "a") $notes[] = $value;}, $notes=array());
+        foreach( $notes as $note)
+        {
+            $metadataOU .= empty($note) ? "" : $exportTags["note"][$expFormat] . htmlspecialchars_decode($note) . $tagExtention;
+        }
+        $dissertation = empty($data["contents"]["502"]) ? "" : $this->getArrValue($data["contents"]["502"][0], "a");
+		$metadataOU  .= empty($dissertation) ? "" : $exportTags["note"][$expFormat] . htmlspecialchars_decode($dissertation) . $tagExtention;
+        $computerfile = empty($data["contents"]["256"]) ? "" : $this->getArrValue($data["contents"]["256"][0], "a");
+		$metadataOU  .= empty($computerfile) ? "" : $exportTags["note"][$expFormat] . htmlspecialchars_decode($computerfile) . $tagExtention;
+    }
+
+    //***** SUMMARY **********************************************************
+	if( isset($exportTags["summary"][$expFormat]) )
+    {
+        $summary     = empty($data["contents"]["520"]) ? "" : $this->getArrValue($data["contents"]["520"][0], "a");
+		$metadataOU .= empty($summary) ? "" : $exportTags["summary"][$expFormat] . htmlspecialchars_decode($summary) . $tagExtention;
+    }
+
+    //***** PHYSICALDESCRIPTION **********************************************
+	if( isset($exportTags["phydescription"][$expFormat]) )
+    {
+        $phydescription     = empty($data["contents"]["300"]) ? "" : $this->getArrValue($data["contents"]["300"][0], "a");
+		$metadataOU .= empty($phydescription) ? "" : $exportTags["phydescription"][$expFormat] . htmlspecialchars_decode($phydescription) . $tagExtention;
+    }
+
+    //***** SCHOL ************************************************************
+	if( isset($exportTags["school"][$expFormat]) )
+    {
+        $school     = empty($data["contents"]["502"]) ? "" : $this->getArrValue($data["contents"]["502"][0], "c");
+		$metadataOU .= empty($school) ? "" : $exportTags["school"][$expFormat] . htmlspecialchars_decode($school) . $tagExtention;
+    }
+
+    //***** TYPE *************************************************************
+    if (isset($exportTags["type"][$expFormat]) && (!empty($data["contents"][502][0][0]["a"]) ||
+        !empty($data["contents"][502][0][0]["b"]) || !empty($data["contents"][338][0][0]["a"])))
+    {
+       $metadataOU .= $exportTags["type"][$expFormat] . 
+       (!empty($data["contents"][502][0][0]["a"]) ? $data["contents"][502][0][0]["a"] : (
+        !empty($data["contents"][502][0][0]["b"]) ? $data["contents"][502][0][0]["b"] : (
+        !empty($data["contents"][338][0][0]["a"]) ? $data["contents"][338][0][0]["a"] : ""))) . $tagExtention;
+    }
+
+    //***** SUBJECT **********************************************************
+	if (isset($exportTags["subject"][$expFormat]) && isset($data["subject"][0]) && $data["subject"][0] != "") 
+    {
+		$metadataOU .= $exportTags["subject"][$expFormat];
+		foreach($data["subject"] as $aSubjectKey => $aSubject) 
+        {
+			if ($aSubject['name'] != "") 
 			{
-			if (count($data["publisherarticle"]) >= 1 && isset($data["publisherarticle"][0]["t"]) && $data["publisherarticle"][0]["t"] != "") 
-			{
-				$publisherarticle = urlencode(html_entity_decode($data["publisherarticle"][0]["t"]));
-			}
-			}
-			else { $publisherarticle = $data["publisherarticle"];
-			}
-			if (!empty($publisherarticle)) 
-			{
-				$metadataOU .= "&rft.atitle=" . urlencode(html_entity_decode($data["title"])) . "&rft.title=" . (stripos($publisherarticle, "in:") !== false ?
-				trim(substr($publisherarticle,stripos($publisherarticle, "in:") + 3)) :
-				$publisherarticle);
-			}
-			else 
-			{ 
-				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "title=" . urlencode(html_entity_decode($data["title"]));
-			}
-		}
-		else 
-		{ 
-			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "title=" . urlencode(html_entity_decode($data["title"]));
-		}
-	}
-	if (isset($data["isbn"])) 
-	{
-		if (is_array($data["isbn"])) 
-		{
-			if (count($data["isbn"]) >= 1) 
-			{
-			foreach($data["isbn"] as $isbn) 
-			{
-				if ($isbn != "") 
-				{
-					$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "isbn=" . (strpos($data["isbn"]," ") !== false ?
-					strstr($data["isbn"], ' ', true) : $data["isbn"]);
-					break;
-				}
-			}
-			}
-		}
-		elseif ($data["isbn"] != "") 
-		{
-			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "isbn=" . (strpos($data["isbn"]," ") !== false ?
-			strstr($data["isbn"], ' ', true) : $data["isbn"]);
-		}
-	}
-	elseif (!empty($data["contents"]["020"][0])) 
-	{
-		foreach($data["contents"]["020"][0] as $isbnGroup) 
-		{
-			foreach($isbnGroup as $isbnKey => $isbnValue) 
-			{
-				if ($isbnKey == "a" || $isbnKey == "9") 
-				{
-					$isbnVal = $isbnValue;	
-				}
-			}
-		}
-		$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "isbn=" . $isbnVal;	
-	}
-	if (!empty($data["edition"])) 
-	{
-              $edit = (is_array($data["edition"]) && !empty($data["edition"][0])) ? preg_match("/^([0-9]*)([r\. ]|$)/", $data["edition"][0], $edition) : preg_match("/^([0-9]*)([r\. ]|$)/", $data["edition"], $edition);
-		$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "edition=" . $edition[1];
-	}	
-	if (isset($data["author"]))
-	{
-		if (is_array($data["author"])) 
-		{
-			if (count($data["author"]) >= 1) 
-			{
-			$aNr = 0;
-			foreach($data["author"] as $author) 
-			{
-				$aNr += 1;
-				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "au=" . $author["name"];
-				if ($aNr == 1 && !empty($author["name"]) && strpos($author["name"], ', ') !== false) 
-				{
-					$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "aulast=" . strstr($author["name"], ', ', true);
-					$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "aufirst=" . substr(strstr($author["name"], ", "), 2);
-				}
-			}
-			}
-		}
-		elseif ($data["author"] != "") 
-		{
-			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "au=" . $data["author"];
-			if (strpos($data["author"], ", ")) 
-			{
-				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "aulast=" . strstr($data["author"], ', ', true);
-				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "aufirst=" . substr(strstr($data["author"], ", "), 2);
-			}
-		}
-	}
-	if (isset($data["contents"]["830"])) 
-	{
-		foreach($data["contents"]["830"][0] as $serial) 
-		{
-			foreach($serial as $sKey=>$sValue) 
-			{
-				if (!empty($sValue) && $sKey == "a") 
-				{
-					$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "series=" . ((stripos($sValue, "in:") !== false) ? trim(substr($sValue,stripos($sValue, "in:") + 3)) : $sValue);
-				}
-			}
-		}
-	}
-	if (isset($data["publisher"][0]) && $data["publisher"][0] != "") 
-	{
-		foreach($data["publisher"][0] as $publisherKey => $publisherValue)
-		{
-			if ($publisherKey == "a" && !empty($publisherValue[0])) 
-			{ 
-				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "place=" . $publisherValue[0];
-			}
-			elseif ($publisherKey == "b" && !empty($publisherValue[0])) 
-			{ 
-				$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "pub=" . $publisherValue[0];
-			} 
-		}
-	}
-	elseif (isset($data["publisherarticle"][0]["d"]) && $data["publisherarticle"][0]["d"] != "") 
-	{
-		$tmp = explode(" : ", $data["publisherarticle"][0]["d"]);
-		if (isset($tmp[0]) && $tmp[0] != "")
-		{
-			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "place=" . $tmp[0];
-		}
-		if (isset($tmp[1]) && $tmp[1] != "")
-		{
-			$metadataOU .= ( $exportformat == "jop" ? "&"  : "&rft." ) . "pub=" . $tmp[1];
-		}		
-	}
-	if ($exportformat == "zotero" && !empty($data["language"][0]))
-	{
-		$metadataOU .= "&rft.language=" . $data["language"][0];
-	}
+			$metadataOU .= $aSubject['name'] . ((count($data["subject"]) > 1 && $aSubjectKey < count($data["subject"]) - 1) ? " / " : "" );
+            }
+        }
+		$metadataOU .= $tagExtention;
+    }
+
+    //***** VOLLTEXT *********************************************************
+	if (isset($exportTags["volltext"][$expFormat])) 
+    {
+        $addinfo     = empty($data["contents"]["856"]) ? "" : $this->getArrValue($data["contents"]["856"][0], "u");
+        $metadataOU .= empty($addinfo) ? "" : ($exportTags["volltext"][$expFormat] . $addinfo . $tagExtention);
+    }
+
+    //***** DOI **************************************************************
     if (!empty($data["contents"]["024"]))
 	{
 	    foreach($data["contents"]["024"] as $key24=>$value24) 
 	    {
             if (!empty($value24[2][2]) && $value24[2][2] == "doi")
-               $metadataOU .= ( $exportformat == "zotero") ? ("&rft_id=info:doi/" . ((strpos(strtolower($value24[1]["a"]), "http") === false) ?  "https://doi.org/" : "") . $value24[1]["a"] ) : 
-                              ( ($exportformat == "jop" ? "&id=doi%3A"  : "&rft.doi=") . $value24[1]["a"]);
+            {
+               $doiBase = "https://doi.org/";
+               $doi     = $value24[1]["a"];
+               $doi     = (strpos(strtolower($doi), "http") === false ) ? ((($expFormat == "resolver" || $expFormat == "jop") ? "" : $doiBase) . $doi) 
+                                                                        :  (($expFormat == "resolver" || $expFormat == "jop") ? strstr($doi,$doiBase,true) : $doi);
+               $metadataOU .= $exportTags["doi"][$expFormat] . $doi . $tagExtention;
+            }
         }
     }
+
+    //***** INSTITUTE ********************************************************
+	if (isset($exportTags["institute"][$expFormat]))
+		$metadataOU .= $exportTags["institute"][$expFormat] . "Gemeinsamer Bibliotheksverbund (GBV) / Verbundzentrale des GBV (VZG)\r\n";
+
+    //***** DATABASE *********************************************************
+	if (isset($exportTags["database"][$expFormat]))
+		$metadataOU .= $exportTags["database"][$expFormat] . $_SESSION["config_general"]["general"]["title"] . $tagExtention;
+
+    //***** SID **************************************************************
+	if (isset($exportTags["sid"][$expFormat]))
+		$metadataOU .= $exportTags["sid"][$expFormat] . $_SESSION["config_general"]["export"]["openurlreferer"] . $tagExtention;
+
+    //***** URL **************************************************************
+	if (isset($exportTags["url"][$expFormat]))
+		$metadataOU .= $exportTags["url"][$expFormat] . base_url() . "id%7Bcolon%7D" . $data["id"] . $tagExtention;
+
+	if ($expFormat == "bibtex")
+		// Delete the last comma
+		$metadataOU = substr($metadataOU, 0, -3) . "\r\n";
+
+    //***** ENDTAG ***********************************************************
+	if (isset($exportTags["endtag"][$expFormat]))
+		$metadataOU .= $exportTags["endtag"][$expFormat];
 
     return $metadataOU;
   }

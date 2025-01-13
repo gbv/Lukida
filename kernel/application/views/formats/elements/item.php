@@ -8,7 +8,6 @@ if ( !count($Combined) )
   if ( !count($Combined) )  return;
   $Output   .= "<tr><td class='tabcell' style='color:red'>Parent PPN</td><td class='tabcell' style='color:red'>" . $ParentPPN . "</td></tr>";
 }
-// $this->CI->printArray2Screen($Combined);
 
 $LeftSide = array();
 $Count = 0;
@@ -66,8 +65,6 @@ foreach ($LeftSide as $Left)
     // Next columns
     foreach ( $Combined as $LID => $Item2 )
     {
-      // $this->CI->printArray2Screen($Item2);
-
       if ( isset( $Item2[$Left]) && is_array($Item2[$Left]) )
       {
         $Output .= "<td class='tabcell'><table>";

@@ -1,5 +1,13 @@
 # Changelog
 
+**2024**
+* Index system
+  * Data related corrections
+* Preview
+  * Display year
+* Fullview
+  * Classifications added
+
 **05.02.2023**
 * Library System
   * Special chars support for PAIA2 

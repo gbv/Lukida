@@ -383,14 +383,9 @@ class General
 
       $pretty["associates"]       = $this->GetAssociates();
   
-      $pretty["pv_publisher"]     = $this->GetPublisher();
+      $pretty["pv_publisher"]     = $this->GetPublisher("Preview");
   
-      $pretty["pv_pubarticle"]    = $this->PrettyFields(array("772" => array("i" => " ",
-                                                                             "t" => " ",
-                                                                             "d" => " "),
-                                                              "773" => array("i" => " ",
-                                                                             "t" => " ",
-                                                                             "d" => " ")));
+      $pretty["pv_pubarticle"]    = $this->GetPubArticle();
 
       $pretty["serial"]              = $this->GetArray(array("490" => array("a","v")));
     
@@ -399,6 +394,8 @@ class General
                                                                                 "c" => ", ",
                                                                                 "e" => ", ")));
       $pretty["pv_provenance"]       = $this->GetArray(array("561" => array("3","5","a")));
+
+      $pretty["pv_year"]             = $this->GetPublisherYear($this->contents);
 
       // Add original characters 
       $pretty = $this->AddOriginalCharacters($pretty,"preview");
@@ -452,7 +449,7 @@ class General
                                                                      "785" => array("i","t","w")));
 
       $pretty["seealso"]             = $this->GetCompleteArray(array("787" => array("a","d","i","t","w"),
-                                                                     "776" => array("a","d","i","t","w")));
+                                                                     "776" => array("a","d","i","n","t","w")));
 
       $pretty["languagenotes"]       = $this->PrettyFields(array("546" => array("a" => " | ")));
       
@@ -465,7 +462,8 @@ class General
       $pretty["languageorigin"]      = $this->GetSimpleArray(array("041" => array("h")));
 
       $pretty["classification"]      = $this->GetCompleteArray(array("082" => array("a"),
-                                                                     "084" => array("a","2")));
+                                                                     "084" => array("a","2"),
+                                                                     "936" => array("X")));
 
       $pretty["license"]             = $this->GetArray(array("540" => array("f","u")));
   
@@ -741,24 +739,42 @@ class General
     return $Role;
   }
 
-  protected function GetPublisher()
+  protected function GetPublisher($Type = "")
   {
     $Publisher = $this->PrettyFields(array("250" => array("a" => "~."))) . " ";
 
-    if ( isset($this->contents["264"]) )
+    if ( $Type != "Preview" )
     {
-      $Publisher .= $this->PrettyFields(array("264" => array("c" => ", ")));
-    }
-    else
-    {
-      $Publisher .= $this->PrettyFields(array("260" => array("c" => ", ")));
-    }
-
-    if ( trim($Publisher) == "" )
-    {
-      $Publisher = $this->PrettyFields(array("952" => array("j" => "~.")));
+      if ( isset($this->contents["264"]) )
+      {
+        $Publisher .= $this->PrettyFields(array("264" => array("c" => ", ")));
+      }
+      else
+      {
+        $Publisher .= $this->PrettyFields(array("260" => array("c" => ", ")));
+      }
+      if ( trim($Publisher) == "" )
+      {
+        $Publisher = $this->PrettyFields(array("952" => array("j" => "~.")));
+      }
     }
     return trim($Publisher);
+  }
+
+  protected function GetPubArticle()
+  {
+    $Publisher = array();
+    $Tmp       = $this->GetCompleteArray(array("772" => array("g", "i", "t"),
+                                               "773" => array("g", "i", "t")));
+
+    foreach ( $Tmp as $One )
+    {
+      if ( isset($One["g"]["0"]) && trim($One["g"]["0"]) ) $Publisher[] = $One["g"]["0"] . ", ";
+      if ( isset($One["i"]["0"]) && trim($One["i"]["0"]) ) $Publisher[] = $One["i"]["0"] . ": ";
+      if ( isset($One["t"]["0"]) && trim($One["t"]["0"]) ) $Publisher[] = $One["t"]["0"];
+      if ( count($Publisher) )  break;
+    }
+    return implode($Publisher);
   }
 
   protected function GetCorporation()
@@ -791,11 +807,18 @@ class General
   protected function GetGenre()
   {
     $Genre = array();
-    $Tmp             = $this->GetCompleteArray(array("655" => array("0","a")));
+    $Tmp             = $this->GetCompleteArray(array("655" => array("0","a","x","y","z")));
     foreach ( $Tmp as $One )
     {
       if ( !isset($One["a"]["0"]) ) continue;
+
+      $Unter = array();
+      if ( isset($One["x"]["0"]) ) $Unter[] = $One["x"]["0"];
+      if ( isset($One["y"]["0"]) ) $Unter[] = $One["y"]["0"];
+      if ( isset($One["z"]["0"]) ) $Unter[] = $One["z"]["0"];
+
       $Genre[]   = array("name" => $One["a"]["0"],
+                         "more" => count($Unter) ? " (" . implode(", ", $Unter) . ")" : "",
                          "norm" => $this->GetNorm($One));
     }
     return $Genre;
@@ -804,23 +827,25 @@ class General
   protected function GetSubject()
   {
     $Subject = array();
-    $Tmp             = $this->GetCompleteArray(array("689" => array("0","a","d","t","f","m","n","o","p","r","s","g","c")));
+    $Tmp             = $this->GetCompleteArray(array("689" => array("0","a","b","c","d","f","g","m","n","o","p","r","s","t")));
     foreach ( $Tmp as $One )
     {
       if ( !isset($One["a"]["0"]) ) continue;
 
       $Text = $One["a"]["0"];
-      if ( isset($One["d"]["0"]) )  $Text .= " (" . $One["d"]["0"] . ")";
-      if ( isset($One["t"]["0"]) )  $Text .= ": " . $One["t"]["0"];
-      if ( isset($One["f"]["0"]) )  $Text .= ", " . $One["f"]["0"];
-      if ( isset($One["m"]["0"]) )  $Text .= ", " . $One["m"]["0"];
-      if ( isset($One["n"]["0"]) )  $Text .= ", " . $One["n"]["0"];
-      if ( isset($One["o"]["0"]) )  $Text .= ", " . $One["o"]["0"];
-      if ( isset($One["p"]["0"]) )  $Text .= ", " . $One["p"]["0"];
-      if ( isset($One["r"]["0"]) )  $Text .= ", " . $One["r"]["0"];
-      if ( isset($One["s"]["0"]) )  $Text .= ", " . $One["s"]["0"];
-      if ( isset($One["g"]["0"]) )  $Text .= ", " . $One["g"]["0"];
-      if ( isset($One["c"]["0"]) )  $Text .= ", " . $One["c"]["0"];
+      if ( isset($One["b"]["0"]) )                           $Text .= " "  . $One["b"]["0"];
+      if ( isset($One["c"]["0"]) )                           $Text .= ", " . $One["c"]["0"];
+      if ( isset($One["t"]["0"]) )                           $Text .= ": " . $One["t"]["0"];
+      if ( isset($One["f"]["0"]) && isset($One["g"]["0"]))   $Text .= " (" . $One["f"]["0"] . ", " . $One["g"]["0"] . ")"; 
+      if ( isset($One["f"]["0"]) && !isset($One["g"]["0"]))  $Text .= " (" . $One["f"]["0"] . ")"; 
+      if ( isset($One["m"]["0"]) )                           $Text .= ", " . $One["m"]["0"];
+      if ( isset($One["o"]["0"]) )                           $Text .= ", " . $One["o"]["0"];
+      if ( isset($One["p"]["0"]) )                           $Text .= ". " . $One["p"]["0"];
+      if ( isset($One["n"]["0"]) )                           $Text .= ", " . $One["n"]["0"];
+      if ( isset($One["r"]["0"]) )                           $Text .= ", " . $One["r"]["0"];
+      if ( isset($One["s"]["0"]) )                           $Text .= ", " . $One["s"]["0"];
+      if ( isset($One["g"]["0"]) && !isset($One["f"]["0"]))  $Text .= " (" . $One["g"]["0"] . ")";
+      if ( isset($One["d"]["0"]) )                           $Text .= " (" . $One["d"]["0"] . ")";
       $Subject[]   = array("name" => $Text,
                            "norm" => $this->GetNorm($One));
     }
@@ -1088,20 +1113,45 @@ class General
 
   protected function GetProvenance()
   {
+    $PROV    = ( isset($_SESSION["config_discover"]["filter"]["provenance"]) && $_SESSION["config_discover"]["filter"]["provenance"] ) 
+               ? trim(strtolower($_SESSION["config_discover"]["filter"]["provenance"])) : "";
+    if ( !$PROV ) return array();
+
+    $ISILs = array();
+    if ( isset($_SESSION["config_general"]["general"]["isil"])  && $_SESSION["config_general"]["general"]["isil"]  != "" )  $ISILs[] = $_SESSION["config_general"]["general"]["isil"];
+    if ( isset($_SESSION["config_general"]["general"]["isil2"]) && $_SESSION["config_general"]["general"]["isil2"] != "" )  $ISILs[] = $_SESSION["config_general"]["general"]["isil2"];
+
     $Provenance = array();
     if ( array_key_exists("561", $this->contents) )
     {
-      $Tmp        = $this->GetArray(array("561" => array("3","5","a")));
-      foreach ( $Tmp as $P )
+      $M561        = $this->GetArray(array("561" => array("3","5","a")));
+      foreach ( $M561 as $P )
       {
         if ( !isset($P["a"]) )  continue;
+        if ( !isset($P["5"]) && ( $PROV == "iln" || $PROV == "iln*" ) ) continue;
+
         if ( isset($P["3"]) && isset($P["a"]) )
         {
-          if ( $_SESSION["filter"]["datapool"] == "local" 
-            && isset($_SESSION["config_general"]["general"]["isil"])  && $_SESSION["config_general"]["general"]["isil"]  != $P["5"] )  continue;
-          if ( $_SESSION["filter"]["datapool"] == "local" 
-            && isset($_SESSION["config_general"]["general"]["isil2"])  && $_SESSION["config_general"]["general"]["isil2"]  != $P["5"] )  continue;
-  
+          if ( $PROV == "iln" )
+          {
+            if ( !in_array($P["5"],$ISILs) )  continue;
+          }
+ 
+          if ( $PROV == "iln*" )
+          {
+            $Found = false;
+            foreach ($ISILs as $I)
+            {
+              // Es wird ISIL- geprüft, also mit Strich hinter ISIL
+              if ( $I == $P["5"] || strncmp($I . "-", $P["5"], strlen($I)+1) === 0 )
+              {
+                $Found = true;
+                break;
+              }
+            }
+            if ( !$Found ) continue;
+          }
+ 
           if ( !isset($_SESSION["isils"][$P["5"]]) )
           {
             $Tmp = $this->CI->database->getCentralDB("isil", array("isil" => $P["5"]));
@@ -1110,8 +1160,9 @@ class General
               $_SESSION["isils"][$P["5"]] = $Tmp[$P["5"]];
             }
           }
-  
+ 
           $Text = (isset($_SESSION["isils"][$P["5"]]["shortname"])) ? $_SESSION["isils"][$P["5"]]["shortname"] . " ": "";
+
           if ( isset($P["3"]) )
           {
             $Teile = explode("Signatur:", $P["3"]);
@@ -1161,39 +1212,65 @@ class General
                ? trim(strtolower($_SESSION["config_discover"]["filter"]["fingerprint"])) : "";
     if ( !$FINGER ) return array();
 
-    $Tmp = $this->CI->database->getCentralDB("isil", array("isil" => "DE-1"));
+    // $Tmp = $this->CI->database->getCentralDB("isil", array("isil" => "DE-1"));
 
     $Fingerprint = array();
     if ( array_key_exists("026", $this->contents) )
     {
-      $Tmp        = $this->GetArray(array("026" => array("5","e")));
+      $Tmp        = $this->GetCompleteArray(array("026" => array("5","e")));
 
       foreach ( $Tmp as $P )
       {
-        if ( !isset($P["e"]) )  continue;
-        if ( !isset($P["5"]) && $FINGER == "iln" ) continue;
+        // Ein Fingerprint - mehrere mögliche ISIL
 
-        $Text = $P["e"];
+        // Kein Fingerprint - skip
+        if ( !isset($P["e"][0]) )  continue;
 
-        if ( isset($P["5"]) )
+        // Keine einzige  ILN - skip falls ILN-Mode
+        if ( !isset($P["5"][0]) && $FINGER == "iln" ) continue;
+
+        $ISILs = array();
+        if ( isset($_SESSION["config_general"]["general"]["isil"])  && $_SESSION["config_general"]["general"]["isil"]  != "" )  $ISILs[] = $_SESSION["config_general"]["general"]["isil"];
+        if ( isset($_SESSION["config_general"]["general"]["isil2"]) && $_SESSION["config_general"]["general"]["isil2"] != "" )  $ISILs[] = $_SESSION["config_general"]["general"]["isil2"];
+
+        // Text aus FP
+        $Text = $P["e"][0];
+
+        if ( count($P["5"]) > 0 )
         {
           if ( $FINGER == "iln" )
           {
-            $ISILs = array();
-            if ( isset($_SESSION["config_general"]["general"]["isil"])  && $_SESSION["config_general"]["general"]["isil"]  != "" )  $ISILs[] = $_SESSION["config_general"]["general"]["isil"];
-            if ( isset($_SESSION["config_general"]["general"]["isil2"]) && $_SESSION["config_general"]["general"]["isil2"] != "" )  $ISILs[] = $_SESSION["config_general"]["general"]["isil2"];
-            if ( !in_array($P["5"],$ISILs) )  continue;
-          }
-  
-          if ( !isset($_SESSION["isils"][$P["5"]]) )
-          {
-            $Tmp = $this->CI->database->getCentralDB("isil", array("isil" => $P["5"]));
-            if ( isset($Tmp[$P["5"]]) )
+            // Keine passende ISIL im Mode ILN - skip
+            foreach ( $P["5"] as $P )
             {
-              $_SESSION["isils"][$P["5"]] = $Tmp[$P["5"]];
+              if (($key = array_search($P, $ISILs)) === false) continue;
+            }
+
+            // Passende ISIL gemerkt
+            $I = $ISILs[$key];
+          }
+          else
+          {
+            // Passende suchen
+            if (($key = array_search($P["5"], $ISILs)) !== false)
+            {
+              $I = $ISILs[$key];
+            }
+            else
+            {
+              $I = $P["5"][0];
             }
           }
-          $Text .= (isset($_SESSION["isils"][$P["5"]]["shortname"])) ? " (" . $_SESSION["isils"][$P["5"]]["shortname"] . ")": "";
+
+          if ( !isset($_SESSION["isils"][$I]) )
+          {
+            $Tmp = $this->CI->database->getCentralDB("isil", array("isil" => $I));
+            if ( isset($Tmp[$I]) )
+            {
+              $_SESSION["isils"][$I] = $Tmp[$I];
+            }
+          }
+          $Text .= (isset($_SESSION["isils"][$I]["shortname"])) ? " (" . $_SESSION["isils"][$I]["shortname"] . ")": "";
           $Fingerprint[] =  trim($Text);
         }
         else
@@ -1386,8 +1463,6 @@ class General
     $RelatedPubs = array();
     $PPNLink = $this->CI->internal_search("ppnlink",$PPN);
     if ( ! isset($PPNLink["results"]) ) return ($RelatedPubs);
-  
-    //$this->printArray2Screen($PPNLink);
   
     $PPNStg = json_encode(array_keys($PPNLink["results"]));
   
@@ -1602,19 +1677,9 @@ class General
   
   private function GetPublisherYear($Contents)
   {
-    if ( array_key_exists("245", $Contents) )
-    {
-      foreach ( $Contents["245"] as $Record )
-      {
-        foreach ( $Record as $Subrecord )
-        {
-          foreach ( $Subrecord as $Key => $Value )
-          {
-            if ( $Key == "n" )  return $Value;
-          }
-        }
-      }
-    }
+    if ( isset($Contents["008"]) ) return substr($Contents["008"],7,4);
+    // intval(substr($Contents["008"],17,4));
+    /*
     if ( array_key_exists("264", $Contents) )
     {
       foreach ( $Contents["264"] as $Record )
@@ -1623,11 +1688,14 @@ class General
         {
           foreach ( $Subrecord as $Key => $Value )
           {
-            if ( $Key == "c" )  return $Value;
+            if ( $Key == "c" )
+            {
+              $Y = intval($Value);
+              if ( $Y >= 1000 && $Y <= (date("Y")+1) )  return $Y;
+            }
           }
         }
       }
-      return $Jahr;
     }
     if ( array_key_exists("260", $Contents) )
     {
@@ -1637,11 +1705,16 @@ class General
         {
           foreach ( $Subrecord as $Key => $Value )
           {
-            if ( $Key == "c" )  return $Value;
+            if ( $Key == "c" )
+            {
+              $Y = intval($Value);
+              if ( $Y >= 1000 && $Y <= (date("Y")+1) )  return $Y;
+            }
           }
         }
       }
     }
+    */
     return "";
   }
   
@@ -1854,12 +1927,13 @@ class General
     // 1: Mehrbändige Werke
     // 2: Schriftenreihen
     // 3: Enthaltene Werke
-  
+ 
     $RelatedPubs = array();
     $PPNLink = $this->CI->internal_search("ppnlink",$PPN);
 
     if ( ! isset($PPNLink["results"]) ) return ($RelatedPubs);
-  
+
+
     $PPNStg = json_encode(array_keys($PPNLink["results"]));
   
     foreach ( $PPNLink["results"] as $One )
@@ -1980,7 +2054,6 @@ class General
     {
       if ( ($LinksStored=$this->CI->internal_linkresolver($this->PPN)) != "" )
       {
-        // $this->CI->printArray2Screen($LinksStored);
         if ( isset($LinksStored["links"]) )
         {
           if ( ( !is_array($LinksStored["links"]) && $LinksStored["links"] != "[]" && $LinksStored["links"] != "" )
@@ -2109,7 +2182,8 @@ class General
           $Class  = $ButtonSize . " btn btn-default btn-exemplar";
           foreach ( $LinksResolved as $Solver => $Lk )
           {
-            $Output .= "<button onclick='$.openLink(\"" . $Lk . "\")' class='". $Class . "'>" . $this->CI->database->code2text("FULLTEXT") . " (" .  $this->CI->   database->code2text( $Solver)  . ")</button>";
+            // $Output .= "<button onclick='$.openLink(\"" . $Lk . "\")' class='". $Class . "'>" . $this->CI->database->code2text("FULLTEXT") . " (" .  $this->CI->   database->code2text( $Solver)  . ")</button>";
+            $Output .= "<button onclick='$.openLink(\"" . $Lk . "\")' class='". $Class . "'>" . $this->CI->database->code2text("FULLTEXT") . "</button>";
           }
         }
         elseif ($LinkResolver)
