@@ -90,7 +90,7 @@
 
 **14.05.2021**
 * User view
-  * Indentical texts from PAIA interface not displayed twice
+  * Identical texts from PAIA interface not displayed twice
 
 **13.05.2021**
 * Fullview
@@ -265,7 +265,7 @@
   * Performance Update
 
 **05.02.2020**
-* Tooltips containting links to external systems
+* Tooltips containing links to external systems
 
 **04.02.2020**
 * Exemplar-Detail-Window
@@ -701,7 +701,7 @@
 
 **18.01.2018**
 * Library System
-  * Cancelation of reservertions 
+  * Cancellation of reservertions
 
 **09.01.2018**
 * Library System
@@ -802,14 +802,14 @@
   * Chart.js 2.7.0
 
 **07.09.2017**
-* Generell
+* General
   * W3C Validation Check (https://validator.w3.org/)
   * Wave Check (http://wave.webaim.org/)
 
 **05.09.2017**
 * Cleanup
   * Renamed example.css to new_library.css
-  * Log: Empty userid not crypted
+  * Log: Empty userid not encrypted
 
 **04.09.2017**
 * Compatibility
@@ -917,11 +917,11 @@
   
 **16.05.2017**
 * Search
-  * Yearrange adjusted
+  * Year range adjusted
 
 **11.05.2017**
 * General
-  * Search options group togehter and moved to toggable option area
+  * Search options group together and moved to toggable option area
   * New navigation bar layout
   * New material switches
   * Improved usage for mobile devices
@@ -1036,7 +1036,7 @@ Library extensions
 
 **01.03.2017**
 * Search
-  * Improved search for terme containing special characteds like -,#, etc.
+  * Improved search for terme containing special characters like -,#, etc.
   * Better simular publications
 
 **28.02.2017**
@@ -1080,7 +1080,7 @@ Library extensions
 **08.02.2017**
 * Resolved bugs
   * Frontpage trim searched values
-  * Local class seach corrected
+  * Local class search corrected
 
 * Cleanup
   * Removed CSS file from ini
@@ -1109,7 +1109,7 @@ Library extensions
 
 **23.01.2017**
 * Mail
-  * Now supporting multiple mails per library containing different subjects & adresses
+  * Now supporting multiple mails per library containing different subjects & addresses
 
 **20.01.2017**
 * Configuration
@@ -1217,7 +1217,7 @@ Library extensions
 * Updates
     * CodeIgniter 3.1.2
 * Resolved bugs
-    * Yearrange dragable
+    * Year range draggable
     * Frontpage-Assistant corrected
 * Search
     * Automatically added a space after a colon ',' -> ', '
@@ -1278,7 +1278,7 @@ Library extensions
     * LBS Driver    - Corrected "unknown"-DAIA-Date* 
 * Resolved bugs
     * Stored searches
-    * Mail from Adress
+    * Mail from Address
     * Trim username & password during login
 
 **21.09.2016**
@@ -1292,7 +1292,7 @@ Library extensions
 * Resolved Bugs
     * Bug Frontpage Search * solved
     * Link resolver switches corrected
-    * Bug Exemple 980e=a solved
+    * Bug Example 980e=a solved
 
 **15.09.2016**
 * Resolved Bugs
@@ -1301,7 +1301,7 @@ Library extensions
 **09.09.2016**
 * New features
     * Search improvements
-    * Assistent also available for frontpage
+    * Assistant also available for frontpage
 
 ###V 40
 1. Erweiterte Such-Logik Paket 1

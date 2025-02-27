@@ -712,10 +712,10 @@ class CI_Input {
 	 *
 	 * Internal method that helps to prevent malicious users
 	 * from trying to exploit keys we make sure that keys are
-	 * only named with alpha-numeric text and a few other items.
+	 * only named with alphanumeric text and a few other items.
 	 *
 	 * @param	string	$str	Input string
-	 * @param	bool	$fatal	Whether to terminate script exection
+	 * @param	bool	$fatal	Whether to terminate script execution
 	 *				or to return FALSE if an invalid
 	 *				key is encountered
 	 * @return	string|bool

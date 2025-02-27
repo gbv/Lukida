@@ -147,7 +147,7 @@ class CI_Table {
 	/**
 	 * Set the table heading
 	 *
-	 * Can be passed as an array or discreet params
+	 * Can be passed as an array or discrete params
 	 *
 	 * @param	mixed
 	 * @return	CI_Table
@@ -211,7 +211,7 @@ class CI_Table {
 	/**
 	 * Set "empty" cells
 	 *
-	 * Can be passed as an array or discreet params
+	 * Can be passed as an array or discrete params
 	 *
 	 * @param	mixed	$value
 	 * @return	CI_Table
@@ -227,7 +227,7 @@ class CI_Table {
 	/**
 	 * Add a table row
 	 *
-	 * Can be passed as an array or discreet params
+	 * Can be passed as an array or discrete params
 	 *
 	 * @param	mixed
 	 * @return	CI_Table

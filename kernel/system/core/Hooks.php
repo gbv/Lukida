@@ -74,7 +74,7 @@ class CI_Hooks {
 	/**
 	 * In progress flag
 	 *
-	 * Determines whether hook is in progress, used to prevent infinte loops
+	 * Determines whether hook is in progress, used to prevent infinite loops
 	 *
 	 * @var	bool
 	 */

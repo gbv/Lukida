@@ -2270,7 +2270,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 		}
 
 		// Does the string contain a comma?  If so, we need to separate
-		// the string into discreet statements
+		// the string into discrete statements
 		if (strpos($table, ',') !== FALSE)
 		{
 			return $this->_track_aliases(explode(',', $table));
