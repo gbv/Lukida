@@ -251,7 +251,7 @@ class Paia2_daia2 extends General
       $_SESSION[$this->isil]['paiaToken'] = $array_response['access_token'];
       if (array_key_exists('patron', $array_response))
       {
-        $_SESSION[$this->isil]["userlogin"]		= $user;
+        $_SESSION[$this->isil]["userlogin"]		= $array_response['patron'];
         $_SESSION[$this->isil]["userpassword"]	= $pw;
         $_SESSION[$this->isil]["login"]        = $this->getUserDetails();
         $_SESSION[$this->isil]["items"]        = $this->addIsil("items",$this->getUserItems());
