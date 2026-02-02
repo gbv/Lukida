@@ -1,6 +1,6 @@
 # Lukida
 
-Lukida (c) 2015-2025 is a Discovery-Software from VZG.
+Lukida (c) 2015-2026 is a Discovery-Software from VZG.
 Lukida-Homepage is [here](https://www.lukida.org/)
 
 ## Requirements
