@@ -51,7 +51,7 @@ class CI_Cart {
 
 	/**
 	 * These are the regular expression rules that we use to validate the product ID and product name
-	 * alpha-numeric, dashes, underscores, or periods
+	 * alphanumeric, dashes, underscores, or periods
 	 *
 	 * @var string
 	 */
@@ -59,7 +59,7 @@ class CI_Cart {
 
 	/**
 	 * These are the regular expression rules that we use to validate the product ID and product name
-	 * alpha-numeric, dashes, underscores, colons or periods
+	 * alphanumeric, dashes, underscores, colons or periods
 	 *
 	 * @var string
 	 */
@@ -211,22 +211,22 @@ class CI_Cart {
 
 		// --------------------------------------------------------------------
 
-		// Validate the product ID. It can only be alpha-numeric, dashes, underscores or periods
+		// Validate the product ID. It can only be alphanumeric, dashes, underscores or periods
 		// Not totally sure we should impose this rule, but it seems prudent to standardize IDs.
 		// Note: These can be user-specified by setting the $this->product_id_rules variable.
 		if ( ! preg_match('/^['.$this->product_id_rules.']+$/i', $items['id']))
 		{
-			log_message('error', 'Invalid product ID.  The product ID can only contain alpha-numeric characters, dashes, and underscores');
+			log_message('error', 'Invalid product ID.  The product ID can only contain alphanumeric characters, dashes, and underscores');
 			return FALSE;
 		}
 
 		// --------------------------------------------------------------------
 
-		// Validate the product name. It can only be alpha-numeric, dashes, underscores, colons or periods.
+		// Validate the product name. It can only be alphanumeric, dashes, underscores, colons or periods.
 		// Note: These can be user-specified by setting the $this->product_name_rules variable.
 		if ($this->product_name_safe && ! preg_match('/^['.$this->product_name_rules.']+$/i'.(UTF8_ENABLED ? 'u' : ''), $items['name']))
 		{
-			log_message('error', 'An invalid name was submitted as the product name: '.$items['name'].' The name can only contain alpha-numeric characters, dashes, underscores, colons, and spaces');
+			log_message('error', 'An invalid name was submitted as the product name: '.$items['name'].' The name can only contain alphanumeric characters, dashes, underscores, colons, and spaces');
 			return FALSE;
 		}
 

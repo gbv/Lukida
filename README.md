@@ -18,7 +18,7 @@ PHP PECL Solr Module https://pecl.php.net/package/solr
 
 1) Download lukida
 This is the main software 
-2) Rename the libraries/lukida_newlibrary folder to something more convienient like your library/institution name
+2) Rename the libraries/lukida_newlibrary folder to something more convenient like your library/institution name
 3) Create a link from your library to kernel
 
     Linux:
@@ -37,7 +37,7 @@ This is the main software
    1) Create an empty mysql database and an user who has full access to that new database
    2) Import the mysql_import.sql file into that database
    3) Remember the database connection
-5) Point your webbrowser's document_root to the correct path by replacing /var/www/html/lukida/libaries/lukida_newlibrary and use the rewrite lines from this **Example VirtualHost**
+5) Point your webbrowser's document_root to the correct path by replacing /var/www/html/lukida/libraries/lukida_newlibrary and use the rewrite lines from this **Example VirtualHost**
 
     ```
     <VirtualHost *:80>
@@ -45,7 +45,7 @@ This is the main software
         ServerName lukida.domain.tld
 
         # Path to your new library 
-        DocumentRoot /var/www/html/lukida/libaries/lukida_newlibrary
+        DocumentRoot /var/www/html/lukida/libraries/lukida_newlibrary
         
         # Name of library
         SetEnv LIBRARY "New Library"
@@ -54,7 +54,7 @@ This is the main software
         SetEnv MODE "development"
         
         # Path to your new library 
-        <Directory /var/www/html/lukida/libaries/lukida_newlibrary>
+        <Directory /var/www/html/lukida/libraries/lukida_newlibrary>
             DirectoryIndex index.php
             AllowOverride All
             Require all granted
@@ -99,7 +99,7 @@ In order to get it running you need to customize your library (.../lukida/librar
         ```
         [domains]
         
-        ; Develpment URLs 
+        ; Development URLs
         devurl=lukida.local
 
         ; Test URLs

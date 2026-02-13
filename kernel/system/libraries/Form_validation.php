@@ -1296,7 +1296,7 @@ class CI_Form_validation {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Alpha-numeric
+	 * Alphanumeric
 	 *
 	 * @param	string
 	 * @return	bool
@@ -1309,7 +1309,7 @@ class CI_Form_validation {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Alpha-numeric w/ spaces
+	 * Alphanumeric w/ spaces
 	 *
 	 * @param	string
 	 * @return	bool
@@ -1322,7 +1322,7 @@ class CI_Form_validation {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Alpha-numeric with underscores and dashes
+	 * Alphanumeric with underscores and dashes
 	 *
 	 * @param	string
 	 * @return	bool

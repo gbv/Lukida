@@ -107,7 +107,7 @@ function &DB($params = '', $query_builder_override = NULL)
 	{
 		/**
 		 * Parse the URL from the DSN string
-		 * Database settings can be passed as discreet
+		 * Database settings can be passed as discrete
 		 * parameters or as a data source name in the first
 		 * parameter. DSNs must have this prototype:
 		 * $dsn = 'driver://username:password@hostname/database';
