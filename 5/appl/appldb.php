@@ -62,7 +62,7 @@ class appldb extends system
 
     $Data = array('client' => $this->client);
 
-    $SQL  = "select level from adminlevels where client = :client and sort > 0 order by sort";
+    $SQL  = "select level from " . $this->schemaOf(MODULE) . ".adminlevels where client = :client and sort > 0 order by sort";
 
     $Rows = $this->execDB($SQL, $Data);
     $Levl = array();

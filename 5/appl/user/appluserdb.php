@@ -626,24 +626,6 @@ class appluserdb extends systemuser
     return $Data;
   }
 
-  public function updUserLoginDB($Login)
-  {
-    if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
-
-    if (!isset($Login) || !trim($Login))  return (-1);
-
-    $U    = $this->ident("user");
-    $SQL  = "insert into users (client, " . $U . ", lastlogin) values (:client, :user, :lastlogin)";
-    $SQL .= $this->sqlDup("lastlogin = :lastlogin2", array("client", "user"));
-    $Data = array(
-      "client"    => $this->client,
-      "user"      => $this->getUserHash($Login),
-      "lastlogin" => date("Y-m-d H:i:s")
-    );
-    $Data["lastlogin2"] = $Data["lastlogin"];
-    return ($this->ExecDB($SQL, $Data));
-  }
-
   public function storeMailDB($User, $Data, $Type, $Other = array())
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
