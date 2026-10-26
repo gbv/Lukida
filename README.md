@@ -169,7 +169,9 @@ CREATE DATABASE lukida_essential OWNER lukida_essential;
 \q
 ```
 
-Das Passwort muss mit `pass` in `user.ini` übereinstimmen.
+Das Passwort muss mit `pass` in `user.ini` übereinstimmen. Die Namen `lukida_essential` für
+DB und User sind auch in `sql/schema.sql` (Rechtevergabe) hinterlegt — bei anderen Namen
+dort ebenfalls anpassen.
 
 ### 5.2 Platzhalter in `demo-data.sql` befüllen
 
@@ -178,8 +180,8 @@ Werten befüllt werden:
 
 | Platzhalter | Bedeutung | Woher |
 |---|---|---|
-| `<solr-host>` | Solr-Server-Hostname | Bei GBV beantragen |
-| `<solr-path>` | Solr-Suchpfad | Bei GBV beantragen |
+| `<solr-host>` | Solr-Server-Hostname, in der Regel `findex.gbv.de` | GBV |
+| `<solr-path>` | Solr-Suchpfad, z. B. `index/<iln>` | Bei GBV beantragen |
 | `<iln>` | Interne Bibliotheksnummer (ILN) | Eigene Bibliothek / GBV |
 | `<gbv-iln>` | ILN im GBV-Format, z. B. `GBV_ILN_123` | Eigene Bibliothek / GBV |
 | `<isil>` | ISIL der Bibliothek, z. B. `DE-7` | Eigene Bibliothek |
@@ -190,7 +192,13 @@ Werten befüllt werden:
 | `<testuser>` | Testnutzer-Ausweisnummer | Eigene Bibliothek |
 | `<testpass>` | Testnutzer-Passwort | Eigene Bibliothek |
 
-Den Solr-Zugang (Host + Pfad) stellt GBV auf Anfrage bereit.
+Den Solr-Zugang (Host + Pfad) stellt GBV auf Anfrage bereit. Ob er funktioniert, lässt sich vorab prüfen:
+
+```bash
+curl 'https://<solr-host>/<solr-path>/select?q=test&rows=1&wt=json'
+```
+
+Eine Antwort mit `"response"` bedeutet: Zugang ok. `403 Forbidden` bedeutet: kein Zugriff für diese Adresse.
 PAIA-Zugangsdaten erhältst du von deinem lokalen Bibliothekssystem.
 
 ### 5.3 Schema und Demo-Daten einspielen
@@ -300,6 +308,15 @@ Listen 9056
 - Port **9056** — Vue-UI (statische Dateien). `ProxyPass /api` → 9055 leitet
   API-Requests weiter. Im Dev-Modus (`npm run dev`) übernimmt das Vite,
   im Build muss Apache es übernehmen.
+
+Statt zweier Ports können auch zwei Hostnamen auf Port 80 genutzt werden
+(z. B. `lukida-api.example` und `lukida.example`). Dann muss `ProxyPass` auf den
+API-Hostnamen zeigen, nicht auf einen Port:
+
+```apache
+    ProxyPass        /api http://lukida-api.example
+    ProxyPassReverse /api http://lukida-api.example
+```
 
 ### 7.3 Apache neu laden
 

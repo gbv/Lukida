@@ -1965,7 +1965,7 @@ class user extends appluserdb
     $LevWHaptic = (isset($this->configs["facet"]["levelswithhaptics"]) && $this->configs["facet"]["levelswithhaptics"] == "y") ? true : false;
 
     $SolrPath = isset($this->configs["hosting"]["solrpath"]) ? trim($this->configs["hosting"]["solrpath"], "/ ") : "";
-    $URL  = "https://findex.gbv.de";
+    $URL  = $this->conf("solr", "prot", "https://") . trim($this->conf("solr", "host", "findex.gbv.de"), "/ ");
     $URL .= "/" . $SolrPath . "/select?wt=json&defType=edismax";
 
     if (!trim($Level) || (!array_key_exists($Level, $this->levels))) $Level = "all";
