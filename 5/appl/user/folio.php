@@ -151,12 +151,10 @@ class folio extends bms
     $File = $this->CS->prepareCachePath(array("settings"), "folio" . $Name);
     if ( file_exists($File) )
     {
-      if ( MODE != "production" ) $this->CS->updStatDB("Cache", $Stat . ".yes");
       $Data = json_decode((string) file_get_contents($File), true);
       if ( is_array($Data) )  return $this->lookups[$Name] = $Data;
     }
 
-    if ( MODE != "production" ) $this->CS->updStatDB("Cache", $Stat . ".no");
     $Data = array();
     foreach ( $this->getJson($Path)[$Field] ?? array() as $Record )
     {

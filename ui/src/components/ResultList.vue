@@ -29,44 +29,23 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { isFavorite, toggleFavorite } from '../favorites.js'
 
 defineProps(['results'])
 defineEmits(['open'])
 
-// Reaktiver Zähler damit computed neu ausgewertet wird nach toggleFav
-const favTick = ref(0)
-
-function loadFavs() {
-  try { return JSON.parse(localStorage.getItem('lukida_favs') || '[]') } catch { return [] }
-}
-function saveFavs(arr) {
-  try { localStorage.setItem('lukida_favs', JSON.stringify(arr)) } catch {}
-}
-
 function isFav(item) {
-  favTick.value // dependency
-  return loadFavs().some(f => f.id === item.id)
+  return isFavorite(item.id)
 }
-
 function toggleFav(item) {
-  const favs = loadFavs()
-  const idx  = favs.findIndex(f => f.id === item.id)
-  if (idx >= 0) {
-    favs.splice(idx, 1)
-  } else {
-    favs.unshift({
-      id:      item.id,
-      title:   getTitle(item),
-      author:  getAuthor(item),
-      year:    item.year || '',
-      area:    item.area || '',
-      format:  item.format || '',
-      savedAt: Date.now(),
-    })
-  }
-  saveFavs(favs)
-  favTick.value++
+  toggleFavorite({
+    id:     item.id,
+    title:  getTitle(item),
+    author: getAuthor(item),
+    year:   item.year || '',
+    area:   item.area || '',
+    format: item.format || '',
+  })
 }
 
 function getBibField(item, code) {

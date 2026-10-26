@@ -1,7 +1,7 @@
 <template>
   <div class="navbar bg-base-200 shadow-sm px-4">
     <div class="flex-1">
-      <span class="text-xl font-bold text-primary cursor-pointer" @click="$emit('show-search')">Lukida Essential</span>
+      <span class="text-xl font-bold text-primary cursor-pointer" @click="$emit('show-search')">{{ APP_TITLE }}</span>
     </div>
     <div class="flex-none gap-2">
       <select class="select select-sm select-bordered" :value="currentTheme" @change="onThemeChange($event.target.value)">
@@ -72,6 +72,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { api, APP_TITLE } from '../api.js'
 
 defineProps(['currentTheme', 'user', 'currentView'])
 const emit = defineEmits(['theme-change','show-account','show-search','show-favs','show-history','show-info','login','logout'])
@@ -102,20 +103,12 @@ async function doLogin() {
   }
   loading.value = true
   try {
-    const res = await fetch('/api/5/user/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        apikey: import.meta.env.VITE_API_KEY,
-        appl:    'production',
-        client:  'Demo',
-        area:    'findex',
-        login:   loginForm.value.user,
-        pw:      loginForm.value.pw,
-        display: { user: true, items: true, fees: true }
-      })
+    const data = await api('login', {
+      area:    'findex',
+      login:   loginForm.value.user,
+      pw:      loginForm.value.pw,
+      display: { user: true, items: true, fees: true }
     })
-    const data = await res.json()
     if (data.stat === 'success') {
       sessionStorage.setItem('lukida_user', JSON.stringify(data.user))
       emit('login', { ...data.user, _accountData: data })

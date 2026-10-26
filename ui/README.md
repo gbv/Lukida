@@ -9,4 +9,6 @@ npm run dev                  # Entwicklung, /api wird an http://localhost:9055 w
 npm run build                # Produktion, erzeugt dist/
 ```
 
+Name und Client der Oberfläche: `VITE_APP_TITLE` und `VITE_API_CLIENT` in `.env`.
+
 Installation und Apache-Konfiguration: siehe [README im Hauptverzeichnis](../README.md).

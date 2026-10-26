@@ -3822,10 +3822,6 @@ class item
                                              "title"      => $this->CS->getMarcText($ID, "bib_01"),
                                              "volume"     => $this->getVolume());
 
-      if ( isset($this->CS->configs["other"]["delivery.type"]) && $this->CS->configs["other"]["delivery.type"] == "mail" )
-      {
-      }
-
       if ( isset($Exemplar["short"]["code"]) && $Exemplar["short"]["code"] == "itembutton.bandlist" )
       {
         $Exemplar["meta"]["dialog"] = "bandlist";

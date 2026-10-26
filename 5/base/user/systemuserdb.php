@@ -66,7 +66,6 @@ class systemuserdb extends appl
     $APIToken = $this->encodeToken($Inhalt);
     $ValidUntil = (new DateTime())->modify("+" . $this->f3->get("application.daysvalidtoken") . " day")->format('Y-m-d H:i:s');
 
-    $this->updStatDB("Token", "Renew");
     $this->logDB("renewtoken: neuer Schluessel ausgestellt, gueltig bis " . $ValidUntil, "api", "renewtoken", "OK");
 
     return array("token" => $APIToken, "validuntil" => $ValidUntil);

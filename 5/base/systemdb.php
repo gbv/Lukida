@@ -130,10 +130,7 @@ class systemdb extends com
 
   private function DecryptString($Crypt)
   {
-    if (!isset($this->dbpw)) {
-      $this->logs->Insert("SessionError|DecryptString|" . $Crypt, "partners");
-      return "";
-    }
+    if (!isset($this->dbpw))  return "";
     $key = substr(sha1($this->dbpw, true), 0, 16);
     $iv  = substr($Crypt, 0, 16);
     $String  = openssl_decrypt(substr($Crypt, 16), 'AES-128-CBC', $key, OPENSSL_RAW_DATA, $iv);
@@ -144,46 +141,6 @@ class systemdb extends com
   {
     $Array = unserialize($Array);
     return ($Array);
-  }
-
-  private function getCountry2IP()
-  {
-    if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
-
-    $Country = "";
-
-    $this->createPath(IPCACHEDIR);
-    $File = IPCACHEDIR . preg_replace('/[^0-9a-f.:]/i', "_", strtolower((string) $this->clientip)) . ".inc";
-    if (file_exists($File)) {
-
-      $Country = json_decode(file_get_contents($File), true);
-      if ( !is_string($Country) )  $Country = "";
-    } else {
-
-      $Zentral = trim((string) $this->f3->get("central.db.schema"));
-      $Tabelle = ($Zentral !== "" ? $Zentral . "." : "") . "ip2country";
-
-      if ($this->isPG(true)) {
-        $Data = array("ip" => $this->clientip);
-        $SQL  = "SELECT country FROM " . $Tabelle . " WHERE cast(:ip as inet) >= ipfrom and cast(:ip as inet) < ipto order by ipto limit 1";
-      } else {
-        $Data = array("ip" => inet_pton($this->clientip));
-        $SQL  = "SELECT country FROM " . $Tabelle . " WHERE :ip >= ipfrom and :ip < ipto order by ipto limit 1";
-      }
-      $Rows = $this->execDB($SQL, $Data, true);
-      $Country = isset($Rows[0]["country"]) ? $Rows[0]["country"] : "Unknown";
-
-      if ( @file_put_contents($File, json_encode($Country, true)) === false )
-      {
-        $this->createPath(dirname($File) . DIRECTORY_SEPARATOR);
-        if ( @file_put_contents($File, json_encode($Country, true)) === false )
-          $this->debug("LOG", "getCountry2IP: Zwischenspeicher nicht schreibbar: " . $File);
-      }
-    }
-
-    if (!trim((string) $Country))  $Country = "Unknown";
-
-    return $Country;
   }
 
   protected $driver        = "mysql";
@@ -288,16 +245,6 @@ class systemdb extends com
     return $this->f3->get("application.type") . "_" . $Module;
   }
 
-  protected function sqlDup($Set, $Conflict)
-  {
-    if ($this->isPG()) {
-      $Q = array();
-      foreach ($Conflict as $C)  $Q[] = $this->ident($C);
-      return " on conflict (" . implode(", ", $Q) . ") do update set " . $Set;
-    }
-    return " on duplicate key update " . $Set;
-  }
-
   protected function ident($Name)
   {
     return $this->isPG() ? '"' . str_replace('"', '', $Name) . '"' : $Name;
@@ -388,29 +335,6 @@ class systemdb extends com
       $Confs[$Row["category"]][$Row["setting"]] = $Row["value"];
     }
     return $Confs;
-  }
-
-  protected function getHostingClientDB($Client = "")
-  {
-    if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
-
-    $Tabelle = (MODULE == "hosting") ? "clients" : $this->schemaOf(MODULE) . ".hostingclients";
-    $SQL     = "select * from " . $Tabelle . " where client = :client";
-
-    try   { $Rows = $this->execDB($SQL, array("client" => ($Client ? $Client : $this->client))); }
-    catch (Exception $E) { return array(); }
-
-    if (!is_array($Rows) || !count($Rows))  return array();
-
-    $Felder = array("solrpath", "kisuggest", "messageprovider", "messagechannel",
-                    "messagekey", "mybibuser", "mybibpass", "mybibprodhost", "mybibtesthost",
-                    "scopes");
-    $Aus = array();
-    foreach ($Felder as $F)
-    {
-      if (isset($Rows[0][$F]))  $Aus[$F] = $Rows[0][$F];
-    }
-    return $Aus;
   }
 
   protected function getAdminTextsDB($Selection = [], $Filter = false, $Client = "")
@@ -705,108 +629,6 @@ class systemdb extends com
     return $Rows;
   }
 
-  protected function updSessionDB($Session = "")
-  {
-    if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
-
-    if (!$Session)  $Session = $this->getUID();
-
-    $Data = array(
-      "token" => $Session,
-      "start" => date("Y-m-d H:i:s"),
-      "end"   => date("Y-m-d H:i:s")
-    );
-    if (MODULE != "hosting") $Data['client']  = $this->client;
-
-    if (MODULE == "hosting") {
-      $E = $this->ident("end");
-      $SQL  = "insert into sessions (token, start, " . $E . ") values (:token, :start, :end)";
-      $SQL .= $this->sqlDup($E . "=:end", array("token"));
-    } else {
-      $E = $this->ident("end");
-      $SQL  = "insert into sessions (client, token, start, " . $E . ") values (:client, :token, :start, :end)";
-      $SQL .= $this->sqlDup($E . "=:end", array("token", "client"));
-    }
-    $this->execDB($SQL, $Data);
-  }
-
-  protected function updDeviceDB()
-  {
-    if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
-
-    $User    = (isset($this->posted["login"]))               ? $this->posted["login"]               : "";
-    if (!$User) $User = (isset($this->posted["userid"]))   ? $this->posted["userid"]              : "";
-    $Token   = (isset($this->posted["tokens"]["device"]))    ? $this->posted["tokens"]["device"]    : "";
-    $Serial  = (isset($this->posted["platform"]["serial"]))  ? $this->posted["platform"]["serial"]  : "";
-    $Product = (isset($this->posted["platform"]["product"])) ? $this->posted["platform"]["product"] : "";
-    if (!$User || !$Token) return;
-
-    $Data = array(
-      "user"    => $User,
-      "token"   => $Token,
-      "product" => $Product,
-      "serial"  => $Serial,
-      "start"   => date("Y-m-d H:i:s"),
-      "end"     => date("Y-m-d H:i:s")
-    );
-    if (MODULE != "hosting")  $Data['client']  = $this->client;
-
-    if (MODULE == "hosting") {
-      $U = $this->ident("user"); $E = $this->ident("end");
-      $SQL  = "insert into devices (" . $U . ", token, product, serial, start, " . $E . ") values (:user, :token, :product, :serial, :start, :end)";
-      $SQL .= $this->sqlDup("product=:product, serial=:serial, " . $E . "=:end", array("user", "token"));
-    } else {
-      $U = $this->ident("user"); $E = $this->ident("end");
-      $SQL  = "insert into devices (client, " . $U . ", token, product, serial, start, " . $E . ") values (:client, :user, :token, :product, :serial, :start, :end)";
-      $SQL .= $this->sqlDup("product=:product, serial=:serial, " . $E . "=:end", array("client", "user", "token"));
-    }
-    $this->execDB($SQL, $Data);
-  }
-
-  protected function updPlatformDB()
-  {
-    if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
-
-    $Platform = (isset($this->posted["platform"])    && $this->posted["platform"]    != "") ? $this->posted["platform"]    : "";
-    if ($Platform == "") return;
-
-    if (isset($Platform['browser']) && trim($Platform['browser'])) {
-      $this->updStatDB("Platform", "browser_" . $Platform['browser']);
-    }
-
-    if (isset($Platform['colordepth']) && trim($Platform['colordepth'])) {
-      $this->updStatDB("Platform", "colordepth_" . $Platform['colordepth']);
-    }
-
-    if (isset($Platform['cordova']) && trim($Platform['cordova'])) {
-      $this->updStatDB("Platform", "cordova_" . $Platform['cordova']);
-    }
-
-    if (isset($Platform['cpu']) && trim($Platform['cpu'])) {
-      $this->updStatDB("Platform", "cpu_" . $Platform['cpu']);
-    }
-
-    if (isset($Platform['device']) && trim($Platform['device'])) {
-      $this->updStatDB("Platform", "device_" . $Platform['device']);
-    }
-
-    if (isset($Platform['engine']) && trim($Platform['engine'])) {
-      $this->updStatDB("Platform", "engine_" . $Platform['engine']);
-    }
-
-    if (isset($Platform['os']) && trim($Platform['os'])) {
-      $this->updStatDB("Platform", "os_" . $Platform['os']);
-    }
-
-    if (isset($Platform['screen']) && trim($Platform['screen'])) {
-      $this->updStatDB("Platform", "screen_" . $Platform['screen']);
-    }
-
-    if (isset($Platform['product']) && trim($Platform['product'])) {
-      $this->updStatDB("Platform", "product_" . $Platform['product']);
-    }
-  }
-
   public function logDB($Report, $Category = "system", $Log = "-", $State = "OK", $Data = "", $Client = null)
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
@@ -836,118 +658,8 @@ class systemdb extends com
     $this->execDB($SQL, $Log);
   }
 
-  public function updStatDB($Category, $Stat, $Count = 1, $Client = null)
-  {
-    if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
-
-    if ($Category == "" || $Stat == "") return;
-
-    $Kunde = ($Client !== null && trim((string) $Client) !== "") ? trim((string) $Client) : $this->client;
-    if (MODULE != "hosting" && trim((string) $Kunde) == "") return;
-
-    $Category = ucfirst($Category);
-    if ($Category != "Platform")  $Stat = ucfirst($Stat);
-
-    $APIStat = (trim((string) $this->apikey) !== "")
-                 ? preg_replace("/[^a-z0-9]+/", "", strtolower($this->apikey))
-                 : ((isset($this->posted["stat"]) && $this->posted["stat"] != "") ?  preg_replace("/[^a-z0-9]+/", "", strtolower($this->posted["stat"])) : "-");
-    $Hour    = date('H');
-
-    $StaData = array(
-      "category" => $Category,
-      "stat"     => $Stat,
-      "day"      => date("Y-m-d"),
-      "country"  => substr($this->getCountry2IP(), 0, 50),
-      "api"      => substr($APIStat, 0, 50)
-    );
-    if (MODULE != "hosting")  $StaData['client']  = $Kunde;
-
-    $StaData = array_merge($StaData, $this->statsExtraValuesDB($this->statsExtraColumnsDB()));
-
-    $Keys  = array_keys($StaData);
-    $Cols  = array();
-    $Marks = array();
-    foreach ($Keys as $Key) {
-      $Cols[]  = $this->ident($Key);
-      $Marks[] = ":" . $Key;
-    }
-    $Cols[]  = "hour_" . $Hour;
-    $Marks[] = (MODULE == "hosting") ? "1" : $Count;
-
-    $SQL = "insert into stats (" . implode(", ", $Cols) . ") values (" . implode(", ", $Marks) . ")"
-         . $this->sqlDup("hour_" . $Hour . "=stats.hour_" . $Hour . "+" . $Count,
-                         $this->statsUniqueKeyDB("stats", MODULE, $Keys));
-
-    $this->execDB($SQL, $StaData);
-  }
-
   private static $StatsKey = array();
-
-  protected function statsUniqueKeyDB($Table, $Modul, $Fallback)
-  {
-    if (!$this->isPG())  return $Fallback;
-
-    $Merk = $this->schemaName($Modul) . "." . $Table;
-    if (isset(self::$StatsKey[$Merk]))  return self::$StatsKey[$Merk];
-
-    $SQL  = "with t as (select to_regclass(:tbl) as rel),";
-    $SQL .= " u as (select i.indkey from pg_index i join t on i.indrelid = t.rel";
-    $SQL .= "        where i.indisunique and not i.indisprimary and i.indpred is null";
-    $SQL .= "        order by i.indnatts, i.indexrelid limit 1)";
-    $SQL .= " select a.attname as spalte from u cross join t";
-    $SQL .= " join unnest(u.indkey) with ordinality k(att, ord) on k.att <> 0";
-    $SQL .= " join pg_attribute a on a.attrelid = t.rel and a.attnum = k.att";
-    $SQL .= " order by k.ord";
-
-    $Rows = $this->execDB($SQL, array("tbl" => $this->schemaOf($Modul) . "." . $Table));
-
-    $Key = array();
-    foreach ($Rows as $Row)  $Key[] = $Row["spalte"];
-
-    if (!count($Key))  return $Fallback;
-
-    self::$StatsKey[$Merk] = $Key;
-    return $Key;
-  }
 
   private static $StatsExtra = array();
 
-  protected function statsExtraNamesDB()
-  {
-    return array();
-  }
-
-  protected function statsExtraValuesDB(array $Spalten)
-  {
-    return array();
-  }
-
-  protected function statsExtraColumnsDB($Table = "stats", $Modul = MODULE)
-  {
-    $Schema = $this->schemaName($Modul);
-    $Merk   = $Schema . "." . $Table;
-    if (isset(self::$StatsExtra[$Merk]))  return self::$StatsExtra[$Merk];
-
-    $Namen = $this->statsExtraNamesDB();
-    if ( !count($Namen) )  return (self::$StatsExtra[$Merk] = array());
-
-    $Platzhalter = array();
-    $Daten       = array("schema" => $Schema, "table" => $Table);
-    foreach ( array_values($Namen) as $i => $Name )
-    {
-      $Platzhalter[]        = ":n" . $i;
-      $Daten["n" . $i]      = $Name;
-    }
-
-    $SQL  = "SELECT column_name AS colname FROM information_schema.columns"
-          . " where table_schema = :schema and table_name = :table"
-          . " and column_name in (" . implode(", ", $Platzhalter) . ")";
-    $Rows = $this->execDB($SQL, $Daten);
-
-    $Spalten = array();
-    foreach ($Rows as $Row)  $Spalten[] = $Row["colname"];
-
-    self::$StatsExtra[$Merk] = $Spalten;
-    return $Spalten;
-  }
 }

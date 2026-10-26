@@ -113,18 +113,7 @@
           <button class="btn btn-sm btn-circle btn-ghost" :disabled="!hasNext" @click="$emit('navigate', 1)">&#8250;</button>
         </div>
         <div class="flex items-center gap-2">
-          <!-- Export-Dropdown -->
-          <div class="dropdown dropdown-top dropdown-end">
-            <label tabindex="0" class="btn btn-sm btn-outline gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-              Export
-            </label>
-            <ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box shadow z-[70] w-44 p-1 mb-1">
-              <li><a @click.prevent="exportBibtex">BibTeX</a></li>
-              <li><a @click.prevent="exportRis">RIS / EndNote</a></li>
-              <li v-if="citaviUrl"><a @click.prevent="exportCitavi">Citavi</a></li>
-            </ul>
-          </div>
+          <ExportMenu :ids="[item.id]" />
           <button class="btn btn-sm" @click="$emit('close')">OK</button>
         </div>
       </div>
@@ -158,9 +147,12 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue'
+import { api } from '../api.js'
+import { isFavorite, toggleFavorite } from '../favorites.js'
+import ExportMenu from './ExportMenu.vue'
 
 const props = defineProps(['item', 'hasPrev', 'hasNext'])
-const emit  = defineEmits(['close', 'navigate', 'openItem', 'favChanged'])
+defineEmits(['close', 'navigate', 'openItem'])
 
 const loading         = ref(false)
 const detail          = ref(null)
@@ -172,37 +164,19 @@ const orderDialogItem = ref(null)
 const related         = ref([])
 const relatedLoading  = ref(false)
 
-// -- Favoriten (localStorage) -------------------------------------------------
-function loadFavs() {
-  try { return JSON.parse(localStorage.getItem('lukida_favs') || '[]') } catch { return [] }
-}
-function saveFavs(arr) {
-  try { localStorage.setItem('lukida_favs', JSON.stringify(arr)) } catch {}
-}
-const isFav = computed(() => {
-  if (!props.item?.id) return false
-  return loadFavs().some(f => f.id === props.item.id)
-})
+// -- Favoriten ----------------------------------------------------------------
+const isFav = computed(() => !!props.item?.id && isFavorite(props.item.id))
 function toggleFav() {
   if (!props.item?.id) return
-  const favs = loadFavs()
-  const idx  = favs.findIndex(f => f.id === props.item.id)
-  if (idx >= 0) {
-    favs.splice(idx, 1)
-  } else {
-    const src = detail.value || props.item
-    favs.unshift({
-      id:      props.item.id,
-      title:   getField('title') || props.item.title || props.item.id,
-      author:  getAuthors()[0] || '',
-      year:    src?.year || props.item.year || '',
-      area:    props.item.area || '',
-      format:  props.item.format || '',
-      savedAt: Date.now(),
-    })
-  }
-  saveFavs(favs)
-  emit('favChanged')
+  const src = detail.value || props.item
+  toggleFavorite({
+    id:     props.item.id,
+    title:  getField('title') || props.item.title || props.item.id,
+    author: getAuthors()[0] || '',
+    year:   src?.year || props.item.year || '',
+    area:   props.item.area || '',
+    format: props.item.format || '',
+  })
 }
 
 // -- Konstanten ---------------------------------------------------------------
@@ -229,13 +203,6 @@ const LABELS = {
   article:'Artikel in', orderid:'Bestell-Id', keys:'Sonstige IDs', id:'ID',
 }
 
-const mkBase = (area) => ({
-  apikey: import.meta.env.VITE_API_KEY,
-  client: 'Demo',
-  appl:   'production',
-  area:   area || 'findex',
-})
-
 // -- API-Aufruf ----------------------------------------------------------------
 watch(() => props.item, async (item) => {
   if (!item) return
@@ -248,17 +215,12 @@ watch(() => props.item, async (item) => {
   loanDialogItem.value  = null
   orderDialogItem.value = null
   try {
-    const res = await fetch('/api/5/user/search', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...mkBase(item.area),
-        search:  { query: 'id:' + item.id, hits: 1, type: 'lukida' },
-        display: { bib: true, items: true },
-        bms:     1,
-      })
+    const data     = await api('search', {
+      area:    item.area || 'findex',
+      search:  { query: 'id:' + item.id, hits: 1, type: 'lukida' },
+      display: { bib: true, items: true },
+      bms:     1,
     })
-    const data     = await res.json()
     const firstHit = Array.isArray(data.data) ? data.data[0] : null
     detail.value    = firstHit || item
     itemsData.value = firstHit?.items || {}
@@ -299,16 +261,11 @@ async function switchToZugeh() {
       }
     }
     if (!q) { relatedLoading.value = false; return }
-    const res = await fetch('/api/5/user/search', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...mkBase(src?.area),
-        search: { query: q, hits: 20, type: 'lukida' },
-        display: { bib: true },
-      })
+    const data = await api('search', {
+      area:    src?.area || 'findex',
+      search:  { query: q, hits: 20, type: 'lukida' },
+      display: { bib: true },
     })
-    const data = await res.json()
     related.value = (data.data || [])
       .filter(d => d.id !== src?.id)
       .map(d => {
@@ -405,60 +362,4 @@ const items = computed(() => {
   }
   return result
 })
-
-// -- Export --------------------------------------------------------------------
-const citaviUrl = computed(() => {
-  const isbn = getBibItems('isbn').split(';')[0].trim().replace(/[^0-9Xx]/g, '')
-  if (isbn) return `https://www.citavi.com/sub/add2Citavi5.php?isbn=${isbn}`
-  const doi = getBibItems('doi').split(';')[0].trim()
-  if (doi)  return `https://www.citavi.com/sub/add2Citavi5.php?doi=${encodeURIComponent(doi)}`
-  return ''
-})
-function downloadFile(filename, content, mime) {
-  const blob = new Blob([content], { type: mime })
-  const url  = URL.createObjectURL(blob)
-  const a    = document.createElement('a')
-  a.href = url; a.download = filename; a.click()
-  URL.revokeObjectURL(url)
-}
-function exportBibtex() {
-  const src       = detail.value || props.item
-  const title     = getField('title').replace(/[{}]/g, '')
-  const author    = getAuthors().join(' and ').replace(/[{}]/g, '')
-  const year      = src?.year || ''
-  const publisher = getBibItems('publisher').split(';')[0].trim()
-  const isbn      = getBibItems('isbn').split(';')[0].trim()
-  const series    = getField('series')
-  const key       = (author.split(',')[0] || 'unknown').replace(/\s+/g, '') + (year || '')
-  let bib = `@book{${key},\n`
-  if (title)     bib += `  title     = {${title}},\n`
-  if (author)    bib += `  author    = {${author}},\n`
-  if (year)      bib += `  year      = {${year}},\n`
-  if (publisher) bib += `  publisher = {${publisher}},\n`
-  if (series)    bib += `  series    = {${series}},\n`
-  if (isbn)      bib += `  isbn      = {${isbn}},\n`
-  bib += `}\n`
-  downloadFile('export.bib', bib, 'text/plain;charset=utf-8')
-}
-function exportRis() {
-  const src       = detail.value || props.item
-  const title     = getField('title')
-  const year      = src?.year || ''
-  const publisher = getBibItems('publisher').split(';')[0].trim()
-  const isbn      = getBibItems('isbn').split(';')[0].trim()
-  const doi       = getBibItems('doi').split(';')[0].trim()
-  const authors   = getAuthors()
-  let ris = 'TY  - BOOK\n'
-  if (title)     ris += `TI  - ${title}\n`
-  for (const a of authors) ris += `AU  - ${a}\n`
-  if (year)      ris += `PY  - ${year}\n`
-  if (publisher) ris += `PB  - ${publisher}\n`
-  if (isbn)      ris += `SN  - ${isbn}\n`
-  if (doi)       ris += `DO  - ${doi}\n`
-  ris += 'ER  - \n'
-  downloadFile('export.ris', ris, 'text/plain;charset=utf-8')
-}
-function exportCitavi() {
-  if (citaviUrl.value) window.open(citaviUrl.value, '_blank')
-}
 </script>

@@ -317,7 +317,6 @@ class user extends appluserdb
       return array("status" => -1, "code" => "mailerror", "more" => "");
     }
 
-    $this->updStatDB("Action", "Dialog|" . $Type);
     return array("status" => 0, "code" => "mailsuccessful", "more" => "");
   }
 
@@ -342,11 +341,9 @@ class user extends appluserdb
 
     $File = $this->prepareCachePath(array("settings"), "cases");
     if (file_exists($File)) {
-      if (MODE != "production") $this->updStatDB("Cache", "Cases.yes");
       $this->cases = json_decode(file_get_contents($File), true);
     } else {
 
-      if (MODE != "production") $this->updStatDB("Cache", "Cases.no");
       $this->cases  = $this->getAdminCasesDB();
 
       file_put_contents($File, json_encode($this->cases, true));
@@ -359,11 +356,9 @@ class user extends appluserdb
 
     $File = $this->prepareCachePath(array("settings"), "casesmedia");
     if (file_exists($File)) {
-      if (MODE != "production") $this->updStatDB("Cache", "Casesmedia.yes");
       $this->casesmedia = json_decode(file_get_contents($File), true);
     } else {
 
-      if (MODE != "production") $this->updStatDB("Cache", "casesmedia.no");
       $this->casesmedia  = $this->getAdminCasesMediaDB();
 
       file_put_contents($File, json_encode($this->casesmedia, true));
@@ -376,11 +371,9 @@ class user extends appluserdb
 
     $File = $this->prepareCachePath(array("settings"), "collections");
     if (file_exists($File)) {
-      if (MODE != "production") $this->updStatDB("Cache", "Collections.yes");
       $this->collections = json_decode(file_get_contents($File), true);
     } else {
 
-      if (MODE != "production") $this->updStatDB("Cache", "Collections.no");
       $this->collections  = $this->getCollectionsDB();
       file_put_contents($File, json_encode($this->collections, true));
     }
@@ -395,12 +388,10 @@ class user extends appluserdb
     $File = $this->prepareCachePath(array("settings"), "locations");
     if ( file_exists($File) )
     {
-      if (MODE != "production") $this->updStatDB("Cache", "Locations.yes");
       $Tmp = (string) file_get_contents($File);
     }
     else
     {
-      if (MODE != "production") $this->updStatDB("Cache", "Locations.no");
       $Tmp = isset($this->configs["import." . $Mode]["loc.data"])
         && trim($this->configs["import." . $Mode]["loc.data"])
         ? $this->configs["import." . $Mode]["loc.data"] : "";
@@ -475,11 +466,9 @@ class user extends appluserdb
 
     $File = $this->prepareCachePath(array("settings"), "levels");
     if (file_exists($File)) {
-      if (MODE != "production") $this->updStatDB("Cache", "Levels.yes");
       $this->levels = json_decode(file_get_contents($File), true);
     } else {
 
-      if (MODE != "production") $this->updStatDB("Cache", "Levels.no");
       $this->levels  = $this->getAdminLevelsDB();
       file_put_contents($File, json_encode($this->levels, true));
     }
@@ -491,11 +480,9 @@ class user extends appluserdb
 
     $File = $this->prepareCachePath(array("settings"), "bms");
     if (file_exists($File)) {
-      if (MODE != "production") $this->updStatDB("Cache", "BMS.yes");
       $this->bms = json_decode(file_get_contents($File), true);
     } else {
 
-      if (MODE != "production") $this->updStatDB("Cache", "BMS.no");
       $this->bms  = $this->getAdminBMSDB();
       file_put_contents($File, json_encode($this->bms, true));
     }
@@ -552,24 +539,15 @@ class user extends appluserdb
     return $Out;
   }
 
-  public function getMessages()
-  {
-    if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
-
-    return $this->getMessagesDB();
-  }
-
   private function getLinks()
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
 
     $File = $this->prepareCachePath(array("settings"), "links");
     if (file_exists($File)) {
-      if (MODE != "production") $this->updStatDB("Cache", "Links.yes");
       $this->links = json_decode(file_get_contents($File), true);
     } else {
 
-      if (MODE != "production") $this->updStatDB("Cache", "Links.no");
       $this->links  = $this->getAdminLinksDB();
       file_put_contents($File, json_encode($this->links, true));
     }
@@ -619,7 +597,6 @@ class user extends appluserdb
     $Group = trim((string) end($Parts));
 
     if (!in_array($Group, $Allowed, true)) {
-      $this->updStatDB("Action", "Delivery|notauthorized");
       if (APPDEBUG["LOG"]) $this->debug("LOG", "Delivery denied for user type '" . $Group . "'");
       return false;
     }
@@ -661,7 +638,6 @@ class user extends appluserdb
             foreach ($IDs as &$ID) {
               $ID = trim($ID);
               if (!$this->readCache2Marc($ID)) {
-                if (MODE != "production") $this->updStatDB("Cache", "Marc.no");
                 $NewIDs[] = $ID;
               }
             }
@@ -1300,11 +1276,9 @@ class user extends appluserdb
 
     $Datei = $this->prepareLookupCachePath($Shortcut . "_" . $this->lang, $Code);
     if (file_exists($Datei) && time() - (int) @filemtime($Datei) < self::LOOKUP_CACHE_MAXALTER) {
-      if (MODE != "production") $this->updStatDB("Cache", "Classis.yes");
       $Gemerkt = json_decode(file_get_contents($Datei), true);
       if (is_array($Gemerkt)) return $Gemerkt;
     }
-    if (MODE != "production") $this->updStatDB("Cache", "Classis.no");
 
     $Pack = $this->getClassisDB($Search);
     $CRec = (isset($Pack["0"])) ? $Pack["0"] : array();
@@ -1359,7 +1333,6 @@ class user extends appluserdb
       return null;
     }
 
-    if (MODE != "production") $this->updStatDB("Cache", "Marcxml.yes");
     return array("marc"     => $Roh["marc"],
                  "erstesub" => isset($Roh["erstesub"]) ? $Roh["erstesub"] : array(),
                  "solr"     => isset($Roh["solr"])     ? $Roh["solr"]     : array());
@@ -1370,7 +1343,6 @@ class user extends appluserdb
     if (!is_array($Daten) || !isset($Daten["marc"])) return false;
     if ($UpDate === "" && isset($this->works["updates"][$ID])) $UpDate = $this->works["updates"][$ID];
 
-    if (MODE != "production") $this->updStatDB("Cache", "Marcxml.no");
     $File = $this->prepareIdCachePath($ID, "marcxml");
     file_put_contents($File, json_encode(array(
       "up_date"  => (string) $UpDate,
@@ -1389,7 +1361,6 @@ class user extends appluserdb
     $Prefix  = $Add ? "PM" : "M";
     $Neutral = $this->readMarcNeutral($ID, $UpDate === null ? "" : (string) $UpDate);
     if (!is_array($Neutral) || !isset($Neutral["solr"]) || !count($Neutral["solr"])) {
-      if (MODE != "production") $this->updStatDB("Cache", "Marc.no");
       return false;
     }
 
@@ -1406,7 +1377,6 @@ class user extends appluserdb
     else                $this->works["solr"] = $Merk;
 
     $Da = $Add ? isset($this->works["add"][$ID]) : isset($this->works["marc"][$ID]);
-    if (MODE != "production") $this->updStatDB("Cache", $Da ? "Marc.yes" : "Marc.no");
     return $Da;
   }
 
@@ -1472,22 +1442,18 @@ class user extends appluserdb
 
     switch ($Type) {
       case "cancel": {
-          $this->updStatDB("Action", ucfirst($Type));
           $this->results = $this->DoCancel();
           break;
         }
       case "changemail": {
-          $this->updStatDB("Action", ucfirst($Type));
           $this->results = $this->DoChangeMail();
           break;
         }
       case "deletemails": {
-          $this->updStatDB("Action", ucfirst($Type));
           $this->results = $this->DoDeleteMails();
           break;
         }
       case "changepw": {
-          $this->updStatDB("Action", ucfirst($Type));
           $this->results = $this->DoChangePW();
           break;
         }
@@ -1504,7 +1470,6 @@ class user extends appluserdb
                   break;
                 }
 
-                $this->updStatDB("Action", "Delivery|mail");
                 $ID   = $this->checkPostedStr("id");
                 $Subject  = (isset($this->configs["other"]["delivery.mailsubject"]) && $this->configs["other"]["delivery.mailsubject"] != "")
                   ? $this->configs["other"]["delivery.mailsubject"]
@@ -1569,7 +1534,6 @@ class user extends appluserdb
         }
       case "dialog": {
 
-          if ( empty($this->posted["nocount"]) )  $this->updStatDB("Action", $Type);
           $ID   = $this->checkPostedStr("id");
           $Type = $this->checkPostedStr("action", "type");
           $Data = $this->checkDecryptedPostedArr("data");
@@ -1650,7 +1614,6 @@ class user extends appluserdb
           if (!$this->readCache2Marc($ID)) {
           }
 
-          $this->updStatDB("Action", "Mail|" . $MailType);
 
           $Tos   = array();
           $Names = array();
@@ -1793,7 +1756,6 @@ class user extends appluserdb
           foreach ($IDs as $ID) {
             if (!$this->readCache2Marc($ID)) {
             }
-            $this->updStatDB("Action", "Mail|User");
           }
 
           $Exemplare = $this->exemplarAngaben($IDs);
@@ -1876,17 +1838,14 @@ class user extends appluserdb
           break;
         }
       case "request": {
-          $this->updStatDB("Action", ucfirst($Type));
           $this->results = $this->DoRequest();
           break;
         }
       case "renew": {
-          $this->updStatDB("Action", ucfirst($Type));
           $this->results = $this->DoRenew();
           break;
         }
       case "resetpw": {
-          $this->updStatDB("Action", ucfirst($Type));
           $this->results = $this->DoResetPW();
           break;
         }
@@ -2128,10 +2087,10 @@ class user extends appluserdb
     else                             $Mode = MODE;
 
     $Config = array(
-      'base_url'       => $this->configs["domain"][$Mode],
-      'title'          => $this->configs["meta"]["description"],
-      'ezbbibid'       => $this->configs["resolver"]["ezbbibid"],
-      'openurl'        => $this->configs["resolver"]["openurl"]
+      'base_url'       => $this->conf("domain", $Mode),
+      'title'          => $this->conf("meta", "description"),
+      'ezbbibid'       => $this->conf("resolver", "ezbbibid"),
+      'openurl'        => $this->conf("resolver", "openurl")
     );
 
     $exp = new export($this, $Config);
@@ -2358,13 +2317,10 @@ class user extends appluserdb
     $TitelID = trim((string) $TitelID) !== "" ? trim((string) $TitelID) : $ID;
     if ( $ID === "" )  return;
 
-    $this->updStatDB("Counter", "Total_Item_" . $Art);
 
     $Sitzung = preg_replace("/[^A-Za-z0-9_-]/", "", (string) $this->checkPostedStr("tokens", "session"));
     if ( $Sitzung === "" )
     {
-      $this->updStatDB("Counter", "Unique_Item_" . $Art);
-      $this->updStatDB("Counter", "Unique_Title_" . $Art);
       return;
     }
 
@@ -2379,13 +2335,11 @@ class user extends appluserdb
     if ( empty($Gesehen[$Art]["item"][$ID]) )
     {
       $Gesehen[$Art]["item"][$ID] = 1;
-      $this->updStatDB("Counter", "Unique_Item_" . $Art);
       $Neu = true;
     }
     if ( empty($Gesehen[$Art]["title"][$TitelID]) )
     {
       $Gesehen[$Art]["title"][$TitelID] = 1;
-      $this->updStatDB("Counter", "Unique_Title_" . $Art);
       $Neu = true;
     }
     if ( $Neu )
@@ -2410,7 +2364,6 @@ class user extends appluserdb
     if (!$ID)                                                   $this->finalize(array("status" => -1, "code" => "missingid"));
 
     $NichtZaehlen = !empty($this->posted["nocount"]);
-    if ( !$NichtZaehlen )  $this->updStatDB("Media", "Fullview");
 
     if ( !$NichtZaehlen && $Type != "suggest" )  $this->counterZaehlen("Investigations", $ID, $this->checkPostedStr("rootid"));
 
@@ -2422,7 +2375,6 @@ class user extends appluserdb
     $Check = $this->getResolversDB($ID);
     if (is_array($Check) && count($Check)) {
 
-      if (MODE != "production") $this->updStatDB("Cache", "Resolver.yes");
 
       $Check = $this->resolveServiceTexts($Check);
       $this->finalize($Check);
@@ -2545,7 +2497,6 @@ class user extends appluserdb
     if (count($Rs)) {
 
       foreach ($Rs as $R) {
-        $this->updStatDB("Resolver", $R);
       }
       $Resolver  += $LR->linkresolver($Data);
       $Color = isset($this->CS->configs["item"]["resolver.color"]) && trim($this->CS->configs["item"]["resolver.color"]) ? $this->CS->configs["item"]["resolver.color"] : "green";
@@ -2676,7 +2627,6 @@ class user extends appluserdb
       }
     }
 
-    if (MODE != "production") $this->updStatDB("Cache", "Resolver.no");
 
     $this->setResolversDB($ID, $Resolver, array());
 
@@ -2755,7 +2705,6 @@ class user extends appluserdb
       "code"   => "logingranted"
     );
 
-    $this->updStatDB("Action", "Login");
 
     $this->finalize($this->results);
   }
@@ -2796,23 +2745,14 @@ class user extends appluserdb
       && isset($Search["search"]["query"])
       && !in_array(substr($Search["search"]["query"], 0, 3), array("id:", "id("))
     ) {
-      $this->updStatDB("Level", $Level);
       $SearchMode = (in_array(substr($Search["search"]["query"], 0, 8), array("ppnlink:", "ppnlink("))) ? "Related" : "Search";
-      $this->updStatDB($SearchMode, "Query");
 
-      if ( !empty($this->posted["advanced"]) && $Search["start"] == 0 )
-        $this->updStatDB("Search", "Advanced");
 
-      if ( $SearchMode == "Search" && $Search["start"] == 0 && $Search["limit"] > 0 )
-        $this->updStatDB("Counter", "Searches_Platform");
 
       $Design = isset($this->posted["design"]) ? strtolower(trim((string) $this->posted["design"])) : "";
-      if ( $Design !== "" && preg_match('/^[a-z]{1,20}$/', $Design) )  $this->updStatDB("Design", $Design);
 
-      if (isset($Search["facets"]["yearmin"]) || isset($Search["facets"]["yearmax"])) $this->updStatDB($SearchMode, "Range");
       foreach ($Search["facets"] as $Key => $Val) {
         if (in_array($Key, array("yearmin", "yearmax")))  continue;
-        $this->updStatDB($SearchMode, ucfirst($Key));
       }
     }
 
@@ -2858,7 +2798,6 @@ class user extends appluserdb
 
     if (isset($this->results["hitspack"]) && $this->results["hitspack"] > 0) {
       if ($Display["bib"] && !$NichtZaehlen) {
-        $this->updStatDB("Media", "preview", $this->results["hitspack"]);
       }
       $this->results += array(
         "status" => 1,

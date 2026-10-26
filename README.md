@@ -220,7 +220,26 @@ In `ui/.env.local` den API-Key aus Abschnitt 3.1 eintragen (gleicher Wert wie
 VITE_API_KEY=<64-stelliger-hex-api-key>
 ```
 
-`.env.local` wird nicht versioniert. Anschließend bauen:
+`.env.local` wird nicht versioniert.
+
+### 6.1 Name und Client anpassen
+
+Name und Client der Oberfläche stehen in `ui/.env`:
+
+```ini
+VITE_APP_TITLE=Lukida Essentials Demo
+VITE_API_CLIENT=Demo
+```
+
+- `VITE_APP_TITLE` — erscheint im Browser-Titel, in der Kopfzeile, auf der Startseite und
+  auf der Infoseite. Einfach durch den eigenen Namen ersetzen, z. B. `Bibliothek Musterstadt`.
+- `VITE_API_CLIENT` — muss mit der Spalte `client` in der Datenbank übereinstimmen
+  (in `sql/demo-data.sql` ist das `Demo`).
+
+Eigene Werte können auch in `ui/.env.local` stehen. Diese Datei hat Vorrang und wird nicht versioniert.
+
+### 6.2 Bauen
+
 
 ```bash
 npm install
@@ -228,7 +247,7 @@ npm run build
 ```
 
 Das erzeugt `ui/dist/` — das Verzeichnis, das Apache für die UI ausliefert.
-Nach jeder Änderung des Keys muss `npm run build` erneut ausgeführt werden.
+Nach jeder Änderung an `.env` oder `.env.local` muss `npm run build` erneut ausgeführt werden.
 
 Für die Entwicklung startet `npm run dev` einen Vite-Server, der `/api` an
 `http://localhost:9055` weiterleitet.
@@ -344,8 +363,9 @@ curl -X POST http://<server>:9055/5/user/search \
 │   ├── 5/                       ← PHP-API (appl/ + base/)
 │   ├── configs.example/         ← Vorlagen für configs/
 │   ├── sql/                     ← schema.sql + demo-data.sql
-│   ├── system/                  ← Fat-Free Framework
+│   ├── system/                  ← Fat-Free Framework (nur Kern + SQL)
 │   ├── ui/                      ← Vue-3-Frontend
+│   │   ├── .env                 ← Name und Client der Oberfläche
 │   │   ├── .env.local           ← API-Key für den Build (nicht versioniert)
 │   │   └── dist/                ← Build-Output (nach npm run build)
 │   ├── index.php

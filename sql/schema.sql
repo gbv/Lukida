@@ -124,6 +124,26 @@ ALTER TABLE ONLY "user".adminconfigs ALTER COLUMN id SET DEFAULT nextval('"user"
 ALTER TABLE ONLY "user".adminconfigs ADD CONSTRAINT adminconfigs_pkey PRIMARY KEY (id);
 
 -- ============================================================
+-- TABELLE: adminlinks
+-- Konfigurierbare Links pro Client (link = "url-deutsch,url-englisch")
+-- ============================================================
+
+CREATE TABLE "user".adminlinks (
+    id integer NOT NULL,
+    client character varying(100) NOT NULL,
+    shortcut character varying(100) NOT NULL,
+    german text,
+    english text,
+    link text
+);
+
+CREATE SEQUENCE "user".adminlinks_id_seq
+    AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+ALTER SEQUENCE "user".adminlinks_id_seq OWNED BY "user".adminlinks.id;
+ALTER TABLE ONLY "user".adminlinks ALTER COLUMN id SET DEFAULT nextval('"user".adminlinks_id_seq'::regclass);
+ALTER TABLE ONLY "user".adminlinks ADD CONSTRAINT adminlinks_pkey PRIMARY KEY (id);
+
+-- ============================================================
 -- TABELLE: admintexts
 -- Texte und Beschriftungen pro Client (deutsch / englisch)
 -- ============================================================

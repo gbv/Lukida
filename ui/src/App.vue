@@ -15,7 +15,7 @@
     />
     <Account v-if="currentView === 'account' && currentUser"
              :user="currentUser" :account-data="accountData" @logout="onLogout" />
-    <FavoritesPage v-else-if="currentView === 'favs'" ref="favsPage" @open="openModalDirect" />
+    <FavoritesPage v-else-if="currentView === 'favs'" @open="openModal" />
     <HistoryPage v-else-if="currentView === 'history'" @search="runHistorySearch" />
     <InfoPage v-else-if="currentView === 'info'" />
     <main v-else class="container mx-auto px-4 py-8 max-w-5xl">
@@ -33,11 +33,10 @@
     <Modal
       :item="selectedItem"
       :has-prev="selectedIndex > 0"
-      :has-next="selectedIndex < results.length - 1"
+      :has-next="selectedIndex >= 0 && selectedIndex < results.length - 1"
       @close="selectedItem = null"
       @navigate="navigate"
-      @openItem="openModalDirect"
-      @favChanged="onFavChanged"
+      @openItem="openModal"
     />
   </div>
 </template>
@@ -53,6 +52,7 @@ import Account       from './components/Account.vue'
 import FavoritesPage from './components/FavoritesPage.vue'
 import HistoryPage   from './components/HistoryPage.vue'
 import InfoPage      from './components/InfoPage.vue'
+import { api }        from './api.js'
 
 const theme         = ref(localStorage.getItem('lukida_theme') || 'nord')
 const currentView   = ref('search')
@@ -67,22 +67,17 @@ const pageSize      = 25
 const query         = ref('')
 const selectedItem  = ref(null)
 const selectedIndex = ref(-1)
-const favsPage      = ref(null)
 
 watch(theme, val => {
   document.documentElement.setAttribute('data-theme', val)
   localStorage.setItem('lukida_theme', val)
 })
 
+// Treffer aus der Liste: Blättern möglich; Favoriten / zugehörige Titel: Index -1
 function openModal(item) {
   selectedIndex.value = results.value.indexOf(item)
   selectedItem.value  = item
 }
-function openModalDirect(item) {
-  selectedIndex.value = results.value.indexOf(item)
-  selectedItem.value  = item
-}
-function onFavChanged() { favsPage.value?.refresh() }
 
 function onLogin(user) {
   const { _accountData, ...userData } = user
@@ -124,18 +119,12 @@ async function doSearch() {
   if (!query.value.trim() || loading.value || allLoaded.value) return
   loading.value = true
   try {
-    const res = await fetch('/api/5/user/search', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        apikey:  import.meta.env.VITE_API_KEY,
-        client:  'Demo', appl: 'production', area: 'findex',
-        search:  { query: query.value },
-        display: { bib: true },
-        start:   start.value, limit: pageSize
-      })
+    const data     = await api('search', {
+      area:    'findex',
+      search:  { query: query.value },
+      display: { bib: true },
+      start:   start.value, limit: pageSize
     })
-    const data     = await res.json()
     const newItems = data.data || []
     hits.value     = data.hits || 0
     results.value.push(...newItems)

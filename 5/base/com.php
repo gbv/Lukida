@@ -59,7 +59,6 @@ class com extends general
 
     $this->client      = $Client;
     $this->adminclient = $this->checkPostedStr("adminclient");
-    define("CLIENTDIR", PROJECTDIR . "clients" . DIRECTORY_SEPARATOR . $this->client);
 
     if ( APPDEBUG["LOG"] ) $this->debug("LOG", "API Access OK (" . $this->client . ")");
 
@@ -259,17 +258,6 @@ class com extends general
     $Name = strtolower(preg_replace("/[^A-Za-z0-9]/", "_", (string) $Code));
     $Name = substr($Name, 0, 40) . "_" . substr(md5((string) $Code), 0, 8);
     return $Path . DIRECTORY_SEPARATOR . $Name . ".inc";
-  }
-
-  public function prepareSharedCachePath($Dir, $File)
-  {
-    $Path = CACHESDIR . date("Ymd");
-    $this->createPath($Path);
-    $Path .= DIRECTORY_SEPARATOR . "_system";
-    $this->createPath($Path);
-    $Path .= DIRECTORY_SEPARATOR . strtolower($Dir);
-    $this->createPath($Path);
-    return $Path . DIRECTORY_SEPARATOR . strtolower($File) . ".inc";
   }
 
   public function htmlToPlainText($Html)

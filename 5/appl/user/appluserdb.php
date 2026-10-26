@@ -298,26 +298,6 @@ class appluserdb extends systemuser
     return $Levels;
   }
 
-  public function getMessagesDB()
-  {
-    if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
-
-    $SQL  = "SELECT id, message FROM " . $this->schemaOf("user") . ".adminmessages";
-    $SQL .= " WHERE client = :client AND datefrom <= :jetzt AND dateto >= :jetzt2";
-    $SQL .= " ORDER BY datefrom, id";
-
-    $Jetzt = date("Y-m-d H:i:s");
-    $Rows  = $this->ExecDB($SQL, array("client" => $this->client, "jetzt" => $Jetzt, "jetzt2" => $Jetzt));
-
-    $Out = array();
-    foreach ($Rows as $Row) {
-      $Text = trim((string) $Row["message"]);
-      if ($Text === "") continue;
-      $Out[] = array("id" => (string) $Row["id"], "text" => $Text);
-    }
-    return $Out;
-  }
-
   public function getMaintenanceDB()
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
@@ -373,7 +353,6 @@ class appluserdb extends systemuser
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
 
-    $Data = array('client'    => $this->client);
     $SQL  = "SELECT shortcut, german, english, link FROM " . $this->schemaOf("user") . ".adminlinks";
     $SQL .= " WHERE client = :client";
 
@@ -555,11 +534,9 @@ class appluserdb extends systemuser
 
     $Datei = $this->prepareLookupCachePath("gnd_" . $Type, $GNDID);
     if (file_exists($Datei) && time() - (int) @filemtime($Datei) < self::LOOKUP_CACHE_MAXALTER) {
-      if (MODE != "production") $this->updStatDB("Cache", "Norms.yes");
       $Gemerkt = json_decode(file_get_contents($Datei), true);
       if (is_array($Gemerkt)) return $Gemerkt;
     }
-    if (MODE != "production") $this->updStatDB("Cache", "Norms.no");
 
     $MitBild = $this->hatZentraleSpalte("entityfacts", "image");
 
