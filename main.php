@@ -96,19 +96,6 @@ if ( !file_exists(PROJECTDIR . 'configs/' . MODE . '/'
                                                                                                     . '.ini not found!'));
 define('MODULE', explode("/",trim($f3->get("SERVER.REQUEST_URI"),"/"))[1]);
 
-// Der EINE Datenbankschalter dieses Servers (2026-08-14).
-//
-// "database.ini" liegt je Umgebung genau einmal und gilt fuer alle Module und
-// BEIDE APIs - deshalb wird sie VOR der Modul-INI geladen: F3 fuehrt die
-// Abschnitte schluesselweise zusammen, die Modul-INI steuert danach nur noch
-// host/name/user/pass bei. Sie steht bewusst nicht in application.ini, denn
-// die geht unveraendert an alle Server; der Treiber soll aber je Server
-// umgelegt werden koennen.
-//
-// Fehlt die Datei, bleibt es bei MySQL - so laeuft ein Stand ohne sie weiter.
-if ( file_exists(PROJECTDIR . 'configs/' . MODE . '/database.ini') )
-  $f3->config(PROJECTDIR . 'configs/' . MODE . '/database.ini');
-
 $f3->config(PROJECTDIR . 'configs/' . MODE . '/' . MODULE . '.ini');
 
 // Set security

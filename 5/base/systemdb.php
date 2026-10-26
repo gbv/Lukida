@@ -258,12 +258,7 @@ class systemdb extends com
   protected function buildDSNFor($Driver, $Host, $Name, $Central = false)
   {
     if ($Driver == "pgsql") {
-      if ($Central)  return 'pgsql:host=' . $Host . ';port=5432;dbname=' . $Name . ';';
-
-      $DB = trim((string) $this->f3->get('db.database'));
-      if (!$DB)  $DB = trim((string) $this->f3->get('application.type'));
-      if (!$DB)  $DB = $Name;
-      return 'pgsql:host=' . $Host . ';port=5432;dbname=' . $DB . ';';
+      return 'pgsql:host=' . $Host . ';port=5432;dbname=' . $Name . ';';
     }
     return 'mysql:host=' . $Host . ';port=3306;dbname=' . $Name . ';charset=utf8mb4;';
   }
@@ -370,23 +365,6 @@ class systemdb extends com
     return (strpos($M, "SQLSTATE[23505]") !== false)
         || (strpos($M, "SQLSTATE[23000]") !== false && stripos($M, "duplicate entry") !== false)
         || (stripos($M, "duplicate key value") !== false);
-  }
-
-  protected function getLocationsDB($Client, $Env)
-  {
-  if ( APPDEBUG["FKT"] ) $this->debug("FKT",__METHOD__);
-
-  try
-  {
-  $Tab  = $this->schemaOf(MODULE) . ((MODULE == "admin") ? ".locations" : ".adminlocations");
-  $Rows = $this->execDB("select data from " . $Tab . " where client = :client and env = :env",
-                        array("client" => $Client, "env" => $Env));
-  return isset($Rows[0]["data"]) ? (string) $Rows[0]["data"] : "";
-  }
-  catch ( Exception $e )
-  {
-  return "";
-  }
   }
 
   protected function getAdminConfigsDB($Selection = [], $Filter = false)

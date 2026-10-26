@@ -96,26 +96,11 @@ pepper       = lukida-essential-2026
 
 An `author.mail` gehen Fehlermeldungen der API (z. B. Datenbank- oder Solr-Fehler).
 
-### 3.3 `production/database.ini`
-
-Datei: `/home/<benutzer>/configs/production/database.ini`
-
-```ini
-[db]
-driver=pgsql
-database=lukida_essential
-
-[module]
-
-[security]
-app=token
-user=none
-```
-
-### 3.4 `production/user.ini`
+### 3.3 `production/user.ini`
 
 Datei: `/home/<benutzer>/configs/production/user.ini`
 
+Enthält Datenbankzugang, Sicherheitseinstellungen, Mailversand und Debug-Schalter.
 `appdebug` auf `false` lassen — sonst schreibt die API SQL-Abfragen und -Daten ins Log.
 
 ```ini
@@ -125,6 +110,10 @@ host=localhost
 name=lukida_essential
 user=lukida_essential
 pass=<passwort>
+
+[security]
+app=token
+user=none
 
 [smtp]
 host=
@@ -365,7 +354,6 @@ curl -X POST http://<server>:9055/5/user/search \
 ├── configs/                     ← Configs (außerhalb des Repos, Name ist fest!)
 │   ├── application.ini
 │   └── production/
-│       ├── database.ini
 │       └── user.ini
 │
 ├── logs/                        ← Eigentümer: www-data

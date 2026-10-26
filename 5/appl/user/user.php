@@ -401,13 +401,9 @@ class user extends appluserdb
     else
     {
       if (MODE != "production") $this->updStatDB("Cache", "Locations.no");
-      $Tmp = trim((string) $this->getLocationsDB($this->client, $Mode));
-      if ( $Tmp === "" )
-      {
-        $Tmp = isset($this->configs["import." . $Mode]["loc.data"])
-          && trim($this->configs["import." . $Mode]["loc.data"])
-          ? $this->configs["import." . $Mode]["loc.data"] : "";
-      }
+      $Tmp = isset($this->configs["import." . $Mode]["loc.data"])
+        && trim($this->configs["import." . $Mode]["loc.data"])
+        ? $this->configs["import." . $Mode]["loc.data"] : "";
       file_put_contents($File, $Tmp);
     }
 
@@ -1969,6 +1965,7 @@ class user extends appluserdb
     $URL .= "/" . $SolrPath . "/select?wt=json&defType=edismax";
 
     if (!trim($Level) || (!array_key_exists($Level, $this->levels))) $Level = "all";
+    if (!isset($this->levels[$Level])) $this->finalize(array("status" => -1, "code" => "levelmissing"));
 
     $Level = $this->levels[$Level];
 
