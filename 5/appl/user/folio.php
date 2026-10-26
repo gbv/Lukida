@@ -1,32 +1,13 @@
 <?php
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class folio extends bms
 {
-  
   private const CANCELREASON = "75187e8d-e25a-47a7-89ad-23ba612338de";
 
-  
   private const OPENREQUESTS = array("Open - Not yet filled", "Open - In transit", "Open - Awaiting pickup");
 
-  private static $systemtokens = array();   
-  private static $verified     = array();   
+  private static $systemtokens = array();
+  private static $verified     = array();
 
   private $lookups = array();
   private $tenant;
@@ -37,17 +18,12 @@ class folio extends bms
   {
     parent::__construct($BMSID, $CS);
 
-    
     $this->tenant     = $this->option("tenant");
     $this->systemuser = $this->option("systemuser");
     $this->systempass = $this->option("systempass");
 
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
   }
-
-  
-  
-  
 
   private function configured()
   {
@@ -57,7 +33,6 @@ class folio extends bms
     return false;
   }
 
-  
   private function login($User, $Pass)
   {
     $Response = $this->http("POST", $this->link . "/authn/login-with-expiry",
@@ -78,8 +53,6 @@ class folio extends bms
 
     if ( !$Renew && isset(self::$systemtokens[$Key]) && self::$systemtokens[$Key]["expires"] > time() + 60 )  return self::$systemtokens[$Key]["token"];
 
-    
-    
     $File = $this->CS->prepareCachePath(array("settings"), "foliosystemtoken");
     if ( !$Renew && file_exists($File) )
     {
@@ -104,8 +77,6 @@ class folio extends bms
     return $Login["token"];
   }
 
-  
-  
   private function call($Method, $Path, $Data = null, $UserToken = null)
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -146,8 +117,6 @@ class folio extends bms
     return trim(substr(strip_tags($Response["body"]), 0, 200));
   }
 
-  
-  
   private function verifyUser($Login, $Token)
   {
     if ( !$Token || !$this->configured() )  return null;
@@ -161,15 +130,12 @@ class folio extends bms
     $Self = self::$verified[$Token];
     if ( $Self === null )  return null;
 
-    
-    
     $User = $Self["user"];
     if ( $Login !== "" && !in_array((string) $Login, array((string) $User["id"], (string) ($User["username"] ?? ""), (string) ($User["barcode"] ?? "")), true) )  return null;
 
     return $Self;
   }
 
-  
   private function lookup($Name)
   {
     if ( isset($this->lookups[$Name]) )  return $this->lookups[$Name];
@@ -177,9 +143,7 @@ class folio extends bms
     $Sources = array("locations"     => array("/locations?limit=10000",                  "locations",     "FolioLocations"),
                      "servicepoints" => array("/service-points?limit=10000",             "servicepoints", "FolioDesks"),
                      "loantypes"     => array("/loan-types?limit=10000",                 "loantypes",     "FolioLoanTypes"),
-                     
-                     
-                     
+
                      "libraries"     => array("/location-units/libraries?limit=10000",   "loclibs",       "FolioLibraries"),
                      "policys"       => array("/loan-policy-storage/loan-policies?limit=10000", "loanPolicies", "FolioPolicys"));
     list($Path, $Field, $Stat) = $Sources[$Name];
@@ -198,17 +162,11 @@ class folio extends bms
     {
       if ( isset($Record["id"]) )  $Data[$Record["id"]] = $Record;
     }
-    
+
     if ( count($Data) )  file_put_contents($File, json_encode($Data));
     return $this->lookups[$Name] = $Data;
   }
 
-  
-  
-  
-
-  
-  
   private const IDFIELDS = array("f1" => "id", "f2" => "instanceId", "f3" => "itemId", "f4" => "holdingsRecordId",
                                  "f5" => "pickupServicePointId", "f6" => "requestDate", "f7" => "requesterId",
                                  "f8" => "itemBarcode", "f9" => "userBarcode");
@@ -234,10 +192,6 @@ class folio extends bms
     return $IDs;
   }
 
-  
-  
-  
-
   private function callNumber($Components, $Separator = " ")
   {
     if ( !is_array($Components) )  return "";
@@ -252,7 +206,6 @@ class folio extends bms
     return $Extra + array("limitation" => array(), "expected" => "-", "queue" => 0, "title" => "-", "delay" => "-", "href" => "-", "action" => $Action);
   }
 
-  
   private function parseItems($Records, $Format)
   {
     $Locations = $this->lookup("locations");
@@ -260,8 +213,8 @@ class folio extends bms
     $Libraries = $this->lookup("libraries");
 
     $Items       = array();
-    $NeedIDs     = false;    
-    $QueueItems  = array();  
+    $NeedIDs     = false;
+    $QueueItems  = array();
 
     foreach ( $Records as $Exp )
     {
@@ -287,36 +240,6 @@ class folio extends bms
       );
       if ( $Item["label"] === "" )  unset($Item["label"]);
 
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       $Library = $Libraries[$Location["libraryId"] ?? ""] ?? array();
       if ( ($Library["name"] ?? "") !== "" )  $Item["department"]   = trim($Library["name"]);
       if ( ($Library["code"] ?? "") !== "" )  $Item["departmentid"] = trim($Library["code"]);
@@ -328,9 +251,8 @@ class folio extends bms
         case "available":
         {
           $LoanType     = strtolower(substr($LoanTypes[$Exp["permanentLoanTypeId"] ?? ""]["name"] ?? "", 0, 3));
-          $Item["loan"] = in_array($LoanType, array("u -", "b -", "c -"));   
+          $Item["loan"] = in_array($LoanType, array("u -", "b -", "c -"));
 
-          
           $Details = $Location["details"] ?? array();
           if ( is_array($Details) && ( $Details["Zugänglichkeit"] ?? "" ) == "geschlossen" )
           {
@@ -363,7 +285,6 @@ class folio extends bms
         }
         default:
         {
-          
           $Item["loan"]              = false;
           $Item["loanitems"]         = array($this->serviceEntry("-"));
           $Item["presentation"]      = false;
@@ -375,8 +296,6 @@ class folio extends bms
     }
     if ( !count($Items) )  return $Items;
 
-    
-    
     if ( $NeedIDs )
     {
       $First    = reset($Records);
@@ -384,7 +303,6 @@ class folio extends bms
       $Instance = "";
       if ( $HoldID !== "" )
       {
-        
         $Vorrat   = $this->bmsBestandLesen("holding:" . $HoldID);
         $Instance = ( $Vorrat !== null ) ? (string) ($Vorrat["instance"] ?? "")
                                          : (string) ($this->holdingHolen(array($HoldID))[$HoldID] ?? "");
@@ -399,13 +317,8 @@ class folio extends bms
       }
     }
 
-    
-    
-    
     if ( count($QueueItems) )
     {
-      
-      
       $Due   = array();
       $Queue = array();
       $Offen = array();
@@ -438,16 +351,10 @@ class folio extends bms
     }
     unset($Item);
 
-    
     uasort($Items, function ($a, $b) { return $a['about'] <=> $b['about']; });
     return $Items;
   }
 
-  
-  
-  
-
-  
   private function readNotes($UUID)
   {
     $Notes  = array();
@@ -468,20 +375,10 @@ class folio extends bms
       }
     }
 
-    
-    
-    
-    
-    
     foreach ( $this->getJson("/note-links/domain/users/type/user/id/" . rawurlencode($UUID) . "?limit=100000&status=assigned&order=desc&orderBy=updatedDate")["notes"] ?? array() as $MB )
     {
       if ( ( $MB["type"] ?? "" ) != "Discovery" || !trim($MB["content"] ?? "") )  continue;
 
-      
-      
-      
-      
-      
       $Text = $this->CS->htmlToPlainText($MB["content"]);
       if ( trim($Text) )  $Notes[] = array("label" => $Text);
     }
@@ -495,10 +392,8 @@ class folio extends bms
     $Policies = $this->lookup("policys");
     $Items    = array();
 
-    
     $Loans = $this->getJson("/circulation/loans?limit=10000&query=" . $this->cql("userId==" . $UUID . ' and status.name=="Open" sortby dueDate/sort.descending'))["loans"] ?? array();
 
-    
     $Queue   = array();
     $ItemIDs = array_values(array_filter(array_column($Loans, "itemId")));
     if ( count($ItemIDs) )
@@ -539,7 +434,6 @@ class folio extends bms
       );
     }
 
-    
     foreach ( $this->getJson("/circulation/requests?limit=10000&query=" . $this->cql("requesterId==" . $UUID . " and status==" . $this->cqlList(self::OPENREQUESTS)))["requests"] ?? array() as $Req )
     {
       $Pickup = ( $Req["status"] ?? "" ) == "Open - Awaiting pickup";
@@ -552,7 +446,7 @@ class folio extends bms
         "storage"   => $Req["pickupServicePoint"]["discoveryDisplayName"] ?? "",
         "storageid" => $Req["item"]["location"]["name"] ?? "",
         "starttime" => $Req["requestDate"] ?? "",
-        
+
         "endtime"   => $Pickup ? ( $Req["holdShelfExpirationDate"] ?? "" ) : "",
         "queue"     => $Req["position"] ?? "",
         "renewals"  => 0,
@@ -581,13 +475,12 @@ class folio extends bms
         "feetype" => $Charge["reason"] ?? "",
         "about"   => $Charge["item"]["title"] ?? "",
         "amount"  => number_format((float) ( $Charge["chargeAmount"]["amount"] ?? 0 ), 2, ".", "") . " " . ( $Charge["chargeAmount"]["isoCurrencyCode"] ?? $Currency ),
-        "date"    => $Charge["accrualDate"] ?? "",   
+        "date"    => $Charge["accrualDate"] ?? "",
       );
     }
     return $Fees;
   }
 
-  
   private function userData($Self)
   {
     $User     = $Self["user"];
@@ -604,7 +497,7 @@ class folio extends bms
                                                      $Address["addressLine2"] ?? "",
                                                      trim(( $Address["postalCode"] ?? "" ) . " " . ( $Address["city"] ?? "" )),
                                                      $Address["countryId"] ?? ""))),
-      
+
       "expires"  => isset($User["expirationDate"]) ? substr($User["expirationDate"], 0, 10) : "",
       "type"     => $Self["patronGroup"]["desc"] ?? ( $Self["patronGroup"]["group"] ?? "" ),
       "expired"  => ( isset($User["active"]) && !$User["active"] )
@@ -620,40 +513,6 @@ class folio extends bms
                  "more" => array($More));
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private const VORRATSBLOCK = 50;
 
   public function prepareItems($Map)
@@ -661,7 +520,6 @@ class folio extends bms
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
     if ( !$this->configured() || !is_array($Map) )  return;
 
-    
     $Woher = array();
     foreach ( $Map as $PPN => $EPNs )
     {
@@ -674,7 +532,7 @@ class folio extends bms
         if ( $EPN !== "" )  $Woher[$EPN] = $PPN;
       }
     }
-    
+
     if ( count($Woher) < 2 )  return;
 
     foreach ( array_chunk(array_keys($Woher), self::VORRATSBLOCK) as $Block )
@@ -691,23 +549,6 @@ class folio extends bms
       }
       foreach ( $Treffer as $PPN => $Json )  $this->bmsBestandSchreiben("ppn:" . $PPN, $Json);
 
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       $Verleiht = array();
       foreach ( $Response["json"]["items"] as $Item )
       {
@@ -718,7 +559,6 @@ class folio extends bms
       }
       if ( count($Verleiht) )  $this->leiheHolen($Verleiht);
 
-      
       $Holdings = array();
       foreach ( $Response["json"]["items"] as $Item )
       {
@@ -731,12 +571,6 @@ class folio extends bms
     }
   }
 
-  
-  
-  
-  
-  
-  
   private function holdingHolen($HoldingIDs)
   {
     $Instanzen = array();
@@ -746,7 +580,7 @@ class folio extends bms
       {
         if ( isset($H["id"], $H["instanceId"]) )  $Instanzen[$H["id"]] = $H["instanceId"];
       }
-      
+
       foreach ( $Block as $ID )
       {
         $this->bmsBestandSchreiben("holding:" . $ID, array("instance" => $Instanzen[$ID] ?? ""));
@@ -755,9 +589,6 @@ class folio extends bms
     return $Instanzen;
   }
 
-  
-  
-  
   private function leiheHolen($ItemIDs)
   {
     $Due   = array();
@@ -770,8 +601,7 @@ class folio extends bms
     {
       if ( isset($Req["itemId"]) )  $Queue[$Req["itemId"]] = ( $Queue[$Req["itemId"]] ?? 0 ) + 1;
     }
-    
-    
+
     foreach ( $ItemIDs as $ItemID )
     {
       $this->bmsBestandSchreiben("leihe:" . $ItemID, array("due"   => $Due[$ItemID]   ?? "",
@@ -785,19 +615,11 @@ class folio extends bms
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
     if ( !$this->configured() )  return array();
 
-    
-    
-    
-    
-    
-    
-    
     $Json = $this->bmsBestandLesen("ppn:" . $PPN);
     if ( $Json === null )
     {
       $Response = $this->call("GET", "/item-storage/items?limit=1000&query=" . $this->cql('instance.hrid=="' . $PPN . '"'));
-      
-      
+
       $Json = ( $Response["http"] == 200 && is_array($Response["json"]) ) ? $Response["json"] : array();
       if ( count($Json) )  $this->bmsBestandSchreiben("ppn:" . $PPN, $Json);
 
@@ -819,7 +641,6 @@ class folio extends bms
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
     if ( !$this->configured() )  return array();
 
-    
     $Json = $this->bmsBestandLesen("epn:" . $EPN);
     if ( $Json === null )
     {
@@ -834,8 +655,6 @@ class folio extends bms
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
     if ( !$this->configured() )  return $this->loginError($this->CS->getText("account.servernotresponding"));
 
-    
-    
     $Login = $this->login($User, $Pass);
     if ( !isset($Login["token"]) )
     {
@@ -870,7 +689,6 @@ class folio extends bms
     if ( !empty($this->CS->display["items"]) )  $Return["items"] = $this->readAccountItems($UUID);
     if ( !empty($this->CS->display["fees"]) )   $Return["fees"]  = $this->readFees($UUID);
 
-    
     $Return["user"]["accountstatus"] = "";
     if ( $Data["expired"] )
     {
@@ -901,7 +719,7 @@ class folio extends bms
 
     $Data = $this->userData($Self);
     return array(
-      "username" => $Data["uuid"],      
+      "username" => $Data["uuid"],
       "name"     => $Data["name"],
       "email"    => $Data["email"],
       "address"  => $Data["address"],
@@ -925,28 +743,24 @@ class folio extends bms
       if ( !isset($FIDs[$Field]) )  return $this->actionError("action.requesterror", "missingvalue: " . $Field);
     }
 
-    
     $Pickup = $FIDs["pickupServicePointId"];
     if ( isset($Cond["desk"]) && preg_match('/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i', $Cond["desk"], $Match) )  $Pickup = $Match[1];
 
     $Response = $this->call("POST", "/circulation/requests", array(
       "requestLevel"          => "Item",
-      
+
       "requestType"           => ( $Type == "reserve" ) ? "Hold" : "Page",
       "fulfillmentPreference" => "Hold Shelf",
       "requestDate"           => gmdate('Y-m-d\TH:i:s\Z'),
-      "requesterId"           => $Self["user"]["id"],     
+      "requesterId"           => $Self["user"]["id"],
       "instanceId"            => $FIDs["instanceId"],
       "itemId"                => $FIDs["itemId"],
       "holdingsRecordId"      => $FIDs["holdingsRecordId"],
       "pickupServicePointId"  => $Pickup,
     ));
 
-    
     if ( !in_array($Response["http"], array(200, 201)) )  return $this->actionError("action.requesterror", $this->errorMessage($Response));
 
-    
-    
     $this->bmsBestandVerwerfen();
 
     return $this->actionSuccess($Type == "reserve" ? "action.reservesuccessful" : "action.ordersuccessful",
@@ -963,7 +777,6 @@ class folio extends bms
     $FIDs = $this->getFolioArray($ID);
     if ( !isset($FIDs["itemBarcode"], $FIDs["userBarcode"]) )  return $this->actionError("action.renewerror", "missingvalue");
 
-    
     if ( $FIDs["userBarcode"] !== (string) ( $Self["user"]["barcode"] ?? "" ) )  return $this->actionError("action.renewerror", $this->CS->getText("account.checklogin"));
 
     $Response = $this->call("POST", "/circulation/renew-by-barcode", array("itemBarcode" => $FIDs["itemBarcode"],
@@ -984,7 +797,6 @@ class folio extends bms
     $FIDs = $this->getFolioArray($ID);
     if ( !isset($FIDs["id"]) )  return array("status" => -2, "code" => "missingvalue");
 
-    
     $Request = $this->call("GET", "/circulation/requests/" . rawurlencode($FIDs["id"]));
     if ( $Request["http"] != 200 || !isset($Request["json"]["id"]) )  return array("status" => -2, "code" => "action.cancelerror", "more" => $this->errorMessage($Request));
     $Record = $Request["json"];
@@ -1004,7 +816,6 @@ class folio extends bms
     return array("status" => 0);
   }
 
-  
   public function ChangeMail($Login, $Token, $New)
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -1021,7 +832,7 @@ class folio extends bms
     $Response = $this->call("PUT", "/users/" . rawurlencode($UUID), $Record);
     if ( !in_array($Response["http"], array(200, 204)) )  return array("status" => -2, "more" => $this->errorMessage($Response));
 
-    unset(self::$verified[$Token]);   
+    unset(self::$verified[$Token]);
     return array("status" => 0, "email" => $New);
   }
 
@@ -1037,14 +848,11 @@ class folio extends bms
                                                           "newPassword" => $New));
     if ( !in_array($Response["http"], array(200, 204)) )  return array("status" => -2, "more" => $this->errorMessage($Response));
 
-    
-    
     $Tmp = $this->checkUser($Self["user"]["username"] ?? $Self["user"]["id"], $New);
     $Tmp["status"] = 1;
     return $Tmp;
   }
 
-  
   public function ResetPW($Login)
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);

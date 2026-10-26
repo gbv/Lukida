@@ -2,9 +2,6 @@
 
 class item
 {
-  
-  
-  
   private $CS;
   private $aps;
   private $awop;
@@ -23,8 +20,7 @@ class item
   private $pid;
   private $signature;
   private $stock;
-  
-  
+
   private $allcomment;
   private $alllocation;
   private $allsignature;
@@ -32,9 +28,6 @@ class item
 
   public function __construct($CS)
   {
-
-    
-    
     $this->CS        = $CS;
     $this->mode      = (MODE == "production") ? "prod" : "test";
     $this->awop      = (isset($this->CS->configs["item"]["articleswithoutparents"]) && trim($this->CS->configs["item"]["articleswithoutparents"]) == "y")
@@ -42,33 +35,6 @@ class item
     $this->aps       = (isset($this->CS->configs["item"]["articleparentshift"])     && trim($this->CS->configs["item"]["articleparentshift"])     == "y")
                        ? true : false;
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     $this->lightsblue   = array("indigo", "blue", "light-blue", "cyan", "purple", "deep-purple");
     $this->lightsgreen  = array("green", "light-green", "lime", "teal");
     $this->lightsyellow = array("amber", "orange", "yellow", "deep-orange");
@@ -76,26 +42,12 @@ class item
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
   }
 
-  
-  
-  
-
-  
-  
-  
-  
-
-  
-  
-  
-
-  
   private function ilnDB($ILN)
   {
     if ( !$ILN || !isset($this->CS->configs["iln2bms"][$ILN]) )  return "";
     $Map = $this->CS->configs["iln2bms"][$ILN];
     if ( !is_array($Map) )  return "";
-    
+
     if ( isset($Map["db"]) )  return $Map["db"];
     $First = reset($Map);
     return ( is_array($First) && isset($First["db"]) ) ? $First["db"] : "";
@@ -106,21 +58,6 @@ class item
     return preg_replace('/-\d{1,2}$/', '', strtolower(trim((string) $Light)));
   }
 
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function useParent()
   {
     return ( $this->pid && !$this->awop && !$this->aps );
@@ -128,21 +65,6 @@ class item
 
   private function isHapticArticle()
   {
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     $Online = isset($this->one["online"])                ? $this->one["online"]                : false;
     $Format = isset($this->one["formatcode"])            ? $this->one["formatcode"]            : "";
     $Phys   = isset($this->one["itemcount"]["physical"]) ? $this->one["itemcount"]["physical"] : 0;
@@ -156,33 +78,6 @@ class item
           && $Format == "article" );
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private $ausdrueckeErlaubt = false;
 
   private function istAusdruck($Wert)
@@ -205,9 +100,6 @@ class item
 
   private function checkStrInWildArr($Str, $Arr)
   {
-    
-    
-    
     foreach ( $Arr as $One )
     {
       if ( $this->istAusdruck($One) )
@@ -227,34 +119,6 @@ class item
     return false;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function checkStrContainsArr($Str, $Arr)
   {
     $Str = (string) $Str;
@@ -271,7 +135,6 @@ class item
       $Kern = trim($One, "*");
       if ( $Kern === "" )  { if ( $One !== "" )  return true;  continue; }
 
-      
       if ( substr($One, 0, 1) !== "*" && substr($One, -1) === "*" )
       {
         if ( strpos($Str, $Kern) === 0 )    return true;
@@ -281,10 +144,6 @@ class item
     return false;
   }
 
-  
-  
-  
-  
   private function checkArrContainsArr($Werte, $Arr)
   {
     foreach ( (array) $Werte as $W )
@@ -294,9 +153,6 @@ class item
 
   private function checkArrInWildArr($Arr1, $Arr2)
   {
-    
-    
-    
     foreach ( $Arr1 as $Str )
     {
       foreach ( $Arr2 as $One )
@@ -316,30 +172,10 @@ class item
         }
       }
     }
-    
+
     return false;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function inLevelCollection()
   {
     $Titel = ( isset($this->one["collections"]) && is_array($this->one["collections"]) ) ? $this->one["collections"] : array();
@@ -352,8 +188,6 @@ class item
     return false;
   }
 
-  
-  
   private function itemENR($Item)
   {
     $W = isset($Item["enr"]) ? $Item["enr"] : ( isset($Item["1"]) ? $Item["1"] : "" );
@@ -363,10 +197,8 @@ class item
 
   private function hasPaia(&$Item)
   {
-    
     if ( count($Item) )  return ( isset($Item["id"]) && trim($Item["id"]) != "" );
 
-    
     if ( !isset($this->CS->paias[$this->id]) || !is_array($this->CS->paias[$this->id]) )  return false;
     foreach ( $this->CS->paias[$this->id] as $PI )
     {
@@ -470,7 +302,6 @@ class item
 
   private function getPage()
   {
-    
     $Recs = $this->getMarcSubFieldsArray("M773", array("I1", "g"));
     foreach ( $Recs as $Rec )
     {
@@ -481,13 +312,12 @@ class item
         if ( substr($G, 0, 6) == "pages:" ) return substr($G,6);
       }
     }
-    
+
     return "";
   }
 
   private function getVolume()
   {
-    
     $Recs = $this->getMarcSubFieldsArray("M773", array("I1", "g"));
     foreach ( $Recs as $Rec )
     {
@@ -502,13 +332,12 @@ class item
       }
       return implode(" ", $Tmp);
     }
-    
+
     return "";
   }
 
   private function getMainData()
   {
-    
     $More   = array();
     $More[] = "ID:\\t"             . $this->id;
     $More[] = "Titel:\\t"          . $this->CS->getMarcText($this->id, "bib_01");
@@ -520,13 +349,10 @@ class item
     return implode("\\n", $More);
   }
 
-  
-  
-  
   private function repairLink($Link, $Item = [], $Encode = true)
   {
     $Kod = function ($Wert) use ($Encode) { return $Encode ? urlencode($Wert) : $Wert; };
-    
+
      if (  stripos($Link, "§")      !== false )     $Link = str_ireplace("§",      "#",       $Link);
      if (  stripos($Link, "<id>")   !== false )     $Link = str_ireplace("<id>",   $this->id, $Link);
      if (  stripos($Link, "<isbn>") !== false )
@@ -536,14 +362,7 @@ class item
                : "";
        if ( $Fill )                                $Link = str_ireplace("<isbn>", $Fill,     $Link);
      }
-     
-     
-     
-     
-     
-     
-     
-     
+
      if (  stripos($Link, "<M980.b>") !== false )
      {
        $Fill = isset($Item["b"][0]) && trim($Item["b"][0]) && $Item["b"][0] != "--%%--" ? $Item["b"][0] : "";
@@ -552,27 +371,17 @@ class item
      if (  stripos($Link, "<M980.d>") !== false )
      {
        $Fill = isset($Item["d"][0]) && trim($Item["d"][0]) && $Item["d"][0] != "--%%--" ? $Item["d"][0] : "";
-       
-       
-       
+
        $Switch = $this->CS->confPairs("item", "locationmap");
        if ( array_key_exists($Fill, $Switch) )     $Fill = $Switch[$Fill];
        if ( $Fill )                                $Link = str_ireplace("<M980.d>", $Kod($Fill), $Link);
      }
-     
-     
-     
-     
-     
-     
-     
+
      if (  stripos($Link, "<signatur>") !== false || stripos($Link, "<signature>") !== false )
      {
        $Fill = "";
        if ( isset($Item["d"]) && is_array($Item["d"]) )
        {
-         
-         
          $Kopie  = $Item;
          $Return = $this->modifySignatureLocal($Kopie);
          if ( isset($Return["status"]) && $Return["status"] && isset($Return["values"][0]) )  $Fill = (string) $Return["values"][0];
@@ -593,7 +402,6 @@ class item
      return str_ireplace(array("<point>", "<comma>"), array(".", ","), $Str);
   }
 
-  
   private function getActionElements($Case, $Item=array())
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -610,8 +418,6 @@ class item
     if ( substr($DA,0,2) == "l." )
     {
       $L = substr($DA,2);
-      
-      
 
       if ( isset($this->CS->links[$L]) )
       {
@@ -620,10 +426,7 @@ class item
 
         return  array(
                                   "type"    => "link",
-                                  
-                                  
-                                  
-                                  
+
                                   "link"    => array("url"    => $this->repairLink($this->CS->lang == "g" ? $this->CS->links[$L]["germanlink"] : $this->CS->links[$L]["englishlink"], $Item),
                                                     "label"   => $this->CS->lang == "g" ? $this->CS->links[$L]["german"] : $this->CS->links[$L]["english"],
                                                      "target" => "_blank"),
@@ -635,7 +438,6 @@ class item
 
     switch ($DA)
     {
-      
       case  "p.order":
       {
         return array(
@@ -649,9 +451,6 @@ class item
       }
       case  "p.ordergroups":
       {
-        
-
-        
         if ( count($More) != 2 ) break;
 
         return array(
@@ -678,9 +477,6 @@ class item
       }
       case  "p.reservegroups":
       {
-        
-
-        
         if ( count($More) != 2 ) break;
 
         return array(
@@ -695,10 +491,8 @@ class item
         break;
       }
 
-      
       case  "m.openaccess":
       {
-        
         if ( !isset($Item["link"]) || !$Item["link"] )  break;
         return  array(
                                   "type"    => "link",
@@ -726,14 +520,8 @@ class item
         break;
       }
 
-      
       case  "o.mailelse":
       {
-        
-        
-        
-        
-        
         if ( !isset($this->CS->configs["mail.".$this->mode]["else"]) || !$this->CS->configs["mail.".$this->mode]["else"] ) break;
         return  array(
                          "type"    => "dialog",
@@ -746,11 +534,6 @@ class item
       }
       case  "o.mailnotify":
       {
-        
-        
-        
-        
-        
         if ( !isset($this->CS->configs["mail.".$this->mode]["notify"]) || !$this->CS->configs["mail.".$this->mode]["notify"] ) break;
         return  array(
                          "type"    => "dialog",
@@ -763,11 +546,6 @@ class item
       }
       case  "o.mailorder":
       {
-        
-        
-        
-        
-        
         if ( !isset($this->CS->configs["mail.".$this->mode]["order"]) || !$this->CS->configs["mail.".$this->mode]["order"] ) break;
         return  array(
                          "type"    => "dialog",
@@ -780,11 +558,6 @@ class item
       }
       case  "o.mailreserve":
       {
-        
-        
-        
-        
-        
         if ( !isset($this->CS->configs["mail.".$this->mode]["reserve"]) || !$this->CS->configs["mail.".$this->mode]["reserve"] ) break;
         return  array(
                          "type"    => "dialog",
@@ -797,11 +570,6 @@ class item
       }
       case  "o.mailsuggest":
       {
-        
-        
-        
-        
-        
         if ( !isset($this->CS->configs["mail.".$this->mode]["suggest"]) || !$this->CS->configs["mail.".$this->mode]["suggest"] ) break;
         return  array(
                          "type"    => "dialog",
@@ -813,13 +581,8 @@ class item
         break;
       }
 
-      
       case "o.clientmail":
       {
-        
-        
-
-        
         if ( count($More) < 3 || count($More) > 4  ) break;
 
         $MailTo = isset($More[0]) ? $More[0] : "";
@@ -841,7 +604,6 @@ class item
             $Fill = "";
             $MessBef = str_ireplace("<M981.r>", $Fill, $MessBef);
           }
-
         }
 
         $MessAft = isset($More[3]) ? $More[3] : "";
@@ -859,18 +621,6 @@ class item
           }
         }
 
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         $MailLoc = isset($Item["f"][0]) && trim($Item["f"][0]) && $Item["f"][0] != "--%%--" ? $Item["f"][0] : "";
         $MailSig = isset($Item["d"][0]) && trim($Item["d"][0]) && $Item["d"][0] != "--%%--" ? $Item["d"][0] : "";
         $MailVon = array("<M980.f>", "<M980.d>", "<signatur>");
@@ -889,15 +639,10 @@ class item
                         "button"  => $Case["detailbutton"]
                        );
 
-        
         break;
       }
       case "o.delivery":
       {
-        
-        
-        
-        
         return  array(
                       "type"    => "dialog",
                       "dialog"  => $this->CS->conf("other", "delivery.dialog", "delivery"),
@@ -932,7 +677,6 @@ class item
                           "icon"    => $Case["itemicon"],
                           "button"  => $Case["detailbutton"]
                          );
-
         }
         break;
       }
@@ -981,10 +725,6 @@ class item
       }
       case  "o.opaclink":
       {
-        
-        
-        
-        
         $DB       = $this->ilnDB(isset($Item["2"]["0"]) ? $Item["2"]["0"] : "");
 
         $OPACLINK = "";
@@ -1043,24 +783,6 @@ class item
       }
       case "o.search":
       {
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         $Ausdruck = trim(implode(",", $More));
         if ( $Ausdruck !== "" )
         {
@@ -1090,7 +812,6 @@ class item
         break;
       }
 
-      
       case "o.iiif":
       {
         if ( !isset($Item["link"]) || !$Item["link"] )  break;
@@ -1127,9 +848,6 @@ class item
       {
         if ( isset($More[0]) && $More[0] == "search" )
         {
-          
-          
-
           if ( !isset($this->one["rootid"]) ) break;
           return array(
                                   "type"    => "search",
@@ -1167,7 +885,6 @@ class item
 
     $TxtCnt   = 1;
     $Texts    = array("g" => array(), "e" => array());
-    
 
     foreach ($Disps as $Disp)
     {
@@ -1217,10 +934,8 @@ class item
                        ...$Tmp["e"]];
       }
 
-      
       elseif ( substr($Disp,0,2) == "l." )
       {
-        
         $Tmp = (isset($this->CS->links[substr($Disp,2)])) ? $this->CS->links[substr($Disp,2)] : array();
         if ( !isset($Tmp["german"])     || !isset($Tmp["english"]) )     continue;
         if ( !isset($Tmp["germanlink"]) || !isset($Tmp["englishlink"]) ) continue;
@@ -1282,7 +997,7 @@ class item
         $Texts[] = $Disp;
       }
     }
-     
+
     return $Texts;
   }
 
@@ -1299,14 +1014,8 @@ class item
 
     switch ($Element)
     {
-      
       case "hamburghsu":
       {
-        
-        
-        
-        
-        
         if ( isset($More[0]) && $More[0] == "handapparat" )
         {
           $Nr = ( isset($Item["f"][0]) && trim($Item["f"][0]) !== "" && trim($Item["f"][0]) != "--%%--" ) ? trim($Item["f"][0]) : "";
@@ -1329,12 +1038,8 @@ class item
         break;
       }
 
-      
       case "articlestock":
       {
-        
-        
-        
         $Val =  isset($this->one["marc"]["M773"][0]["g"][0]) ? $this->one["marc"]["M773"][0]["g"][0] : "";
 
         if ( $Val )
@@ -1349,19 +1054,17 @@ class item
         break;
       }
 
-      
       case "comment":
       {
-        
         $Black = explode("|", $this->CS->configs["item"]["commentblacklist"]);
-        
+
         $Vals  = array();
         if ( isset($Item["k"]) && is_array($Item["k"]) )
         {
           foreach ($Item["k"] as $Key => $Val)
           {
            if (in_array($Val, $Black)) continue;
-           
+
            $Vals[] = $Val;
           }
         }
@@ -1394,23 +1097,14 @@ class item
         break;
       }
 
-      
       case "commentstrict":
       {
-        
-
         $Gesehen = array();
 
         if ( isset($this->one["marc"]["M980"]) && is_array($this->one["marc"]["M980"]) && count($this->one["marc"]["M980"])
           && isset($Item["iln"]) && trim($Item["iln"]) && isset($Item["enr"]) && trim($Item["enr"]) )
         foreach ( $this->one["marc"]["M980"] as $Rec )
         {
-          
-          
-          
-          
-          
-          
           if ( isset($Rec["2"][0]) && $Rec["2"][0] == $Item["iln"]
             && ( (isset($Rec["1"][0]) && $Rec["1"][0] == $Item["enr"]) || $Item["enr"] == "00" )
             && isset($Rec["k"]) && is_array($Rec["k"]) && count($Rec["k"]) )
@@ -1418,10 +1112,7 @@ class item
             foreach ($Rec["k"] as $Val )
             {
               if ( !trim($Val) )  continue;
-              
-              
-              
-              
+
               if ( in_array(strip_tags($Val), $Gesehen) )  continue;
               $Gesehen[] = strip_tags($Val);
               $Texts["g"][] = array("type" => "text",
@@ -1442,7 +1133,6 @@ class item
         break;
       }
 
-      
       case "count":
       {
         $Val = isset($Item["a"][0]) ? intval($Item["a"][0]) : "";
@@ -1458,14 +1148,13 @@ class item
         break;
       }
 
-      
       case "direct":
       {
         if ( is_array($More) && count($More) >= 4 )
         {
           $Mama = "";
           $Kind = "";
-          
+
           if ( array_key_exists($this->id,$this->CS->hierarchy["childs"]) ) {
             $Kind = $this->id;
             $Mama = $this->CS->hierarchy["childs"][$this->id];
@@ -1476,8 +1165,6 @@ class item
             $Kind = $this->id;
             $Mama = "";
           }
-
-          
 
           $Tmp = [];
           $Type = substr(strtolower($More[0]),0,1) == "m" ? "M" : "P";
@@ -1490,7 +1177,6 @@ class item
               {
                 if ( isset($OneM["marc"]["M001"]) && $OneM["marc"]["M001"] == $Kind )
                 {
-                  
                   $Tmp = $OneM["marc"];
                   break;
                 }
@@ -1505,7 +1191,6 @@ class item
               {
                 if ( isset($OneM["marc"]["PM001"]) && $OneM["marc"]["PM001"] == $Mama)
                 {
-                  
                   $Tmp = $OneM["marc"];
                   break;
                 }
@@ -1538,10 +1223,8 @@ class item
         break;
       }
 
-      
       case "host":
       {
-        
         if ( isset($Item["host"]) && trim($Item["host"]) )
         {
           $Texts["g"][] = array("type" => "text",
@@ -1552,10 +1235,8 @@ class item
         break;
       }
 
-      
       case "location":
       {
-        
         if ( isset($Item["f"][0]) && trim($Item["f"][0]) && $Item["f"][0] != "--%%--" )
         {
           $Texts["g"][] = array("type" => "text",
@@ -1566,7 +1247,6 @@ class item
         break;
       }
 
-      
       case "stock":
       {
         $Vals      = array();
@@ -1578,15 +1258,11 @@ class item
           }
         }
 
-        
-
         if ( isset($Item["stock"]) && is_array($Item["stock"]) )
         {
           $Vals = [...$Vals,
                    ...$Item["stock"]];
         }
-
-        
 
         if ( is_array($Vals) && count($Vals) )
         {
@@ -1601,7 +1277,6 @@ class item
         break;
       }
 
-      
       case "stockstrict":
       {
         if ( isset($this->one["marc"]["M980"]) && is_array($this->one["marc"]["M980"]) && count($this->one["marc"]["M980"])
@@ -1624,7 +1299,6 @@ class item
         break;
       }
 
-      
       case "signature":
       {
         $Vals      = array();
@@ -1636,14 +1310,8 @@ class item
         break;
       }
 
-      
       case "locationsignature":
       {
-        
-        
-        
-        
-        
         $Vals      = array();
         $Loc       = isset($Item["f"][0]) && trim($Item["f"][0]) && $Item["f"][0] != "--%%--"
                      ? trim($Item["f"][0]) : "";
@@ -1655,18 +1323,13 @@ class item
         break;
       }
 
-      
       case "prov":
       {
-        
-        
-
         if ( isset($this->one["marc"]["M982"]) && is_array($this->one["marc"]["M982"]) )
         {
           $Vals      = array();
           foreach ( $this->one["marc"]["M982"] as $Rec )
           {
-            
             if ( isset($Rec["1"][0]) && isset($Item["1"]) && $Rec["1"][0] == $Item["1"]
               && isset($Rec["2"][0]) && isset($Item["2"]) && $Rec["2"][0] == $Item["2"]
               && isset($Rec["a"][0]) && substr($Rec["a"][0],0,11) == "Provenienz:")  $Vals[] = $Rec["a"][0];
@@ -1682,10 +1345,8 @@ class item
         break;
       }
 
-      
       case "usagelink":
       {
-        
         if ( isset($Item["usagelinks"]) && is_array($Item["usagelinks"]) && count($Item["usagelinks"]) )
         {
           foreach ( $Item["usagelinks"] as $UL )
@@ -1736,13 +1397,8 @@ class item
 
     switch ($Element)
     {
-      
       case "opaclink":
       {
-        
-        
-        
-        
         $DB       = $this->ilnDB(isset($Item["2"]["0"]) ? $Item["2"]["0"] : "");
         $OPACLINK = "";
         if ( MODE == "production" && isset($this->CS->bms[$this->CS->bmsid]["options"]["prodopaclink"]) && $this->CS->bms[$this->CS->bmsid]["options"]["prodopaclink"] )
@@ -1769,57 +1425,46 @@ class item
         return $Texts;
       }
 
-      
       case "signatures":
       {
         return $this->getSignatureStockComment(true, false, false);
       }
 
-      
       case "signaturestocks":
       {
         return $this->getSignatureStockComment(true, true, false);
       }
 
-      
       case "signaturecomments":
       {
         return $this->getSignatureStockComment(true, false, true);
       }
 
-      
       case "signaturestockcomments":
       {
         return $this->getSignatureStockComment(true, true, true);
       }
 
-      
       case "stocks":
       {
         return $this->getSignatureStockComment(false, true, false);
       }
 
-      
       case "stockcomments":
       {
         return $this->getSignatureStockComment(false, true, true);
-
       }
 
-      
       case "comments":
       {
         return $this->getSignatureStockComment(false, false, true);
       }
 
-      
-      
       case "commentsnoparent":
       {
         return $this->getSignatureStockComment(false, false, true, false);
       }
 
-      
       case "usagecode":
       {
         $Rec = $this->getMarcSubFieldArray("M980", "u");
@@ -1859,10 +1504,8 @@ class item
         return $Texts;
       }
 
-      
       case "vscout":
       {
-        
         $VSLink  = ( isset($this->CS->configs["other"]["vscout.link"]) && $this->CS->configs["other"]["vscout.link"] )
                    ? $this->CS->configs["other"]["vscout.link"]
                    : "";
@@ -1873,28 +1516,17 @@ class item
                    ? (array) json_decode($this->CS->configs["other"]["vscout.blacklist"], true)
                    : array();
 
-
-        
-        
-        
-        
-
         $ItemILNLoc = ( isset($Item["2"][0]) && $Item["2"][0]
                      && isset($Item["f"][0]) && $Item["f"][0] ) ? trim($Item["2"][0]) . ":" . trim($Item["f"][0]) : "";
         $ItemSig    = ( isset($Item["d"][0]) && $Item["d"][0] ) ? trim($Item["d"][0])                             : "";
 
-
         $Found = false;
 
-        
         foreach ($VSWhite as $I => $Block)
         {
           $FoundKeys = 0;
           foreach ($Block as $Key => $Val)
           {
-            
-            
-            
             if ( isset($Item[$Key]) )
             {
               if ( substr($Val, -1) == "*" )
@@ -1923,12 +1555,9 @@ class item
             break;
           }
         }
-        
 
         if ( !$Found ) return $Texts;
 
-
-        
         foreach ($VSBlack as $I => $Block)
         {
           $FoundKeys = 0;
@@ -1957,9 +1586,6 @@ class item
           }
         }
         if ( !$Found ) return $Texts;
-
-
-        
 
         if ( $VSLink && $ItemSig )
         {
@@ -1991,7 +1617,6 @@ class item
                                   "text" => $T["english"],
                                   "link" => trim($Item["remoteitems"][0]["href"]));
           }
-          
         }
       }
       return $Texts;
@@ -2002,14 +1627,10 @@ class item
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
-    
-
     $Texts = array("g" => array(), "e" => array());
 
     switch ( $Text )
     {
-      
       case 'status':
       {
         if ( isset($Item["status"]) && $Item["status"] )
@@ -2031,14 +1652,10 @@ class item
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
-    
-
     $Texts = array("g" => array(), "e" => array());
 
     switch ($Text)
     {
-      
       case 'department':
       {
         if ( isset($Item["department"]) && $Item["department"] )
@@ -2050,7 +1667,7 @@ class item
         }
         break;
       }
-      
+
       case 'label':
       {
         if ( isset($Item["label"]) && $Item["label"] )
@@ -2062,7 +1679,7 @@ class item
         }
         break;
       }
-      
+
       case 'signature':
       {
         if ( isset($Item["label"]) )
@@ -2081,7 +1698,7 @@ class item
         }
         break;
       }
-      
+
       case 'storage':
       {
         if ( isset($Item["storage"]) && $Item["storage"] )
@@ -2093,13 +1710,12 @@ class item
         }
         break;
       }
-      
+
       case 'storagelink':
       {
         if ( isset($Item["storage"]) && $Item["storage"]
           && isset($Item["storagelink"]) && $Item["storagelink"] )
         {
-          
           $Texts["g"][] = array("type" => "link",
                                 "text" => $Item["storage"] . " ",
                                 "link" => $Item["storagelink"]);
@@ -2109,7 +1725,7 @@ class item
         }
         break;
       }
-      
+
       case 'about':
       {
         if ( isset($Item["about"]) && $Item["about"] )
@@ -2124,7 +1740,7 @@ class item
         }
         break;
       }
-      
+
       case 'aboutfirstline':
       {
         if ( isset($Item["about"]) && $Item["about"] )
@@ -2143,13 +1759,13 @@ class item
         }
         break;
       }
-      
+
       case 'queue':
       {
         $Tmp = array();
         if ( isset($Item["loanitems"][0]["queue"])         && $Item["loanitems"][0]["queue"]         != "-" ) $Tmp[] =  $Item["loanitems"][0]["queue"];
         if ( isset($Item["presentationitems"][0]["queue"]) && $Item["presentationitems"][0]["queue"] != "-" ) $Tmp[] =  $Item["presentationitems"][0]["queue"];
-        
+
         if ( count($Tmp) )
         {
           $T   = $this->CS->getTextBothLang("items.queue");
@@ -2161,7 +1777,7 @@ class item
         }
         break;
       }
-      
+
       case 'expected':
       {
         $Tmp = array();
@@ -2179,7 +1795,7 @@ class item
         }
         break;
       }
-      
+
       case "chronology":
       {
         if ( isset($Item["chronology"]) && $Item["chronology"] )
@@ -2195,7 +1811,7 @@ class item
         }
         break;
       }
-      
+
       case "epn":
       {
         if ( isset($Item["epn"]) && $Item["epn"] )
@@ -2213,14 +1829,9 @@ class item
     return $Texts;
   }
 
-  
-
-  
   private function addDeskUsers($Loc, $Item, &$Exemplar = array())
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
-
-    
 
     $Desk  = "";
     $User  = "";
@@ -2241,7 +1852,6 @@ class item
         $StorID = strtolower($Item["storageid"]);
         $AUI    = isset($Item["e"][0]) ? $Item["e"][0] : "";
 
-        
         if ( isset($this->CS->locations[$Mode][$Loc][$StorID]) )
         {
           if ( $AUI && isset($this->CS->locations[$Mode][$Loc][$StorID][$AUI]["deskgroup"]) &&
@@ -2259,7 +1869,6 @@ class item
         }
         else
         {
-          
           if ( isset($this->CS->locations["loc2group"][$Loc]) )
           {
             $Loc2 = $this->CS->locations["loc2group"][$Loc];
@@ -2281,7 +1890,6 @@ class item
           }
           else
           {
-            
             if ( isset($this->CS->locations["group2loc"][$Loc]) )
             {
               foreach ($this->CS->locations["group2loc"][$Loc] as $Loc2)
@@ -2315,24 +1923,9 @@ class item
     return array("desks" => $Desks,  "users" => $Users);
   }
 
-  
-  
-  
-  
-  
-  
-  
   private function getSignatureStockComment($Sig, $Sto, $Com, $MitEltern = true)
   {
-    
-    
-    
-    
-
     $SSCs = array();
-
-    
-    
 
     if ( $Sto )
     {
@@ -2402,15 +1995,9 @@ class item
       }
     }
 
-    
-
-    
-    
-    
     $Texts = array("g" => array(), "e" => array());
     if ( is_array($SSCs) && count($SSCs) )
     {
-      
       foreach ($SSCs as $SSC)
       {
         if ( isset($SSC["signature"]) && is_array($SSC["signature"]) && count($SSC["signature"]) )
@@ -2442,12 +2029,9 @@ class item
       }
     }
 
-    
     return $Texts;
   }
 
-  
-  
   private function modifySignatureLocal(&$Item, $Location = "")
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -2459,12 +2043,10 @@ class item
     $Vs                      = array();
     if ( file_exists($File) )
     {
-      
       include $File;
     }
     else
     {
-      
       $Vals = array();
       foreach ($Item["d"] as $Key => $Val)
       {
@@ -2480,7 +2062,6 @@ class item
                            "text" => $T["german"] . ": " .  implode(", ", $Vals));
         $Vs["e"][] = array("type" => "text",
                            "text" => $T["english"] . ": " .  implode(", ", $Vals));
-        
       }
       else
       {
@@ -2488,12 +2069,6 @@ class item
       }
     }
 
-    
-    
-    
-    
-    
-    
     if ( $Location !== "" )
     {
       if ( isset($Vals) && is_array($Vals) && count($Vals) )
@@ -2513,14 +2088,6 @@ class item
       }
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
     $Labels = $this->CS->getTextBothLang("items.signature");
     foreach ( array("g" => "german", "e" => "english") as $Lang => $Key )
     {
@@ -2534,7 +2101,6 @@ class item
       }
     }
 
-    
     return array("status" => $Status, "values" => $Vs);
   }
 
@@ -2542,9 +2108,6 @@ class item
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
-
-    
     $File                    = dirname(__FILE__) . DIRECTORY_SEPARATOR . "clients"
                                . DIRECTORY_SEPARATOR . $this->CS->client
                                . DIRECTORY_SEPARATOR . "itemfunctions.php";
@@ -2553,7 +2116,6 @@ class item
       include_once($File);
     }
 
-    
     $File                    = dirname(__FILE__) . DIRECTORY_SEPARATOR . "clients"
                                . DIRECTORY_SEPARATOR . $this->CS->client
                                . DIRECTORY_SEPARATOR . "item.php";
@@ -2576,9 +2138,6 @@ class item
     return $Comments;
   }
 
-  
-
-  
   private function setCombs()
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -2589,25 +2148,15 @@ class item
     $EPN   = 0;
     $Skip  = false;
 
-    
     $MLocs = ( isset($this->CS->configs["item"]["multiplelocations"])   && $this->CS->configs["item"]["multiplelocations"]  == "y" )
              ? true : false;
     $MKeys = ( isset($this->one["items"]) && count($this->one["items"]) )
              ? array_keys($this->one["items"]) : array();
 
-    
-    
-    
-    
-
     if ( $this->pid && !$this->awop && !count($MKeys) && isset($this->CS->works["add"][$this->pid]) )
     {
-      
-      
       if ( $this->aps )
       {
-        
-        
         if ( $this->isHapticArticle() )
         {
           $this->one["items"] = $this->CS->works["add"][$this->pid]["items"];
@@ -2617,8 +2166,6 @@ class item
       }
       else
       {
-        
-        
         $MKeys     = ( isset($this->CS->works["add"][$this->pid]["items"]) && count($this->CS->works["add"][$this->pid]["items"]) )
                    ? array_keys($this->CS->works["add"][$this->pid]["items"])
                    : array();
@@ -2628,21 +2175,15 @@ class item
     $PKeys = ( isset($this->CS->paias[$this->id])
             && count($this->CS->paias[$this->id]) )  ? array_keys($this->CS->paias[$this->id]) : array();
 
-    
-
-    
     $AllItems   = array_unique(array_merge($MKeys, $PKeys));
-    
+
     foreach ($AllItems as $LukidaID )
     {
-      
       $Combs[$LukidaID] = (isset($this->CS->paias[$this->id][$LukidaID])) ? $this->CS->paias[$this->id][$LukidaID] : array();
-      if ( !isset($Combs[$LukidaID]["about"]) ) $Combs[$LukidaID]["about"] = "";      
+      if ( !isset($Combs[$LukidaID]["about"]) ) $Combs[$LukidaID]["about"] = "";
 
-      
-      $EPN = (isset($Combs[$LukidaID]["epn"])) ? $Combs[$LukidaID]["epn"] : 0;  
+      $EPN = (isset($Combs[$LukidaID]["epn"])) ? $Combs[$LukidaID]["epn"] : 0;
 
-      
       if ( $EPN != 0 )
       {
         if (isset($this->one["items"][$EPN])) $Combs[$LukidaID] += $this->one["items"][$EPN];
@@ -2661,17 +2202,12 @@ class item
           }
         }
       }
-      
     }
 
-    
-
-    
     if ( count($Combs) )
     {
       foreach ($Combs as $ExpID => $Item)
       {
-        
         if ( isset($Item["loc"]) && $Item["loc"] == "onlineglobal" )
         {
           $Item["loc"] = "online";
@@ -2679,26 +2215,24 @@ class item
         }
         elseif ( !$MLocs && isset($Item["loc"]) && $Item["loc"] == "onlinelocal" )
         {
-          
           $Item["loc"] = "online";
           $Loc = $Item["loc"];
         }
         elseif ( $MLocs  )
         {
-          
           if ( isset($Item["loc"]) && $Item["loc"] == "onlinelocal"
             && isset($this->CS->locations["onlineids"]) && is_array($this->CS->locations["onlineids"]) && count($this->CS->locations["onlineids"]) > 0
             && isset($Item["iln"]) && isset($this->CS->locations["onlineids"][$Item["iln"]]) )
           {
             $Loc = $this->CS->locations["onlineids"][$Item["iln"]];
           }
-          
+
           elseif ( isset($Item["loc"]) && $Item["loc"] == "onlinelocal" )
           {
             $Item["loc"] = "online";
             $Loc = $Item["loc"];
           }
-          
+
           elseif ( isset($this->CS->locations["imp"]) && is_array($this->CS->locations["imp"]) && count($this->CS->locations["imp"]) > 0 )
           {
             $ItemILNLoc  = "";
@@ -2719,14 +2253,14 @@ class item
             if ( isset($Item["e"][0]) ) $ItemILNAUI .= $Item["e"][0];
 
             $Loc = "";
-            
+
             if ( isset($this->CS->locations["skip"]["loc"]) && is_array($this->CS->locations["skip"]["loc"])
               && in_array($ItemILNLoc, $this->CS->locations["skip"]["loc"]) )
             {
               $Skips[] = $ExpID;
               continue;
             }
-            
+
             elseif ( isset($this->CS->locations["skip"]["sig"]) && is_array($this->CS->locations["skip"]["sig"])
               && in_array($ItemILNSig, $this->CS->locations["skip"]["sig"]) )
             {
@@ -2735,17 +2269,12 @@ class item
             }
             else
             {
-              
               foreach ( $this->CS->locations["exp"] as $IL => $Conds )
               {
-                
-                
-
                 $Found = array("loc" => false, "sig" => false, "man" => false, "aui" => false);
-                
+
                 if ( isset($Conds["loc"]) && count($Conds["loc"]) )
                 {
-                  
                   foreach ( $Conds["loc"] as $O )
                   {
                     if ( LocRule::matches($O, $ItemILNLoc, ":") )  {$Found["loc"] = true; break;}
@@ -2756,10 +2285,9 @@ class item
                 {
                   $Found["loc"] = true;
                 }
-                
+
                 if ( isset($Conds["sig"]) && count($Conds["sig"]) )
                 {
-                  
                   foreach ( $Conds["sig"] as $O )
                   {
                     if ( LocRule::matches($O, $ItemILNSig, ":") )  {$Found["sig"] = true; break;}
@@ -2770,10 +2298,9 @@ class item
                 {
                   $Found["sig"] = true;
                 }
-                
+
                 if ( isset($Conds["man"]) && count($Conds["man"]) )
                 {
-                  
                   foreach ( $Conds["man"] as $O )
                   {
                     if ( LocRule::matches($O, $ItemILNMan, "@") )  {$Found["man"] = true; break;}
@@ -2784,12 +2311,9 @@ class item
                 {
                   $Found["man"] = true;
                 }
-                
 
-                
                 if ( isset($Conds["aui"]) && count($Conds["aui"]) )
                 {
-                  
                   foreach ( $Conds["aui"] as $O )
                   {
                     if ( LocRule::matches($O, $ItemILNAUI, ":") )  {$Found["aui"] = true; break;}
@@ -2800,7 +2324,7 @@ class item
                 {
                   $Found["aui"] = true;
                 }
-                
+
                 if ($Found["loc"] && $Found["sig"] && $Found["man"]&& $Found["aui"])
                 {
                   $Loc = $IL;
@@ -2820,28 +2344,17 @@ class item
           $Loc = "default";
         }
 
-        
-
-        
-        
-        
-        
-        
-        
-        
-        
         $Switch = $this->CS->confPairs("item", "locationmap");
         if ( isset($Item["label"]) && array_key_exists($Item["label"], $Switch) )
         {
           $Loc = $Switch[$Item["label"]];
-          if ( !isset($Item["about"]) ) $Item["about"] = "";  
+          if ( !isset($Item["about"]) ) $Item["about"] = "";
         }
 
         $Combs[$ExpID]["loc"] = $Loc;
         if ( !isset($Combs[$ExpID]["about"]) ) $Combs[$ExpID]["about"] = "";
         $Locs[] = $Loc;
       }
-      
 
       if ( (isset($this->CS->configs["item"]["sortabout"]) && $this->CS->configs["item"]["sortabout"] == "y") || $this->epn)
       {
@@ -2850,17 +2363,6 @@ class item
       $Locs   = array_values(array_unique($Locs));
     }
 
-    
-    
-    
-
-    
-    
-    
-
-    
-
-    
     if ( isset($this->CS->locations["hiersort"]) && is_array($this->CS->locations["hiersort"]) && count($this->CS->locations["hiersort"])
       && isset($Locs)                            && is_array($Locs)                            && count($Locs)
       && isset($Combs)                           && is_array($Combs)                           && count($Combs) )
@@ -2871,8 +2373,6 @@ class item
       {
         if (isset($Sort["id"]) && in_array($Sort["id"], $Locs) )
         {
-          
-
           foreach ( $Combs as $EPN => $C )
           {
             if ( isset($C["loc"]) && $C["loc"] == $Sort["id"] )
@@ -2881,9 +2381,6 @@ class item
               if ( !in_array($C["loc"], $TmpL) )  $TmpL[] = $C["loc"];
             }
           }
-
-          
-          
         }
       }
 
@@ -2900,16 +2397,9 @@ class item
               if ( !in_array($C["loc"], $TmpL) )  $TmpL[] = $C["loc"];
             }
           }
-
-          
-          
         }
       }
 
-
-      
-      
-      
       $Combs = $TmpC;
       $Locs  = $TmpL;
     }
@@ -2918,18 +2408,12 @@ class item
     $this->one["locs"]  = $Locs;
     $this->one["combs"] = $Combs;
     if ( $this->CS->display["comb"] ) $this->CS->results["comb"][$this->id] = $Combs;
-    
   }
 
-  
   private function setitems()
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
-    
-
-    
     $this->one["logs"]  = array();
     $Items  = array();
     $GIdx   = 0;
@@ -2941,24 +2425,8 @@ class item
 
       foreach ($this->one["combs"] as $Item)
       {
-        
         if ( !isset($Item["loc"]) || $Item["loc"] != $Loc ) continue;
 
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         $this->comment   = array();
         $this->location  = array();
         $this->signature = array();
@@ -2976,17 +2444,9 @@ class item
         }
 
         $ILN = isset($Item["2"][0]) ? $Item["2"][0] : "";
-        
-        
 
-        
         $this->getExps($Exps, $this->id, $this->CS->cases, $Item);
 
-        
-        
-        
-        
-        
         $this->addArr2Arr($this->allcomment,   $this->comment);
         $this->addArr2Arr($this->alllocation,  $this->location);
         $this->addArr2Arr($this->allsignature, $this->signature);
@@ -2997,7 +2457,7 @@ class item
       {
         $Tmp = $this->CS->getTextBothLang("location." . $Loc);
         $Items["group_".++$GIdx] = array("code"       => $Loc,
-                                         "label"      => $Loc,   
+                                         "label"      => $Loc,
                                          "text"       => array("g" => array(array("type" => "text", "text" => $Tmp["german"])),
                                                                "e" => array(array("type" => "text", "text" => $Tmp["english"]))),
                                          "before"     => $this->getGroupComment($ILN),
@@ -3007,8 +2467,6 @@ class item
       }
     }
 
-    
-    
     if ( !$this->epn &&  isset($this->CS->configs["other"]["groupsreverse"]) && $this->CS->configs["other"]["groupsreverse"] == 'y' )
     {
       $this->AddMoregroups($Items, $GIdx);
@@ -3016,27 +2474,22 @@ class item
 
     if ( !$this->epn )
     {
-      
       $this->setLog("Media", "New PPN " . $this->id);
       $Exps       = array();
       $Empty      = array();
       $this->best = "red";
-      
+
       $this->comment   = $this->allcomment;
       $this->location  = $this->alllocation;
       $this->signature = $this->allsignature;
       $this->stock     = $this->allstock;
       $this->getExps($Exps, $this->id, $this->CS->casesmedia, $Empty);
 
-      
-      
-      
-      
       if (count($Exps))
       {
         $Tmp = $this->CS->getTextBothLang("location.media");
         $Items["group_".++$GIdx] = array("code"       => "media",
-                                         "label"      => "media",   
+                                         "label"      => "media",
                                          "text"       => array("g" => array(array("type" => "text", "text" => $Tmp["german"])),
                                                                "e" => array(array("type" => "text", "text" => $Tmp["english"]))),
                                          "before"     => array(),
@@ -3046,15 +2499,8 @@ class item
       }
     }
 
-    
-    
-    
-
-    
     if ( $this->CS->display["logs"] ) $this->CS->results["logs"][$this->id] = $this->one["logs"];
 
-    
-    
     if ( !$this->epn &&  isset($this->CS->configs["other"]["groupsreverse"]) && $this->CS->configs["other"]["groupsreverse"] == 'n' )
     {
       $this->AddMoregroups($Items, $GIdx);
@@ -3073,7 +2519,7 @@ class item
   private function AddMoregroups(&$Items, &$GIdx)
   {
     $MGs = $this->setMoreGroups();
-    
+
     if ( isset($MGs["searches"]) && is_array($MGs["searches"]) && count($MGs["searches"]) )
     {
       $Items["group_".++$GIdx] = array("label"      => "searches",
@@ -3092,7 +2538,6 @@ class item
     }
   }
 
-  
   private function getExps(&$Exps, &$ID, &$ScopeCases, &$Item)
   {
     $OldSortLevel  = "";
@@ -3118,68 +2563,27 @@ class item
                                         && $Item["presentationitems"][0]["action"] != "-" ) ? $Item["presentationitems"][0]["action"] : "";
     $Loc  = isset($Item["loc"]) ? $Item["loc"] : "";
 
-    
-    
-
     foreach ( $ScopeCases as $SortLevel => $Cases )
     {
       if ( $OldSortLevel != "" && $OldSortLevel != $SortLevel ) continue;
       foreach ( $Cases as $CI => $Case )
       {
-        
-
-        
         if ( !isset($Case["active"]) || !$Case["active"] )  continue;
 
-        
-        
         $this->ausdrueckeErlaubt = !empty($Case["ausdruecke"]);
 
         $this->setLog("Case", "Check " . $SortLevel . "." . $Case["name"]);
 
         $Match     = true;
-        $Offen     = false;   
+        $Offen     = false;
         $Verneint  = false;
         $VorMatch  = true;
         $Unbekannt = false;
         foreach ( $Case["filters"] as $Filter )
         {
-          
-          
-          
-          
-          
-          
-
           if ( !$Match )  continue;
           $this->setLog("Filter", "Check " . $Filter);
 
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
           $Verneint = false;
           if ( substr($Filter, 0, 6) === "nicht " )  { $Verneint = true;  $Filter = trim(substr($Filter, 6)); }
           elseif ( substr($Filter, 0, 1) === "!" )   { $Verneint = true;  $Filter = trim(substr($Filter, 1)); }
@@ -3192,7 +2596,6 @@ class item
 
           do {
 
-          
           if ( substr($Filter,0,9) == "f.status." )
           {
             $StatiFound = false;
@@ -3242,24 +2645,18 @@ class item
                   $Match = false;
                 }
               }
-              
             }
             continue;
           }
 
-          
           if ( substr($Filter,0,10) == "m.article." )
           {
             $M7737s = explode(",",substr($Filter,10));
-
-            
-            
 
             if (  !isset($this->one["artcode"]) || !in_array($this->one["artcode"], $M7737s) )  $Match = false;
             continue;
           }
 
-          
           elseif ( substr($Filter,0,6) == "m.ali." )
           {
             $Tmp = substr($Filter,6);
@@ -3283,11 +2680,6 @@ class item
             if ( !$ALI || !in_array($ALI, $M980Es) )   $Match = false;
           }
 
-          
-          
-          
-          
-          
           elseif ( substr($Filter,0,8) == "m.noali." )
           {
             $Tmp = substr($Filter,8);
@@ -3311,44 +2703,22 @@ class item
             if ( $ALI && in_array($ALI, $M980Es) )   $Match = false;
           }
 
-          
           elseif ( substr($Filter,0,7) == "m.host." )
           {
-            
             if ( !isset($Item["host"]) )  {$Match = false;  continue; }
 
             if ( !$this->checkStrInWildArr($Item["host"], explode(",", substr($Filter,7))) ) $Match = false;
             continue;
           }
 
-          
           elseif ( substr($Filter,0,10) == "m.comment." )
           {
-            
-            
-            
-            
-            
-            
-            
-            
-            
             if ( !isset($Item["k"][0]) )  {$Match = false;  continue; }
 
             if ( !$this->checkStrInWildArr($Item["k"][0], explode(",", substr($Filter,10))) ) $Match = false;
             continue;
           }
 
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
           elseif ( substr($Filter,0,18) == "m.commentcontains." )
           {
             if ( !isset($Item["k"]) || !count((array) $Item["k"]) )  {$Match = false;  continue; }
@@ -3357,17 +2727,14 @@ class item
             continue;
           }
 
-          
           elseif ( substr($Filter,0,11) == "m.textlink." )
           {
-            
             if ( !isset($Item["text"]) )  {$Match = false;  continue; }
 
             if ( !$this->checkArrInWildArr(explode(", ", $Item["text"]), explode(",", substr($Filter,11))) ) $Match = false;
             continue;
           }
 
-          
           elseif ( substr($Filter,0,16) == "m.yearolderthan." )
           {
             $Year    = (int) substr($Filter,16);
@@ -3383,7 +2750,6 @@ class item
             continue;
           }
 
-          
           elseif ( substr($Filter,0,9) == "m.format." )
           {
             $Forms    = explode(",", strtolower(substr($Filter,9)));
@@ -3397,7 +2763,6 @@ class item
             continue;
           }
 
-          
           elseif ( substr($Filter,0,19) == "m.locallinkcomment." )
           {
             $LinkCommentFound = false;
@@ -3407,45 +2772,23 @@ class item
             }
             else
             {
-              
-              
-              
-              
-              
-              
-              
-              
-              
               $LinkCommentFound = $this->checkStrInWildArr($Item["text"], explode(",", substr($Filter,19)));
               if ( !$LinkCommentFound )  $Match = false;
             }
             continue;
           }
 
-          
-          
-          
-          
-          
-          
-          
           elseif ( substr($Filter,0,6) == "m.man." )
           {
             $M980Ys = explode(",",substr($Filter,6));
 
-            
-            
-            
-
             if ( count($Item) )
             {
-              
               $Man    = isset($Item["y"][0]) ? substr($Item["y"][0],1) : "";
               if ( !$Man || !$this->checkStrInWildArr($Man, $M980Ys) )   $Match = false;
             }
             else
             {
-              
               $Mans = array();
                if ( isset($this->one["marc"]["M980"]) && is_array($this->one["marc"]["M980"]) )
               {
@@ -3464,13 +2807,11 @@ class item
 
             if ( count($Item) )
             {
-              
               $Man    = isset($Item["y"][0]) ? substr($Item["y"][0],1) : "";
               if ( $this->checkStrInWildArr($Man, $M980Ys) )  $Match = false;
             }
             else
             {
-              
               $Mans = array();
                if ( isset($this->one["marc"]["M980"]) && is_array($this->one["marc"]["M980"]) )
               {
@@ -3484,24 +2825,18 @@ class item
             continue;
           }
 
-          
           elseif ( substr($Filter,0,6) == "m.iln." )
           {
             $M9802s = explode(",",substr($Filter,6));
 
-            
-            
-
             if ( count($Item) )
             {
-              
               $ILN    = isset($Item["iln"]) ? $Item["iln"] : "";
               if ( !$ILN && isset($Item["2"]["0"]) )  $ILN = $Item["2"]["0"];
               if ( !$ILN || !$this->checkStrInWildArr($ILN, $M9802s) )   $Match = false;
             }
             else
             {
-              
               $ILNs = array();
                if ( isset($this->one["marc"]["M980"]) && is_array($this->one["marc"]["M980"]) )
               {
@@ -3518,19 +2853,14 @@ class item
           {
             $M9802s = explode(",",substr($Filter,8));
 
-            
-            
-
             if ( count($Item) )
             {
-              
               $ILN    = isset($Item["iln"]) ? $Item["iln"] : "";
               if ( !$ILN && isset($Item["2"]["0"]) )  $ILN = $Item["2"]["0"];
               if ( $ILN && $this->checkStrInWildArr($ILN, $M9802s) )   $Match = false;
             }
             else
             {
-              
               $ILNs = array();
                if ( isset($this->one["marc"]["M980"]) && is_array($this->one["marc"]["M980"]) )
               {
@@ -3544,19 +2874,16 @@ class item
             continue;
           }
 
-          
           elseif ( substr($Filter,0,6) == "m.eln." )
           {
             $M980Xs = explode(",",substr($Filter,6));
             if ( count($Item) )
             {
-              
               $ELN    = isset($Item["x"][0]) ? $Item["x"][0] : "";
               if ( !$ELN || !$this->checkStrInWildArr($ELN, $M980Xs) )   $Match = false;
             }
             else
             {
-              
               $ELNs = array();
                if ( isset($this->one["marc"]["M980"]) && is_array($this->one["marc"]["M980"]) )
               {
@@ -3574,13 +2901,11 @@ class item
             $M980Xs = explode(",",substr($Filter,8));
             if ( count($Item) )
             {
-              
               $ELN    = isset($Item["x"][0]) ? $Item["x"][0] : "";
               if ( $ELN && $this->checkStrInWildArr($ELN, $M980Xs) )   $Match = false;
             }
             else
             {
-              
               $ELNs = array();
                if ( isset($this->one["marc"]["M980"]) && is_array($this->one["marc"]["M980"]) )
               {
@@ -3594,23 +2919,17 @@ class item
             continue;
           }
 
-
-          
           elseif ( substr($Filter,0,10) == "m.manfull." )
           {
             $M980Ys = explode(",",substr($Filter,10));
 
-            
-            
             if ( count($Item) )
             {
-              
               $Man    = isset($Item["y"][0]) ? $Item["y"][0] : "";
               if ( !$Man || !$this->checkStrInWildArr($Man, $M980Ys) )   $Match = false;
             }
             else
             {
-              
               $Mans = array();
                if ( isset($this->one["marc"]["M980"]) && is_array($this->one["marc"]["M980"]) )
               {
@@ -3628,13 +2947,11 @@ class item
             $M980Ys = explode(",",substr($Filter,12));
             if ( count($Item) )
             {
-              
               $Man    = isset($Item["y"][0]) ? $Item["y"][0] : "";
               if ( $Man && $this->checkStrInWildArr($Man, $M980Ys) )   $Match = false;
             }
             else
             {
-              
               $Mans = array();
                if ( isset($this->one["marc"]["M980"]) && is_array($this->one["marc"]["M980"]) )
               {
@@ -3648,10 +2965,6 @@ class item
              continue;
           }
 
-          
-          
-          
-          
           elseif ( substr($Filter,0,6) == "m.enr." || substr($Filter,0,8) == "m.noenr." )
           {
             $Nein = ( substr($Filter,0,8) == "m.noenr." );
@@ -3663,13 +2976,8 @@ class item
             continue;
           }
 
-          
           elseif ( substr($Filter,0,6) == "o.sig." )
           {
-            
-            
-            
-
             if ( !isset($Item["d"][0]) )  {$Match = false;  continue; }
 
             if ( !$this->checkStrInWildArr($Item["d"][0], explode(",", substr($Filter,6))) ) $Match = false;
@@ -3683,12 +2991,6 @@ class item
             continue;
           }
 
-          
-          
-          
-          
-          
-          
           elseif ( substr($Filter,0,7) == "o.call." || substr($Filter,0,9) == "o.nocall." )
           {
             $Nein  = ( substr($Filter,0,9) == "o.nocall." );
@@ -3704,10 +3006,8 @@ class item
             continue;
           }
 
-          
           elseif ( substr($Filter,0,6) == "o.col." )
           {
-            
             $OneCols  = ( isset($this->one["collections"]) && is_array($this->one["collections"]) ) ? $this->one["collections"] : array();
             $Cols     = explode(",", substr($Filter,6));
             $ColFound = false;
@@ -3717,11 +3017,10 @@ class item
               if ( $ColFound) continue;
             }
 
-            
             if ( $this->aps && $this->isHapticArticle() )
             {
               $Mama = "";
-              
+
               if ( array_key_exists($this->id,$this->CS->hierarchy["childs"]) ) {
                 $Mama = $this->CS->hierarchy["childs"][$this->id];
                 $OneCols  = ( isset($this->CS->works["add"][$Mama]["collections"]) && is_array($this->CS->works["add"][$Mama]["collections"]) ) ? $this->CS->works["add"][$Mama]["collections"] : array();
@@ -3734,19 +3033,13 @@ class item
               }
             }
 
-            
             if ( !$ColFound )  $Match = false;
             continue;
           }
 
-          
           elseif ( substr($Filter,0,6) == "o.loc." )
           {
             if ( !isset($Item["f"][0]) )  {$Match = false;  continue; }
-
-            
-            
-            
 
             if ( !$this->checkStrInWildArr($Item["f"][0], explode(",", substr($Filter,6))) ) $Match = false;
             continue;
@@ -3759,13 +3052,8 @@ class item
             continue;
           }
 
-          
           elseif ( substr($Filter,0,8) == "o.locid." )
           {
-            
-            
-            
-
             if ( !$Loc )  {$Match = false;  continue; }
 
             if ( !$this->checkStrInWildArr($Loc, explode(",", substr($Filter,8))) ) $Match = false;
@@ -3779,13 +3067,8 @@ class item
             continue;
           }
 
-          
           elseif ( substr($Filter,0,9) == "o.allloc." )
           {
-            
-            
-            
-
             $Locs = array();
             if ( isset($this->one["marc"]["M980"]) && is_array($this->one["marc"]["M980"]) )
             {
@@ -3797,7 +3080,6 @@ class item
             if ( !$this->awop && !$Locs && isset($this->CS->works["marc"][$ID]["marc"]["M980"])
             && is_array($this->CS->works["marc"][$ID]["marc"]["M980"]) && count($this->CS->works["marc"][$ID]["marc"]["M980"]) )
             {
-              
               foreach ( $this->CS->works["marc"][$ID]["marc"]["M980"] as $Rec )
               {
                 if ( isset($Rec["f"][0]) )  $Locs[] = $Rec["f"][0];
@@ -3820,17 +3102,12 @@ class item
               }
             }
 
-            
-            
-
             if ( !count($Locs) )  { continue; }
-
 
             if ( $this->checkArrInWildArr($Locs, array_map(array($this,"replacekeywords"), explode(",", substr($Filter,11)))) ) $Match = false;
             continue;
           }
 
-          
           elseif ( substr($Filter,0,14) == "o.allotherloc." )
           {
             $Locs = array();
@@ -3851,12 +3128,8 @@ class item
             continue;
           }
 
-          
           elseif ( substr($Filter,0,11) == "o.alllocid." )
           {
-            
-            
-
             if ( !is_array($this->one["locs"]) || !count($this->one["locs"]) )  { $Match = false;  continue; }
 
             if ( !$this->checkArrInWildArr($this->one["locs"], explode(",", substr($Filter,11))) ) $Match = false;
@@ -3870,7 +3143,6 @@ class item
             continue;
           }
 
-          
           elseif ( substr($Filter,0,13) == "o.otherlocid." )
           {
             $Other = explode(",", substr($Filter,13));
@@ -3882,7 +3154,6 @@ class item
             continue;
           }
 
-          
           elseif ( substr($Filter,0,9) == "o.noetnr." )
           {
             if ( !is_array($this->casesetnr) || !count($this->casesetnr) )   { continue; }
@@ -3895,36 +3166,31 @@ class item
             continue;
           }
 
-          
           elseif ( substr($Filter,0,12) == "o.otheretnr." )
           {
             if ( !is_array($this->casesetnr) || !count($this->casesetnr) )   { continue; }
 
             $Others = explode(",", substr($Filter,12));
-            
-            
+
             if ( count($Others) )
             {
               $Rest = $this->getArrReducedWildArr($Others, array_keys($this->casesetnr));
-              
+
               if ( !count($Rest) )  $Match = false;
             }
             continue;
           }
 
-          
           elseif ( substr($Filter,0,8) == "o.level." )
           {
             $Level = (isset($this->CS->posted["search"]["userlevel"]) && trim($this->CS->posted["search"]["userlevel"]))
                      ? trim($this->CS->posted["search"]["userlevel"])
                      : "";
-            
 
             if ( !$this->checkArrInWildArr(array($Level), explode(",", substr($Filter,8))) ) $Match = false;
             continue;
           }
 
-          
           elseif ( substr($Filter,0,9) == "o.ownorg." )
           {
             $OwnOrg = ( isset($this->one["ownorg"]) && trim($this->one["ownorg"]) ) ? trim($this->one["ownorg"]) : "";
@@ -3946,7 +3212,7 @@ class item
             if ( !$M535AFound )  $Match = false;
             continue;
           }
-          
+
           elseif ( substr($Filter,0,12) == "o.ipspecial.")
           {
             $IPs = explode(",", substr($Filter,12));
@@ -3964,10 +3230,9 @@ class item
               }
             }
             if ( !$Hit )  $Match = false;
-            continue;   
+            continue;
           }
 
-          
           elseif ( substr($Filter,0,10) == "p.storage." )
           {
             if ( !isset($Item["storage"]) )
@@ -3976,11 +3241,6 @@ class item
             }
             else
             {
-            
-            
-            
-            
-            
             if ( !$this->checkStrInWildArr($Item["storage"], explode(",", substr($Filter,10))) )  $Match = false;
             }
             continue;
@@ -3989,17 +3249,11 @@ class item
           {
             if ( isset($Item["storage"]) )
             {
-            
-            
-            
-            
-            
             if ( $this->checkStrInWildArr($Item["storage"], explode(",", substr($Filter,12))) )  $Match = false;
             }
             continue;
           }
 
-          
           elseif ( substr($Filter,0,12) == "p.storageid." )
           {
             $StorageIDFound = false;
@@ -4009,28 +3263,20 @@ class item
             }
             else
             {
-            
-            
-            
-            
-            
             if ( !$this->checkStrInWildArr($Item["storageid"], explode(",", substr($Filter,12))) )  $Match = false;
             }
             continue;
           }
-          
+
           elseif ( substr($Filter,0,14) == "p.nostorageid." )
           {
             if ( isset($Item["storageid"]) )
             {
-            
-            
             if ( $this->checkStrInWildArr($Item["storageid"], explode(",", substr($Filter,14))) )  $Match = false;
             }
             continue;
           }
 
-          
           elseif ( substr($Filter,0,15) == "p.departmentid." )
           {
             $DepartmentIDFound = false;
@@ -4040,30 +3286,24 @@ class item
             }
             else
             {
-            
-            
             if ( !$this->checkStrInWildArr($Item["departmentid"], explode(",", substr($Filter,15))) )  $Match = false;
             }
             continue;
           }
-          
+
           elseif ( substr($Filter,0,17) == "p.nodepartmentid." )
           {
             if ( isset($Item["departmentid"]) )
             {
-            
-            
             if ( $this->checkStrInWildArr($Item["departmentid"], explode(",", substr($Filter,17))) )  $Match = false;
             }
             continue;
           }
 
-          
           else
           {
             switch ( $Filter )
             {
-              
               case "m.articles":
               {
                 if ( !isset($this->one["artcode"]) || $this->one["artcode"] != "nnam" )  $Match = false;
@@ -4076,11 +3316,6 @@ class item
               }
               case "m.band":
               {
-                 
-                 
-                 
-                 
-                 
                  if ( !isset($this->one["marc"]["Lead"]) || !in_array(substr($this->one["marc"]["Lead"],19,1), array("b","c")) )    $Match = false;
                  break;
               }
@@ -4132,15 +3367,9 @@ class item
               }
               case "m.notowner":
               {
-                
-                
-                
-                
-                
                 $NotOwner    = true;
                 if ( isset($this->one["owner"]) && $this->one["owner"] )  $NotOwner = false;
 
-                
                 if ( !$NotOwner )  $Match = false;
                 break;
               }
@@ -4151,13 +3380,6 @@ class item
               }
               case "m.owncollection":
               {
-                
-                
-                
-                
-                
-                
-                
                 if ( ( !isset($this->one["owncollection"]) || !$this->one["owncollection"] ) && !$this->inLevelCollection() )  $Match = false;
                 break ;
               }
@@ -4170,13 +3392,11 @@ class item
               }
               case "m.owner":
               {
-                
                 $Owner    = true;
                 if ( !isset($this->one["owner"]) || !$this->one["owner"] )  $Owner = false;
 
                 if ( $this->aps && $this->isHapticArticle() )
                 {
-                  
                   $Mama = "";
                   if ( array_key_exists($this->id,$this->CS->hierarchy["childs"]) ) {
                     $Mama = $this->CS->hierarchy["childs"][$this->id];
@@ -4184,7 +3404,6 @@ class item
                   }
                 }
 
-                
                 if ( !$Owner )  $Match = false;
                 break;
               }
@@ -4209,12 +3428,12 @@ class item
                 if ( $this->epn )    $Match = false;
                 break;
               }
-              case "m.physical": 
+              case "m.physical":
               {
                 if ( isset($Item["link"]) && trim($Item["link"]) ) $Match = false;
                 break;
               }
-              case "m.remote":  
+              case "m.remote":
               case "m.globallink":
               {
                 if ( !isset($Item["link"])
@@ -4232,9 +3451,6 @@ class item
               }
               case "m.nolocallink":
               {
-                
-                
-                
                 if ( isset($Item["link"]) && $Item["link"]
                   && isset($Item["iln"])  && $Item["iln"] )        $Match = false;
                 break;
@@ -4244,27 +3460,16 @@ class item
                 if ( !isset($this->one["series"]) || !$this->one["series"] )  $Match = false;
                 break;
               }
-              
-              
-              
-              
-              
+
               case "m.haslocation":
               case "m.nolocation":
               {
-                
-                
-                
                 $Ort = isset($Item["f"][0]) ? trim($Item["f"][0]) : "";
                 $Hat = ( $Ort !== "" && $Ort !== "--%%--" );
                 if ( !count($Item) || isset($Item["link"]) || ( $Filter == "m.haslocation" ? !$Hat : $Hat ) )  $Match = false;
                 break;
               }
-              
-              
-              
-              
-              
+
               case "m.parentowner":
               case "m.noparentowner":
               {
@@ -4274,19 +3479,7 @@ class item
                 if ( $Filter == "m.parentowner" ? !$Hat : $Hat )  $Match = false;
                 break;
               }
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
+
               case "m.parentwithitem":
               case "m.parentwithoutitem":
               {
@@ -4316,7 +3509,6 @@ class item
                  break;
               }
 
-              
               case "p.action":
               {
                 if ( ( !isset($Item["loanitems"][0])         || !count($Item["loanitems"][0])         || $Item["loanitems"][0]["action"]         == "-" )
@@ -4359,7 +3551,6 @@ class item
                        }
                      }
                    }
-                   
                 }
                 break;
               }
@@ -4397,7 +3588,6 @@ class item
                 }
                 else
                  {
-                   
                    if ( isset($this->CS->paias[$this->id]) && is_array($this->CS->paias[$this->id]) && count($this->CS->paias[$this->id]) )
                    {
                      $Tmp = true;
@@ -4426,8 +3616,6 @@ class item
               }
               case "p.nopaia":
               {
-                
-                
                 if ( $this->hasPaia($Item) )  $Match = false;
                 break;
               }
@@ -4443,8 +3631,6 @@ class item
               }
               case "p.paia":
               {
-                
-                
                 if ( !$this->hasPaia($Item) )  $Match = false;
                 break;
               }
@@ -4479,7 +3665,6 @@ class item
                 break;
               }
 
-              
               case "o.ip":
               {
                 if ( !isset($this->CS->configs["init"]["ipranges"]) || !trim($this->CS->configs["init"]["ipranges"]) )    $Match = false;
@@ -4512,46 +3697,32 @@ class item
               }
               case "o.rostockub.emailcld":
               {
-                
-
-                
                 $Params = array("iln"     => "62",
                                 "format"  => "json");
                 if ( isset($Item["d"][0]) && trim($Item["d"][0]) )  $Params["sgn"] = trim($Item["d"][0]);
                 if ( isset($Item["e"][0]) && trim($Item["e"][0]) )  $Params["aui"] = trim($Item["e"][0]);
                 if ( isset($Item["f"][0]) && trim($Item["f"][0]) )  $Params["sst"] = trim($Item["f"][0]);
 
-                
-
-                
                 $File = $this->CS->prepareCachePath(array("sstmap"), preg_replace("/[^a-zA-Z0-9]+/", "", implode("", $Params)));
                 if ( file_exists($File) )
                 {
                   $AddInfos = json_decode(file_get_contents($File),true);
-                  
                 }
                 if ( !file_exists($File) || !isset($AddInfos["item"]["emailcld"]) || !trim($AddInfos["item"]["emailcld"]) ) $Match = false;
                 break;
               }
               case "o.rostockub.emailscd":
               {
-                
-
-                
                 $Params = array("iln"     => "62",
                                 "format"  => "json");
                 if ( isset($Item["f"][0]) && trim($Item["f"][0]) )  $Params["sst"] = trim($Item["f"][0]);
                 if ( isset($Item["d"][0]) && trim($Item["d"][0]) )  $Params["sgn"] = trim($Item["d"][0]);
                 if ( isset($Item["e"][0]) && trim($Item["e"][0]) )  $Params["aui"] = trim($Item["e"][0]);
 
-                
-
-                
                 $File = $this->CS->prepareCachePath(array("sstmap"), preg_replace("/[^a-zA-Z0-9]+/", "", implode("", $Params)));
                 if ( file_exists($File) )
                 {
                   $AddInfos = json_decode(file_get_contents($File),true);
-                  
                 }
                 if ( !file_exists($File) || !isset($AddInfos["item"]["emailscd"]) || !trim($AddInfos["item"]["emailscd"]) ) $Match = false;
                 break;
@@ -4567,8 +3738,6 @@ class item
           }
           } while ( false );
 
-          
-          
           if ( $Offen )
           {
             $Match = $Unbekannt ? false : ( $VorMatch && !$Match );
@@ -4596,41 +3765,28 @@ class item
 
     while ( count($Hits) > 0 )
     {
-      
       $Exemplar = array();
       $Hit      = array_shift($Hits);
       $Case     = (isset($ScopeCases[$Hit["SL"]][$Hit["CI"]])) ? $ScopeCases[$Hit["SL"]][$Hit["CI"]] : array();
 
-      
       $Exemplar["action"] = $this->getActionElements($Case, $Item);
 
       if ( isset($Exemplar["action"]["type"]) && $Exemplar["action"]["type"] == "skip" )  continue;
 
-      
-      
-      
-      
       if ( isset($Exemplar["action"]["button"]) && trim($Exemplar["action"]["button"]) !== "" )
         $Exemplar["action"]["label"] = $this->CS->getText($Exemplar["action"]["button"]);
 
-      
-
-       
       if ( isset($Case["itembutton"]) )       $Exemplar["short"]  = array("code"  => $Case["itembutton"],
                                                                           "label" => $this->CS->getText($Case["itembutton"]),
                                                                           "icon"  => $Case["itemicon"],
                                                                           "color" => $Case["light"]);
 
-
-      
       if ( isset($Case["itemcomments"]) && is_array($Case["itemcomments"]) && count($Case["itemcomments"]) )
       {
         $Exemplar["comments"] = $this->getDisplayElements($Case["itemcomments"], $Item);
-        
       }
       else
       {
-        
         $Exemplar["comments"] = array("g" => array(),
                                       "e" => array());
       }
@@ -4641,9 +3797,7 @@ class item
         $Exemplar["comments"]["e"] = [...$Exemplar["comments"]["e"],
                                       ...[["type" => "text", "text" => $Exemplar["action"][0]["link"]["label"]]]];
       }
-      
 
-      
       if ( isset($Case["detailinfos"]) && is_array($Case["detailinfos"]) && count($Case["detailinfos"]) )
       {
         if ( !$this->epn )
@@ -4656,7 +3810,6 @@ class item
         }
       }
 
-      
       $Exemplar["meta"]              = array("case"       => $Hit["SL"] . "." .  $Case["name"],
                                              "window"     => $Case["detailwindow"] == 'y' ? true : false,
                                              "locid"      => $Loc,
@@ -4671,11 +3824,7 @@ class item
 
       if ( isset($this->CS->configs["other"]["delivery.type"]) && $this->CS->configs["other"]["delivery.type"] == "mail" )
       {
-        
-         
-         
       }
-
 
       if ( isset($Exemplar["short"]["code"]) && $Exemplar["short"]["code"] == "itembutton.bandlist" )
       {
@@ -4699,14 +3848,11 @@ class item
         $Exemplar["meta"]["dialog"] = "default";
       }
 
-      
       if ( !isset($Exemplar["view"]) )  $Exemplar["view"] = array("g" => array(),
                                                                   "e" => array());
       if ( !isset($Exemplar["view"]["g"]) ) $Exemplar["view"]["g"] = array();
       if ( !isset($Exemplar["view"]["e"]) ) $Exemplar["view"]["e"] = array();
 
-
-      
       if ( count($Item) && isset($this->CS->locations["comment"][$Loc]) )
       {
         if ( isset($this->CS->locations["comment"][$Loc]["g"]) && is_array($this->CS->locations["comment"][$Loc]["g"])
@@ -4722,8 +3868,6 @@ class item
                                         ...$this->CS->locations["comment"][$Loc]["e"]];
         }
 
-        
-
         foreach ($Exemplar["comments"]["g"] as &$v)
         {
           if ( isset($v["type"]) && $v["type"] == "link" && isset($v["link"]) && $v["link"] != "" )
@@ -4738,11 +3882,8 @@ class item
             $v["link"] = $this->repairLink($v["link"], $Item);
           }
         }
-        
       }
-      
 
-      
       if ( count($Item) && isset($this->CS->locations["view"][$Loc]) )
       {
         if ( !isset($this->CS->locations["view"][$Loc]["g"]) )  $this->CS->locations["view"][$Loc]["g"] = array();
@@ -4758,7 +3899,7 @@ class item
             if (  stripos($v["link"], "<M980.d>") !== false )
             {
               $Fill = isset($Item["d"][0]) && trim($Item["d"][0]) && $Item["d"][0] != "--%%--" ? $Item["d"][0] : "";
-              
+
               $Switch = $this->CS->confPairs("item", "locationmap");
               if ( array_key_exists($Fill, $Switch) )  $Fill = $Switch[$Fill];
               $v["link"] = str_ireplace("<M980.d>", urlencode($Fill), $v["link"]);
@@ -4777,7 +3918,7 @@ class item
             if (  stripos($v["link"], "<M980.d>") !== false )
             {
               $Fill = isset($Item["d"][0]) && trim($Item["d"][0]) && $Item["d"][0] != "--%%--" ? $Item["d"][0] : "";
-              
+
               $Switch = $this->CS->confPairs("item", "locationmap");
               if ( array_key_exists($Fill, $Switch) )  $Fill = $Switch[$Fill];
               $v["link"] = str_ireplace("<M980.d>", urlencode($Fill), $v["link"]);
@@ -4791,20 +3932,10 @@ class item
         }
       }
 
-      
-      
-
-      
       if ( count($Item) )
       {
         $DesksUsers = $this->addDeskUsers($Loc, $Item, $Exemplar);
 
-        
-        
-        
-        
-        
-        
         $RawDesks = isset($DesksUsers["desks"]) ? $DesksUsers["desks"] : array();
         $Exemplar["desks"] = array();
         foreach ( $RawDesks as $DID )
@@ -4820,16 +3951,6 @@ class item
         }
       }
 
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       $ActType = isset($Exemplar["action"]["type"])   ? $Exemplar["action"]["type"]   : "";
       $ActDlg  = isset($Exemplar["action"]["dialog"]) ? $Exemplar["action"]["dialog"] : "";
       if ( ( !isset($Exemplar["users"]) || !count($Exemplar["users"]) )
@@ -4840,10 +3961,8 @@ class item
        $Exemplar["users"] = explode(",", $this->CS->configs["item"]["delivery.usertypes"]);
       }
 
-      
       $this->getItemDataLocal($Item, $Exemplar);
 
-      
       $Exemplar["light"] = (isset($Case["light"]) && $Case["light"]) ? $Case["light"] : "red";
       $Blue2Green        = (isset($this->CS->configs["item"]["statusblueasgreen"]) && $this->CS->configs["item"]["statusblueasgreen"] == "y") ? true : false;
       if ( in_array($this->best, array("red"))                   && in_array($this->normLight($Exemplar["light"]), $this->lightsblue) )   $this->best = $Blue2Green ? "green" : "blue";
@@ -4914,21 +4033,9 @@ class item
     return $RTRN;
   }
 
-  
-  
-  
-
-
-  
-  
-  
   public function getItems($ID, $EPN = "")
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
-
-    
-    
-    
 
     $this->id        = $ID;
     $this->epn       = $EPN;
@@ -4944,19 +4051,10 @@ class item
     $this->allsignature = array();
     $this->allstock     = array();
 
-    
-    
-
-    
     $this->setCombs();
 
-    
     return $this->setItems();
   }
-
-  
-  
-  
 }
 
 ?>

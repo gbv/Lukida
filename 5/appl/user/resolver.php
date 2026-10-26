@@ -2,9 +2,6 @@
 
 class resolver
 {
-  
-  
-  
   private $CS;
   private $config;
 
@@ -14,7 +11,6 @@ class resolver
     $this->config = $Config;
   }
 
-  
   private function hasResolverId(array $data): bool
   {
     if (!empty($data['doi'])   && trim($data['doi'])   !== '') return true;
@@ -28,15 +24,10 @@ class resolver
   private function getJOP_Full($link, $libparam)
   {
     $joponlyfulltext = true;
-    
-    
-    
-    
-    
-    
+
      stream_context_set_default([
     'ssl'  => ['verify_peer' => false, 'verify_peer_name' => false],
-    'http' => ['timeout' => 3]  
+    'http' => ['timeout' => 3]
     ]);
     try
     {
@@ -56,7 +47,6 @@ class resolver
             if(  $ezb_xml && isset($ezb_xml->Full->ElectronicData->References->Reference[0]) &&
                  $ref = $ezb_xml->Full->ElectronicData->References->Reference[0] )
             {
-                
                 $refUrl   = isset($ref->URL) ? $ref->URL : "";
                 $refLabel = isset($ref->Label) ? $ref->Label : "";
             }
@@ -71,19 +61,16 @@ class resolver
                     $resultStatus       = !empty((string)$aResult['state']) ? (string)$aResult['state'] : "0";
                     $resultAccessLevel  = !empty((string)$aResult->AccessLevel) ? (string)$aResult->AccessLevel : "";
                     $resultAccessURL    = !empty((string)$aResult->AccessURL) ? (string)$aResult->AccessURL : "";
-                    
-                    
-                    
 
                     if( !empty($resultAccessURL) && ($resultStatus == "0" || $resultStatus == "1" || $resultStatus == "2") )
                     {
                         if( $resultAccessLevel != "homepage" )
-                        {   
+                        {
                             $resultAdditionalDecoded = html_entity_decode($resultAdditional, ENT_QUOTES, 'UTF-8');
                             if( strpos($resultAdditionalDecoded, "DFG-gef rdert") !== false
                             || strpos($resultAdditional, "DFG-gef") !== false )
                             {
-                                return $resultAccessURL; 
+                                return $resultAccessURL;
                             }
                             else
                             {
@@ -97,13 +84,11 @@ class resolver
             }
             elseif(  $refUrl != "" && $refLabel == "EZB-Opac" )
             {
-                
                 return $refUrl . "&" . $libparam;
             }
             else return "";
         }
         else return "";
-        
     }
     return "";
   }
@@ -126,29 +111,21 @@ class resolver
             case "ovid":
                 $return[$resolver] = $resolverLink;
                 break;
-                
-                
 
-                
                 case "redi":
                 $resolverLink = str_replace("&rft.","&",$resolverLink);
                 $resolverLink = str_replace(" ","%20",$resolverLink);
-                
 
-                
             $ctx = stream_context_create([
            'ssl'  => ['verify_peer' => false, 'verify_peer_name' => false],
            'http' => [
-       'method'        => 'GET',                 
+       'method'        => 'GET',
        'timeout'       => 3,
-           'ignore_errors' => true,                  
+           'ignore_errors' => true,
        'header'        => "User-Agent: Mozilla/5.0\r\n",
         ],
     ]);
 
-    
-
-    
     try
     {
         $headers = get_headers($resolverLink, 1, $ctx);
@@ -161,23 +138,9 @@ class resolver
 
     if ($headers === false) {
         if ( MODE != "production" ) $this->CS->debug("PROBLEM_RESOLVER_HEADER_" . $this->CS->client. "_" . strtoupper($resolver), $this->CS->posted["id"] . ": ". $resolverLink);
-        break; 
-        
-        
-
-        
-        
-
-
-
-
-
-
-
-
+        break;
     }
 
-    
     if (isset($headers[0]) && (strpos($headers[0], "301") !== false || strpos($headers[0], "302") !== false)) {
         $locations = isset($headers["Location"])
             ? (is_array($headers["Location"]) ? $headers["Location"] : [$headers["Location"]])
@@ -265,27 +228,14 @@ class resolver
     $metadataOU  = "";
     $libGenre951 = empty($data["genre"]) ? "" : $data["genre"];
 
-    
-    
-
-
-
-
-
-
-
-
-    
       if( !empty($data["format"]) && $resolver != "zotero" )
       {
-        
         $libGenre = ($libGenre951 == "MV" || $libGenre951 == "ST")
                 ? (($libGenre951 == "MV") ? "Bookitem" : "Book")
                 : ($libGenre951 == "AR" ? "Article" : ($libGenre951 == "JT" ? "Journal" : ucfirst($data["format"])));
 
         if ( $resolver == "jop" ) {
-          
-          
+
           $hasJournalId = !empty($data["issn"]) || !empty($data["zdbid"]);
           $isArticle    = strpos(strtolower($data["format"]), "article") !== false;
           $metadataOU   = "&rft.genre=" . (($isArticle && $hasJournalId) ? "article" : "journal");
@@ -313,28 +263,25 @@ class resolver
     $isbn = rtrim(trim($isbn), ",;");
     $metadataOU .= "&rft.isbn=" . $isbn;
     }
-    
-    
 
-    
     if( !empty($data["date"]) && $data["date"] != " " )
     {
       $date = str_replace(array("[","]"), array("",""), $data["date"]);
       $date = trim($date, "- ");
 
       if ( preg_match('/^(\d{4}-\d{2}-\d{2})/', $date, $m) ) {
-        $date = $m[1]; 
+        $date = $m[1];
       } elseif ( preg_match('/^(\d{4}-\d{2})/', $date, $m) ) {
-        $date = $m[1]; 
+        $date = $m[1];
       } elseif ( preg_match('/(\d{4})/', $date, $m) ) {
-        $date = $m[1]; 
+        $date = $m[1];
       } else {
         $date = "";
     }
 
     if ( !empty($date) ) $metadataOU .= "&rft.date=" . $date;
     }
-    
+
     if( !empty($data["volume"]) && $data["volume"] != " " ) { $metadataOU .= "&rft." . "volume=" . $data["volume"]; }
     if( !empty($data["issue"])  && $data["issue"]  != " " ) { $metadataOU .= "&rft." . "issue="  . $data["issue"];  }
     if( !empty($data["pages"])  && $data["pages"]  != " " )
@@ -405,7 +352,7 @@ class resolver
     if(  !empty($data["issn"]) || !empty($data["isbn"]) || !empty($data["zdbid"]) )
     {
         $zdbid            = ((empty($data["issn"]) && empty($data["isbn"]) && !empty($data["zdbid"])) ? $data["zdbid"] : "");
-        
+
         $ezbbibidRaw      = $this->config["ezbbibid"] ?? "";
         $ezbbibid         = !empty($ezbbibidRaw) ? trim(explode(",", $ezbbibidRaw)[0]) : null;
         $isil             = empty($this->config["isil"]) ? null : $this->config["isil"] ;
@@ -425,16 +372,12 @@ class resolver
 
   private function getSFX_Full($link)
   {
-    
     $sfx_xml_url = $link . "&sfx.response_type=simplexml";
 
-    
-    
     stream_context_set_default([
     'ssl'  => ['verify_peer' => false, 'verify_peer_name' => false],
     'http' => ['timeout' => 3]
      ]);
-    
 
     try
     {
@@ -446,10 +389,8 @@ class resolver
     }
     if ( !empty($sfx_xml) )
     {
-        
         if( !empty($sfx_xml_targets = $sfx_xml->targets))
         {
-            
             foreach ($sfx_xml_targets->target as $target)
             {
                 if( $target->target_name == 'MESSAGE_NO_FULLTXT')
@@ -463,9 +404,8 @@ class resolver
                         return (string)$target->target_url;
                     }
                 }
-
             }
-            
+
             if ( MODE != "production" ) $this->CS->debug("ALI_SFX_NORESULT_" . $this->CS->client, $link);
             return "";
         }
@@ -474,9 +414,6 @@ class resolver
     else return "";
   }
 
-  
-  
-  
   public function exportlink($data, $format)
   {
     $openurlEntry    = "";    $openurlBase     = "";
@@ -522,7 +459,7 @@ class resolver
     {
         $link = null;
     }
-    
+
     return $link;
   }
 
@@ -534,12 +471,9 @@ class resolver
 
     if (!$hasId)
     {
-      
       return $linkarray;
     }
 
-    
-    
     $fulltextPriosArray = ["multi"];
     foreach( $this->config as $confItemKey => $confItemValue )
     {
@@ -552,7 +486,7 @@ class resolver
     {
         $fulltextPriosArray[] = "jop";
     }
-    
+
     for( $i=(strpos("multi,single",$fulltextPriosArray[0]) !== false ? 1 : 0);$i<count($fulltextPriosArray);$i++ )
     {
         $resolver   = $fulltextPriosArray[$i];
@@ -562,13 +496,11 @@ class resolver
             {
                 if( ($Link = $this->get_jop_link($data)) != "" )
                 {
-                    
                     $linkarray["jop"] = str_replace(array(chr(39),chr(34)), array("%27","%22"), $Link);
                 }
             }
             else
             {
-                
                 $resolverBaseUrl = $this->config[($resolver . "base")];
                 if ( strpos($resolver, "redi") !== false && strpos($resolverBaseUrl, "{ezbbibid}") !== false )
                 {
@@ -585,12 +517,9 @@ class resolver
             break;
         }
     }
-    
-    
+
     return $linkarray;
-
   }
-
 }
 
 ?>

@@ -2,30 +2,14 @@
 
 class systemuserdb extends appl
 {
-  private static $ClientViewCols = null;   
+  private static $ClientViewCols = null;
 
-  
-  
-  
   public function __construct($f3)
   {
     parent::__construct($f3);
     if ( APPDEBUG["FKT"] ) $this->debug("FKT",__METHOD__);
   }
 
-  
-  
-  
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
   protected function clientViewColumnsDB()
   {
     if ( self::$ClientViewCols !== null )  return self::$ClientViewCols;
@@ -41,9 +25,6 @@ class systemuserdb extends appl
     return (self::$ClientViewCols = $Spalten);
   }
 
-  
-  
-  
   protected function renewTokenSchrankeDB()
   {
     return null;
@@ -53,31 +34,9 @@ class systemuserdb extends appl
   {
     if ( APPDEBUG["FKT"] ) $this->debug("FKT",__FUNCTION__);
 
-    
-    
-    
-    
-    
-    
-    
-    
     $Schranke = $this->renewTokenSchrankeDB();
     if ( is_array($Schranke) )  return $Schranke;
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     $Spalten = $this->clientViewColumnsDB();
     $Felder  = "client";
     if ( in_array("active", $Spalten) )      $Felder .= ", active";
@@ -102,31 +61,16 @@ class systemuserdb extends appl
       return array("status" => -1, "code" => "renewtokenexpired");
     }
 
-    
-    
-    
     $Inhalt = array('ml' => 'user', 'cl' => $this->client, 'dt' => time());
     if ( trim((string) $this->apikey) !== "" )  $Inhalt['ky'] = $this->apikey;
     $APIToken = $this->encodeToken($Inhalt);
     $ValidUntil = (new DateTime())->modify("+" . $this->f3->get("application.daysvalidtoken") . " day")->format('Y-m-d H:i:s');
 
-    
-    
-    
-    
     $this->updStatDB("Token", "Renew");
     $this->logDB("renewtoken: neuer Schluessel ausgestellt, gueltig bis " . $ValidUntil, "api", "renewtoken", "OK");
 
     return array("token" => $APIToken, "validuntil" => $ValidUntil);
   }
-
-  
-  
-  
-
-  
-  
-  
 }
 
 ?>

@@ -92,7 +92,7 @@ if ( !file_exists(API . '/appl/' . explode("/",trim($f3->get("SERVER.REQUEST_URI
   || !file_exists(API . '/base/' . explode("/",trim($f3->get("SERVER.REQUEST_URI"),"/"))[1]) )       die(Error('Module not found!'));
 if ( !file_exists(PROJECTDIR . 'configs/' . MODE . '/'
                   . explode("/",trim($f3->get("SERVER.REQUEST_URI"),"/"))[1] . '.ini') )        die(Error(explode("/",trim(
-                                                                                                    $f3->get("SERVER.REQUEST_URI"),"/"))[1] 
+                                                                                                    $f3->get("SERVER.REQUEST_URI"),"/"))[1]
                                                                                                     . '.ini not found!'));
 define('MODULE', explode("/",trim($f3->get("SERVER.REQUEST_URI"),"/"))[1]);
 

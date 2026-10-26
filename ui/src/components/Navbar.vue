@@ -106,7 +106,7 @@ async function doLogin() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        apikey: 'HIER_API_KEY_EINTRAGEN',
+        apikey: import.meta.env.VITE_API_KEY,
         appl:    'production',
         client:  'Demo',
         area:    'findex',

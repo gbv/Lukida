@@ -2,32 +2,14 @@
 
 class solr
 {
-  
-  
-  
-  
-  
   const SPELL_MAX_WORTE = 10;
 
-  
-  
   private $letzteWortsuche = "";
 
-  
-  
   private $spellMoeglich = false;
 
-  
-  
   private $letzteAdresse = "";
 
-  
-  
-  
-
-  
-  
-  
   private const FIELDS = array(
     "acqdate"            => array("last_changed_iln_str_mv"),
     "erwdatum"           => array("last_changed_iln_str_mv"),
@@ -72,12 +54,7 @@ class solr
     "ppnlink"            => array("ppnlink"),
     "prov"               => array("provenience_txtP_mv"),
     "publisher"          => array("publisher"),
-    
-    
-    
-    
-    
-    
+
     "verlag"             => array("publisher"),
     "series"             => array("series", "series2"),
     "reihe"              => array("series", "series2"),
@@ -97,10 +74,6 @@ class solr
     "jahr"               => array("publishDateSort"),
   );
 
-  
-  
-  
-  
   private const SOUNDGEWICHT = array(
     "title_fullSound" => 690,
     "authorSound"     => 490,
@@ -108,62 +81,6 @@ class solr
     "fulltextSound"   => 9,
   );
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private const QUERYGEWICHT = array(
     "title_short"             => 770,  "title_full"              => 740,
     "title_alt"               => 710,  "title_new"               => 700,
@@ -184,14 +101,10 @@ class solr
     "titel"  => "title_fullSound",
   );
 
-  
-  
-  
   private const ILNCOLON = array("classlocal", "location", "shelfmark", "signatur", "signature", "standort");
-  
+
   private const ILNAT    = array("abruf", "acqdate", "call", "comment", "erwdatum", "kommentar", "neu", "new");
 
-  
   private const COUNTS   = array("types", "formats", "languages", "topicfacets", "classlocals",
                                  "locations", "formatsmain", "genres", "topicrvks", "topicbkls");
 
@@ -202,22 +115,13 @@ class solr
   private $sortacq;
   private $QueryArr;
   private $SkipID;
-  
-  
-  
-  
+
   private $locfacetkeys;
-  
-  
-  
-  
+
   private $zweiterVersuch;
-  
-  
+
   private $unbekannt;
-  
-  
-  
+
   private $nebenabfrage;
 
   public function __construct($CS)
@@ -234,33 +138,6 @@ class solr
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
   }
 
-  
-  
-  
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function unbekannteFelder()
   {
     if ( $this->unbekannt !== null )  return $this->unbekannt;
@@ -275,21 +152,6 @@ class solr
     return $this->unbekannt;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function soundFelder()
   {
     $Erlaubt = array_keys(self::SOUNDGEWICHT);
@@ -298,8 +160,7 @@ class solr
     if ( $Schalter !== "" )
     {
       $Genannt = preg_split('/[\s,;]+/', $Schalter, -1, PREG_SPLIT_NO_EMPTY);
-      
-      
+
       $Erlaubt = array_values(array_intersect($Erlaubt, (array) $Genannt));
     }
 
@@ -307,8 +168,6 @@ class solr
     return array_values(array_diff($Erlaubt, $Unbekannt));
   }
 
-  
-  
   private function gewichtungsFelder()
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -318,55 +177,20 @@ class solr
     return $Felder;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function istBekannterBefehl($Befehl)
   {
     $B = strtolower(trim((string) $Befehl));
     if ( $B === "" )  return false;
     if ( isset(self::FIELDS[$B]) )  return true;
-    
-    
+
     return in_array($B, array("geo", "from", "von", "until", "bis"), true);
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function entschaerfeResttext($Text)
   {
     $Text = (string) $Text;
     if ( $Text === "" )  return $Text;
 
-    
     $Tiefe = 0; $Schief = false; $InZitat = "";
     $Len = strlen($Text);
     for ( $i = 0; $i < $Len; $i++ )
@@ -379,8 +203,6 @@ class solr
     }
     if ( $Tiefe !== 0 )  $Schief = true;
 
-    
-    
     $Aus = ""; $InZitat = "";
     for ( $i = 0; $i < $Len; $i++ )
     {
@@ -399,27 +221,6 @@ class solr
     return $Aus;
   }
 
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function istEigenesFeld($Feld)
   {
     if ( isset(self::SOUNDGEWICHT[$Feld]) )  return true;
@@ -434,11 +235,8 @@ class solr
     if ( in_array($Feld, $Felder, true) )  return;
 
     $Felder[]        = $Feld;
-    $this->unbekannt = $Felder;    
+    $this->unbekannt = $Felder;
 
-    
-    
-    
     $Datei = $this->CS->prepareCachePath(array("settings"), "findexfelder");
     $Alt   = umask(0);
     @file_put_contents($Datei, json_encode($Felder), LOCK_EX);
@@ -455,21 +253,17 @@ class solr
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
-    
-    
     static $ch = null;
     if ( $ch === null )  $ch = curl_init();
 
     curl_setopt_array($ch, array(
       CURLOPT_URL            => $URL . "&",
       CURLOPT_POST           => true,
-      CURLOPT_POSTFIELDS     => $Query,     
+      CURLOPT_POSTFIELDS     => $Query,
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_CONNECTTIMEOUT => 10,
-      CURLOPT_TIMEOUT        => 60,         
-      
-      
+      CURLOPT_TIMEOUT        => 60,
+
       CURLOPT_ENCODING       => "",
       CURLOPT_SSL_VERIFYHOST => false,
       CURLOPT_SSL_VERIFYPEER => false,
@@ -478,7 +272,6 @@ class solr
 
     if ( $CurlErrNo = curl_errno($ch) )
     {
-      
       if ( $CurlErrNo == 28 )
       {
         file_put_contents(TRANSFERSDIR . "SolrTimeouts.txt", date("Y.m.d H:i:s") . " " . $URL . $Query . PHP_EOL, FILE_APPEND);
@@ -494,28 +287,9 @@ class solr
       return array();
     }
 
-    
-    
-    
     $Result = json_decode($Response, true);
     if ( !is_array($Result) )
     {
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       $Code   = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
       $Sperre = ( $Code === 429 || $Code === 403 );
       $this->CS->debug("ERR", array("type"      => "Solr Response",
@@ -530,12 +304,6 @@ class solr
     return $Result;
   }
 
-  
-  
-  
-  
-  
-  
   private function buildQueryString()
   {
     $Parts = array();
@@ -549,19 +317,6 @@ class solr
     return "&" . implode("&", $Parts);
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function ohneWortsuche($SQuery)
   {
     $Q = trim((string) $SQuery);
@@ -571,17 +326,6 @@ class solr
     return false;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function wortzahl($SQuery)
   {
     $Q = trim((string) $SQuery);
@@ -589,11 +333,6 @@ class solr
     return count(preg_split('/\s+/', $Q, -1, PREG_SPLIT_NO_EMPTY));
   }
 
-  
-  
-  
-  
-  
   private function nurZaehler($Search)
   {
     return isset($Search["limit"]) && (int) $Search["limit"] === 0;
@@ -604,20 +343,11 @@ class solr
     if ( trim($Filter) !== "" )  $this->QueryArr["fq"][] = $Filter;
   }
 
-  
-  
-  
-
   private function getFieldPhrase($Val, $Fields)
   {
     return implode($Val . " OR ", $Fields) . $Val;
   }
 
-  
-  
-  
-  
-  
   private function getLocFacetQuery($Vals, $Fields)
   {
     $Plain = array();
@@ -661,16 +391,6 @@ class solr
 
   private function CleanVal($Val, $FormatSpace = false)
   {
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     $From = array("\\",   "-",  "+",  ":",  "/",  "(",  ")",  "&&",  "||",  "!",  "{",  "}",  "[",  "]",  "^",  "~",  '"');
     $To   = array("\\\\", "\-", "\+", "\:", "\/", "\(", "\)", "\&&", "\||", "\!", "\{", "\}", "\[", "\]", "\^", "\~", '\"');
     if ( $FormatSpace )
@@ -680,7 +400,6 @@ class solr
     }
     $Val = str_replace($From, $To, $Val);
 
-    
     if ( strpos($Val, " ") !== false )  $Val = "(" . $Val . ")";
 
     return $Val;
@@ -697,7 +416,6 @@ class solr
     for ($i = 0; $i < $Len; $i++) {
       $Char = $Phrase[$i];
 
-      
       if ($QuoteChar !== "") {
         $Buffer .= $Char;
         if ($Char == $QuoteChar) $QuoteChar = "";
@@ -711,7 +429,7 @@ class solr
       } elseif ($Char == ")") {
         if ($Depth > 0) $Depth--;
       } elseif ($Char == "," && $Depth == 0) {
-        
+
         $Parts[] = $Buffer;
         $Buffer  = "";
         continue;
@@ -729,33 +447,13 @@ class solr
     $Com  = strtolower(trim($IntCom));
     $ILNs = $this->CS->configs["ilns"] ?? array();
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     $PhVals = array_values(array_filter(
                 array_map("trim", $this->splitPhraseValues(preg_replace('/\s+/', ' ', trim($Query)))),
                 fn($Val) => $Val !== ""
               ));
 
-    
-    
-    
     if ( !count($PhVals) )  return "";
 
-    
-    
     if ( $Com == "geo" )
     {
       if ( count($PhVals) < 3 || !is_numeric($PhVals[0]) || !is_numeric($PhVals[1]) || !is_numeric($PhVals[2]) )  return "";
@@ -765,7 +463,6 @@ class solr
     $NewVals = array();
     foreach ( $PhVals as $Val )
     {
-      
       if ( in_array($Com, self::ILNCOLON) )
       {
         foreach ( $ILNs as $ILN )
@@ -775,7 +472,7 @@ class solr
                      : $this->CleanVal($ILN . ":" . $Val, true);
         }
       }
-      
+
       elseif ( in_array($Com, self::ILNAT) )
       {
         foreach ( $ILNs as $ILN )
@@ -783,18 +480,18 @@ class solr
           $NewVals[] = $this->CleanVal($ILN . "@" . $Val, true);
         }
       }
-      
+
       elseif ( $Com == "publisher" )
       {
         $NewVals[] = $this->CleanVal($Val, true);
       }
-      
+
       elseif ( $Com == "norm" )
       {
         $NewVals[] = "\(DE\-627\)" . $Val;
         $NewVals[] = "\(DE\-588\)" . $Val;
       }
-      
+
       else
       {
         $NewVals[] = $this->CleanVal($Val, false);
@@ -813,42 +510,22 @@ class solr
 
     $Phrase = ":(" . implode(" OR ", $NewVals) . ")";
     $Fields = self::FIELDS[$Com] ?? array($IntCom);
-    
-    
-    
-    
-    
+
     if ( $this->phonetic && isset(self::FIELDSSOUND[$Com])
          && in_array(self::FIELDSSOUND[$Com], $this->soundFelder(), true) )
       $Fields[] = self::FIELDSSOUND[$Com];
 
     $FQuery = $this->getFieldPhrase($Phrase, $Fields);
-    if ( $Com == "ppnlink" )  $FQuery .= " OR id" . $Phrase;  
+    if ( $Com == "ppnlink" )  $FQuery .= " OR id" . $Phrase;
 
     return $FQuery;
   }
 
   private function getGeoFilter($Lat, $Lng, $Radius)
   {
-    
-    
-    
     return "{!geofilt sfield=coordinates_geo2 pt=" . $Lat . "," . $Lng . " d=" . $Radius . "}";
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function locationFacetGroups()
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -862,10 +539,6 @@ class solr
       $Groups[$Code] = $Conds["loc"];
     }
 
-    
-    
-    
-    
     foreach ( $this->mergeGroups() as $Sammel => $Teile )
     {
       $Vals  = array();
@@ -880,18 +553,6 @@ class solr
     return $Groups;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function mergeGroups()
   {
     $Aus = array();
@@ -912,14 +573,6 @@ class solr
     return isset($Arr[$Key]) && $Arr[$Key];
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
   private function countLimit($Arr, $Key, $Vorgabe)
   {
     $Wert = isset($Arr[$Key]) ? $Arr[$Key] : true;
@@ -936,10 +589,6 @@ class solr
   {
     return isset($Arr[$Key]) && is_array($Arr[$Key]) && count($Arr[$Key]);
   }
-
-  
-  
-  
 
   private function formatClasslocalCode($Shortcut)
   {
@@ -959,8 +608,6 @@ class solr
     return str_replace(",", "{c}", trim($Label));
   }
 
-  
-  
   private function facetPairs($Result, $Field)
   {
     $List = $Result["facet_counts"]["facet_fields"][$Field] ?? null;
@@ -974,23 +621,6 @@ class solr
     return $Pairs;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function frageSchreibvorschlag()
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -1012,62 +642,15 @@ class solr
 
     if ( APPDEBUG["SLQ"] ) $this->CS->debug("SLQ", "[spell] " . $this->letzteAdresse . $Abfrage);
 
-    
-    
     $Ergebnis = $this->searchSolr($this->letzteAdresse, $Abfrage);
     if ( !is_array($Ergebnis) || isset($Ergebnis["error"]) )  return null;
     return $Ergebnis["spellcheck"] ?? null;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   const STARTCACHE_SEKUNDEN = 300;
 
-  
-  
-  
   private const STARTCACHE_SEITEN = array(0, 25);
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function startCacheSchluessel($Url, $Query)
   {
     if ( $this->add || $this->nebenabfrage )  return "";
@@ -1078,26 +661,16 @@ class solr
 
     $Alles = (string) $Url . "|" . (string) $Query;
 
-    
     if ( !preg_match('/[?&]q=([^&]*)/', (string) $Query, $T)
       && !preg_match('/[?&]q=([^&]*)/', (string) $Url,   $T) )  return "";
     if ( trim(urldecode($T[1])) !== "*" )  return "";
 
-    
-    
-    
-    
-    
-    
-    
-    
     $Datumsfilter = false;
     if ( preg_match_all('/[?&]fq=([^&]*)/', $Alles, $F) )
       foreach ( $F[1] as $Eine )
         if ( strpos(urldecode($Eine), "last_changed_iln_str_mv") !== false )  { $Datumsfilter = true; break; }
     if ( !$Datumsfilter )  return "";
 
-    
     $Start = 0;
     if ( preg_match('/[?&]start=([0-9]+)/', $Alles, $S) )  $Start = (int) $S[1];
     if ( !in_array($Start, self::STARTCACHE_SEITEN, true) )  return "";
@@ -1114,7 +687,7 @@ class solr
     $Inhalt = @file_get_contents($Datei);
     if ( $Inhalt === false )  return null;
     $Gelesen = json_decode((string) $Inhalt, true);
-    
+
     return is_array($Gelesen) && isset($Gelesen["response"]) ? $Gelesen : null;
   }
 
@@ -1124,30 +697,11 @@ class solr
 
     $Datei = $this->CS->prepareCachePath(array("findex"), $Schluessel);
     $Neu   = !file_exists($Datei);
-    
-    
+
     if ( @file_put_contents($Datei, json_encode($Ergebnis), LOCK_EX) !== false && $Neu )
       @chmod($Datei, 0666);
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function startCacheZaehlen($Feld)
   {
     try
@@ -1178,11 +732,8 @@ class solr
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
-    
     $this->letzteAdresse = $Url;
 
-    
     $Schluessel = $this->startCacheSchluessel($Url, $Query);
     $Sekunden   = $this->CS->f3->get("api.findexcache");
     $Sekunden   = ($Sekunden === null || $Sekunden === "") ? self::STARTCACHE_SEKUNDEN : (int) $Sekunden;
@@ -1203,35 +754,15 @@ class solr
       }
     }
 
-    
     $Container = isset($Result["response"]["docs"]) ? $Result["response"]["docs"] : array();
 
-    
     if ( $this->add )  return $Container;
 
-    
     if ( isset($Result["error"]) )
     {
-      
-      
-      
-      
       $Fehlercode = isset($Result["error"]["code"]) ? (int) $Result["error"]["code"] : 0;
       $Meldung    = isset($Result["error"]["msg"]) ? (string) $Result["error"]["msg"] : "";
 
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       $Treffer = array();
       if ( !preg_match("/Query Field '([^']+)' is not a valid field name/", $Meldung, $Treffer) )
              preg_match("/undefined field ([A-Za-z0-9_]+)/i", $Meldung, $Treffer);
@@ -1240,12 +771,11 @@ class solr
       {
         $this->zweiterVersuch = true;
         $Feld = $Treffer[1];
-        
+
         if ( $this->istEigenesFeld($Feld) )  $this->merkeUnbekanntesFeld($Feld);
 
         $Geaendert = false;
 
-        
         if ( isset($this->QueryArr["qf"]) )
         {
           $Vorher = $this->QueryArr["qf"];
@@ -1258,14 +788,9 @@ class solr
           if ( $this->QueryArr["qf"] !== $Vorher && trim(implode(" ", $this->QueryArr["qf"])) !== "" )
             $Geaendert = true;
           else
-            $this->QueryArr["qf"] = $Vorher;    
+            $this->QueryArr["qf"] = $Vorher;
         }
 
-        
-        
-        
-        
-        
         foreach ( $this->QueryArr as $Schluessel => $Werte )
         {
           if ( $Schluessel === "qf" )  continue;
@@ -1282,56 +807,13 @@ class solr
           }
         }
 
-        
-        
         if ( $Geaendert )  return $this->processSolr($Url, $this->buildQueryString());
       }
 
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       $Haus = (string) $this->CS->client;
       $Kern = preg_match("#/solr/([^/?]+)#", (string) $Url, $K) ? $K[1]
               : (preg_match("#findex\.gbv\.de/([^?]+?)/select#", (string) $Url, $K2) ? $K2[1] : "");
 
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       if ( stripos((string) $Meldung, "maxClauseCount") !== false
         || stripos((string) $Meldung, "too many nested clauses") !== false )
       {
@@ -1357,21 +839,6 @@ class solr
         "query"   => substr((string) $Query, 0, 500)
       ));
 
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       $this->CS->mailFehlerGedrosselt("findex-Fehler", $Haus, $Meldung, array(
         "Kern"     => $Kern,
         "HTTP"     => $Fehlercode,
@@ -1385,38 +852,8 @@ class solr
       return array();
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     if ( !isset($Result["response"]) && !$this->nebenabfrage )
     {
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       $Agent = trim((string) ($_SERVER["HTTP_USER_AGENT"] ?? ""));
       $this->CS->debug("ERR", array(
         "type"    => "findex",
@@ -1427,28 +864,13 @@ class solr
         "abrufer" => ($Agent === "" ? "-" : substr($Agent, 0, 120)),
         "antwort" => substr(json_encode($Result), 0, 300)
       ));
-      
-      
-      
-      
-      
-      
+
       if ( !empty($Result) )
         $this->CS->mailFehlerGedrosselt("findex-Fehler", (string) $this->CS->client,
           "ohne response: " . substr(json_encode($Result), 0, 120),
           array("Antwort" => substr(json_encode($Result), 0, 300),
                 "Abfrage" => substr((string) $Query, 0, 500)));
 
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       $Fremd = isset($Result["status"]) && is_numeric($Result["status"]) ? (int) $Result["status"] : 0;
       $this->CS->results["status"]  = $Fremd > 0 ? -$Fremd : -1;
       $this->CS->results["code"]    = "findexerror";
@@ -1456,19 +878,6 @@ class solr
                                       ? (string) $Result["message"]
                                       : "findex hat die Abfrage nicht beantwortet";
 
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       $this->CS->results["hits"]     = 0;
       $this->CS->results["hitspack"] = 0;
       $this->CS->results["start"]    = 0;
@@ -1476,17 +885,12 @@ class solr
       return array();
     }
 
-    
-    
-    
-    
     $this->CS->results["status"]   = 0;
     $this->CS->results["qtime"]    = isset($Result["responseHeader"]["QTime"]) ? str_replace(".", ",", round($Result["responseHeader"]["QTime"] / 1000, 2)) : "";
     $this->CS->results["hits"]     = isset($Result["response"]["numFound"])    ? $Result["response"]["numFound"]    : "0";
     $this->CS->results["hitspack"] = isset($Result["response"]["docs"])        ? count($Result["response"]["docs"]) : "0";
     $this->CS->results["start"]    = isset($Result["response"]["start"])       ? $Result["response"]["start"]       : "0";
 
-    
     if ( $this->SkipID )
     {
       $Idx = array_search($this->SkipID, array_column($Container, "id"), true);
@@ -1498,15 +902,6 @@ class solr
       }
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
     if ( $this->spellMoeglich && (int) $this->CS->results["hits"] === 0
       && (int) $this->CS->results["start"] === 0 )
     {
@@ -1514,7 +909,6 @@ class solr
       if ( is_array($Vorschlag) )  $Result["spellcheck"] = $Vorschlag;
     }
 
-    
     $Suggestions = $Result["spellcheck"]["suggestions"] ?? null;
     if ( is_array($Suggestions) )
     {
@@ -1524,7 +918,6 @@ class solr
       }
     }
 
-    
     if ( isset($Result["highlighting"]) && is_array($Result["highlighting"]) )
     {
       foreach ( $Result["highlighting"] as $HID => $Snip )
@@ -1544,7 +937,6 @@ class solr
   {
     $Counts = &$this->CS->results["counts"];
 
-    
     foreach ( $this->facetPairs($Result, "remote_bool") as [$Val, $Cnt] )
     {
       $Type          = ( $Val == "true" ) ? "online" : "physical";
@@ -1552,27 +944,23 @@ class solr
                                       "count" => $Cnt);
     }
 
-    
     foreach ( $this->facetPairs($Result, "format_phy_str_mv") as [$Val, $Cnt] )
     {
       $Counts["formats"][$Val] = array("label" => $this->CS->getText("format." . $Val),
                                        "count" => $Cnt);
     }
 
-    
     foreach ( $this->facetPairs($Result, "lang_code") as [$Val, $Cnt] )
     {
       $L = $this->CS->getText("lang." . $Val);
       if ( $L )  $Counts["languages"][] = array("code" => $Val, "label" => $L, "count" => $Cnt);
     }
 
-    
     foreach ( $this->facetPairs($Result, "topic_facet") as [$Val, $Cnt] )
     {
       $Counts["topicfacets"][] = array("label" => $this->formatLabelTF($Val), "count" => $Cnt);
     }
 
-    
     $Code2Expand = $this->isConfigYes("facet", "classlocalsexpandcode");
     foreach ( $this->CS->configs["ilns"] ?? array() as $ILN )
     {
@@ -1587,18 +975,13 @@ class solr
         }
 
         $Label = $this->formatClasslocalLabel($Val);
-        
-          
-          
-          
-          
+
           if ( $this->isConfigYes("facet", "classlocals.yearsonly")
             && !preg_match('/^\d{4}\/\d{2,4}$/', $Label) )  continue;
         $Counts["classlocals"][] = array("code" => $Label, "label" => $Label, "count" => $Cnt);
       }
     }
 
-    
     if ( count($this->locfacetkeys) && isset($Result["facet_counts"]["facet_queries"])
       && is_array($Result["facet_counts"]["facet_queries"]) )
     {
@@ -1606,56 +989,41 @@ class solr
       {
         if ( !isset($Result["facet_counts"]["facet_queries"][$Key]) )  continue;
         $Cnt = (int) $Result["facet_counts"]["facet_queries"][$Key];
-        
+
         if ( $Cnt < 1 )  continue;
         $Counts["locations"][$Code] = array("code"  => $Code,
                                             "count" => $Cnt);
       }
     }
 
-    
     foreach ( $this->facetPairs($Result, "format_main_str_mv") as [$Val, $Cnt] )
     {
       $Counts["formatsmain"][] = array("label" => $Val, "count" => $Cnt);
     }
 
-    
     foreach ( $this->facetPairs($Result, "format_details_str_mv") as [$Val, $Cnt] )
     {
       $Counts["genres"][] = array("label" => $Val, "count" => $Cnt);
     }
 
-    
     foreach ( $this->facetPairs($Result, "topic_bkl") as [$Val, $Cnt] )
     {
-      $Code = substr($Val, 4, 5);  
+      $Code = substr($Val, 4, 5);
       $CRec = $this->CS->getCDBClass("bkl", $Code);
       if ( isset($CRec["description"]) )  $Counts["topicbkls"][] = array("label" => $CRec["description"], "code" => "bkl " . $Code, "count" => $Cnt);
     }
 
-    
     foreach ( $this->facetPairs($Result, "topic_rvk") as [$Val, $Cnt] )
     {
-      $Code = substr($Val, 4);  
+      $Code = substr($Val, 4);
       $CRec = $this->CS->getCDBClass("rvk", $Code);
       if ( isset($CRec["description"]) )  $Counts["topicrvks"][] = array("label" => $CRec["description"], "code" => "rvk " . $Code, "count" => $Cnt);
     }
 
-    
-    
     unset($Counts);
     if ( array_key_exists("counts", $this->CS->results) && $this->CS->results["counts"] === null )  unset($this->CS->results["counts"]);
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function finishLocationFacet()
   {
     if ( $this->add || !isset($this->CS->results["counts"]["locations"])
@@ -1664,11 +1032,6 @@ class solr
 
     $New = $this->CS->results["counts"]["locations"];
 
-    
-    
-    
-    
-    
     foreach ( $New as $K => $Loc )
     {
       if ( !is_array($Loc) || !isset($Loc["code"]) )  continue;
@@ -1681,16 +1044,6 @@ class solr
     $this->CS->results["counts"]["locations"] = $New;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function acquisitionDate($Date)
   {
     $Parts = explode("-", trim($Date));
@@ -1731,10 +1084,6 @@ class solr
     return $Sorted;
   }
 
-  
-  
-  
-
   private function doSearch()
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -1749,71 +1098,26 @@ class solr
     $Counts         = ( isset($Search["counts"]) && is_array($Search["counts"]) ) ? $Search["counts"] : array();
     $ILNs           = $this->CS->configs["ilns"] ?? array();
 
-    
     if ( $SType == "lukida" )
     {
-      
       $SQuery .= " ";
       $BracketsRegex = "/([a-zA-Z]+)(?:\((?P<paren>(?:[^()\"']*|\"[^\"]*\"|'[^']*'|\([^()]*\))*)\)|:(?P<colon>\"[^\"]*\"|'[^']*'|[a-zA-Z0-9_\-*]+))/";
 
-      
-      
-      
-      
-      
       $Filters = array();
       $SQuery  = preg_replace_callback($BracketsRegex, function ($m) use (&$Filters) {
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
         $Paren = isset($m['paren']) ? $m['paren'] : "";
         $Colon = isset($m['colon']) ? $m['colon'] : "";
         $Wert  = ($Paren !== "") ? $Paren : $Colon;
 
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         if ( !$this->istBekannterBefehl($m[1]) )  return $m[0];
 
-        
-        
-        
-        
-        
-        
-        
-        
-        
         if ( trim($Wert) === "" )  return "";
 
-        
-        
-        
-        
-        
         $Filters[] = array($m[1], $Wert);
         return "";
       }, $SQuery) ?? $SQuery;
-      
+
       $SQuery = trim($this->entschaerfeResttext($SQuery));
 
       foreach ( $Filters as [$Command, $Filter] )
@@ -1822,17 +1126,10 @@ class solr
       }
       if ( isset($this->QueryArr["fq"]) )  $this->QueryArr["fq"] = array_values(array_unique($this->QueryArr["fq"]));
 
-      
-      
-      
-      
-      
-      
       $this->QueryArr["fl"][] = $this->nurZaehler($Search)
         ? "id"
         : "id,fullrecord_marcxml,format_phy_str_mv,remote_bool,collection,collection_details,publishDateSort,last_changed_iln_str_mv,up_date";
 
-      
       if ( $SQuery )
       {
         if ( isset($Facets["target"]) && $Facets["target"] == "fulltext" )
@@ -1841,14 +1138,8 @@ class solr
         }
         else
         {
-          
-          
           $QueryFields = $this->gewichtungsFelder();
-          
-          
-          
-          
-          
+
           if ( $this->phonetic )
             foreach ( $this->soundFelder() as $Feld )
               $QueryFields[] = $Feld . "^" . self::SOUNDGEWICHT[$Feld];
@@ -1858,77 +1149,31 @@ class solr
     }
     $this->QueryArr["q"][] = trim($SQuery) ? trim($SQuery) : "*";
 
-    
     if ( isset($Search["start"]) )  $this->QueryArr["start"][] = $Search["start"];
     if ( isset($Search["limit"]) )  $this->QueryArr["rows"][]  = $Search["limit"];
 
     $NewSearch     = isset($Search["start"]) && $Search["start"] == 0;
     $this->level   = isset($Search["level"]) ? $Search["level"] : "";
 
-    
     $Sort          = isset($Search["sort"]) ? $Search["sort"] : "";
     $this->sortacq = ( $Sort == "acqdesc" );
-    
-    
-    
+
     $Levels        = isset($this->CS->configs["levels"]) && is_array($this->CS->configs["levels"]) ? $this->CS->configs["levels"] : array();
     $EigenSort     = ( $this->level !== "" && isset($Levels[$this->level]["sortfield"]) ) ? trim((string) $Levels[$this->level]["sortfield"]) : "";
     $SortField     = ( $EigenSort !== "" ) ? $EigenSort : "publishDateSort";
     if     ( $Sort == "yeardesc" )  $SortBy = $SortField . " desc";
     elseif ( $Sort == "yearasc"  )  $SortBy = $SortField . " asc";
-    
-    
-    
-    
-    
-    
-    
-    
+
     elseif ( $Sort == "authorasc" )  $SortBy = "author_sort asc";
-    
-    
-    
-    
-    
-    
+
     else                            $SortBy = "score desc," . $SortField . " desc";
-    
-    
-    
-    
+
     $this->QueryArr["sort"][] = $SortBy . ",id asc";
-    
-    
-    
-    
-    
+
     $this->QueryArr["shards.preference"][] = "replica.base:stable:hash:q";
 
-    
-    
-    
     $this->letzteWortsuche = $SQuery;
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     $this->spellMoeglich = ( isset($Search["spell"]) && $NewSearch
                              && !$this->ohneWortsuche($SQuery)
                              && !$this->nurZaehler($Search)
@@ -1936,13 +1181,11 @@ class solr
                              && $this->wortzahl($SQuery) <= self::SPELL_MAX_WORTE
                              && (int) ($Search["start"] ?? 0) === 0 );
 
-    
     if ( isset($Facets["type"]) && in_array($Facets["type"], array("online","physical")) )
     {
       $this->addFilter("remote_bool:" . ( $Facets["type"] == "online" ? "true" : "false" ));
     }
 
-    
     $Range = array("min" => 785, "max" => intval(date("Y")));
     $Min   = ( isset($Facets["yearmin"]) && is_numeric($Facets["yearmin"])
             && $Facets["yearmin"] >= $Range["min"] && $Facets["yearmin"] <= $Range["max"] ) ? $Facets["yearmin"] : $Range["min"];
@@ -1953,26 +1196,21 @@ class solr
       $this->addFilter("publishDateSort:[" . str_pad($Min, 4, "0", STR_PAD_LEFT) . " TO " . str_pad($Max, 4, "0", STR_PAD_LEFT) . "]");
     }
 
-    
     if ( $this->hasValues($Facets, "formats") )    $this->addFilter($this->getFacetQuery($Facets["formats"], array("format_phy_str_mv")));
 
-    
     if ( isset($Facets["maps"]["lat"]) && isset($Facets["maps"]["lng"]) && isset($Facets["maps"]["radius"])
       && is_numeric($Facets["maps"]["lat"]) && is_numeric($Facets["maps"]["lng"]) && is_numeric($Facets["maps"]["radius"]) )
     {
       $this->addFilter($this->getGeoFilter($Facets["maps"]["lat"], $Facets["maps"]["lng"], $Facets["maps"]["radius"]));
     }
 
-    
     if ( $this->hasValues($Facets, "languages") )  $this->addFilter($this->getFacetQuery($Facets["languages"], array("lang_code")));
 
-    
     if ( $this->hasValues($Facets, "topicfacets") )
     {
       $this->addFilter($this->getFacetQuery(str_replace("{c}", ",", $Facets["topicfacets"]), array("topic_facet")));
     }
 
-    
     if ( $this->hasValues($Facets, "classlocals") )
     {
       $Code2Expand = $this->isConfigYes("facet", "classlocalsexpandcode");
@@ -1987,14 +1225,11 @@ class solr
       $this->addFilter($this->getFacetQuery($Ss, array("notation_local_iln_str_mv")));
     }
 
-    
     $LocWOnline = $this->isConfigYes("facet", "locationswithonlines");
     if ( $this->hasValues($Facets, "locations") )
     {
       $Codes = $Facets["locations"];
-      
-      
-      
+
       foreach ( $this->mergeGroups() as $Sammel => $Teile )
       {
         $K = array_search($Sammel, $Codes);
@@ -2003,8 +1238,6 @@ class solr
         $Codes = array_merge($Codes, $Teile);
       }
 
-      
-      
       $NewL = array();
       foreach ( $Codes as $Code )
       {
@@ -2020,19 +1253,14 @@ class solr
       }
     }
 
-    
     if ( $this->hasValues($Facets, "formatsmain") )  $this->addFilter($this->getFacetQuery($Facets["formatsmain"], array("format_main_str_mv")));
 
-    
     if ( $this->hasValues($Facets, "genres") )       $this->addFilter($this->getFacetQuery($Facets["genres"], array("format_details_str_mv")));
 
-    
     if ( $this->hasValues($Facets, "topicbkls") )    $this->addFilter($this->getFacetQuery($Facets["topicbkls"], array("topic_browse")));
 
-    
     if ( $this->hasValues($Facets, "topicrvks") )    $this->addFilter($this->getFacetQuery($Facets["topicrvks"], array("topic_browse")));
 
-    
     if ( $this->hasValues($Facets, "links") )
     {
       $LinkGroups = array();
@@ -2049,13 +1277,6 @@ class solr
       }
     }
 
-    
-    
-    
-    
-    
-    
-    
     $WantCounts = false;
     foreach ( self::COUNTS as $C )
     {
@@ -2063,11 +1284,9 @@ class solr
     }
     if ( $NewSearch && $WantCounts )
     {
-      
       $this->QueryArr["facet"][]      = "true";
       $this->QueryArr["facet.sort"][] = "count";
 
-      
       $Limit = 25;
       if ( $this->isFlag($Counts, "types") )        $this->QueryArr["facet.field"][] = "remote_bool";
       if ( $this->isFlag($Counts, "formats") )      $this->QueryArr["facet.field"][] = "format_phy_str_mv";
@@ -2076,13 +1295,10 @@ class solr
         if ( !$this->isFlag($Counts, $C) )  continue;
         $this->QueryArr["facet.field"][]                     = $Field;
         $this->QueryArr["f." . $Field . ".facet.limit"][]    = $this->countLimit($Counts, $C, $Limit);
-        
-        
-        
+
         $this->QueryArr["f." . $Field . ".facet.mincount"][] = 1;
       }
 
-      
       if ( isset($Counts["classlocals"]) )
       {
         foreach ( $ILNs as $ILN )
@@ -2093,45 +1309,10 @@ class solr
         $this->QueryArr["f.notation_local_iln_str_mv.facet.limit"][]    = $this->countLimit($Counts, "classlocals", $Limit);
       }
 
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       if ( isset($Counts["locations"]) )
       {
         $this->locfacetkeys = array();
 
-        
-        
-        
         foreach ( $this->locationFacetGroups() as $Code => $Vals )
         {
           $Key = "loc" . count($this->locfacetkeys);
@@ -2144,7 +1325,6 @@ class solr
         }
       }
 
-      
       foreach ( array("topicbkls" => "bkl", "topicrvks" => "rvk") as $C => $Prefix )
       {
         if ( !isset($Counts[$C]) )  continue;
@@ -2154,7 +1334,6 @@ class solr
       }
     }
 
-    
     if ( $this->isConfigYes("init", "highlight") && !$this->ohneWortsuche($SQuery)
          && !$this->nurZaehler($Search) )
     {
@@ -2168,13 +1347,10 @@ class solr
 
     $Q = $this->buildQueryString();
 
-    
     if ( APPDEBUG["SLQ"] ) $this->CS->debug("SLQ", $SUrl . $Q);
 
-    
     $Data = $this->processSolr($SUrl, $Q);
 
-    
     if ( APPDEBUG["IDS"] )
     {
       $DataIDs = array_column($Data, "id");
@@ -2188,7 +1364,6 @@ class solr
       }
     }
 
-    
     if ( APPDEBUG["SLD"] ) $this->CS->debug("SLR", $Data);
 
     $this->finishLocationFacet();
@@ -2198,9 +1373,6 @@ class solr
     return $Data;
   }
 
-  
-  
-  
   public function getSearch($Add)
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -2213,11 +1385,6 @@ class solr
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
-    
-    
-    
-    
     $this->nebenabfrage = true;
     $this->CS->works["project"][$Project] = $this->processSolr($URL, $Query);
     $this->nebenabfrage = false;

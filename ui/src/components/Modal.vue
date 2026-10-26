@@ -230,7 +230,7 @@ const LABELS = {
 }
 
 const mkBase = (area) => ({
-  apikey: 'HIER_API_KEY_EINTRAGEN',
+  apikey: import.meta.env.VITE_API_KEY,
   client: 'Demo',
   appl:   'production',
   area:   area || 'findex',

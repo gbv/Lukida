@@ -1,27 +1,16 @@
 <?php
 
-
 class paia extends bms
 {
-  
-  
-  
   public function __construct($BMSID, $CS)
   {
     parent::__construct($BMSID, $CS);
 
-    
     if ( $this->link )  $this->link .= "/" . ( isset($this->config["isil"]) ? $this->config["isil"] : "" );
 
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
   }
 
-  
-  
-  
-
-  
-  
   private function call($Method, $File, $Data = null, $Token = null)
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -38,7 +27,6 @@ class paia extends bms
     return $Response["json"] ?? array();
   }
 
-  
   private function errorDescription($Response)
   {
     if ( !isset($Response["error_description"]) )  return "";
@@ -98,14 +86,8 @@ class paia extends bms
     return $Items;
   }
 
-  
-  
   private function readDAIA($Query, $Format, $ShowRaw = false)
   {
-    
-    
-    
-    
     $Contents = $this->bmsBestandLesen($Query);
     if ( $Contents === null )
     {
@@ -113,7 +95,6 @@ class paia extends bms
       if ( is_array($Contents) && isset($Contents["document"]) )  $this->bmsBestandSchreiben($Query, $Contents);
     }
 
-    
     if ( $ShowRaw && !empty($this->CS->display["paia"]) )
     {
       $this->CS->results["paia"][$this->CS->params["shift"] ? $this->CS->params["childid"] : substr($Query, 4)][] = $Contents;
@@ -130,14 +111,12 @@ class paia extends bms
 
       foreach ( $Dok["item"] as $Exp )
       {
-        
         $ExpID    = ( isset($Exp["temporary-hack-do-not-use"]) ) ? strtoupper($Exp["temporary-hack-do-not-use"])
                                                                  : ( explode(":", $Exp["id"] ?? "")[3] ?? ($Exp["id"] ?? "") );
         $OrgExpID = $ExpID;
         $ICount["EPN_" . $ExpID] = ( !isset($ICount["EPN_" . $ExpID]) ) ? 1 : $ICount["EPN_" . $ExpID] + 1;
         if ( array_key_exists($ExpID, $Items) )
         {
-          
           $Count ++;
           $ExpID .= "_" . $Count;
         }
@@ -148,7 +127,6 @@ class paia extends bms
         $Items[$ExpID]["epn"]   = $OrgExpID;
         $Items[$ExpID]["count"] = $Count;
 
-        
         $Items[$ExpID] += ( isset($Exp["available"]) )   ? $this->ParseBMSServices($Exp["available"],   true )  : array();
         $Items[$ExpID] += ( isset($Exp["unavailable"]) ) ? $this->ParseBMSServices($Exp["unavailable"], false ) : array();
 
@@ -161,12 +139,10 @@ class paia extends bms
         if ( isset($Exp["department"]["id"]) && $Exp["department"]["id"] != "" && stripos($Exp["department"]["id"], "@") !== false )  $Items[$ExpID]["departmentid"] = explode("@", $Exp["department"]["id"])[1];
         if ( isset($Exp["label"]) && $Exp["label"] != "" )                                                             $Items[$ExpID]["label"]        = trim($Exp["label"]);
 
-        
         $Items[$ExpID]["about"] = ( isset($Exp["about"]) && $Exp["about"] != "" ) ? trim($Exp["about"]) : "";
       }
     }
 
-    
     foreach ( $Items as $ExpID => $One )
     {
       if ( in_array($Format, $this->CS->formatsBandlist) )
@@ -179,7 +155,6 @@ class paia extends bms
       }
     }
 
-    
     uasort($Items, function ($a, $b) { return $a['about'] <=> $b['about']; });
 
     return $Items;
@@ -193,7 +168,6 @@ class paia extends bms
     $Collect  = false;
     if ( !isset($Data["user"]["notes"]) ) $Data["user"]["notes"] = array();
 
-    
     if ( isset($Data["items"]) )
     {
       foreach ( $Data["items"] as $Item )
@@ -203,23 +177,12 @@ class paia extends bms
       }
     }
 
-    
-    
-    
     $Limited = $this->CS->confIsYes("account", "statuslimited");
     $Status  = isset($Data["user"]["status"]) ? (string) $Data["user"]["status"] : null;
 
-    
     $Locks = array();
     if ( !$Limited && $Status === "0" && $Reminder )   $Locks[] = "account.lockedreminder";
 
-    
-    
-    
-    
-    
-    
-    
     if ( $Status === "1" && ( $Limited || !$Reminder ) )  $Locks[] = "account.lockedlocked";
     if ( $Status === "1" && !$Limited && $Reminder )      $Locks[] = "account.lockedreminder";
     if ( $Status === "2" )                             $Locks[] = "account.lockedexpired";
@@ -252,9 +215,6 @@ class paia extends bms
                  "more" => array($More));
   }
 
-  
-  
-  
   public function getPPN($PPN, $Format)
   {
     return $this->readDAIA("ppn:" . $PPN, $Format, true);
@@ -269,7 +229,6 @@ class paia extends bms
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
     $Response = $this->call("POST", "/auth/login", array("username"   => $User,
                                                          "password"   => $Pass,
                                                          "grant_type" => "password",
@@ -278,7 +237,6 @@ class paia extends bms
     if ( isset($Response["error"]) )  return $this->loginError($Response["error"]);
     if ( isset($Response["code"]) )   return $this->loginError($this->CS->getText($Response["code"]));
 
-    
     $Token  = ( isset($Response["access_token"]) ) ? $Response["access_token"] : "";
     $Login  = ( isset($Response["patron"]) )       ? $Response["patron"]       : $User;
     $Return = array("user" => array("token" => $Token, "login" => $Login), "login" => $Login);
@@ -293,11 +251,9 @@ class paia extends bms
 
     if ( isset($this->CS->display["user"]) && $this->CS->display["user"] )
     {
-      
       $Response = $this->call("GET", "/core/" . $Login, null, $Token);
       if ( isset($Response["error"]) )  return $this->loginError($Response["error"]);
 
-      
       if ( isset($Response["note"]) )
       {
         $Response["notes"][] = array("label" => $Response["note"]);
@@ -308,7 +264,6 @@ class paia extends bms
 
     if ( isset($this->CS->display["items"]) && $this->CS->display["items"] )
     {
-      
       $Response = $this->call("GET", "/core/" . $Login . "/items", null, $Token);
       if ( isset($Response["error"]) )  return $this->loginError($Response["error"]);
 
@@ -317,7 +272,6 @@ class paia extends bms
 
     if ( isset($this->CS->display["fees"]) && $this->CS->display["fees"] )
     {
-      
       $Response = $this->call("GET", "/core/" . $Login . "/fees", null, $Token);
       if ( !isset($Response["amount"]) )  $Response["amount"] = "0.00 EUR";
       $Response["code"] = "account.userfees";
@@ -329,7 +283,6 @@ class paia extends bms
       $Return += array("fees" => $Response);
     }
 
-    
     return $this->CalcUserStatus($Return);
   }
 
@@ -337,7 +290,6 @@ class paia extends bms
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
     $Response = $this->call("GET", "/core/" . $Login, null, $Token);
     if ( isset($Response["error"]) )  return array();
 
@@ -371,8 +323,6 @@ class paia extends bms
     if ( isset($Response["error"]) )          return $this->actionError("action.requesterror", $Response["error"]);
     if ( isset($Response["doc"][0]["error"]) ) return $this->actionError("action.requesterror", $Response["doc"][0]["error"]);
 
-    
-    
     $this->bmsBestandVerwerfen();
 
     $Kind = ( $Type == "order" ) ? "" : "reserve";
@@ -401,7 +351,6 @@ class paia extends bms
     if ( isset($Response["doc"][0]["error"]) ) return array("status" => -2, "more"  => $Response["doc"][0]["error"]);
     if ( !isset($Response["doc"][0]) )         return array("status" => -2, "more"  => "");
 
-    
     $this->bmsBestandVerwerfen();
     return array("status" => 0) + $Response["doc"][0];
   }
@@ -439,7 +388,7 @@ class paia extends bms
                                                          "password"   => "",
                                                          "grant_type" => "password",
                                                          "scope"      => "reset_password"));
-    
+
     if ( isset($Response["error"]) )  return array("status" => -2, "more" => $this->errorDescription($Response));
 
     $Token = ( isset($Response["access_token"]) ) ? $Response["access_token"] : "";

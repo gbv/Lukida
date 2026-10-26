@@ -2,13 +2,10 @@
 
 class appl extends appldb
 {
-  
-  
-  
   protected   $appl;
   protected   $areas;
   protected   $formats;
-  public      $formatsBandlist;   
+  public      $formatsBandlist;
   protected   $formatsMulti;
   protected   $getAreas;
   protected   $searchAreas;
@@ -30,57 +27,29 @@ class appl extends appldb
                                    "unknown", "Musical Score", "Sound Recording", "Map",
                                    "Microform", "Motion Picture", "Manuscript");
     $this->getAreas        = array("export", "findex", "hierarchy", "print", "resolve");
-    
+
     $this->searchAreas     = array("collections", "facets", "findex", "isils");
-    
-    
-    
-    
-    
+
     $this->searchOptions   = array("", "person", "signature", "title", "isn");
 
-    if ( ACTION != "batch" )
+    $ClientConfigs = array('account', 'api', 'bibliographic', 'client', 'color', 'facet', 'init', 'item',
+                           'bms', 'link', 'meta', 'session', 'style');
+
+    $this->getConfigs($ClientConfigs);
+
+    if ( MODULE == "user")
     {
-      
-      
-      
-      
-      
-      
-      
-      
-      $ClientConfigs = array('account', 'api', 'bibliographic', 'client', 'color', 'facet', 'init', 'item',
-                             'bms', 'link', 'meta', 'session', 'style');
-
-      $this->getConfigs($ClientConfigs);
-
-      
-      if ( MODULE == "user")
-      {
-        
-        
-        
-        
-        $ClientTexts   = array('level.%', 'infos.%');
-      }
-      else
-      {
-        $ClientTexts   = array();
-      }
-      $this->getTexts($ClientTexts);
-
-      
-      if ( MODULE == "user" )  $this->markdownTexts(array("infos."));
+      $ClientTexts   = array('level.%', 'infos.%');
     }
+    else
+    {
+      $ClientTexts   = array();
+    }
+    $this->getTexts($ClientTexts);
+
+    if ( MODULE == "user" )  $this->markdownTexts(array("infos."));
   }
 
-  
-  
-  
-
-  
-  
-  
   protected function getApplConfigs()
   {
     if ( MODULE == "user")
@@ -90,9 +59,6 @@ class appl extends appldb
     return array();
   }
 
-  
-  
-  
   public function getCollectionFromPPN($PPN)
   {
      $FirstDigit      = substr(strpbrk($PPN, "0123456789"),0,1);
@@ -118,42 +84,6 @@ class appl extends appldb
       return $Host;
     }
   }
-
-  
-  
-  
-  
-  
-  
-  
-  
-  public function batch($Params)
-  {
-    
-    if (ACTION != "batch")  return;
-
-    if ( isset($Params["client"]) ) $this->client = $Params["client"];
-    if ( isset($Params["lang"]) )   $this->lang   = $Params["lang"];
-    if ( isset($Params["user"]) )   $this->user   = $Params["user"];
-
-    
-    $this->configs = $this->getAdminConfigsDB();
-    $this->batchconfigs = array('account', 'api',  'bibliographic', 'client', 'color',    'facet',   'init',
-                                'item',    'link', 'bms',           'meta',   'resolver', 'session', 'style');
-
-    
-    
-
-
-    
-    $this->texts             = $this->getAdminTextsDB();
-    $this->batchtexts        = array();
-    $this->batchtextexcludes = array("classlocal.%", "event.%", "family.%", "lang.%", "organisation.%", "person.%", "place.%", "role.%");
-  }
-
-  
-  
-  
 }
 
 ?>

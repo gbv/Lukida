@@ -1,5 +1,12 @@
-# Vue 3 + Vite
+# Lukida Essential — UI
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Vue-3-Oberfläche (Vite, Tailwind CSS, daisyUI) für die Lukida-Essential-API.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+```bash
+cp .env.example .env.local   # VITE_API_KEY = apikey aus configs/application.ini
+npm install
+npm run dev                  # Entwicklung, /api wird an http://localhost:9055 weitergeleitet
+npm run build                # Produktion, erzeugt dist/
+```
+
+Installation und Apache-Konfiguration: siehe [README im Hauptverzeichnis](../README.md).

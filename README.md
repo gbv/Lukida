@@ -1,6 +1,6 @@
 # Lukida Essential — Installationsanleitung
 
-> Getestet mit Debian/Ubuntu, Apache 2.4, PHP 8.4, PostgreSQL 16  
+> Getestet mit Debian/Ubuntu, Apache 2.4, PHP 8.4, PostgreSQL 16
 > Stand: Oktober 2026
 
 Lukida Essential ist die kostenlose Open-Source-Version von Lukida Pro. Folgende Features sind nur in der Pro-Version enthalten:
@@ -19,7 +19,7 @@ Lukida Essential ist die kostenlose Open-Source-Version von Lukida Pro. Folgende
 
 > **Hinweis zu Platzhaltern:** Alle Werte in `<spitzen-klammern>` sind Platzhalter und müssen vor der Inbetriebnahme durch eigene Werte ersetzt werden.
 
-> **Hinweis zu Pfaden:** Der Installationspfad ist frei wählbar. `configs/`, `logs/` und `caches/` müssen immer eine Ebene **über** dem Repo-Verzeichnis liegen.
+> **Hinweis zu Pfaden:** Der Installationspfad ist frei wählbar. `configs/`, `logs/`, `caches/` und `transfers/` müssen immer eine Ebene **über** dem Repo-Verzeichnis liegen. Die Namen sind fest vorgegeben.
 
 ---
 
@@ -30,7 +30,7 @@ Lukida Essential ist die kostenlose Open-Source-Version von Lukida Pro. Folgende
 | PHP | 8.4 |
 | PostgreSQL | 16 |
 | Apache | 2.4 (mit mod_rewrite, mod_proxy, mod_proxy_http) |
-| Node.js | 20+ (nur für UI-Build) |
+| Node.js | 20+ (nur für den UI-Build) |
 | Git | beliebig |
 
 ---
@@ -39,41 +39,40 @@ Lukida Essential ist die kostenlose Open-Source-Version von Lukida Pro. Folgende
 
 ```bash
 cd /home/<benutzer>
-git clone https://github.com/gbv/Lukida lukida-essential
+git clone https://github.com/gbv/Lukida.git lukida-essential
 ```
-
-**Wichtig — Verzeichnisstruktur:** `configs/`, `logs/` und `caches/` müssen immer eine Ebene **über** dem Repo liegen. Die Namen sind fest vorgegeben.
 
 ---
 
-## 3. Config-Verzeichnis anlegen
+## 3. Configs anlegen
 
 Der `configs/`-Ordner liegt bewusst außerhalb des Repos, damit Zugangsdaten nicht
-versehentlich in die Versionskontrolle gelangen.
+versehentlich in die Versionskontrolle gelangen. Vorlagen liegen im Repo unter
+`configs.example/`:
 
 ```bash
-mkdir -p /home/<benutzer>/configs/production
+cp -r /home/<benutzer>/lukida-essential/configs.example /home/<benutzer>/configs
 ```
 
-### 3.1 `application.ini`
+### 3.1 API-Key erzeugen
 
-Datei: `/home/<benutzer>/configs/application.ini`
-
-> Alle Werte in `<spitzen-klammern>` ersetzen.
-
-**API-Key generieren** — einmalig ausführen, Ausgabe merken:
+Einmalig ausführen, Ausgabe merken:
 
 ```bash
 openssl rand -hex 32
 ```
 
-Den generierten Key an **drei Stellen** eintragen:
-1. `configs/application.ini` → `apikey = <ausgabe>`
-2. `ui/src/components/Navbar.vue` → Zeile mit `apikey:`
-3. `ui/src/components/Modal.vue` → Zeile mit `apikey:`
-4. `ui/src/App.vue` → Zeile mit `apikey:`
+Der Key wird an **zwei Stellen** eingetragen:
 
-Nach dem Eintragen in den Vue-Dateien: `npm run build` ausführen (siehe Abschnitt 6).
+1. `configs/application.ini` → `apikey = <ausgabe>` (siehe 3.2)
+2. `ui/.env.local` → `VITE_API_KEY=<ausgabe>` (siehe Abschnitt 6)
+
+> Der API-Key ist im ausgelieferten JavaScript der UI sichtbar. Er trennt die
+> eigene UI von fremden Aufrufern, ist aber kein Geheimnis gegenüber Endnutzern.
+
+### 3.2 `application.ini`
+
+Datei: `/home/<benutzer>/configs/application.ini`
 
 ```ini
 [routes]
@@ -82,7 +81,7 @@ POST /@api/@module/@action=@module->@action
 [application]
 name         = Lukida Essential
 type         = production
-apikey       = <32-stelliger-hex-api-key>
+apikey       = <64-stelliger-hex-api-key>
 path         = /home/<benutzer>/lukida-essential/5/
 versionmain  = 5
 startyear    = <startjahr>
@@ -95,12 +94,14 @@ homepage     = <homepage>
 pepper       = lukida-essential-2026
 ```
 
-### 3.2 `production/database.ini`
+An `author.mail` gehen Fehlermeldungen der API (z. B. Datenbank- oder Solr-Fehler).
+
+### 3.3 `production/database.ini`
 
 Datei: `/home/<benutzer>/configs/production/database.ini`
 
-> Alle Werte in `<spitzen-klammern>` ersetzen.
-
+```ini
+[db]
 driver=pgsql
 database=lukida_essential
 
@@ -111,12 +112,13 @@ app=token
 user=none
 ```
 
-### 3.3 `production/user.ini`
+### 3.4 `production/user.ini`
 
 Datei: `/home/<benutzer>/configs/production/user.ini`
 
-> Alle Werte in `<spitzen-klammern>` ersetzen. `appdebug` auf `false` lassen —
+`appdebug` auf `false` lassen — sonst schreibt die API SQL-Abfragen und -Daten ins Log.
 
+```ini
 [db]
 driver=pgsql
 host=localhost
@@ -140,17 +142,15 @@ sqd=false
 
 ---
 
-## 4. Logs- und Caches-Verzeichnisse anlegen
+## 4. Logs-, Caches- und Transfers-Verzeichnisse anlegen
 
-Die API schreibt Logs und Caches in die Ordner `logs/` und `caches/` — jeweils
-eine Ebene über dem Repo, also auf gleicher Ebene wie `configs/`. Apache läuft als
-`www-data` und braucht Schreibrechte:
+Die API schreibt Logs, Caches und Protokolldateien in `logs/`, `caches/` und
+`transfers/` — jeweils eine Ebene über dem Repo, also auf gleicher Ebene wie
+`configs/`. Apache läuft als `www-data` und braucht Schreibrechte:
 
 ```bash
-mkdir -p /home/<benutzer>/logs
-mkdir -p /home/<benutzer>/caches
-sudo chown -R www-data:www-data /home/<benutzer>/logs
-sudo chown -R www-data:www-data /home/<benutzer>/caches
+mkdir -p /home/<benutzer>/logs /home/<benutzer>/caches /home/<benutzer>/transfers
+sudo chown -R www-data:www-data /home/<benutzer>/logs /home/<benutzer>/caches /home/<benutzer>/transfers
 ```
 
 ---
@@ -169,9 +169,11 @@ CREATE DATABASE lukida_essential OWNER lukida_essential;
 \q
 ```
 
-### 5.2 Platzhalter in demo-data.sql befüllen
+Das Passwort muss mit `pass` in `user.ini` übereinstimmen.
 
-Vor dem Einspielen von `demo-data.sql` müssen folgende Platzhalter mit echten
+### 5.2 Platzhalter in `demo-data.sql` befüllen
+
+Vor dem Einspielen von `sql/demo-data.sql` müssen folgende Platzhalter mit echten
 Werten befüllt werden:
 
 | Platzhalter | Bedeutung | Woher |
@@ -194,8 +196,9 @@ PAIA-Zugangsdaten erhältst du von deinem lokalen Bibliothekssystem.
 ### 5.3 Schema und Demo-Daten einspielen
 
 Die SQL-Dateien liegen im Repo unter `sql/`:
+
 - `schema.sql` — erstellt alle Tabellen
-- `demo-data.sql` — füllt die DB mit Beispieldaten
+- `demo-data.sql` — füllt die DB mit Beispieldaten für den Client `Demo`
 
 ```bash
 psql -h localhost -U lukida_essential -d lukida_essential \
@@ -210,20 +213,28 @@ psql -h localhost -U lukida_essential -d lukida_essential \
 
 ```bash
 cd /home/<benutzer>/lukida-essential/ui
+cp .env.example .env.local
+```
+
+In `ui/.env.local` den API-Key aus Abschnitt 3.1 eintragen (gleicher Wert wie
+`apikey` in `application.ini`):
+
+```ini
+VITE_API_KEY=<64-stelliger-hex-api-key>
+```
+
+`.env.local` wird nicht versioniert. Anschließend bauen:
+
+```bash
 npm install
 npm run build
 ```
 
 Das erzeugt `ui/dist/` — das Verzeichnis, das Apache für die UI ausliefert.
+Nach jeder Änderung des Keys muss `npm run build` erneut ausgeführt werden.
 
-**Hinweis:** In `ui/src/` muss der API-Key an zwei Stellen eingetragen werden
-(gleicher Wert wie `apikey` in `application.ini`):
-
-- `ui/src/components/Navbar.vue` — Zeile mit `apikey:`
-- `ui/src/components/Modal.vue` — Zeile mit `apikey:`
-- `ui/src/App.vue` — Zeile mit `apikey:`
-
-Nach dem Eintragen erneut `npm run build` ausführen.
+Für die Entwicklung startet `npm run dev` einen Vite-Server, der `/api` an
+`http://localhost:9055` weiterleitet.
 
 ---
 
@@ -236,12 +247,13 @@ sudo a2enmod rewrite proxy proxy_http
 sudo systemctl restart apache2
 ```
 
-`mod_proxy` und `mod_proxy_http` sind zwingend erforderlich damit die UI
+`mod_proxy` und `mod_proxy_http` sind zwingend erforderlich, damit die UI
 API-Requests weiterleiten kann.
 
 ### 7.2 VirtualHosts hinzufügen
 
-In `/etc/apache2/sites-enabled/lukida.conf` anhängen (Ports anpassen falls belegt):
+Datei `/etc/apache2/sites-available/lukida.conf` anlegen (Ports anpassen, falls belegt)
+und mit `sudo a2ensite lukida` aktivieren:
 
 ```apache
 Listen 9055
@@ -282,10 +294,11 @@ Listen 9056
 ```
 
 **Warum zwei VirtualHosts?**
+
 - Port **9055** — PHP-API. `SetEnv` setzt MODE/MODULE/CLIENT — funktioniert nur
   über Apache, nicht mit `php -S`.
-- Port **9056** — Vue-UI (statische Dateien). `ProxyPass /api ? 9055` leitet
-  API-Requests weiter. Im Dev-Modus (`npm run dev`) macht das Vite selbst;
+- Port **9056** — Vue-UI (statische Dateien). `ProxyPass /api` → 9055 leitet
+  API-Requests weiter. Im Dev-Modus (`npm run dev`) übernimmt das Vite,
   im Build muss Apache es übernehmen.
 
 ### 7.3 Apache neu laden
@@ -299,12 +312,21 @@ sudo systemctl reload apache2
 
 ## 8. Testen
 
-| URL | Was |
-|---|---|
-| `http://<server>:9055/api/user/search?q=test` | API direkt (GET ? Fehlermeldung normal, POST erwartet) |
-| `http://<server>:9056` | Vue-UI |
+Die API nimmt nur POST-Requests mit JSON an. Die URL hat die Form
+`/<api-version>/<modul>/<aktion>`, also z. B. `/5/user/search`:
 
-Im Browser Port 9056 öffnen ? Suchbegriff eingeben ? Treffer erscheinen.
+```bash
+curl -X POST http://<server>:9055/5/user/search \
+  -H 'Content-Type: application/json' \
+  -d '{"apikey":"<api-key>","client":"Demo","appl":"production","area":"findex",
+       "search":{"query":"test"},"display":{"bib":true},"start":0,"limit":5}'
+```
+
+| URL | Erwartung |
+|---|---|
+| `http://<server>:9055/` (GET im Browser) | Begrüßungsseite der API |
+| `POST http://<server>:9055/5/user/search` | JSON mit `"code":"dataloaded"` und Treffern |
+| `http://<server>:9056` | Vue-UI — Suchbegriff eingeben → Treffer erscheinen |
 
 ---
 
@@ -312,22 +334,26 @@ Im Browser Port 9056 öffnen ? Suchbegriff eingeben ? Treffer erscheinen.
 
 ```
 /home/<benutzer>/
-+-- lukida-essential/            ? Git-Repo (Clone von GitHub)
-|   +-- 5/                       ? PHP-API (appl/ + base/)
-|   +-- ui/                      ? Vue 3 Frontend
-|   |   +-- dist/                ? Build-Output (nach npm run build)
-|   +-- sql/                     ? schema.sql + demo-data.sql
-|   +-- index.php
-|   +-- main.php
-|
-+-- configs/                     ? Configs (AUSSERHALB des Repos, Name ist fest!)
-|   +-- application.ini
-|   +-- production/
-|       +-- database.ini
-|       +-- user.ini
-|
-+-- logs/                        ? Eigentümer: www-data
-+-- caches/                      ? Eigentümer: www-data
+├── lukida-essential/            ← Git-Repo (Clone von GitHub)
+│   ├── 5/                       ← PHP-API (appl/ + base/)
+│   ├── configs.example/         ← Vorlagen für configs/
+│   ├── sql/                     ← schema.sql + demo-data.sql
+│   ├── system/                  ← Fat-Free Framework
+│   ├── ui/                      ← Vue-3-Frontend
+│   │   ├── .env.local           ← API-Key für den Build (nicht versioniert)
+│   │   └── dist/                ← Build-Output (nach npm run build)
+│   ├── index.php
+│   └── main.php
+│
+├── configs/                     ← Configs (außerhalb des Repos, Name ist fest!)
+│   ├── application.ini
+│   └── production/
+│       ├── database.ini
+│       └── user.ini
+│
+├── logs/                        ← Eigentümer: www-data
+├── caches/                      ← Eigentümer: www-data
+└── transfers/                   ← Eigentümer: www-data
 ```
 
 ---
@@ -336,9 +362,10 @@ Im Browser Port 9056 öffnen ? Suchbegriff eingeben ? Treffer erscheinen.
 
 | Symptom | Ursache | Lösung |
 |---|---|---|
-| `configs directory missing!` | Configs-Ordner heißt nicht `configs` | Ordner muss exakt `configs` heißen, eine Ebene über dem Repo |
-| `MODE` undefined / leere API-Antwort | `php -S` statt Apache | Apache VirtualHost mit `SetEnv` verwenden |
+| `configs directory missing!` | Configs-Ordner heißt nicht `configs` oder liegt falsch | Ordner muss exakt `configs` heißen, eine Ebene über dem Repo |
+| `MODE` undefined / leere API-Antwort | `php -S` statt Apache | Apache-VirtualHost mit `SetEnv` verwenden |
+| `{"code":"apikeyinvalid"}` | Key in UI und `application.ini` verschieden | `VITE_API_KEY` in `ui/.env.local` prüfen, danach `npm run build` |
+| `{"code":"localdatabaseerror"}` | DB nicht erreichbar oder Login falsch | `[db]` in `user.ini` mit DB-User/Passwort aus 5.1 abgleichen |
 | 500 bei `/api/...` aus der UI | `mod_proxy_http` nicht aktiv | `sudo a2enmod proxy proxy_http` |
-| `Failed to open stream: Keine Berechtigung` | logs/caches nicht www-data | `sudo chown -R www-data:www-data /home/<benutzer>/logs /home/<benutzer>/caches` |
+| `Failed to open stream: Keine Berechtigung` | logs/caches/transfers gehören nicht www-data | `sudo chown -R www-data:www-data` auf die drei Ordner (siehe 4.) |
 | UI lädt, Suche liefert nichts | ProxyPass fehlt | `ProxyPass /api http://localhost:9055` im Port-9056-Block |
-| `5/` leer nach git clone | Submodule-Problem | `git rm --cached 5`, `.git` in `5/` entfernen, neu hinzufügen |

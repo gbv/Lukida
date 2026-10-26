@@ -2,9 +2,6 @@
 
 class marc
 {
-  
-  
-  
   private $add;
   private $ArtCode;
   private $ArticleLink;
@@ -20,13 +17,13 @@ class marc
   private $Format;
   private $ID;
   private $ILNGroups;
-  private $Items;        
+  private $Items;
   private $lang;
   private $Links;
   private $MasterLink;
   private $SolrOne;
-  private $MItems;       
-  private $MultiItems;   
+  private $MItems;
+  private $MultiItems;
   private $Online;
   private $OriginalYear;
   private $OwnCollection;
@@ -51,9 +48,6 @@ class marc
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
   }
 
-  
-  
-  
   private function addOriginalCharacters(&$Fields)
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -71,7 +65,6 @@ class marc
         }
       }
 
-      
       if ( isset($Simple["6"]) && substr($Simple["6"],0,3) == "245" )
       {
         $Tmp = "";
@@ -84,18 +77,15 @@ class marc
         $Fields["bib_01"]["items"]["item_".++$Pos] = array("display" => "newline");
         $Fields["bib_01"]["items"]["item_".++$Pos] = array("text" => $Tmp, "action" => array());
 
-
         if ( isset($Simple["n"]) && $Simple["n"] != "" )
         {
            $Tmp2 = $Simple["n"];
           $Pos2  = (isset($Fields["bib_03"]["items"]) && is_array($Fields["bib_03"]["items"])) ? count($Fields["bib_03"]["items"]) : 0;
           if ( !isset($Fields["bib_03"]["items"]) ) $Fields["bib_03"]["items"] = array();
           $Fields["bib_03"]["items"]["item_".++$Pos2] = array("text" => $Tmp2, "action" => array());
-         
         }
       }
 
-      
       if ( isset($Simple["6"]) && substr($Simple["6"],0,3) == "246" )
       {
         $Tmp = "";
@@ -108,125 +98,6 @@ class marc
         $Fields["bib_42"]["items"]["item_".++$Pos] = array("text" => $Tmp, "action" => array());
       }
 
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
       if ( isset($Simple["6"]) && substr($Simple["6"],0,3) == "490" )
       {
         $Tmp = "";
@@ -246,7 +117,6 @@ class marc
                                                            "action" => array());
       }
 
-      
       if ( isset($Simple["6"]) && substr($Simple["6"],0,3) == "250" && isset($Simple["a"]) )
       {
         $Pos  = (isset($Fields["bib_10"]["items"]) && is_array($Fields["bib_10"]["items"])) ? count($Fields["bib_10"]["items"]) : 0;
@@ -257,18 +127,6 @@ class marc
     return $Fields;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function clear($Str)
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -284,7 +142,7 @@ class marc
     $Retn = array();
 
     $Recs = $this->getCompleteArray(array($this->Prefix . "856" => array("3","t","u","x","y","z")));
-    
+
     foreach ( $Recs as $Rec )
     {
       $Link  = $this->getSFTexts($Rec, "u");
@@ -332,7 +190,7 @@ class marc
     $Retn = array();
 
     $Recs = $this->getCompleteArray(array($this->Prefix . "510" => array("a")));
-    
+
     $Add  = array();
     foreach ( $Recs as $Rec )
     {
@@ -414,62 +272,9 @@ class marc
     return $Returns;
   }
 
-  private function formatArray($Seq, $Label, $Field, $Subfield)
-  {
-    if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
-
-    $Recs = $this->getSubfield($this->Prefix . $Field, $Subfield);
-    if ( empty($Recs) )  return array();
-
-    $Array = array();
-    $Item  = 0;
-    foreach ( $Recs as $Rec )
-    {
-      $Array["item_".++$Item]   = array("text"   => $Rec,
-                                        "action" => array(),
-                                        "more"   => array()
-                                       );
-    }
-
-    return array(("bib_".$Seq) => array(
-                                "label"  => $this->CS->getText("bibline.".$Label),
-                                "code"   => $Label,
-                                "items"  => $Array
-                               )
-                );
-  }
-
-  private function formatCDBClass($Recs)
-  {
-    if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
-
-    $Class = array();
-
-    if ( isset($Recs["name"])  && count($Recs["name"]) )
-    {
-      foreach ( $Recs["name"] as $Ind => $Name )
-      {
-        $Class["item_".($Ind+1)] = array("text" => trim($Name));
-        if ( isset($Recs["ppn"][$Ind]) )
-        {
-          $Class["item_".($Ind+1)]["action"] = array(
-                                                    "type"   => "search",
-                                                    "search" => array(
-                                                                      "query" => "norm(" . $Recs["ppn"][$Ind] . ")",
-                                                                      "type"  => "lukida"
-                                                                     )
-                                                  );
-        }
-      }
-    }
-    return $Class;
-  }
-
   private function formatClass($Seq, $Label)
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
-
-    
 
     $Recs = $this->getCompleteArray(array($this->Prefix . "084" => array("2","a")));
     $Item = 0;
@@ -478,8 +283,8 @@ class marc
     {
       if ( !isset($Rec["a"]["0"]) || !isset($Rec["2"]["0"]) ) continue;
 
-      $CSys = strtoupper($Rec["2"]["0"]);   
-      foreach ( $Rec["a"] as $Code )        
+      $CSys = strtoupper($Rec["2"]["0"]);
+      foreach ( $Rec["a"] as $Code )
       {
         $CRec = $this->CS->getCDBClass($CSys, $Code);
         if ( isset($CRec["link"]) && trim($CRec["link"]) )
@@ -533,8 +338,6 @@ class marc
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
-
     $Recs = $this->getCompleteArray(array($this->Prefix . "983" => array("a","b")));
     $Gesehen = array();
     $Item = 0;
@@ -543,26 +346,13 @@ class marc
     foreach ( $Recs as $Rec )
     {
       if ( !isset($Rec["a"]["0"]) ) continue;
-      
-      
-      
+
       $Schluessel = $Rec["a"]["0"] . "|" . (isset($Rec["b"]["0"]) ? $Rec["b"]["0"] : "");
       if ( isset($Gesehen[$Schluessel]) ) continue;
       $Gesehen[$Schluessel] = true;
       $Text = isset($Rec["b"]["0"]) ? $Rec["b"]["0"] : $Rec["a"]["0"];
       $Code = $Rec["a"]["0"];
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+
       $ClassText = ( isset($this->CS->configs["bibliographic"]["classlocaltext"])
                   && trim($this->CS->configs["bibliographic"]["classlocaltext"]) )
                    ? strtolower(trim($this->CS->configs["bibliographic"]["classlocaltext"])) : "text";
@@ -574,16 +364,6 @@ class marc
       }
        if ( $ClassText == "code2" )
        {
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
          $Teile = preg_split('/\s+/', trim($Code));
          $Punkt = implode(" ", array_slice($Teile, 0, 2));
          $Tmp   = $this->CS->getText("classlocal." . strtolower(str_replace(" ", "", $Punkt)));
@@ -594,22 +374,6 @@ class marc
          }
        }
 
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       if ( $this->CS->confIsYes("bibliographic", "classlocalcodefirst")
         && trim((string) $Code) !== "" && $Code !== $Text )
       {
@@ -667,12 +431,6 @@ class marc
       $Text =  $this->CS->getText("collection.". strtolower(str_replace(" ", "", $Rec["a"]["0"])));
       if ( !$Text ) continue;
 
-      
-      
-      
-      
-      
-      
       $Logo = in_array($this->logoSchluessel($Rec["a"]["0"]), $this->logoSammlungen());
 
       $Col["item_".++$Item]   = array("text"   => $Text,
@@ -710,8 +468,6 @@ class marc
 
     foreach ( $Recs as $Rec )
     {
-      
-
       $Add  = array();
       $Add[] = $this->getSFTexts($Rec, "a");
       $Add[] = $this->getSFTexts($Rec, "b", " : ");
@@ -796,7 +552,7 @@ class marc
 
     $Recs       = $this->getCompleteArray(array($this->Prefix . "710" => array(" 0","4","6","a","b","e","g")));
     $RecsOrg    = $this->getCompleteArray(array($this->Prefix . "880" => array( "4","6","a","b","c")));
-    
+
     if ( $Item & count($Recs) ) $Retn["item_".++$Item]     = array("display" => "newline");
     foreach ( $Recs as $Field => $Rec )
     {
@@ -864,8 +620,6 @@ class marc
     $Parts = array();
     $Item  = 0;
 
-
-    
     $Recs = $this->getCompleteArray(array($this->Prefix . "245" => array("n","p")));
     foreach ( $Recs as $Rec )
     {
@@ -899,7 +653,6 @@ class marc
       }
     }
 
-    
     if ( !count($Parts) )
     {
       $Recs = $this->getCompleteArray(array($this->Prefix . "773" => array("g")));
@@ -913,13 +666,7 @@ class marc
               || substr($Text, 0, 7) == "number:" || substr($Text, 0, 6) == "pages:"
               || substr($Text, 0, 6) == "month:"  || substr($Text, 0, 7) == "extent:"
               || substr($Text, 0, 4) == "day:" )  continue;
-            
-            
-            
-            
-            
-            
-            
+
             $Text = preg_replace('/\s*;\s*day:\s*\d+\s*$/u', "", $Text);
             if ( trim($Text) === "" )  continue;
             $Parts[] = $Text;
@@ -928,7 +675,6 @@ class marc
       }
     }
 
-    
     if ( !count($Parts) )
     {
       $Recs = $this->getCompleteArray(array($this->Prefix . "490" => array("a","v")));
@@ -994,7 +740,6 @@ class marc
 
     $Recs = $this->getCompleteArray(array($this->Prefix . "773" => array("I1", "d", "g", "t", "w")));
     if ( empty($Recs) )  return array();
-
 
     $Parts = array();
     foreach ( $Recs as $Rec )
@@ -1067,7 +812,6 @@ class marc
 
     $Publ = array();
 
-    
     if ( isset($Recs["M264_0"]) )
     {
       $Rec = $Recs["M264_0"];
@@ -1094,7 +838,6 @@ class marc
 
     $Recs = $this->getCompleteArray(array($this->Prefix . "502" => array("a", "b", "c", "d")));
 
-    
     if ( isset($Recs["M502_0"]) )
     {
       $Rec   = $Recs["M502_0"];
@@ -1111,7 +854,6 @@ class marc
 
     $Recs = $this->getCompleteArray(array($this->Prefix . "300" => array("a")));
 
-    
     if ( isset($Recs["M300_0"]) )
     {
       $Rec   = $Recs["M300_0"];
@@ -1120,7 +862,6 @@ class marc
 
     $Recs = $this->getCompleteArray(array($this->Prefix . "256" => array("a")));
 
-    
     if ( isset($Recs["M256_0"]) )
     {
       $Rec   = $Recs["M256_0"];
@@ -1129,7 +870,6 @@ class marc
 
     $Recs = $this->getCompleteArray(array($this->Prefix . "520" => array("a")));
 
-    
     if ( isset($Recs["M520_0"]) )
     {
       $Rec   = $Recs["M520_0"];
@@ -1138,7 +878,6 @@ class marc
 
     $Recs = $this->getCompleteArray(array($this->Prefix . "655" => array("a")));
 
-    
     if ( isset($Recs["M655_0"]) )
     {
       $Rec   = $Recs["M655_0"];
@@ -1163,7 +902,6 @@ class marc
 
     $Link = array();
 
-    
     if ( isset($Recs["M856_0"]) )
     {
       $Rec = $Recs["M856_0"];
@@ -1187,10 +925,6 @@ class marc
     $Item = 0;
     $Retn = array();
 
-    
-    
-    
-    
     $Seen  = array();
     $Recs  = $this->getCompleteArray(array($this->Prefix . "020" => array("9","a")));
     foreach ( $Recs as $Rec )
@@ -1219,17 +953,12 @@ class marc
       $value = trim($this->getSFTexts($Rec, "a"));
       $normalized = str_replace('-', '', $value);
 
-      
       if (strpos($value, "10.") === 0) continue;
 
-      
       if (strpos($value, "urn:") === 0) continue;
 
-      
       if (!preg_match('/^(97[89])?\d{9}[\dxX]$/', $normalized)) continue;
 
-      
-      
       $Key = strtoupper($normalized);
       if ( isset($Seen[$Key]) )  continue;
       $Seen[$Key] = true;
@@ -1279,18 +1008,6 @@ class marc
       }
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     $Sauber  = array();
     $Gesehen = array();
     $Nr      = 0;
@@ -1299,7 +1016,7 @@ class marc
     {
       if ( !isset($Eintrag["text"]) )
       {
-        if ( $Nr )  $Marke = $Eintrag;   
+        if ( $Nr )  $Marke = $Eintrag;
         continue;
       }
       $Schluessel = strtoupper(str_replace(array("-", " "), "", (string) $Eintrag["text"]));
@@ -1547,9 +1264,8 @@ class marc
     $Item = 0;
     $OEds = array();
 
-    
     $Recs = $this->getCompleteArray(array($this->Prefix . "780" => array("a","b","d","g","h","i","q","t","w")));
-    
+
     foreach ( $Recs as $Rec )
     {
       if ( $Item > 0 )
@@ -1594,9 +1310,8 @@ class marc
       }
     }
 
-    
     $Recs = $this->getCompleteArray(array($this->Prefix . "785" => array("a","b","d","g","h","i","q","t","w")));
-    
+
     foreach ( $Recs as $Rec )
     {
       if ( $Item > 0 )
@@ -1665,11 +1380,9 @@ class marc
 
     foreach ( $Recs as $Cat => $Rec )
     {
-      
       $Typ  = (substr($Cat,1,3) == "100") ? "A" : "B";
       $Cnt  = $Item[$Typ];
 
-      
       $Roles = $this->getPersonRoles($Rec, $Typ == "A");
       $Roles = array_filter($Roles);
       if ( $Typ == "A" )  $Roles = array_diff($Roles, array("aut"));
@@ -1755,7 +1468,7 @@ class marc
     if ( !$PROV ) return array();
 
     $Recs = $this->getCompleteArray(array($this->Prefix . "361" => array("0","5","a","f","k","l","o","s","u","z")));
-    
+
     if ( empty($Recs) )  return array();
 
     $Item = 0;
@@ -1771,11 +1484,9 @@ class marc
       }
       if ( $PROV == "iln*" )
       {
-        
         $Found = false;
         foreach ($this->CS->configs["isils"] as $I)
         {
-          
           if ( $I == $Rec["5"]["0"] || strncmp($I . "-", $Rec["5"]["0"], strlen($I)+1) === 0 )
           {
             $Found = true;
@@ -1796,7 +1507,6 @@ class marc
       $Add  = array();
       $Norm = $this->getNorm($Rec);
 
-
       $Text  = $CRec["infos"]["shortname"];
       if ( !$Text ) continue;
 
@@ -1807,13 +1517,11 @@ class marc
       $Name  = $this->getSFTexts($Rec, "a", "");
       $Add[] = ($Bez) ? $Bez . ": " . $Name : ", " . $Name;
       $Add[] = $this->getSFTexts($Rec, "f", ", ");
-      
+
       $Add[] = $this->getSFTexts($Rec, "k", ", ");
       $Add[] = $this->getSFTexts($Rec, "l", ", ");
       $Add[] = $this->getSFTexts($Rec, "z", ", ");
       $Add   = array_filter($Add);
-
-      
 
       $Pros["item_".++$Item]    = array("text"   => implode("", $Add));
       $Pros["item_".++$Item]    = array("text"   => "",
@@ -1842,9 +1550,6 @@ class marc
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
-    
-
     $FingType    = ( isset($this->CS->configs["bibliographic"]["fingerprint"]) && $this->CS->configs["bibliographic"]["fingerprint"] )
                    ? trim(strtolower($this->CS->configs["bibliographic"]["fingerprint"])) : "";
     if ( !$FingType ) return array();
@@ -1861,7 +1566,6 @@ class marc
 
       $ISILs = array_values(array_intersect($this->CS->configs["isils"], $Rec["5"]));
 
-      
       if ( !count($ISILs) )
       {
         if ( $FingType == "iln" ) continue;
@@ -1907,7 +1611,7 @@ class marc
     $Pubs = [];
 
     $Recs = $this->getCompleteArray(array($this->Prefix . "773" => array("a","b","d","g","h","i","q","t","w")));
-    $Rec  = ( count($Recs) ) ? array_shift($Recs) : array();  
+    $Rec  = ( count($Recs) ) ? array_shift($Recs) : array();
     $In   = "";
     if ( count($Rec) )
     {
@@ -1920,10 +1624,8 @@ class marc
       }
       if ( isset($Rec["w"][0]) && in_array(substr($Rec["w"][0],0,8), array("(DE-601)","(DE-627)") ) )
       {
-        
         if ( isset($Rec["t"][0]) && $Rec["t"][0] )
         {
-          
           $Pubs["item_".++$Item]  = array("text"   => $Rec["t"]["0"],
                                           "action" => array(
                                                             "type"   => "search",
@@ -1937,7 +1639,6 @@ class marc
         }
         else
         {
-          
           $Pubs["item_".++$Item]  = array("text"   => $this->getSubfieldFirst($this->Prefix . "245", "a"),
                                           "action" => array(
                                                             "type"   => "search",
@@ -1952,13 +1653,11 @@ class marc
       }
       elseif ( isset($Rec["t"][0]) && $Rec["t"][0] )
       {
-        
         $Pubs["item_".++$Item]  = array("text"   => $Rec["t"]["0"],
                                         "action" => array(),
                                         "more"   => array()
                                        );
       }
-
 
       if ( isset($Rec["a"][0]) && $Rec["a"][0] )
       {
@@ -2001,10 +1700,6 @@ class marc
     $RecsOrg = $this->getCompleteArray(array($this->Prefix . "880" => array("6","a","b","c")));
     if ( count($Recs) )
     {
-      
-      
-      
-      
       $Copies = array();
       foreach ( $Recs as $Rec2 )
       {
@@ -2019,9 +1714,6 @@ class marc
       foreach ( $Recs as $Field => $Rec )
       {
         if ( isset($Rec["I2"][0]) && $Rec["I2"][0] == "4" ) continue;
-
-        
-        
 
         $Text = ( isset($Rec["a"]["0"]) ) ? $Rec["a"]["0"] : $this->getSubfieldFirst($this->Prefix . "245", "a");
         $Org  = $this->getOrgPubl(substr($Field,1,3), $Rec, $RecsOrg);
@@ -2089,13 +1781,8 @@ class marc
         }
       }
 
-      
-      
       if ( count($Copies) )
       {
-        
-        
-        
         $LastKey = "";
         foreach ( $Pubs as $Key => $One )
         {
@@ -2318,19 +2005,12 @@ class marc
 
     foreach ( $Recs as $Rec )
     {
-      
-
        $Text = "";
        $Add  = array();
       if ( isset($Rec["I2"]["0"]) && $Rec["I2"]["0"] == "8" )
       {
         if ( $Item ) $Retn["item_".++$Item]     = array("display" => "newline");
 
-        
-        
-        
-        
-        
         $Lead = array();
         foreach ( array("i", "z", "n") as $SF )
         {
@@ -2339,8 +2019,6 @@ class marc
         }
         $Text = count($Lead) ? implode(" ", $Lead) . ":" : "";
 
-        
-        
         $Title = trim($this->getSFTexts($Rec, "t"));
         $Auth  = trim($this->getSFTexts($Rec, "a"));
         if ( $Title !== "" && $Auth !== "" )       $Add[] = $Title . " / " . $Auth;
@@ -2397,24 +2075,9 @@ class marc
       }
     }
 
-    
-
     if ( count($More) )
     {
       if ( $Item ) $Retn["item_".++$Item]     = array("display" => "newline");
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
 
       foreach ($More as $M )
       {
@@ -2428,14 +2091,6 @@ class marc
       }
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
     $Recs = $this->getCompleteArray(array($this->Prefix . "535" => array("3","a")));
     foreach ( $Recs as $Rec )
     {
@@ -2461,10 +2116,6 @@ class marc
       }
     }
 
-    
-    
-    
-    
     $Recs = $this->getCompleteArray(array($this->Prefix . "533" => array("7","a","b","c","d","e","f")));
     foreach ( $Recs as $Rec )
     {
@@ -2641,9 +2292,6 @@ class marc
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
-    
-    
     $Recs = $this->Collection;
     if ( in_array("GVK", $Recs) && in_array("KXP", $Recs) ) $Recs = array_diff($Recs, array("GVK"));
 
@@ -2688,26 +2336,10 @@ class marc
     return $Returns;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function uniqueSubjectChains($Retn)
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
-    
     $Chains = array();
     $Texts  = array();
     $Cur    = array();
@@ -2727,11 +2359,8 @@ class marc
     }
     if ( count($Cur) )  { $Chains[] = $Cur; $Texts[] = $CurTxt; }
 
-    
-    
     $Keep = array_keys($this->CS->getUniqueMultArray($Texts));
 
-    
     $Out  = array();
     $Item = 0;
     foreach ( $Keep as $K )
@@ -2758,9 +2387,7 @@ class marc
 
       $Add   = array();
       $Norm  = $this->getNorm($Rec);
-      
-      
-      
+
       $NormGND = $this->subjectNormGND($Rec, "D");
       $Add[] = $this->getSFTexts($Rec, "a");
       $Add[] = $this->getSFTexts($Rec, "p", ". ");
@@ -2793,18 +2420,6 @@ class marc
                                      );
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     $Ilns = $this->ilnsDesSuchraums();
 
     $Recs = $this->getCompleteArray(array($this->Prefix . "982" => array(" 0","2","a","s")));
@@ -2829,14 +2444,11 @@ class marc
                                                                             "type"  => "lukida"
                                                                           )
                                                        ),
-                                       
-                                       
-                                       
+
                                        "more"   => $this->subjectNormGND($Rec, "s")
                                       );
     }
 
-    
     $Retn = $this->uniqueSubjectChains($Retn);
 
     $Returns = array();
@@ -3051,8 +2663,6 @@ class marc
                                                           ),
                                          "more"   => array()
                                        );
-
-
       }
     }
 
@@ -3121,9 +2731,6 @@ class marc
       $Tmp   = strtolower($this->getSFTexts($Rec, "q"));
       if ( substr($Tmp, 0, 5) == "nicht" )  continue;
 
-      
-      
-      
       if ( isset($Rec["2"]["0"]) && $Rec["2"]["0"] == "doi" && isset($Rec["a"]["0"]) )  continue;
 
       $Add   = array();
@@ -3138,11 +2745,6 @@ class marc
       $Key["item_".++$Item]  = array("display" => "newline");
     }
 
-    
-    
-    
-    
-    
     $Gesehen = array();
     foreach ( $this->getCompleteArray(array($this->Prefix . "035" => array("a"))) as $Rec )
     {
@@ -3178,7 +2780,7 @@ class marc
     $Note = array();
 
     $Recs = $this->getCompleteArray(array($this->Prefix . "500" => array("a")));
-    
+
     foreach ( $Recs as $Rec )
     {
       if ( isset($Rec["a"]["0"]) )
@@ -3192,7 +2794,7 @@ class marc
     }
 
     $Recs = $this->getCompleteArray(array($this->Prefix . "255" => array("a","b","c")));
-    
+
     foreach ( $Recs as $Rec )
     {
       if ( isset($Rec["a"]["0"]) )
@@ -3234,7 +2836,7 @@ class marc
     }
 
     $Recs = $this->getCompleteArray(array($this->Prefix . "383" => array("c")));
-    
+
     foreach ( $Recs as $Rec )
     {
       if ( isset($Rec["c"]["0"]) )
@@ -3251,9 +2853,8 @@ class marc
       }
     }
 
-
     $Recs = $this->getCompleteArray(array($this->Prefix . "384" => array("a")));
-    
+
     foreach ( $Recs as $Rec )
     {
       if ( isset($Rec["a"]["0"]) )
@@ -3280,35 +2881,6 @@ class marc
                                    );
     }
     return $Notes;
-  }
-
-  private function getArray($Filter)
-  {
-    if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
-
-    $Output = array();
-    foreach ( $Filter as $Field => $Subfields )
-    {
-      if ( array_key_exists($Field, $this->Convert) )
-      {
-        foreach ($this->Convert[$Field] as $Record)
-        {
-          $Tmp = array();
-          foreach ( $Record as $Key => $Values )
-          {
-            if ( in_array((string)$Key, $Subfields) )
-            {
-              foreach ($Values as $Val)
-              {
-                $Tmp[] = $Val;
-              }
-            }
-          }
-          $Output[] = implode(" ", $Tmp);
-        }
-      }
-    }
-    return $Output;
   }
 
   private function getArticleLinks()
@@ -3378,12 +2950,11 @@ class marc
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
     $this->OriginalYear = ( isset($this->Convert[$this->Prefix . "008"]) && substr($this->Convert[$this->Prefix . "008"],6,1) == "r" )
                           ? substr($this->Convert[$this->Prefix . "008"],11,4)
                           : "";
 
-    $Fields  = array();          
+    $Fields  = array();
     $Fields += $this->formatTitle  (   "01", "title");
     $Fields += $this->formatSimple (   "02", "uniformtitle",     array("240" => array("a","f","g","k","m","n","o","p","r","s")));
     $Fields += $this->formatPart   (   "03", "part");
@@ -3438,26 +3009,13 @@ class marc
     $Fields += $this->formatSimple (   "51", "orderid",           array("028" => array("a")));
     $Fields += $this->formatCollec (   "52", "collection");
 
-    
     $Fields += $this->internArtl   (  "100", "article");
     $Fields += $this->internPubl   (  "101", "publisher");
     $Fields += $this->internDetl   (  "102", "details");
     $Fields += $this->internLink   (  "103", "links");
 
-    
     $Fields  = $this->AddOriginalCharacters($Fields);
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     $Groups = array("title" => array(), "detail" => array());
     foreach ( $this->biblineLayout() as $Section => $Lines )
     {
@@ -3467,11 +3025,6 @@ class marc
       }
     }
 
-    
-    
-    
-    
-    
     foreach ( $Fields as $ID => $Field )
     {
       if ( !is_array($Field) || ( isset($Field["label"]) && $Field["label"] !== "" ) )  continue;
@@ -3489,10 +3042,6 @@ class marc
                  "after"      => array());
   }
 
-  
-  
-  
-  
   private function biblineLayout()
   {
     return array(
@@ -3569,25 +3118,6 @@ class marc
     return $Cont;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function kachelLogo()
   {
     $Liste = $this->logoSammlungen();
@@ -3599,20 +3129,6 @@ class marc
     return false;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function sammlungenDesSatzes()
   {
     $Werte = array();
@@ -3622,22 +3138,11 @@ class marc
     return $Werte;
   }
 
-  
-  
-  
-  
-  
   private function logoSchluessel($Wert)
   {
     return strtolower(str_replace(" ", "", (string) $Wert));
   }
 
-  
-  
-  
-  
-  
-  
   private function logoSammlungen()
   {
     $Roh = trim((string) $this->CS->conf("style", "cardlogocollections"));
@@ -3652,12 +3157,6 @@ class marc
     return $Liste;
   }
 
-  
-  
-  
-  
-  
-  
   private function ilnsDesSuchraums()
   {
     $Level = isset($this->CS->search["level"]) ? trim((string) $this->CS->search["level"]) : "";
@@ -3703,14 +3202,12 @@ class marc
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
     $Output = array();
     $Count  = 0;
     foreach ( $Filter as $Field => $Subfields )
     {
       if ( array_key_exists($Field, $this->Convert) )
       {
-        
         foreach ($this->Convert[$Field] as $Record)
         {
           foreach ($Subfields as $Subfield)
@@ -3734,45 +3231,6 @@ class marc
     return $Output;
   }
 
-  private function getID($Field, $Subfield, $Prefix)
-  {
-    if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
-
-    $Output = array();
-    if ( array_key_exists($Field, $this->Convert) )
-    {
-      foreach ($this->Convert[$Field] as $Record)
-      {
-        foreach ( $Record as $Key => $Values )
-        {
-          if ( (string)$Key == $Subfield )
-          {
-            foreach ($Values as $Val)
-            {
-              if (strncasecmp($Prefix, $Val, strlen($Prefix)) === 0)  $Output[] = substr($Val, strlen($Prefix));
-            }
-          }
-        }
-      }
-    }
-    return $Output;
-  }
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function repairScheme($Url)
   {
     return preg_replace('~^(https?):/(?!/)~i', '$1://', (string) $Url);
@@ -3793,27 +3251,18 @@ class marc
     $SkipMans = ( isset($this->CS->configs["item"]["skipmans"])           && trim($this->CS->configs["item"]["skipmans"]) )            ? array_filter(explode(",", $this->CS->configs["item"]["skipmans"]))         : array();
     $BlackCom = ( isset($this->CS->configs["item"]["commentblacklist"])   && trim($this->CS->configs["item"]["commentblacklist"]) )    ? array_filter(explode(",", $this->CS->configs["item"]["commentblacklist"])) : array();
 
-    
     $Items  = array();
 
-     
-
-    
     $MExps = $this->getCompleteArray(array($this->Prefix . "980" => array("1","2","a","b","c","d","e","f","g","h","j","k","l","u","x","y","z")));
 
-    
     $M980s = $MExps;
 
     $ILNGs = array();
     foreach ($MExps as $Rec)
     {
-      
       $MAN = isset($Rec["y"][0]) ? $Rec["y"][0] : "";
       if ( $MAN && count($SkipMans) )
       {
-        
-        
-
         $Break = false;
         foreach ( $SkipMans as $SM )
         {
@@ -3831,9 +3280,6 @@ class marc
         if ( $Break ) continue;
       }
 
-      
-
-      
       $ALI = isset($Rec["e"][0]) ? $Rec["e"][0] : "";
       if ( !$ALI
         || !$ALI && in_array("empty",        $SkipAUIs)
@@ -3843,14 +3289,8 @@ class marc
         $AddItems[] = $Rec;
       }
 
-      
-      
-      
-      
-
       if ( !$this->Online || $HWithO )
       {
-
         if ( !$ALI && in_array("empty",        $SkipAUIs)
           ||  $ALI && in_array($ALI,           $SkipAUIs)
           ||  $ALI && in_array($ALI.".online", $SkipAUIs) &&  $this->Online )
@@ -3864,11 +3304,8 @@ class marc
 
         if ( isset($Rec["2"][0]) && isset($Rec["b"][0]) ) $ILNGs[$Rec["2"][0]][] = strtoupper($Rec["b"][0]);
 
-        
-
         foreach ($Rec as $Code => $SubRecs)
         {
-          
           if ( is_array($SubRecs) )
           {
             $Items[$ExpID][$Code] = $SubRecs;
@@ -3884,12 +3321,8 @@ class marc
     if ( !$this->Online && !$HWithO ) return $Items;
     if ( !isset($this->CS->configs["item"]["links"]) || $this->CS->configs["item"]["links"] == "n" ) return $Items;
 
-    
     $OA    = $this->get856OA();
 
-    
-
-    
     $MExps     = $this->getFlatArray(array($this->Prefix . "981" => array("1","2","r","w","y")));
     $Grps      = array();
     $GrpI      = 0;
@@ -3922,12 +3355,6 @@ class marc
       }
     }
 
-      
-      
-
-    
-    
-
     foreach ($Grps as &$GVals)
     {
       $ExpID = "onlinelocal_" . $this->Counts["online"]++;
@@ -3941,22 +3368,16 @@ class marc
         $Items[$ExpID]["usagelinks"] = $LicLinks[$Items[$ExpID]["iln"] . "_" . $Items[$ExpID]["enr"]];
       }
 
-      
       if ( count($AddItems) )
       {
-        
-
         $Items[$ExpID]["comment"] = array();
         $Items[$ExpID]["stock"]   = array();
         foreach ( $AddItems as $AIRec )
         {
           if ( isset($AIRec["k"]) )
           {
-
-            
             foreach ( $AIRec["k"] as $K )
             {
-              
               if (!in_array($K, $BlackCom)) $Items[$ExpID]["comment"][] = $K;
             }
           }
@@ -3970,10 +3391,8 @@ class marc
         }
       }
 
-      
       if ( count($M980s) )
       {
-        
         foreach ( $M980s as $M980Rec )
         {
           if ( !isset($M980Rec["1"][0]) || $M980Rec["1"][0] != $Items[$ExpID]["enr"] )  continue;
@@ -3998,31 +3417,21 @@ class marc
       }
     }
 
-    
-
-    
     if ( $this->Counts["online"] > 0 && $PLocO ) return $Items;
 
-    
-    
-
-    
     $MasterLink = "";
     $MExps  = $this->getFlatArray(array($this->Prefix . "856" => array("I1","I2","3","t","u","x","y","z")));
 
     foreach ($MExps as $Rec)
     {
       $ExpID = "onlineglobal_" . $this->Counts["online"]++;
-      
 
       if ( isset($Rec["I2"]) && in_array($Rec["I2"], $SkipI2s) ) continue;
 
-      
       if ( ( !isset($Rec["I1"]) || !isset($Rec["I2"]) )
         && ( !( isset($Rec["I1"]) && $Rec["I1"] == "4"
-          && isset($Rec["I2"]) && $Rec["I2"] == "2" ) )        
-          
-            
+          && isset($Rec["I2"]) && $Rec["I2"] == "2" ) )
+
           && ( ( isset($this->CS->configs["item"]["masterlinkany"])
               && $this->CS->configs["item"]["masterlinkany"] == "y" )
             || (isset($Rec["x"]) && $Rec["x"] == "Resolving-System") )
@@ -4045,8 +3454,6 @@ class marc
         if ( $Code == "z")  $Text[] = $Value;
         if ( $Code == "u")
         {
-          
-          
           $Value = $this->repairScheme($Value);
           $Items[$ExpID]["link"] = $Value;
           $Items[$ExpID]["host"] = $this->CS->getHost($Value);
@@ -4055,10 +3462,8 @@ class marc
       $Items[$ExpID]["text"] = implode(", ", $Text);
       $Items[$ExpID]["oa"]   = $OA;
 
-      
       if ( count($AddItems) )
       {
-        
         $Items[$ExpID]["comment"] = array();
         $Items[$ExpID]["stock"]   = array();
         foreach ( $AddItems as $AIRec )
@@ -4088,15 +3493,6 @@ class marc
     return $Items;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function addCallSigns($Items)
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -4124,8 +3520,6 @@ class marc
 
     foreach ( $Items as $ID => $Item )
     {
-      
-      
       $ILN = $Erste(isset($Item["2"]) ? $Item["2"] : (isset($Item["iln"]) ? $Item["iln"] : ""));
       $ENR = $Erste(isset($Item["1"]) ? $Item["1"] : (isset($Item["enr"]) ? $Item["enr"] : ""));
       if ( $ILN === "" || $ENR === "" )  continue;
@@ -4139,26 +3533,17 @@ class marc
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
-    
-
-
     if ( !isset($this->CS->configs["item"]["links"]) || $this->CS->configs["item"]["links"] == "n" ) return array();
 
     $HWithO   = ( isset($this->CS->configs["item"]["hapticwithonline"])   && $this->CS->configs["item"]["hapticwithonline"]   == "y" ) ? true : false;
     if ( !$this->Online && !$HWithO ) return array();
 
-    
     $Links = array();
 
-    
     $MExps = $this->getCompleteArray(array($this->Prefix . "776" => array("I2", "d", "i", "n", "o")));
-
-    
 
     foreach ($MExps as $Rec)
     {
-      
       if ( !isset($Rec["I2"]["0"]) || $Rec["I2"]["0"] != "8" ) continue;
       if ( !isset($Rec["o"]["0"])  || substr($Rec["o"]["0"],0,4) != "urn:" )  continue;
 
@@ -4179,7 +3564,6 @@ class marc
       $Links[$ExpID]["epn"]    = $ExpID;
     }
 
-    
     return $Links;
   }
 
@@ -4187,22 +3571,14 @@ class marc
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
-    
-
     if ( !isset($this->CS->configs["item"]["siblings"]) || $this->CS->configs["item"]["siblings"] == "n" ) return array();
 
-    
     $Searches = array();
 
-    
     $MExps = $this->getCompleteArray(array($this->Prefix . "776" => array("I2", "d", "i", "n", "w", "z")));
-
-    
 
     foreach ($MExps as $Rec)
     {
-      
       if ( !isset($Rec["I2"]["0"]) || $Rec["I2"]["0"] != "8" ) continue;
       if ( ( !isset($Rec["z"]["0"])  || !trim($Rec["z"]["0"]) )
         && ( !isset($Rec["w"]["0"])  || !in_array(substr($Rec["w"]["0"],0,8), array("(DE-601)","(DE-627)"))) ) continue;
@@ -4226,7 +3602,6 @@ class marc
       $Searches[$ExpID]["epn"]    = $ExpID;
     }
 
-    
     return $Searches;
   }
 
@@ -4253,10 +3628,6 @@ class marc
     return "";
   }
 
-  
-  
-  
-  
   private function subjectNormGND($Rec, $Code)
   {
     $Art  = isset($Rec[$Code][0]) ? strtolower(trim($Rec[$Code][0])) : "";
@@ -4297,30 +3668,6 @@ class marc
         }
       }
     }
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     if ( $GNDID )
     {
@@ -4347,9 +3694,8 @@ class marc
                                  'isa','topic','relatedperson','relatedorganisation','relatedevent',
                                  'biographicalorhistoricalinformation']];
 
-      
       $Pack = $this->CS->getNormsDB($Type, $GNDID);
-      
+
       if ( isset($Pack["data"]) && is_array($Pack["data"]) && count($Pack["data"]) )
       {
         $More["type"]  = $Type;
@@ -4358,28 +3704,11 @@ class marc
         unset($Pack["data"]["preferredname"]);
         $More["more"] = isset($Pack["more"]) ? $Pack["more"] : [];
 
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         $Bild = isset($Pack["image"]) && is_array($Pack["image"]) ? $Pack["image"] : [];
         if ( count($Bild) && empty($Bild["none"]) && !empty($Bild["datei"]) )
         {
           $More["image"] = array(
-            
-            
-            
+
             "url"         => rtrim((string) ($this->CS->f3->get("asset.path_" . strtolower(MODE))
                                              ?: $this->CS->f3->get("asset.path")), "/") . "/"
                              . (string) $this->CS->f3->get("asset.version") . "/asset/show?t=gnd&q=" . rawurlencode($GNDID),
@@ -4392,10 +3721,6 @@ class marc
           );
         }
 
-        
-        
-        
-        
         $Wiki = isset($Pack["extra"]["wiki"]) && is_array($Pack["extra"]["wiki"]) ? $Pack["extra"]["wiki"] : [];
         if ( count($Wiki) && empty($Wiki["none"]) && !empty($Wiki["extract"]) )
         {
@@ -4412,15 +3737,10 @@ class marc
 
         foreach ( $Pack["data"] as $Key => $Val )
         {
-          
-          
           if ( $Key == "depiction" )  continue;
-          
+
           $Text = $this->CS->getText($Type . "." . strtolower($Key));
           if ( !$Text )   $Text = $Key;
-
-          
-          
 
           if ( $Key == "gender"   && isset($Val["label"]) )    $Val = $Val["label"];
 
@@ -4446,8 +3766,6 @@ class marc
               }
             }
             $Val = $Tmp;
-            
-            
           }
           elseif ( is_array($Val) && count($Val) )
           {
@@ -4463,7 +3781,6 @@ class marc
                                                   "data"  => $Val);
         }
 
-        
         $Sorted = [];
         foreach ($Sort[$Type] as &$Key)
         {
@@ -4472,9 +3789,7 @@ class marc
           }
         }
         $More["data"] = $Sorted;
-
       }
-      
     }
     return $More;
   }
@@ -4483,13 +3798,11 @@ class marc
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
     foreach ($this->ColDetails as $One)
     {
       if ( substr($One, 0, 8) == "GBV_ILN_" && isset($this->CS->configs["ilnmans"]) && in_array(substr($One,8),  $this->CS->configs["ilnmans"]) ) return true;
     }
 
-    
     if ( $this->OwnCollection )  return true;
 
     return false;
@@ -4682,14 +3995,6 @@ class marc
     return "";
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
   private function parseMarcXml($XML)
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -4700,43 +4005,29 @@ class marc
     }
     catch (Exception $e)
     {
-      
       return array();
     }
 
     $Convert = array();
     if ( !isset($xml->record[0]) ) return $Convert;
 
-    
     $Convert["Lead"] = (isset($xml->record[0]->leader)) ? (string) $xml->record[0]->leader : "";
 
-    
     foreach($xml->record[0]->controlfield as $CF)
     {
       $Convert[(string) $CF["tag"]] = (string) $CF[0];
     }
 
-    
     $CTags    = array();
-    $ErsteSub = array();   
+    $ErsteSub = array();
     foreach($xml->record[0]->datafield as $DF)
     {
       $Tag = (string) $DF["tag"];
 
-      
-      
-      
-      
-      
-      
-      
-      
-      
       if ( $Tag >= "900" )
       {
         $ErsteSub[$Tag][isset($CTags[$Tag]) ? $CTags[$Tag] + 1 : 0] = (string) $DF->subfield;
       }
-
 
       if ( !isset($CTags[$Tag]) )
       {
@@ -4749,11 +4040,9 @@ class marc
       $DFI = $CTags[$Tag];
       $Convert[$Tag][$DFI] = array();
 
-      
       if ( trim((string) $DF["ind1"]) )  $Convert[$Tag][$DFI]["I1"] = (string) $DF["ind1"];
       if ( trim((string) $DF["ind2"]) )  $Convert[$Tag][$DFI]["I2"] = (string) $DF["ind2"];
 
-      
       $CSubs = array();
       foreach($DF->subfield as $SF)
       {
@@ -4773,24 +4062,9 @@ class marc
     }
     ksort($Convert);
 
-    
-    
-    
-    
     return array("marc" => $Convert, "erstesub" => $ErsteSub);
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function getReducedConvert($XML, $ID = "", $UpDate = "")
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -4799,11 +4073,7 @@ class marc
     if ( !is_array($Neutral) )
     {
       $Neutral = $this->parseMarcXml($XML);
-      
-      
-      
-      
-      
+
       $Neutral["solr"] = array(
         "collection"         => isset($this->SolrOne["collection"])         ? $this->SolrOne["collection"]         : array(),
         "collection_details" => isset($this->SolrOne["collection_details"]) ? $this->SolrOne["collection_details"] : array(),
@@ -4815,10 +4085,6 @@ class marc
         $this->CS->writeMarcNeutral($ID, $Neutral, $UpDate);
     }
 
-    
-    
-    
-    
     $Convert  = $this->setzePraefix(isset($Neutral["marc"])     ? $Neutral["marc"]     : array());
     $ErsteSub = $this->setzePraefix(isset($Neutral["erstesub"]) ? $Neutral["erstesub"] : array());
 
@@ -4827,12 +4093,6 @@ class marc
     return $Convert;
   }
 
-  
-  
-  
-  
-  
-  
   private function setzePraefix($Felder)
   {
     if ( !is_array($Felder) || !count($Felder) )  return array();
@@ -4847,17 +4107,6 @@ class marc
     return $Neu;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function reduceToClient(&$Convert, $ErsteSub)
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -4885,7 +4134,6 @@ class marc
         }
         else
         {
-          
           $SF2 = ( isset($Rec["2"]) && is_array($Rec["2"]) && count($Rec["2"]) ) ? (string) end($Rec["2"]) : "";
           $SFY = ( isset($Rec["y"]) && is_array($Rec["y"]) && count($Rec["y"]) ) ? substr((string) end($Rec["y"]), 1) : "";
 
@@ -4903,8 +4151,6 @@ class marc
         if ( $Weg )  unset($Convert[$Tag][$DFI]);
       }
 
-      
-      
       if ( !count($Convert[$Tag]) )  unset($Convert[$Tag]);
       else                           $Convert[$Tag] = array_values($Convert[$Tag]);
     }
@@ -4955,32 +4201,6 @@ class marc
               $Data[] = $Value;
             }
           }
-      }
-    }
-    return ($Data);
-  }
-
-  private function getSubfields($Field, $Subfields = array() )
-  {
-    if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
-
-    $Data = array();
-    if ( array_key_exists($Field, $this->Convert) )
-    {
-      foreach ( $this->Convert[$Field] as $Record )
-      {
-        $Rec = array();
-        foreach ( $Record as $Key => $Subrecord )
-        {
-          if ( in_array($Key, $Subfields) )
-          {
-            foreach ( $Subrecord as  $Value )
-            {
-              $Rec[$Key] = $Value;
-            }
-          }
-        }
-        $Data[] = $Rec;
       }
     }
     return ($Data);
@@ -5047,7 +4267,6 @@ class marc
 
   private function get856OA()
   {
-    
     $MExps = $this->getFlatArray(array($this->Prefix . "856" => array("z")));
     foreach ($MExps as $Rec)
     {
@@ -5057,13 +4276,6 @@ class marc
       }
     }
     return false;
-  }
-
-  private function isMulti()
-  {
-    if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
-
-    return ( in_array($this->Format, $this->CS->formatsMulti) )          ? true : false;
   }
 
   private function prettyRecs($Filter)
@@ -5090,7 +4302,7 @@ class marc
                 {
                   if ( $Rec["text"] )
                   {
-                    $Rec["text"] .= " : " . $Value;   
+                    $Rec["text"] .= " : " . $Value;
                   }
                   else
                   {
@@ -5123,23 +4335,12 @@ class marc
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
 
-    
     if ( !isset($One["fullrecord_marcxml"]) || !isset($One["id"]) ) return;
     $this->Counts = array("search" => 0, "physical" => 0, "online" => 0);
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     $this->MasterLink = "";
 
-    $this->SolrOne       = $One;   
+    $this->SolrOne       = $One;
     $this->ID            = ($One["id"] != "" && $One["id"] != "0") ? (string) $One["id"] : "RAND".rand(100000000,999999999);
     $this->Collection    = ( isset($One["collection"]) )                                   ? $One["collection"]           : array();
     $this->ColDetails    = ( isset($One["collection_details"]) )                           ? $One["collection_details"]   : array();
@@ -5148,11 +4349,9 @@ class marc
     $this->Online        = ( isset($One["remote_bool"]) && $One["remote_bool"] == "true" ) ? true                         : false;
     $this->Prefix        = $Prefix;
     $this->Convert       = $this->getReducedConvert($One["fullrecord_marcxml"], $this->ID,
-                                                     isset($One["up_date"]) ? (string) $One["up_date"] : "");  
+                                                     isset($One["up_date"]) ? (string) $One["up_date"] : "");
     $this->Parents       = $this->getParents();
-    
-    
-    
+
     $this->OwnCollection = (count(array_intersect($this->Collection, $this->CS->configs["mycolls"]))) ? true : false;
     $this->Owner         = $this->getOwnILNsOrCols();
     $this->ArticleLink   = $this->getArticleLinks();
@@ -5164,16 +4363,11 @@ class marc
     $this->Searches      = $this->getSearches();
     $this->Links         = $this->getLinks();
 
-     
     if ( APPDEBUG["IDS"] && ( (is_array(APPDEBUG["IDS"]) && in_array($this->ID, APPDEBUG["IDS"])) || (!is_array(APPDEBUG["IDS"]) && APPDEBUG["IDS"] == $this->ID)) )
     {
       $this->CS->debug("IDS", $this->ID);
       $this->CS->debug("MCD", $this->Convert);
     }
-
-    
-
-    
 
     if ( APPDEBUG["MCD"] ) $this->CS->debug("MCD", $this->Convert);
     $Media  = array
@@ -5201,8 +4395,8 @@ class marc
       "links"         => $this->Links,
       "ilngroups"     => $this->ILNGroups,
       "masterlink"    => $this->MasterLink,
-      "bibliographic" => $this->Fields,     
-      "marc"          => $this->Convert     
+      "bibliographic" => $this->Fields,
+      "marc"          => $this->Convert
     );
 
     if ( isset($this->CS->configs["item"]["use264casyear"]) && $this->CS->configs["item"]["use264casyear"] == "y"
@@ -5211,26 +4405,17 @@ class marc
       $Media["year"] = $this->Convert["M264"][0]["c"][0];
     }
 
-    
     if ( APPDEBUG["IDS"] && ( (is_array(APPDEBUG["IDS"]) && in_array($this->ID, APPDEBUG["IDS"])) || (!is_array(APPDEBUG["IDS"]) && APPDEBUG["IDS"] == $this->ID)) )
     {
       $this->CS->debug("IDS", $this->ID);
       $this->CS->debug("MED", $Media);
     }
 
-    
     if ( APPDEBUG["MED"] ) $this->CS->debug("MED", $Media);
 
     return $Media;
   }
 
-  
-  
-  
-
-  
-  
-  
   public function getConverts($Add, $Prefix = "M")
   {
     if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
@@ -5244,61 +4429,36 @@ class marc
         $ID = isset($SolrOne["id"]) ? $SolrOne["id"] : "";
         if ( !$ID ) continue;
 
-        
-        
         $UpDate = isset($SolrOne["up_date"]) ? (string) $SolrOne["up_date"] : "";
         $this->CS->works["updates"][$ID] = $UpDate;
 
-        
-        
-        
-        
-        
         {
-          
           $One = $this->doConvert($SolrOne, $Prefix);
 
           if ( !$this->add )
           {
-            
-
             $this->CS->works["marc"][$ID] = $One;
             $this->CS->results["data"][]  = $One;
 
-            
-
-            
             if ( isset($One["format"]) )
             {
               if ( isset($One["rootid"]) && $One["rootid"] != "" )
               {
-                
                 $this->CS->hierarchy["childs"][$ID]               = $One["rootid"];
 
-                 
                 $this->CS->hierarchy["parents"][$One["rootid"]][] = $ID;
               }
             }
-
-            
 
             if ( isset($this->CS->display["marc"]) && $this->CS->display["marc"] )      $this->CS->results["marc"][$ID] = $this->Convert;
           }
           else
           {
-            
-
             $this->CS->works["add"][$ID] = $One;
 
             $CIDs = isset($this->CS->hierarchy["parents"][$ID]) ? $this->CS->hierarchy["parents"][$ID] : array();
-            
-            
-            
-            
-            
-            $Kids = array_flip(array_column($this->CS->results["data"] ?? array(), "id"));
 
-            
+            $Kids = array_flip(array_column($this->CS->results["data"] ?? array(), "id"));
 
             foreach ( $CIDs as $CID )
             {
@@ -5307,42 +4467,23 @@ class marc
               {
                 $this->CS->results["marc"][$CID] += $this->Convert;
 
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
                 $APSInherit = ( isset($this->CS->configs["item"]["articleparentshift"])
                              && trim($this->CS->configs["item"]["articleparentshift"]) == "y" ) ? true : false;
                 if ( $this->Owner && !$APSInherit && isset($this->CS->results["data"]) && is_array($this->CS->results["data"]) && count($this->CS->results["data"]) )
                 {
-                  
                   if ( isset($Kids[$CID]) )
                   {
-                    
                     $this->CS->works["marc"][$CID]["owner"] = 1;
-                    
                   }
                 }
               }
             }
           }
-
         }
       }
     }
     return;
   }
-
-  
-  
-  
-
 }
 
 ?>

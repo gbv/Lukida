@@ -128,7 +128,7 @@ async function doSearch() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        apikey:  'HIER_API_KEY_EINTRAGEN',
+        apikey:  import.meta.env.VITE_API_KEY,
         client:  'Demo', appl: 'production', area: 'findex',
         search:  { query: query.value },
         display: { bib: true },

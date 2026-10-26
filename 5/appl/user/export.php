@@ -2,29 +2,10 @@
 
 class export
 {
-  
-  
-  
   private $CS;
   private $config;
   private $excelHeaderWritten = false;
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private const FORMATE = array(
     "citavi"  => "citavi",
     "endnote" => "endnote",
@@ -35,9 +16,6 @@ class export
     "csv"     => "excel",
   );
 
-  
-  
-  
   public function formatname($format)
   {
     return self::FORMATE[strtolower(trim((string) $format))] ?? "";
@@ -51,13 +29,8 @@ class export
 
   private function getExcelText($input)
   {
-    
     return  trim(preg_replace(array("/;/","/\t/","/\n/","/\r/","/\v/"), array(";;"," ","","",""), $input));
   }
-
-  
-  
-  
 
   public function exportfile($data, $format)
   {
@@ -132,17 +105,11 @@ class export
     $metadataOU = "";
     if( $format == "excel" )
     {
-        
         $delimiter =  ";";
         $dataArray = array("header" => "", "body" => "");
 
-        
-        
-        
-        
         $excelKeys = array("format","id","title","booktitle","journal","subtitle","series","author","associates","isbn","issn","place","publisher","date","volume","issue","pages","language","note","school","type","summary","edition","physicaldescription","doi","subject","volltext","url","standort","signatur");
 
-        
         if(!$this->excelHeaderWritten)
         {
             for( $i = 0; $i < count($excelKeys); $i++ )
@@ -161,7 +128,6 @@ class export
 
             if ($excelKeys[$i] === "pages" && $value !== "")
          {
-            
             $value = '="' . $this->getExcelText($value) . '"';
             $metadataOU .= $value . (($i < count($excelKeys)-1) ? $delimiter : "\n");
          }
@@ -174,22 +140,20 @@ class export
             {
                 if( !empty($data["partTitle"]) )
                 {
-                   
                    $metadataOU .= $this->getExcelText($data["partTitle"]) . $delimiter;
-                   
+
                    $metadataOU .= (empty($data["title"]) ? "" : $this->getExcelText($data["title"])) .  $delimiter . $delimiter;
                 }
                 elseif( !empty($data["articleTitle"]) )
                 {
-                   
                    $metadataOU .= $this->getExcelText($data["articleTitle"]) . $delimiter . $delimiter;
-                   
+
                    $metadataOU .= (empty($data["title"]) ? "" : $this->getExcelText($data["title"])) . $delimiter;
                 }
                 else
                 {
                    $metadataOU .= (empty($data["title"]) ? "" : $this->getExcelText($data["title"])) . $delimiter;
-                   
+
                    $metadataOU .= (empty($data["collTitle"]) ? "" : $this->getExcelText($data["collTitle"])) .  $delimiter . $delimiter;
                 }
             }
@@ -283,19 +247,7 @@ class export
             {
                 $data["format"] = $exportFormats["journal"][$format];
             }
-            
 
-
-
-
-
-
-
-
-
-
-
-            
             elseif( !empty($data["format"]) && $data["format"] == "unknown" )
             {
             $data["format"] = $exportFormats["unpublished"][$format];
@@ -308,15 +260,11 @@ class export
             {
             $data["format"] = $exportFormats["unknown"][$format];
             }
-            
         }
         else
         {
             $data["format"] = $libGenre;
         }
-        
-
-
 
         if( !empty($data["format"]) )
         {
@@ -467,7 +415,6 @@ class export
         }
         if( $format == "bibtex")
         {
-            
             $metadataOU = substr($metadataOU, 0, -3) . "\r\n";
         }
         if( !empty($exportTags["endtag"][$format]))
@@ -475,11 +422,9 @@ class export
             $metadataOU .= (($format == "bibtex") ? "" : $tagPrefix) . $exportTags["endtag"][$format];
         }
 
-        
         if ($format !== "excel") {
             $metadataOU = rtrim($metadataOU, "\r\n") . "\r\n\r\n";
         }
-
     }
     return $metadataOU;
   }

@@ -1,36 +1,12 @@
 <?php
 
-
 use PHPMailer\PHPMailer;
 require_once __DIR__ . '/_librarys/PHPMailer/Exception.php';
 require_once __DIR__ . '/_librarys/PHPMailer/PHPMailer.php';
 require_once __DIR__ . '/_librarys/PHPMailer/SMTP.php';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class com extends general
 {
-  
-  
-  
   public $adminclient;
   public $avatar;
   public $client;
@@ -46,97 +22,54 @@ class com extends general
     parent::__construct($f3);
     if ( APPDEBUG["FKT"] ) $this->debug("FKT", __METHOD__);
 
-    if ( ACTION != "batch" )
+    $this->posted = (array) json_decode(file_get_contents("php://input"), true);
+    if ( APPDEBUG["PAY"] ) $this->debug("PAY", $this->posted);
+
+    $this->lang = ( isset($this->posted["lang"])
+                    && trim($this->posted["lang"])
+                    && in_array(trim($this->posted["lang"]), array("e", "g")) )
+                  ? trim($this->posted["lang"]) : "";
+
+    $this->clientip = "";
+    if (!$this->clientip && !empty($_SERVER['HTTP_X_REAL_IP']))       $this->clientip = $_SERVER['HTTP_X_REAL_IP'];
+    if (!$this->clientip && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) $this->clientip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+    if (!$this->clientip && !empty($_SERVER['REMOTE_ADDR']))          $this->clientip = $_SERVER['REMOTE_ADDR'];
+
+    $ConfigKey  = trim((string) $this->f3->get("application.apikey"));
+    $PostedKey  = $this->checkPostedStr("apikey");
+
+    if ( !$ConfigKey )
     {
-      
-      $this->posted = (array) json_decode(file_get_contents("php://input"), true);
-      if ( APPDEBUG["PAY"] ) $this->debug("PAY", $this->posted);
-
-      
-      $this->lang = ( isset($this->posted["lang"])
-                      && trim($this->posted["lang"])
-                      && in_array(trim($this->posted["lang"]), array("e", "g")) )
-                    ? trim($this->posted["lang"]) : "";
-
-      
-      $this->clientip = "";
-      if (!$this->clientip && !empty($_SERVER['HTTP_X_REAL_IP']))       $this->clientip = $_SERVER['HTTP_X_REAL_IP'];
-      if (!$this->clientip && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) $this->clientip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-      if (!$this->clientip && !empty($_SERVER['REMOTE_ADDR']))          $this->clientip = $_SERVER['REMOTE_ADDR'];
+      if ( APPDEBUG["LOG"] ) $this->debug("LOG", "API Access ERROR: no apikey configured");
+      $this->finalize(array("status" => -1, "code" => "apikeynotconfigured"));
     }
 
-    
-    
-    
-    if ( ACTION == "batch" )
+    if ( !$PostedKey || !hash_equals($ConfigKey, $PostedKey) )
     {
-      
-      $this->posted = array();
-      $this->lang   = "g";
-      $this->user   = "";
-      $this->avatar = "";
-      if ( APPDEBUG["LOG"] ) $this->debug("LOG", "API Access OK (batch)");
-    }
-    elseif ( ACTION == "version" )
-    {
-      
-      $Client = $this->checkPostedStr("client");
-      if ( !$Client )
-      {
-        $this->finalize(array("status" => -1, "code" => "paramsmissing"));
-      }
-      $this->client      = $Client;
-      $this->adminclient = $this->checkPostedStr("adminclient");
-      define("CLIENTDIR", PROJECTDIR . "clients" . DIRECTORY_SEPARATOR . $this->client);
-      if ( APPDEBUG["LOG"] ) $this->debug("LOG", "API Access OK (version)");
-    }
-    else
-    {
-      
-      $ConfigKey  = trim((string) $this->f3->get("application.apikey"));
-      $PostedKey  = $this->checkPostedStr("apikey");
-
-      if ( !$ConfigKey )
-      {
-        
-        if ( APPDEBUG["LOG"] ) $this->debug("LOG", "API Access ERROR: no apikey configured");
-        $this->finalize(array("status" => -1, "code" => "apikeynotconfigured"));
-      }
-
-      if ( !$PostedKey || !hash_equals($ConfigKey, $PostedKey) )
-      {
-        if ( APPDEBUG["LOG"] ) $this->debug("LOG", "API Access ERROR: invalid apikey");
-        $this->finalize(array("status" => -1, "code" => "apikeyinvalid"));
-      }
-
-      
-      $Client = $this->checkPostedStr("client");
-      if ( !$Client )
-      {
-        if ( APPDEBUG["LOG"] ) $this->debug("LOG", "API Access ERROR: no client");
-        $this->finalize(array("status" => -1, "code" => "paramsmissing"));
-      }
-
-      $this->client      = $Client;
-      $this->adminclient = $this->checkPostedStr("adminclient");
-      define("CLIENTDIR", PROJECTDIR . "clients" . DIRECTORY_SEPARATOR . $this->client);
-
-      if ( APPDEBUG["LOG"] ) $this->debug("LOG", "API Access OK (" . $this->client . ")");
+      if ( APPDEBUG["LOG"] ) $this->debug("LOG", "API Access ERROR: invalid apikey");
+      $this->finalize(array("status" => -1, "code" => "apikeyinvalid"));
     }
 
-    
-    
-    
-    $ReadArea = $this->checkPostedStr("area");
-    if ( in_array(ACTION, array("batch", "config", "dash", "login", "regis", "storeregis"))
-      || ( ACTION == "read" && $ReadArea == "admintexts" )
+    $Client = $this->checkPostedStr("client");
+    if ( !$Client )
+    {
+      if ( APPDEBUG["LOG"] ) $this->debug("LOG", "API Access ERROR: no client");
+      $this->finalize(array("status" => -1, "code" => "paramsmissing"));
+    }
+
+    $this->client      = $Client;
+    $this->adminclient = $this->checkPostedStr("adminclient");
+    define("CLIENTDIR", PROJECTDIR . "clients" . DIRECTORY_SEPARATOR . $this->client);
+
+    if ( APPDEBUG["LOG"] ) $this->debug("LOG", "API Access OK (" . $this->client . ")");
+
+    if ( in_array(ACTION, array("config", "login"))
       || $this->f3->get("security.user") == "none" )
     {
       if ( APPDEBUG["LOG"] ) $this->debug("LOG", "User Access OK (no auth required for: " . ACTION . ")");
       return (0);
     }
 
-    
     $Tokn = $this->checkPostedStr("tokens", "user");
     if ( $Tokn )
     {
@@ -158,17 +91,11 @@ class com extends general
     $this->finalize(array("status" => -1, "code" => "loginerror"));
   }
 
-  
-  
-  
   private function base64url_encode($str)
   {
     return rtrim(strtr(base64_encode($str), '+/', '-_'), '=');
   }
 
-  
-  
-  
   protected function checkPostedStr($Index, $Index2="", $Index3="")
   {
     if ( !$Index  || !isset($this->posted[$Index]) )                     return "";
@@ -188,22 +115,6 @@ class com extends general
   private function isPostedScalar($Value)
   {
     return is_string($Value) || is_int($Value) || is_float($Value);
-  }
-
-  protected function checkPostedInt($Index, $Index2="", $Index3="")
-  {
-    if ( !$Index  || !isset($this->posted[$Index]) )                     return 0;
-    if (  $Index2 && !isset($this->posted[$Index][$Index2]) )            return 0;
-    if (  $Index3 && !isset($this->posted[$Index][$Index2][$Index3]) )   return 0;
-
-    if ( $Index3 && isset($this->posted[$Index][$Index2][$Index3]) && is_numeric($this->posted[$Index][$Index2][$Index3]) )
-      return trim($this->posted[$Index][$Index2][$Index3]);
-    elseif ( $Index2 && isset($this->posted[$Index][$Index2]) && is_numeric($this->posted[$Index][$Index2]) )
-      return trim($this->posted[$Index][$Index2]);
-    elseif ( $Index && isset($this->posted[$Index]) && is_numeric($this->posted[$Index]) )
-      return trim($this->posted[$Index]);
-    else
-      return 0;
   }
 
   protected function checkDecryptedPostedStr($Index, $Index2="", $Index3="")
@@ -246,7 +157,6 @@ class com extends general
     $signature_provided = $tokenParts[2];
     $dt                 = json_decode($payload)->dt;
 
-    
     if ( $type == "user" && ((time() - $dt) > (60 * $this->f3->get("application.minsvalidtoken"))) )  return [];
 
     $base64_url_header  = $this->base64url_encode($header);
@@ -293,7 +203,6 @@ class com extends general
       }
     }
 
-    
     if ( is_array($this->UserTokenPayload) && count($this->UserTokenPayload)
       && ( !isset($Results["status"]) || $Results["status"] >= 0 ) )
     {
@@ -313,15 +222,6 @@ class com extends general
     header("Access-Control-Allow-Origin: *");
 
     die(json_encode($Results));
-  }
-
-  public function prepareBackupPath($File)
-  {
-    $Path = BACKUPSDIR . date("Ymd");
-    if ( !file_exists($Path) )  mkdir($Path);
-    $Path .= DIRECTORY_SEPARATOR . $this->client;
-    if ( !file_exists($Path) )  mkdir($Path);
-    return $Path . DIRECTORY_SEPARATOR . strtolower($File) . ".bck";
   }
 
   public function prepareCachePath($PathArray, $File, $Year = false)
@@ -370,15 +270,6 @@ class com extends general
     $Path .= DIRECTORY_SEPARATOR . strtolower($Dir);
     $this->createPath($Path);
     return $Path . DIRECTORY_SEPARATOR . strtolower($File) . ".inc";
-  }
-
-  public function prepareTransferPath($File)
-  {
-    $Path = TRANSFERSDIR . date("Ymd");
-    $this->createPath($Path);
-    $Path .= DIRECTORY_SEPARATOR . $this->client;
-    $this->createPath($Path);
-    return $Path . DIRECTORY_SEPARATOR . strtolower($File) . ".trns";
   }
 
   public function htmlToPlainText($Html)
@@ -538,22 +429,39 @@ class com extends general
     return array("status" => 0, "code" => "mailsuccessful");
   }
 
-  public function mailDBError($Context, $Message, $SQL = "")
+  public function nurEinmalProStunde($Schluessel, $Sekunden = 3600)
   {
-    if ( !defined('PROJECTDIR') )  return;
+    if ( !defined('PROJECTDIR') )  return false;
 
     $ThrottleDir = PROJECTDIR . "logs" . DIRECTORY_SEPARATOR . "mailthrottle" . DIRECTORY_SEPARATOR;
     if ( !file_exists($ThrottleDir) )  @mkdir($ThrottleDir, 0777, true);
 
-    $Key    = md5((defined('MODULE') ? MODULE : "") . "|" . $Context . "|" . $Message);
+    $Key    = md5((defined('MODULE') ? MODULE : "") . "|" . $Schluessel);
     $Marker = $ThrottleDir . $Key . ".marker";
-    if ( file_exists($Marker) && (time() - filemtime($Marker)) < 1800 )  return;
+    if ( file_exists($Marker) && (time() - filemtime($Marker)) < $Sekunden )  return false;
     $Neu = !file_exists($Marker);
     @touch($Marker);
     if ( $Neu )  @chmod($Marker, 0666);
 
     foreach ( (array) @glob($ThrottleDir . "*.marker") as $Alt )
       if ( (time() - @filemtime($Alt)) > 7 * 24 * 3600 )  @unlink($Alt);
+
+    return true;
+  }
+
+  public function mailFehlerGedrosselt($Context, $Client, $Message, $Data = array())
+  {
+    if ( !$this->nurEinmalProStunde($Context . "|" . $Client . "|" . $Message) )  return;
+
+    $this->sendErrorMail(array(
+      "subject" => $Context . " (" . $Client . ")",
+      "message" => array("Zeitpunkt" => date("Y-m-d H:i:s"), "Client" => $Client) + (array) $Data,
+    ));
+  }
+
+  public function mailDBError($Context, $Message, $SQL = "")
+  {
+    if ( !$this->nurEinmalProStunde($Context . "|" . $Message, 1800) )  return;
 
     $MailMessage = array(
       "Zeitpunkt" => date("Y-m-d H:i:s"),

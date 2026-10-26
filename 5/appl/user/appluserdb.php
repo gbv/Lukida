@@ -2,50 +2,10 @@
 
 class appluserdb extends systemuser
 {
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   const MAIL_NICHT_MERKEN = array("feedback", "suggest", "notify");
 
-
-  
-  
-  
-  
-  
   const LOOKUP_CACHE_MAXALTER = 2592000;
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   protected function renewTokenSchrankeDB()
   {
     if ( trim((string) $this->apikey) !== "" )  return null;
@@ -60,59 +20,14 @@ class appluserdb extends systemuser
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
   }
 
-  
-  
-  
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  protected function getDashboardDB()
-  {
-    if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
-
-    $Results = array();
-
-    
-
-    
-
-    
-    return $Results;
-  }
-
-
-  
-
-
   protected function getResolversDB($PPN)
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
 
-    $SQL  = "SELECT data, more FROM resolvers where client = :client and ppn = :ppn  limit 1";     
+    $SQL  = "SELECT data, more FROM resolvers where client = :client and ppn = :ppn  limit 1";
     $Data = array(
       "client"    => $this->client,
       "ppn"       => $PPN
-      
     );
     $Result = $this->ExecDB($SQL, $Data, true);
     if (count($Result)) {
@@ -127,19 +42,6 @@ class appluserdb extends systemuser
 
     if ($PPN == "")  return (-1);
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     if (strlen($PPN) > 50)
     {
       $this->debug("LOG", "setResolversDB: Kennung mit " . strlen($PPN)
@@ -147,10 +49,6 @@ class appluserdb extends systemuser
       return (-1);
     }
 
-    
-    
-    
-    
     $SQL  = "insert into resolvers (client, ppn, data, more, checkdate)"
           . " values (:client, :ppn, :data, :more, :checkdate)";
     $SQL .= $this->isPG(true)
@@ -164,10 +62,7 @@ class appluserdb extends systemuser
       "more"      => json_encode($More, true),
       "checkdate" => date("Y-m-d H:i:s")
     );
-    
-    
-    
-    
+
     if ( !$this->isPG(true) )
     {
       $Data["data2"]      = $Data["data"];
@@ -177,35 +72,12 @@ class appluserdb extends systemuser
     return ($this->ExecDB($SQL, $Data, true));
   }
 
-  
-  
-  
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   public function getDialogMailDB($Type)
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
 
     if (!trim((string) $Type))  return "";
 
-    
-    
-    
     $Exists = $this->ExecDB("SELECT 1 AS ok FROM information_schema.TABLES"
                           . " WHERE TABLE_SCHEMA = :schema AND TABLE_NAME = 'admindialogs'",
                             array("schema" => $this->schemaName("user")));
@@ -215,8 +87,7 @@ class appluserdb extends systemuser
     $SQL    = "SELECT " . $Column . " AS mail";
     $SQL   .= " FROM " . $this->schemaOf("user") . ".admindialogs";
     $SQL   .= " WHERE client = :client AND active = :active";
-    
-    
+
     $SQL   .= $this->isPG()
             ? " AND action->>'type' = :type"
             : " AND JSON_UNQUOTE(JSON_EXTRACT(action, '$.type')) = :type";
@@ -225,11 +96,6 @@ class appluserdb extends systemuser
     return (count($Rows) == 1 && isset($Rows[0]["mail"])) ? trim($Rows[0]["mail"]) : "";
   }
 
-  
-  
-  
-  
-  
   private $columncache = array();
 
   private function hasColumnDB($Table, $Column)
@@ -245,17 +111,11 @@ class appluserdb extends systemuser
     return ($this->columncache[$Key] = (count($Rows) > 0));
   }
 
-  
-  
-  
   private function hatZentraleSpalte($Tabelle, $Spalte)
   {
     $Key = "zentral." . $Tabelle . "." . $Spalte;
     if (isset($this->columncache[$Key]))  return $this->columncache[$Key];
 
-    
-    
-    
     $Eigene = $this->isPG(true) ? "current_schema()" : "DATABASE()";
 
     $Rows = $this->ExecDB("SELECT 1 AS ok FROM information_schema.COLUMNS"
@@ -265,15 +125,6 @@ class appluserdb extends systemuser
     return ($this->columncache[$Key] = (is_array($Rows) && count($Rows) > 0));
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
   public function getDialogsDB()
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
@@ -289,11 +140,6 @@ class appluserdb extends systemuser
     foreach ($Rows as $Row) {
       $Opts = (array) json_decode($Row["fieldoptions"], true);
 
-      
-      
-      
-      
-      
       if ( isset($Opts["options"]) && is_array($Opts["options"]) ) {
         foreach ($Opts["options"] as &$Opt) {
           if ( isset($Opt["textcode"]) && trim($Opt["textcode"]) !== "" ) {
@@ -352,11 +198,7 @@ class appluserdb extends systemuser
         "detailwindow" => $Row["detailwindow"],
         "detailinfos"  => json_decode($Row["detailinfos"], true),
         "detailbutton" => $Row["detailbutton"],
-        
-        
-        
-        
-        
+
         "detailaction" => (isset($Row["detailaction5"]) && trim($Row["detailaction5"]))
                             ? $Row["detailaction5"] : $Row["detailaction"],
         "ids"          => $Row["ids"],
@@ -397,11 +239,7 @@ class appluserdb extends systemuser
         "detailwindow" => $Row["detailwindow"],
         "detailinfos"  => json_decode($Row["detailinfos"], true),
         "detailbutton" => $Row["detailbutton"],
-        
-        
-        
-        
-        
+
         "detailaction" => (isset($Row["detailaction5"]) && trim($Row["detailaction5"]))
                             ? $Row["detailaction5"] : $Row["detailaction"],
         "ids"          => $Row["ids"],
@@ -415,16 +253,8 @@ class appluserdb extends systemuser
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
 
-    
-    
-    
-    
-    
     $HasHaptic = $this->hasColumnDB("adminlevels", "holdingshaptic");
-    
-    
-    
-    
+
     $HasSortF  = $this->hasColumnDB("adminlevels", "sortfield");
     $HasCDRem  = $this->hasColumnDB("adminlevels", "collectiondetailsrem");
 
@@ -432,10 +262,7 @@ class appluserdb extends systemuser
     if ($HasHaptic)  $SQL .= ", holdingshaptic";
     if ($HasSortF)   $SQL .= ", sortfield";
     if ($HasCDRem)   $SQL .= ", collectiondetailsrem";
-    
-    
-    
-    
+
     $SQL .= " FROM " . $this->schemaOf("user") . ".adminlevels where client=:client order by sort";
     $Data = array(
       "client" => $this->client,
@@ -444,24 +271,7 @@ class appluserdb extends systemuser
 
     $Levels = array();
     foreach ($Rows as $Row) {
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+
       $IPRanges = json_decode((string) $Row["ipranges"], true);
       if (!is_array($IPRanges))  $IPRanges = array();
 
@@ -473,53 +283,21 @@ class appluserdb extends systemuser
         "ipranges"           => $IPRanges,
         "holdingilns"        => $Row["holdingilns"]  !== null && trim($Row["holdingilns"]) !== ''   ? explode(",", trim($Row["holdingilns"]))  : array(),
         "holdingisils"       => $Row["holdingisils"] !== null && trim($Row["holdingisils"]) !== ''   ? explode(",", trim($Row["holdingisils"])) : array(),
-        
+
         "holdingshaptic"     => $HasHaptic && $Row["holdingshaptic"] !== null && trim($Row["holdingshaptic"]) !== '' ? explode(",", trim($Row["holdingshaptic"])) : array(),
         "locations"          => $Row["locations"]    !== null && trim($Row["locations"]) !== ''   ? explode(",", trim($Row["locations"]))    : array(),
         "classlocals"        => $Row["classlocals"]  !== null && trim($Row["classlocals"]) !== ''   ? explode(",", trim($Row["classlocals"]))  : array(),
         "buildings"          => $Row["buildings"]    !== null && trim($Row["buildings"])    !== ''  ? explode(",", trim($Row["buildings"]))    : array(),
         "dois"               => $Row["dois"]         !== null && trim($Row["dois"]) !== ''   ? explode(",", trim($Row["dois"]))         : array(),
-        
-        
-        
-        
+
         "sortfield"          => $HasSortF && $Row["sortfield"] !== null && trim($Row["sortfield"]) !== '' ? trim($Row["sortfield"]) : "",
-        
-        
+
         "collectiondetailsrem" => $HasCDRem ? (is_array($X = json_decode((string) $Row["collectiondetailsrem"], true)) ? $X : array()) : array()
       );
     }
     return $Levels;
   }
 
-  public function getAdminTextDB($Shortcut)
-  {
-    if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
-
-    $Data = array(
-      'client'    => $this->client,
-      'shortcut'  => $Shortcut
-    );
-    $SQL  = "SELECT german, english FROM " . $this->schemaOf("user") . ".admintexts";
-    $SQL .= " WHERE client = :client and shortcut = :shortcut";
-
-    
-    return (array) $this->execDB($SQL, $Data);
-  }
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   public function getMessagesDB()
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
@@ -544,11 +322,6 @@ class appluserdb extends systemuser
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
 
-    
-    
-    
-    
-    
     $SQL  = "SELECT bmsid, options FROM " . $this->schemaOf("user") . ".adminbms";
     $SQL .= " WHERE client = :client";
     if (MODE == "production") $SQL .= " AND testonly = 'n'";
@@ -580,7 +353,6 @@ class appluserdb extends systemuser
     );
     $Rows = $this->ExecDB($SQL, $Data);
 
-    
     $BMS = array();
     foreach ($Rows as $Row) {
       $BMS[$Row["bmsid"]] = array(
@@ -610,7 +382,6 @@ class appluserdb extends systemuser
     );
     $Rows = $this->ExecDB($SQL, $Data);
 
-    
     $Links = array();
     foreach ($Rows as $Row) {
       $Tmp = (isset($Row["link"]) && trim($Row["link"])) ? explode(",", trim($Row["link"])) : array();
@@ -782,11 +553,6 @@ class appluserdb extends systemuser
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
 
-    
-    
-    
-    
-    
     $Datei = $this->prepareLookupCachePath("gnd_" . $Type, $GNDID);
     if (file_exists($Datei) && time() - (int) @filemtime($Datei) < self::LOOKUP_CACHE_MAXALTER) {
       if (MODE != "production") $this->updStatDB("Cache", "Norms.yes");
@@ -795,16 +561,8 @@ class appluserdb extends systemuser
     }
     if (MODE != "production") $this->updStatDB("Cache", "Norms.no");
 
-    
-    
-    
-    
-    
-    
     $MitBild = $this->hatZentraleSpalte("entityfacts", "image");
-    
-    
-    
+
     $MitExtra = $this->hatZentraleSpalte("entityfacts", "extra");
 
     $SQL  = "SELECT data, more" . ($MitBild ? ", image" : "") . ($MitExtra ? ", extra" : "")
@@ -845,7 +603,7 @@ class appluserdb extends systemuser
     $U    = $this->ident("user");
     $SQL  = "select id, " . $U . ", type, subject, message, send, data from mails";
     $SQL .= " where client = :client and " . $U . " = :user";
-    
+
     $SQL .= " order by send desc";
     $Data = array(
       "client"  => $this->client,
@@ -868,11 +626,6 @@ class appluserdb extends systemuser
     return $Data;
   }
 
-  
-  
-  
-  
-  
   public function updUserLoginDB($Login)
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
@@ -895,14 +648,8 @@ class appluserdb extends systemuser
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
 
-    
-    
-
     if (!isset($User["username"]) || !trim($User["username"]))  return (-1);
 
-    
-    
-    
     $NichtMerken = array_merge(
       self::MAIL_NICHT_MERKEN,
       array_filter(array_map("trim", explode(",", $this->conf("other", "mail.nostore"))), "strlen")
@@ -942,25 +689,6 @@ class appluserdb extends systemuser
 
     if (!isset($Project) || !isset($PPN) || count($Final) != count($Score))  return (-1);
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     $Sitzung = $this->checkPostedStr("tokens", "session");
     if (trim((string) $Sitzung) !== "") {
       $Da = $this->ExecDB("select id from projects where client = :client and project = :project"
@@ -970,9 +698,6 @@ class appluserdb extends systemuser
       if (is_array($Da) && count($Da))  return (0);
     }
 
-    
-    
-    
     $SQL  = ($this->isPG() ? "insert" : "replace") . " into projects (client, project, sessionid, ppn";
     for ($I = 1; $I <= 50; $I++) {
       $SQL .= ", ppn" . str_pad($I, 2, "0", STR_PAD_LEFT);
@@ -1009,12 +734,7 @@ class appluserdb extends systemuser
       }
     }
 
-    
-    
-
     return ($this->ExecDB($SQL, $Data));
-
-    
   }
 
   public function updateProjectDB($Project, $PPN)
@@ -1029,12 +749,8 @@ class appluserdb extends systemuser
       "project"   => $Project,
       "sessionid" => $this->checkPostedStr("tokens", "session")
     );
-    
 
     $Rows = $this->ExecDB($SQL, $Data);
-
-    
-    
 
     foreach ($Rows as $Row) {
       $I2    = "";
@@ -1054,20 +770,11 @@ class appluserdb extends systemuser
           $I2 . "count" => $Row[$I2 . "count"] + 1,
           "updatedt"   => date("Y-m-d H:i:s")
         );
-        
-        
+
         $this->ExecDB($SQL, $Data);
       }
     }
 
     return;
-
-    
   }
-
-
-
-  
-  
-  
 }

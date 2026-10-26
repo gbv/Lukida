@@ -1,85 +1,5 @@
 <?php
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 abstract class bms
 {
   protected $CS;
@@ -99,14 +19,9 @@ abstract class bms
     $this->link   = ( isset($this->config[$Api]) && trim($this->config[$Api]) ) ? rtrim(trim($this->config[$Api]), "/") : "";
   }
 
-  
-  
-  
   abstract public function checkUser($User, $Pass);
   abstract public function ReadUser($Login, $Token);
-  
-  
-  
+
   public function prepareItems($Map) { }
 
   abstract public function getPPN($PPN, $Format);
@@ -118,45 +33,6 @@ abstract class bms
   abstract public function ChangePW($Login, $Token, $Old, $New);
   abstract public function ResetPW($Login);
 
-  
-  
-  
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   protected const BESTANDFRISCH = 600;
 
   protected function bmsBestandLesen($Schluessel)
@@ -183,9 +59,6 @@ abstract class bms
 
     $Datei = $this->CS->prepareDaiaCachePath($this->link . "|" . $this->lang, $Schluessel);
 
-    
-    
-    
     $Temp = $Datei . "." . getmypid() . ".tmp";
     if ( @file_put_contents($Temp, json_encode($Daten)) === false )  return;
     @chmod($Temp, 0666);
@@ -194,55 +67,19 @@ abstract class bms
     $this->bmsBestandAufraeumen($Datei);
   }
 
-  
-  
-  
-  
-  
   protected function bmsBestandVerwerfen()
   {
     $Ordner = $this->CS->prepareDaiaCachePath($this->link . "|" . $this->lang, "", true);
     foreach ( (array) glob($Ordner . DIRECTORY_SEPARATOR . "*" . DIRECTORY_SEPARATOR . "*.inc") as $Datei )
     {
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       try { unlink($Datei); }
       catch ( \Throwable $e )
       {
-        
-        
-        
-        
         if ( file_exists($Datei) )  throw $e;
       }
     }
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
   private function bmsBestandAufraeumen($Datei)
   {
     if ( random_int(1, 25) !== 1 )  return;
@@ -256,9 +93,6 @@ abstract class bms
       }
       catch ( \Throwable $e )
       {
-        
-        
-        
         if ( file_exists($Alt) )  throw $e;
       }
     }
@@ -284,9 +118,7 @@ abstract class bms
       CURLOPT_CONNECTTIMEOUT => 10,
       CURLOPT_TIMEOUT        => 60,
       CURLOPT_ENCODING       => "",
-      
-      
-      
+
       CURLOPT_SSL_VERIFYPEER => $this->option("sslverify") == "y",
       CURLOPT_SSL_VERIFYHOST => $this->option("sslverify") == "y" ? 2 : 0,
     );
@@ -315,8 +147,6 @@ abstract class bms
     return $Result;
   }
 
-  
-  
   protected function mask($Data)
   {
     if ( !is_array($Data) )  return $Data;
@@ -333,9 +163,6 @@ abstract class bms
     return array_map(fn($H) => preg_replace('/^(Authorization|Cookie):.*$/i', '$1: ***', $H), $Headers);
   }
 
-  
-  
-  
   protected function option($Key, $Default = "")
   {
     return ( isset($this->config["options"][$Key]) && $this->config["options"][$Key] !== "" ) ? $this->config["options"][$Key] : $Default;
@@ -362,8 +189,6 @@ abstract class bms
                  "more"   => (array) $More);
   }
 
-  
-  
   protected function answerLines($Kind, $EndTime = "", $Storage = "")
   {
     $Lines = array();
