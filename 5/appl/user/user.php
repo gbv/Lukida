@@ -66,8 +66,6 @@ class user extends appluserdb
 
     $this->getLinks();
 
-    $this->getCollections();
-
     $this->getLocations();
 
     $this->bmsid = $this->checkPostedStr("bms");
@@ -198,18 +196,6 @@ class user extends appluserdb
       }
     }
 
-    if (
-      isset($this->configs["account"]["userotherorders.show"])
-      && $this->configs["account"]["userotherorders.show"] == "y"
-    ) {
-      $Mails = $this->getMailDB($this->results["login"]);
-      $this->results["otherorders"] = array(
-
-        "label" => $this->texts["account.userotherorders"] ?? "account.userotherorders",
-        "code"  => "userotherorders",
-        "items" => $Mails
-      );
-    }
     return $this->results;
   }
 
@@ -365,20 +351,6 @@ class user extends appluserdb
     }
   }
 
-  private function getCollections()
-  {
-    if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
-
-    $File = $this->prepareCachePath(array("settings"), "collections");
-    if (file_exists($File)) {
-      $this->collections = json_decode(file_get_contents($File), true);
-    } else {
-
-      $this->collections  = $this->getCollectionsDB();
-      file_put_contents($File, json_encode($this->collections, true));
-    }
-  }
-
   private function getLocations()
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
@@ -404,12 +376,6 @@ class user extends appluserdb
   private function getConfig()
   {
     $this->configs["mycolls"] = (isset($this->configs["other"]["mycollections"])) ? (array) json_decode($this->configs["other"]["mycollections"], true) : array();
-
-    if ( isset($this->configs["hosting"]["kisuggest"]) && $this->configs["hosting"]["kisuggest"] == "y" )
-    {
-      if ( !isset($this->clientconfigs["project"]) || !is_array($this->clientconfigs["project"]) ) $this->clientconfigs["project"] = array();
-      $this->clientconfigs["project"]["kisuggest"] = "y";
-    }
 
     $this->clientconfigs["account"]["wallet.show"]      = "n";
     $this->clientconfigs["account"]["walletapple.show"] = "n";
@@ -860,27 +826,6 @@ class user extends appluserdb
           $this->results["hitspack"] = count($this->results["data"]);
           break;
         }
-      case "isils": {
-
-          $Search["search"]    = (isset($this->posted["search"]) && is_array($this->posted["search"]))                              ? $this->posted["search"]        : array();
-          $Search["start"]     = (isset($this->posted["start"])  && is_numeric($this->posted["start"]))                             ? intval($this->posted["start"]) : 0;
-          $Search["limit"]     = (isset($this->posted["limit"])  && is_numeric($this->posted["start"]) && $this->posted["limit"] <= 1000) ? intval($this->posted["limit"]) : 25;
-
-          $this->results["data"]     = $this->getIsilsDB($Search);
-          $this->results["hitspack"] = count($this->results["data"]);
-          break;
-        }
-
-      case "collections": {
-
-          $Search["search"]    = (isset($this->posted["search"]) && is_array($this->posted["search"]))                              ? $this->posted["search"]        : array();
-          $Search["start"]     = (isset($this->posted["start"])  && is_numeric($this->posted["start"]))                             ? intval($this->posted["start"]) : 0;
-          $Search["limit"]     = (isset($this->posted["limit"])  && is_numeric($this->posted["start"]) && $this->posted["limit"] <= 1000) ? intval($this->posted["limit"]) : 25;
-
-          $this->results["data"]     = $this->findCollectionsDB($Search);
-          $this->results["hitspack"] = count($this->results["data"]);
-          break;
-        }
     }
   }
 
@@ -955,17 +900,6 @@ class user extends appluserdb
     $this->results = $this->bmscon->Cancel($Login, $ID, $Token);
     $this->normalizeBMSResult("cancelsuccessful");
     return $this->results;
-  }
-
-  private function DoDeleteMails()
-  {
-    if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
-
-    $User = $this->getUser();
-    if (!isset($User["username"]) || !trim($User["username"])) return array("status" => -1, "code" => "paramsmissing");
-
-    $this->removeMailsDB($User["username"]);
-    return array("status" => 1, "code" => "deletemailssuccessful");
   }
 
   private function DoChangeMail()
@@ -1111,17 +1045,6 @@ class user extends appluserdb
       }
     }
 
-    if (
-      isset($this->configs["account"]["userotherorders.show"])
-      && $this->configs["account"]["userotherorders.show"] == "y"
-    ) {
-      $this->results["otherorders"] = array(
-
-        "label" => $this->texts["account.userotherorders"] ?? "account.userotherorders",
-        "code"  => "userotherorders",
-        "items" => $this->getMailDB($Login)
-      );
-    }
     return $this->results;
   }
 
@@ -1161,10 +1084,7 @@ class user extends appluserdb
       "message"  => $Message
     );
 
-    if (isset($this->configs["hosting"]["mailfrom"]) && trim($this->configs["hosting"]["mailfrom"]))  $Data["from"]     = trim($this->configs["hosting"]["mailfrom"]);
     if (isset($this->configs["client"]["appname"])   && trim($this->configs["client"]["appname"]))    $Data["fromname"] = trim($this->configs["client"]["appname"]);
-
-    $this->storeMailDB($this->getUser(), $Data, $Type, $Other);
 
     return $this->sendMail($Data);
   }
@@ -1260,53 +1180,8 @@ class user extends appluserdb
 
   public function getCDBClass($Shortcut, $Code)
   {
-    if (APPDEBUG["FKT"]) $this->CS->debug("FKT", __METHOD__);
-
-    if ($Shortcut == "" || $Code == "") return array();
-
-    $Search = array(
-      "search" => array(
-        "type"   => "code",
-        "system" => $Shortcut,
-        "code"   => $Code
-      ),
-      "start"  => 0,
-      "limit"  => 1
-    );
-
-    $Datei = $this->prepareLookupCachePath($Shortcut . "_" . $this->lang, $Code);
-    if (file_exists($Datei) && time() - (int) @filemtime($Datei) < self::LOOKUP_CACHE_MAXALTER) {
-      $Gemerkt = json_decode(file_get_contents($Datei), true);
-      if (is_array($Gemerkt)) return $Gemerkt;
-    }
-
-    $Pack = $this->getClassisDB($Search);
-    $CRec = (isset($Pack["0"])) ? $Pack["0"] : array();
-
-    $Cont = array_intersect_key($CRec, array_flip(array("description", "name", "link", "parents")));
-    $Parents = (isset($Cont["parents"])) ? $Cont["parents"] : array();
-    if (count($Parents)) {
-      $Cont["parents"] = array();
-      foreach ($Parents as $Search => $Text) {
-        $Cont["parents"][] = array(
-          "text"   => trim($Text),
-          "code"   => $Shortcut . " " . $Search,
-          "action" => array(
-            "type"   => "search",
-            "search" => array(
-              "query" => "topic(" . $Shortcut . " " . $Search . ")",
-              "type"  => "lukida"
-            )
-          ),
-          "more"   => array()
-        );
-      }
-    }
-
-    @file_put_contents($Datei, json_encode($Cont, true));
-    @chmod($Datei, 0666);
-
-    return $Cont;
+    // Nachschlagen in der zentralen GBV-Datenbank gibt es nur in Lukida Pro
+    return array();
   }
 
   public function getUniqueMultArray($MultArray)
@@ -1447,10 +1322,6 @@ class user extends appluserdb
         }
       case "changemail": {
           $this->results = $this->DoChangeMail();
-          break;
-        }
-      case "deletemails": {
-          $this->results = $this->DoDeleteMails();
           break;
         }
       case "changepw": {
@@ -1613,7 +1484,6 @@ class user extends appluserdb
 
           if (!$this->readCache2Marc($ID)) {
           }
-
 
           $Tos   = array();
           $Names = array();
@@ -1919,7 +1789,7 @@ class user extends appluserdb
 
     $LevWHaptic = (isset($this->configs["facet"]["levelswithhaptics"]) && $this->configs["facet"]["levelswithhaptics"] == "y") ? true : false;
 
-    $SolrPath = isset($this->configs["hosting"]["solrpath"]) ? trim($this->configs["hosting"]["solrpath"], "/ ") : "";
+    $SolrPath = trim($this->conf("solr", "path"), "/ ");
     $SolrHost = trim($this->conf("solr", "host", "findex.gbv.de"), "/ ");
     $URL  = (strpos($SolrHost, "://") !== false) ? $SolrHost : $this->conf("solr", "prot", "https://") . $SolrHost;
     $URL .= "/" . $SolrPath . "/select?wt=json&defType=edismax";
@@ -2298,87 +2168,15 @@ class user extends appluserdb
     $this->finalize($this->results, __FUNCTION__);
   }
 
-  public function count()
-  {
-    $Appl = (isset($this->posted["appl"]) && trim($this->posted["appl"])) ? trim(strtolower($this->posted["appl"])) : "";
-    $ID   = $this->checkPostedStr("id");
-    $Art  = $this->checkPostedStr("kind");
-    if ( ($Appl && $Appl != $this->appl) || !$Appl )  $this->finalize(array("status" => -1, "code" => "wrongappl"));
-    if ( !$ID )                                        $this->finalize(array("status" => -1, "code" => "missingid"));
-    if ( $Art != "request" )                           $this->finalize(array("status" => -1, "code" => "wrongkind"));
-
-    $this->counterZaehlen("Requests", $ID, $this->checkPostedStr("rootid"));
-    $this->finalize(array("status" => 1, "code" => "counted"));
-  }
-
-  private function counterZaehlen($Art, $ID, $TitelID = "")
-  {
-    $ID      = trim((string) $ID);
-    $TitelID = trim((string) $TitelID) !== "" ? trim((string) $TitelID) : $ID;
-    if ( $ID === "" )  return;
-
-
-    $Sitzung = preg_replace("/[^A-Za-z0-9_-]/", "", (string) $this->checkPostedStr("tokens", "session"));
-    if ( $Sitzung === "" )
-    {
-      return;
-    }
-
-    $Datei = $this->prepareCachePath(array("counter"), $Sitzung);
-    $F = @fopen($Datei, "c+");
-    if ( !$F )  return;
-    flock($F, LOCK_EX);
-    $Gesehen = json_decode((string) stream_get_contents($F), true);
-    if ( !is_array($Gesehen) )  $Gesehen = array();
-
-    $Neu = false;
-    if ( empty($Gesehen[$Art]["item"][$ID]) )
-    {
-      $Gesehen[$Art]["item"][$ID] = 1;
-      $Neu = true;
-    }
-    if ( empty($Gesehen[$Art]["title"][$TitelID]) )
-    {
-      $Gesehen[$Art]["title"][$TitelID] = 1;
-      $Neu = true;
-    }
-    if ( $Neu )
-    {
-      ftruncate($F, 0);
-      rewind($F);
-      fwrite($F, json_encode($Gesehen));
-    }
-    flock($F, LOCK_UN);
-    fclose($F);
-  }
-
   public function resolve()
   {
     $Appl   = (isset($this->posted["appl"])   && trim($this->posted["appl"]))   ? trim(strtolower($this->posted["appl"]))   : "";
     $Area   = (isset($this->posted["area"])   && trim($this->posted["area"]))   ? trim(strtolower($this->posted["area"]))   : "";
     $ID     = (isset($this->posted["id"])     && trim($this->posted["id"]))     ? trim($this->posted["id"])                 : "";
-    $Type   = (isset($this->posted["type"])   && trim($this->posted["type"]))   ? trim($this->posted["type"])               : "";
 
     if (($Appl && $Appl != $this->appl)              || !$Appl) $this->finalize(array("status" => -1, "code" => "wrongappl"));
     if (($Area && !in_array($Area, $this->getAreas)) || !$Area) $this->finalize(array("status" => -1, "code" => "wrongarea"));
     if (!$ID)                                                   $this->finalize(array("status" => -1, "code" => "missingid"));
-
-    $NichtZaehlen = !empty($this->posted["nocount"]);
-
-    if ( !$NichtZaehlen && $Type != "suggest" )  $this->counterZaehlen("Investigations", $ID, $this->checkPostedStr("rootid"));
-
-    if (in_array($Type, array("suggest"))) {
-      $this->updateProjectDB("kisuggest", $ID);
-      return $this->finalize();
-    }
-
-    $Check = $this->getResolversDB($ID);
-    if (is_array($Check) && count($Check)) {
-
-
-      $Check = $this->resolveServiceTexts($Check);
-      $this->finalize($Check);
-    }
 
     $this->results = array();
     $this->display["ilns"]   = $this->configs["ilns"];
@@ -2418,23 +2216,23 @@ class user extends appluserdb
     elseif (MODE == "production")  $Mode = "prod";
     else                             $Mode = MODE;
 
+    $EzbIDs = array_map("trim", explode(",", $this->conf("resolver", "ezbbibid")));
     $Config = array(
-      'base_url'       => $this->configs["domain"][$Mode],
+      'base_url'       => $this->conf("domain", $Mode),
       'title'          => $this->getClientName(),
-      'ezbbibid'       => $this->configs["resolver"]["ezbbibid"],
-      'isil'           => $this->configs["isils"][0],
-      'openurl'        => $this->configs["resolver"]["openurl"],
-      'jop'            => (isset($this->configs["resolver"]["jop"])  && $this->configs["resolver"]["jop"]  == "y") ? true : false,
-      'redi'           => (isset($this->configs["resolver"]["redi"]) && $this->configs["resolver"]["redi"] == "y") ? true : false,
-      'redibase'       => $this->configs["resolver"]["redibase"],
-
-      'redi2'          => (count(explode(",", $this->configs["resolver"]["ezbbibid"] ?? "")) > 1) ? true : false,
-      'redi2base'      => $this->configs["resolver"]["redibase"] ?? "",
-      'ezbbibid2'      => trim(explode(",", $this->configs["resolver"]["ezbbibid"] ?? "")[1] ?? ""),
-      'sfx'            => (isset($this->configs["resolver"]["sfx"])  && $this->configs["resolver"]["sfx"]  == "y") ? true : false,
-      'sfxbase'        => $this->configs["resolver"]["sfxbase"],
-      'ovid'           => (isset($this->configs["resolver"]["ovid"])  && $this->configs["resolver"]["ovid"]  == "y") ? true : false,
-      'ovidbase'       => $this->configs["resolver"]["ovidbase"],
+      'ezbbibid'       => $EzbIDs[0],
+      'isil'           => $this->configs["isils"][0] ?? "",
+      'openurl'        => $this->conf("resolver", "openurl"),
+      'jop'            => $this->confIsYes("resolver", "jop"),
+      'redi'           => $this->confIsYes("resolver", "redi"),
+      'redibase'       => $this->conf("resolver", "redibase"),
+      'redi2'          => count($EzbIDs) > 1,
+      'redi2base'      => $this->conf("resolver", "redibase"),
+      'ezbbibid2'      => $EzbIDs[1] ?? "",
+      'sfx'            => $this->confIsYes("resolver", "sfx"),
+      'sfxbase'        => $this->conf("resolver", "sfxbase"),
+      'ovid'           => $this->confIsYes("resolver", "ovid"),
+      'ovidbase'       => $this->conf("resolver", "ovidbase"),
       'refworks'       => true,
       'zotero'         => true
     );
@@ -2496,10 +2294,8 @@ class user extends appluserdb
     $LR = new resolver($this, $Config);
     if (count($Rs)) {
 
-      foreach ($Rs as $R) {
-      }
       $Resolver  += $LR->linkresolver($Data);
-      $Color = isset($this->CS->configs["item"]["resolver.color"]) && trim($this->CS->configs["item"]["resolver.color"]) ? $this->CS->configs["item"]["resolver.color"] : "green";
+      $Color = $this->conf("item", "resolver.color", "green");
       foreach ($Resolver as $R => $URL) {
 
         $Resolver[$R] = array(
@@ -2559,76 +2355,6 @@ class user extends appluserdb
       "refworks" => $LR->exportlink($Data, 'refworks'),
       "zotero"   => $LR->exportlink($Data, 'zotero')
     );
-
-    if ($Type == "media") {
-
-      if (isset($this->configs["hosting"]["kisuggest"])  && $this->configs["hosting"]["kisuggest"]  == "y") {
-
-        $Solr  = new solr($this);
-
-        $Solr->getProject("https://findex.gbv.de/semsimlabim/?semsim_model=inomic-iln30-title&semsim_id=" . $ID, "", "kisuggest");
-
-        if (isset($this->works["project"]["kisuggest"]) && is_array($this->works["project"]["kisuggest"]) && count($this->works["project"]["kisuggest"])) {
-          $this->results = array();
-          $this->works["marc"]   = array();
-          $this->paias   = array();
-          $this->items   = array();
-          $this->logs    = array();
-
-          $Final = array();
-          $Score = array();
-          $Sort  = array();
-          foreach ($this->works["project"]["kisuggest"] as $I => $S) {
-            if (isset($S["id"]) && $S["id"] == $ID) continue;
-
-            $Final[]         = $S["id"];
-            $Sort[$S["id"]]  = $I;
-            $Score[$S["id"]] = $S["score"];
-
-            if (count($Final) >= 50) break;
-          }
-
-          $this->storeProjectDB("kisuggest", $ID, $Final, $Score);
-
-          $Search  = array();
-          $Search["search"]    = array("type" => "lukida", "query" => "id:(" . implode(" OR ", $Final) . ")");
-          $Search["start"]     = 0;
-          $Search["limit"]     = 50;
-          $Search["url"]       = $this->buildBasicURL("all");
-          $this->search        = $Search;
-
-          $Display = array();
-          $Display["paia"]     = false;
-          $Display["marc"]     = false;
-          $Display["comb"]     = false;
-          $Display["logs"]     = false;
-          $Display["bib"]      = true;
-          $Display["items"]    = true;
-          $this->display = $Display;
-
-          $this->ReadArea("findex");
-
-          $Sorted = array();
-
-          if (isset($this->results["data"]) && is_array($this->results["data"]) && count($this->results["data"])) {
-            foreach ($Final as $PPN_Ranked) {
-              foreach ($this->results["data"] as $FullOne) {
-                if (isset($FullOne["id"]) && $FullOne["id"] == $PPN_Ranked) $Sorted[] = $FullOne;
-              }
-            }
-
-            $this->results["data"] = $Sorted;
-          }
-
-          if (isset($this->results["hitspack"]) && $this->results["hitspack"] > 0) {
-            $Resolver["kisuggest"] = $this->results;
-          }
-        }
-      }
-    }
-
-
-    $this->setResolversDB($ID, $Resolver, array());
 
     $Resolver = $this->resolveServiceTexts($Resolver);
 
@@ -2705,7 +2431,6 @@ class user extends appluserdb
       "code"   => "logingranted"
     );
 
-
     $this->finalize($this->results);
   }
 
@@ -2747,8 +2472,6 @@ class user extends appluserdb
     ) {
       $SearchMode = (in_array(substr($Search["search"]["query"], 0, 8), array("ppnlink:", "ppnlink("))) ? "Related" : "Search";
 
-
-
       $Design = isset($this->posted["design"]) ? strtolower(trim((string) $this->posted["design"])) : "";
 
       foreach ($Search["facets"] as $Key => $Val) {
@@ -2772,21 +2495,6 @@ class user extends appluserdb
     $this->display = $Display;
 
     $this->ReadArea($Area);
-
-    if (isset($Search["counts"]["links"]) && $Search["counts"]["links"]) {
-
-      $Links = $this->readDB("adminstructures", $this->client, 0, 100, ["type" => "facet1"], ["sort"]);
-
-      foreach ($Links as &$L) {
-        $this->results["counts"]["links"][] = [
-          "code"   => "norm",
-          "label"  => trim($L["shortcutl1"]) ? $this->getText($L["shortcutl1"]) : "",
-          "label2" => trim($L["shortcutl2"]) ? $this->getText($L["shortcutl2"]) : "",
-          "label3" => trim($L["shortcutl3"]) ? $this->getText($L["shortcutl3"]) : "",
-          "value"  => trim($L["action"])     ? $L["action"]                     : ""
-        ];
-      }
-    }
 
     if ( empty($this->results["hitspack"]) && !empty($this->results["data"]) && is_array($this->results["data"]) ) {
       $Anzahl = count($this->results["data"]);

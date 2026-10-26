@@ -7,14 +7,11 @@ require_once __DIR__ . '/_librarys/PHPMailer/SMTP.php';
 
 class com extends general
 {
-  public $adminclient;
-  public $avatar;
   public $client;
   public $clientip;
   public $lang;
   public $posted;
   public $user;
-  protected $UserTokenPayload = null;
   public $apikey;
 
   public function __construct($f3)
@@ -58,41 +55,8 @@ class com extends general
     }
 
     $this->client      = $Client;
-    $this->adminclient = $this->checkPostedStr("adminclient");
 
     if ( APPDEBUG["LOG"] ) $this->debug("LOG", "API Access OK (" . $this->client . ")");
-
-    if ( in_array(ACTION, array("config", "login"))
-      || $this->f3->get("security.user") == "none" )
-    {
-      if ( APPDEBUG["LOG"] ) $this->debug("LOG", "User Access OK (no auth required for: " . ACTION . ")");
-      return (0);
-    }
-
-    $Tokn = $this->checkPostedStr("tokens", "user");
-    if ( $Tokn )
-    {
-      $UserToken = $this->decodeToken($Tokn, "user");
-      if ( is_array($UserToken) && count($UserToken) )
-      {
-        if ( isset($UserToken["cl"]) && $UserToken["cl"] == $this->client )
-        {
-          $this->user          = $UserToken["un"];
-          $this->avatar        = $UserToken["av"];
-          $this->UserTokenPayload = $UserToken;
-          if ( APPDEBUG["LOG"] ) $this->debug("LOG", "User Access OK: " . $this->user);
-          return (0);
-        }
-      }
-    }
-
-    if ( APPDEBUG["LOG"] ) $this->debug("LOG", "User Access ERROR");
-    $this->finalize(array("status" => -1, "code" => "loginerror"));
-  }
-
-  private function base64url_encode($str)
-  {
-    return rtrim(strtr(base64_encode($str), '+/', '-_'), '=');
   }
 
   protected function checkPostedStr($Index, $Index2="", $Index3="")
@@ -144,45 +108,6 @@ class com extends general
     else                return $this->posted[$Index];
   }
 
-  protected function decodeToken($token, $type="api")
-  {
-    if ( APPDEBUG["FKT"] ) $this->debug("FKT", __METHOD__);
-
-    $tokenParts = explode('.', $token);
-    if ( count($tokenParts) != 3 )  return [];
-
-    $header             = base64_decode($tokenParts[0]);
-    $payload            = base64_decode($tokenParts[1]);
-    $signature_provided = $tokenParts[2];
-    $dt                 = json_decode($payload)->dt;
-
-    if ( $type == "user" && ((time() - $dt) > (60 * $this->f3->get("application.minsvalidtoken"))) )  return [];
-
-    $base64_url_header  = $this->base64url_encode($header);
-    $base64_url_payload = $this->base64url_encode($payload);
-    $signature          = hash_hmac('SHA256',
-                                    $base64_url_header . "." . $base64_url_payload,
-                                    base64_encode($this->f3->get("application.secret")),
-                                    true);
-    $base64_url_signature = $this->base64url_encode($signature);
-    if ( !hash_equals($base64_url_signature, $signature_provided) )  return [];
-
-    return (array) json_decode($payload, true);
-  }
-
-  protected function encodeToken($payload)
-  {
-    if ( APPDEBUG["FKT"] ) $this->debug("FKT", __METHOD__);
-    $headers_encoded   = $this->base64url_encode(json_encode(array('alg'=>'HS256','typ'=>'JWT')));
-    $payload_encoded   = $this->base64url_encode(json_encode($payload));
-    $signature         = hash_hmac('SHA256',
-                                   $headers_encoded . "." . $payload_encoded,
-                                   base64_encode($this->f3->get("application.secret")),
-                                   true);
-    $signature_encoded = $this->base64url_encode($signature);
-    return "$headers_encoded.$payload_encoded.$signature_encoded";
-  }
-
   protected function finalize($Results = array(), $Function = "")
   {
     if ( APPDEBUG["FKT"] ) $this->debug("FKT", __METHOD__);
@@ -200,14 +125,6 @@ class com extends general
       {
         $Results = array("status" => 0, "code" => ($Function ? $Function : "unknown") . "error");
       }
-    }
-
-    if ( is_array($this->UserTokenPayload) && count($this->UserTokenPayload)
-      && ( !isset($Results["status"]) || $Results["status"] >= 0 ) )
-    {
-      $Payload       = $this->UserTokenPayload;
-      $Payload["dt"] = time();
-      $Results["tokenrefresh"] = $this->encodeToken($Payload);
     }
 
     header("HTTP/1.1 200 OK");
@@ -247,17 +164,6 @@ class com extends general
       $this->createPath($Path);
     }
     return $Path . DIRECTORY_SEPARATOR . strtolower($File) . ".inc";
-  }
-
-  public function prepareLookupCachePath($System, $Code)
-  {
-    $Path = CACHESDIR . "nachschlag";
-    $this->createPath($Path);
-    $Path .= DIRECTORY_SEPARATOR . strtolower(preg_replace("/[^A-Za-z0-9]/", "", (string) $System));
-    $this->createPath($Path);
-    $Name = strtolower(preg_replace("/[^A-Za-z0-9]/", "_", (string) $Code));
-    $Name = substr($Name, 0, 40) . "_" . substr(md5((string) $Code), 0, 8);
-    return $Path . DIRECTORY_SEPARATOR . $Name . ".inc";
   }
 
   public function htmlToPlainText($Html)

@@ -2,15 +2,9 @@
 
 class systemdb extends com
 {
-  private   $centraldb;
-  private   $centralversucht;
-  private   $envdb;
   private   $localdb;
   private   $pdoOptions;
-  private   $pdoOptionsCentral;
   protected $db;
-  protected $dbc;
-  protected $dbe;
 
   protected $lastDBError;
 
@@ -21,12 +15,8 @@ class systemdb extends com
 
     ini_set("default_socket_timeout", 2);
 
-    $this->driver = $this->normalizeDriver($this->f3->get('db.driver'));
-
-    $this->drivercentral = $this->normalizeDriver($this->f3->get('central.db.driver'));
-
-    $this->pdoOptions        = $this->pdoOptionsFor($this->driver);
-    $this->pdoOptionsCentral = $this->pdoOptionsFor($this->drivercentral);
+    $this->driver     = $this->normalizeDriver($this->f3->get('db.driver'));
+    $this->pdoOptions = $this->pdoOptionsFor($this->driver);
 
     try {
       $this->db      = new DB\SQL(
@@ -51,136 +41,13 @@ class systemdb extends com
       $this->localdb = false;
       $this->finalize(array("status" => 0, "code" => "localdatabaseerror"));
     }
-
-    $this->centraldb      = false;
-    $this->centralversucht = false;
   }
 
-  private function setCentralDB()
+  protected $driver = "mysql";
+
+  public function isPG()
   {
-    if ($this->centralversucht)  return;
-    $this->centralversucht = true;
-
-    if (
-      !$this->f3->get('central.db.host') || !$this->f3->get('central.db.name')
-      || !$this->f3->get('central.db.user') || !$this->f3->get('central.db.pass')
-    ) {
-      return;
-    }
-
-    try {
-      $this->dbc = new DB\SQL(
-        $this->buildDSN($this->f3->get('central.db.host'), $this->f3->get('central.db.name'), true),
-        $this->f3->get('central.db.user'),
-        $this->f3->get('central.db.pass'),
-        $this->pdoOptionsCentral
-      );
-      $this->centraldb = true;
-    } catch (PDOException $e) {
-      if (strstr($e, 'SQLSTATE[')) {
-        preg_match('/SQLSTATE\[(\w+)\] \[(\w+)\] (.*)/', $e, $matches);
-        $Code    = ($matches[1] == 'HT000' ? $matches[2] : $matches[1]);
-        $Message = $matches[3];
-        $this->debug("PDO", "Central DB not available");
-        $this->debug("PDO", $Code . " " . $Message);
-        $this->mailDBError("Central DB not available", $Code . " " . $Message);
-      } else {
-        $this->debug("PDO", $e);
-        $this->mailDBError("Central DB not available", $e->getMessage());
-      }
-      $this->centraldb = false;
-    }
-  }
-
-  private function setEnvDB($Env)
-  {
-    $Driver = $this->driverForEnv($Env);
-    $User   = ($Driver == "pgsql") ? $this->f3->get('db.user') : $this->f3->get('deployuser.user');
-    $Pass   = ($Driver == "pgsql") ? $this->f3->get('db.pass') : $this->f3->get('deployuser.pass');
-
-    if (
-      $this->f3->get('deploydbs.' . $Env) && $this->f3->get('db.name')
-      && $User && $Pass
-    ) {
-      try {
-
-        $this->dbe = new DB\SQL(
-          $this->buildDSNFor($Driver, $this->f3->get('deploydbs.' . $Env), $this->f3->get('db.name')),
-          $User,
-          $Pass,
-          $this->pdoOptionsFor($Driver)
-        );
-        $this->envdb = true;
-      } catch (PDOException $e) {
-        if (strstr($e, 'SQLSTATE[')) {
-          preg_match('/SQLSTATE\[(\w+)\] \[(\w+)\] (.*)/', $e, $matches);
-          $Code    = ($matches[1] == 'HT000' ? $matches[2] : $matches[1]);
-          $Message = $matches[3];
-          $this->debug("PDO", $Env . " DB not available");
-          $this->debug("PDO", $Code . " " . $Message);
-          $this->mailDBError($Env . " DB not available", $Code . " " . $Message);
-        } else {
-          $this->debug("PDO", $e);
-          $this->mailDBError($Env . " DB not available", $e->getMessage());
-        }
-        $this->envdb = false;
-      }
-    }
-  }
-
-  private function DecryptString($Crypt)
-  {
-    if (!isset($this->dbpw))  return "";
-    $key = substr(sha1($this->dbpw, true), 0, 16);
-    $iv  = substr($Crypt, 0, 16);
-    $String  = openssl_decrypt(substr($Crypt, 16), 'AES-128-CBC', $key, OPENSSL_RAW_DATA, $iv);
-    return $String;
-  }
-
-  private function DecodeArray($Array)
-  {
-    $Array = unserialize($Array);
-    return ($Array);
-  }
-
-  protected $driver        = "mysql";
-  protected $drivercentral = "mysql";
-
-  protected $driverenv     = null;
-
-  public function isPG($Central = false)
-  {
-    if ($Central)                      return ($this->drivercentral == "pgsql");
-    if ($this->driverenv !== null)     return ($this->driverenv     == "pgsql");
     return ($this->driver == "pgsql");
-  }
-
-  protected function isJsonType($Type)
-  {
-    return in_array(strtolower(trim((string) $Type)), array("json", "jsonb"), true);
-  }
-
-  protected function isOwnEnv($Env)
-  {
-    $Map = array("dev" => "development", "prod" => "production",
-                 "test" => "test", "local" => "local");
-    $Key = strtolower(trim((string) $Env));
-    return (($Map[$Key] ?? $Key) === MODE);
-  }
-
-  protected function driverForEnv($Env)
-  {
-    return $this->normalizeDriver($this->f3->get('deploydb.' . $Env));
-  }
-
-  protected function beginEnvDriver($Env)
-  {
-    $this->driverenv = ($Env && !$this->isOwnEnv($Env)) ? $this->driverForEnv($Env) : null;
-  }
-
-  protected function endEnvDriver()
-  {
-    $this->driverenv = null;
   }
 
   protected function normalizeDriver($Value)
@@ -207,22 +74,10 @@ class systemdb extends com
     return $Opts;
   }
 
-  protected function buildDSN($Host, $Name, $Central = false)
+  protected function buildDSN($Host, $Name)
   {
-    return $this->buildDSNFor($this->isPG($Central) ? "pgsql" : "mysql", $Host, $Name, $Central);
-  }
-
-  protected function buildDSNFor($Driver, $Host, $Name, $Central = false)
-  {
-    if ($Driver == "pgsql") {
-      return 'pgsql:host=' . $Host . ';port=5432;dbname=' . $Name . ';';
-    }
+    if ($this->isPG())  return 'pgsql:host=' . $Host . ';port=5432;dbname=' . $Name . ';';
     return 'mysql:host=' . $Host . ';port=3306;dbname=' . $Name . ';charset=utf8mb4;';
-  }
-
-  protected function sqlLimit($Central = false)
-  {
-    return $this->isPG($Central) ? " limit :limit offset :start" : " limit :start,:limit";
   }
 
   private $uniquecache = array();
@@ -245,41 +100,21 @@ class systemdb extends com
     return $this->f3->get("application.type") . "_" . $Module;
   }
 
-  protected function ident($Name)
-  {
-    return $this->isPG() ? '"' . str_replace('"', '', $Name) . '"' : $Name;
-  }
-
   protected function schemaName($Module)
   {
     return trim($this->schemaOf($Module), '"');
   }
 
-  protected function execDB($SQL, $Params = [], $Central = false, $Env = "")
+  protected function execDB($SQL, $Params = [])
   {
     if (APPDEBUG["SQQ"])                    $this->debug("SQQ", $SQL);
     if (APPDEBUG["SQP"] && !empty($Params)) $this->debug("SQP", $Params);
     $Insert = (strncasecmp(trim($SQL), "insert ", 7) === 0) ? true : false;
     $Stats  = [];
     try {
-      if ($Central) {
-        $this->setCentralDB();
-        $Rows = $this->centraldb ? $this->dbc->exec($SQL, $Params) : [];
-        if ($Insert) {
-          $Stats["newID"]       = $this->newIDFrom($Rows, $this->dbc);
-        }
-
-      } elseif ($Env && !$this->isOwnEnv($Env)) {
-        $this->setEnvDB($Env);
-        $Rows = $this->envdb   ? $this->dbe->exec($SQL, $Params)  : [];
-        if ($Insert) {
-          $Stats["newID"]       = $this->newIDFrom($Rows, $this->dbe);
-        }
-      } else {
-        $Rows = $this->localdb   ? $this->db->exec($SQL, $Params)  : [];
-        if ($Insert) {
-          $Stats["newID"]       = $this->newIDFrom($Rows, $this->db);
-        }
+      $Rows = $this->localdb ? $this->db->exec($SQL, $Params) : [];
+      if ($Insert) {
+        $Stats["newID"] = $this->newIDFrom($Rows, $this->db);
       }
       if (APPDEBUG["SQD"] &&  empty($Rows))   $this->debug("SQD", "No records found!");
       if (APPDEBUG["SQD"] && !empty($Rows))   $this->debug("SQD", $Rows);
@@ -324,7 +159,7 @@ class systemdb extends com
       "client" => $this->client,
     );
     $SQL  = "SELECT category, setting, value FROM " . $this->schemaOf(MODULE);
-    $SQL .= (MODULE == "admin") ? ".configs" : ".adminconfigs";
+    $SQL .= ".adminconfigs";
     $SQL .= " WHERE client = :client";
     if (is_array($Selection) && $Filter) $SQL .= " and category in ('" . implode("', '", $Selection) . "')";
 
@@ -337,18 +172,16 @@ class systemdb extends com
     return $Confs;
   }
 
-  protected function getAdminTextsDB($Selection = [], $Filter = false, $Client = "")
+  protected function getAdminTextsDB($Selection = [], $Filter = false)
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
 
     if (is_array($Selection) && !count($Selection) && $Filter) return [];
 
     $Data = array(
-      "client" => $Client ? $Client : $this->client,
+      "client" => $this->client,
     );
-    $SQL  = (MODULE == "admin") ? "SELECT id," : "select";
-    $SQL .= " shortcut, german, english FROM " . $this->schemaOf(MODULE);
-    $SQL .= (MODULE == "admin") ? ".texts" : ".admintexts";
+    $SQL  = "select shortcut, german, english FROM " . $this->schemaOf(MODULE) . ".admintexts";
     $SQL .= " WHERE client = :client";
     if (is_array($Selection) && $Filter) $SQL .= " and (shortcut like '" . implode("' or shortcut like '", $Selection) . "')";
     $Rows = $this->ExecDB($SQL, $Data);
@@ -359,307 +192,12 @@ class systemdb extends com
         "german"  => $Row["german"]  !== null && trim($Row["german"])  !== '' ? trim($Row["german"])  : "",
         "english" => $Row["english"] !== null && trim($Row["english"]) !== '' ? trim($Row["english"]) : ""
       );
-      if ($Client)   $Texts[$Row["shortcut"]]["id"] = $Row["id"];
     }
 
     return $Texts;
   }
 
-  private function validColumn($Name, $Fields)
-  {
-    $Name = strtolower(trim((string) $Name));
-    return isset($Fields[$Name]) ? $Name : "";
-  }
-
-  private function safeSorts($Sorts, $Fields)
-  {
-    $Out = array();
-    foreach ((array) $Sorts as $Sort) {
-      if (!is_string($Sort) && !is_numeric($Sort))  continue;
-      $Parts = preg_split('/\s+/', trim((string) $Sort));
-      $Col   = $this->validColumn($Parts[0], $Fields);
-      if (!$Col)  continue;
-      $Dir   = (isset($Parts[1]) && strtolower($Parts[1]) === "desc") ? " desc" : "";
-      $Out[] = $this->ident($Col) . $Dir;
-    }
-    return $Out;
-  }
-
-  protected function readDB($Area, $Client = "", $Start = 0, $Limit = 25, $Filters = [], $Sorts = [], $Group = "", $Env = "", $Special = "", $Search = "")
-  {
-    $this->beginEnvDriver($Env);
-    try {
-      return $this->readDBRows($Area, $Client, $Start, $Limit, $Filters, $Sorts, $Group, $Env, $Special, $Search);
-    } finally {
-      $this->endEnvDriver();
-    }
-  }
-
-  protected function readDBRows($Area, $Client = "", $Start = 0, $Limit = 25, $Filters = [], $Sorts = [], $Group = "", $Env = "", $Special = "", $Search = "")
-  {
-    if ( in_array($Area, array("favors", "historys", "profiles", "settings")) )
-    {
-      if ( !trim((string) $this->user) )  return ([]);
-
-      $UserHash = $this->getUserHash($this->user);
-      $SQL  = "select data from " . $Area . " where client = :client and " . $this->ident("user") . " = :user";
-      $Rows = $this->execDB($SQL, array("client" => $Client, "user" => $UserHash), false, $Env);
-
-      if ( !count($Rows) )
-      {
-        $LegacyHash = $this->getHash($this->user);
-        $LegacyRows = $this->execDB($SQL, array("client" => $Client, "user" => $LegacyHash), false, $Env);
-        if ( count($LegacyRows) == 1 )
-        {
-          $this->execDB("update " . $Area . " set " . $this->ident("user") . " = :newuser where client = :client and " . $this->ident("user") . " = :olduser",
-                         array("newuser" => $UserHash, "client" => $Client, "olduser" => $LegacyHash), false, $Env);
-          $Rows = $LegacyRows;
-        }
-      }
-
-      if ( count($Rows) == 1 && isset($Rows[0]["data"]) )
-      {
-        return (array) json_decode($Rows[0]["data"], true);
-      }
-      return ([]);
-    }
-
-    $Fields = [];
-    $Data   = array(
-      "schema" => $this->schemaName(MODULE),
-      "area"   => $Area
-    );
-    $SQL   = "SELECT column_name AS colname, data_type AS coltype FROM information_schema.columns where table_schema = :schema and table_name = :area";
-    $Rows  = $this->execDB($SQL, $Data, false, $Env);
-
-    foreach ($Rows as $Row) {
-      $Fields[$Row["colname"]] = $Row["coltype"];
-    }
-
-    if (!count($Rows))  return ([]);
-
-    $ClientsTables = array("adminusers", "users");
-
-    $Data   = [];
-    $Where  = false;
-    if (MODULE != "hosting" && $Client && !in_array($Area, $ClientsTables)) $Data['client']  = $Client;
-
-    $SpecialType  = "";
-    $SpecialValue = "";
-    if ($Special && strpos($Special, ":") !== false) {
-      list($SpecialType, $SpecialValue) = explode(":", $Special, 2);
-    }
-
-    $HoursOverRange = in_array($SpecialType, array("monthhours", "yearhours"));
-
-    foreach ($Filters as $Sp => $Wert) {
-      if (is_array($Wert))  continue;
-      $Typ = isset($Fields[$Sp]) ? strtolower((string) $Fields[$Sp]) : "";
-      if ($Typ === "")  continue;
-      if (strpos($Typ, "date") === false && strpos($Typ, "timestamp") === false)  continue;
-      if (trim((string) $Wert) === "")  return ([]);
-    }
-    if (in_array($SpecialType, array("day", "month", "year", "monthhours", "yearhours"))
-        && trim((string) $SpecialValue) === "")  return ([]);
-
-    $DatumsMuster = array("day"        => '/^(\d{4}-\d{2}-\d{2})$/',
-                          "month"      => '/^(\d{4}-\d{2})(?:-\d{2})?$/',
-                          "monthhours" => '/^(\d{4}-\d{2})(?:-\d{2})?$/',
-                          "year"       => '/^(\d{4})(?:-\d{2}){0,2}$/',
-                          "yearhours"  => '/^(\d{4})(?:-\d{2}){0,2}$/');
-    if (isset($DatumsMuster[$SpecialType])) {
-      if (!preg_match($DatumsMuster[$SpecialType], trim((string) $SpecialValue), $DatumsTeile))  return ([]);
-      $SpecialValue = $DatumsTeile[1];
-    }
-
-    $StatsAgg = (in_array($Area,["statslive", "adminstatslive"]) && in_array($SpecialType, array("day", "month", "year", "monthhours", "yearhours")));
-
-    if (!$StatsAgg && in_array($Area, ["statslive", "adminstatslive"]) && isset($Filters["day"]) && !is_array($Filters["day"])) {
-      $SpecialType  = "day";
-      $SpecialValue = $Filters["day"];
-      unset($Filters["day"]);
-      $StatsAgg = true;
-    }
-
-    if ($StatsAgg) {
-      $HourFields = [];
-      for ($Hour = 0; $Hour < 24; $Hour++)  $HourFields[] = "hour_" . str_pad($Hour, 2, "0", STR_PAD_LEFT);
-      if ($SpecialType == "day" || $HoursOverRange) {
-
-        $HourSums = array_map(function ($Field) { return "sum(" . $Field . ") as " . $Field; }, $HourFields);
-
-        $SQL  = "select category, stat, api" . ($HoursOverRange ? "" : ", day") . ", " . implode(", ", $HourSums) . " from " . $Area;
-      } else {
-        $SQL  = "select category, stat, api, day, sum(" . implode(" + ", $HourFields) . ") as sum from " . $Area;
-      }
-    } elseif ($Group == "sum") {
-      $SQL  = "select count(*) as count from " . $Area;
-    } else {
-      $SQL  = "select * from " . $Area;
-    }
-    if (MODULE != "hosting" && $Client) {
-      if (in_array($Area, $ClientsTables)) {
-
-        $SQL .= " where " . ($this->isPG() ? "clients::text" : "clients") . " like :clientlike";
-        $Data["clientlike"] = "%" . $Client . "%";
-      } else {
-        $SQL .= " where client = :client";
-      }
-      $Where = true;
-    }
-    if (count($Filters)) {
-      $Count = 0;
-      foreach ($Filters as $Flid => $Filt) {
-
-        $Col = $this->validColumn($Flid, $Fields);
-        if (!$Col)  continue;
-        if (is_array($Filt)) {
-          $Ps = array();
-          foreach (array_values($Filt) as $Vi => $Val) {
-            $P    = "flt_" . $Count . "_" . $Vi;
-            $Ps[] = ":" . $P;
-            $Data[$P] = $Val;
-          }
-          if (!count($Ps))  continue;
-          $SQL .= (!$Where ? " where " : " and ") . $this->ident($Col) . " in (" . implode(", ", $Ps) . ")";
-        } else {
-          $P = "flt_" . $Count;
-          $SQL .= (!$Where ? " where " : " and ") . $this->ident($Col) . " = :" . $P;
-          $Data[$P] = $Filt;
-        }
-        $Count++;
-        $Where = true;
-      }
-    }
-
-    $Search = trim((string) $Search);
-    if ($Search !== "") {
-      $Teile = array();
-      foreach ($Fields as $Sp => $Typ) {
-        if ($Sp == "client")  continue;
-        if (strpos($Typ, "char") === false && strpos($Typ, "text") === false)  continue;
-        $Teile[] = "lower(" . $this->ident($Sp) . ") like :suchwort";
-      }
-      if (count($Teile)) {
-        $SQL .= (!$Where ? " where " : " and ") . "(" . implode(" or ", $Teile) . ")";
-
-        $Wort = str_replace(array("\\", "%", "_"), array("\\\\", "\\%", "\\_"), mb_strtolower($Search));
-        $Data["suchwort"] = "%" . $Wort . "%";
-        $Where = true;
-      }
-    }
-
-    if ($Special || $StatsAgg) {
-      if ($Special == "current") {
-
-        $SQL .= (!$Where ? " where " : " and ")
-              . ($this->isPG() ? " now() - interval '5 minutes' BETWEEN start AND \"end\""
-                               : " NOW() - INTERVAL 5 MINUTE BETWEEN start AND end");
-        $Where = true;
-      } elseif ($StatsAgg && $SpecialType == "day") {
-        $SQL .= (!$Where ? " where " : " and ") . "day = :specialday";
-        $Data["specialday"] = $SpecialValue;
-        $Where = true;
-      } elseif ($StatsAgg && ($SpecialType == "month" || $SpecialType == "monthhours")) {
-
-        $Von = $SpecialValue . "-01";
-        $SQL .= (!$Where ? " where " : " and ") . "day >= :specialfrom and day < :specialto";
-        $Data["specialfrom"] = $Von;
-        $Data["specialto"]   = date("Y-m-d", strtotime($Von . " +1 month"));
-        $Where = true;
-      } elseif ($StatsAgg && ($SpecialType == "year" || $SpecialType == "yearhours")) {
-        $SQL .= (!$Where ? " where " : " and ") . "day >= :specialfrom and day < :specialto";
-        $Data["specialfrom"] = $SpecialValue . "-01-01";
-        $Data["specialto"]   = ((int) $SpecialValue + 1) . "-01-01";
-        $Where = true;
-      }
-    }
-
-    if ($StatsAgg) {
-      $SQL .= " group by category, stat, api" . ($HoursOverRange ? "" : ", day");
-    }
-
-    $SafeSorts = $this->safeSorts($Sorts, $Fields);
-    if (count($SafeSorts)) {
-      $SQL .= " order by " . implode(", ", $SafeSorts);
-    } elseif ($StatsAgg && !$HoursOverRange) {
-      $SQL .= " order by day";
-    } elseif ($HoursOverRange) {
-
-      $SQL .= " order by category, stat, api";
-    }
-
-    if ($StatsAgg) {
-      $SQL .= " limit 200000";
-    } else {
-
-      $SQL .= $this->isPG() ? (" limit " . $Limit . " offset " . $Start)
-                            : (" limit " . $Start . ", " . $Limit);
-    }
-
-    $Rows = $this->execDB($SQL, $Data, false, $Env);
-
-    foreach ($Rows as $i => &$Row) {
-      foreach ($Fields as $Field => $Type) {
-        if (!isset($Rows[$i][$Field]) || !trim($Rows[$i][$Field]))  continue;
-
-        if ($Type == "date") {
-
-          $Rows[$i][$Field] = substr($Rows[$i][$Field], 8, 2) . "." . substr($Rows[$i][$Field], 5, 2) . "." . substr($Rows[$i][$Field], 0, 4);
-        } elseif ($Type == "datetime") {
-
-          $Rows[$i][$Field] = substr($Rows[$i][$Field], 8, 2)  . "." . substr($Rows[$i][$Field], 5, 2) . "." . substr($Rows[$i][$Field], 0, 4) . " "
-            . substr($Rows[$i][$Field], 11, 5);
-        } elseif ($this->isJsonType($Type)) {
-
-          $Rows[$i][$Field] = (array) json_decode($Rows[$i][$Field], true);
-        } elseif ($Type == "float") {
-
-          $Rows[$i][$Field] = number_format($Rows[$i][$Field], 2, ".", "");
-        } elseif ($Type == "password") {
-
-          $Rows[$i][$Field] = "";
-        } elseif ($Type == "blob") {
-
-          $Rows[$i][$Field] = $this->DecodeArray($this->DecryptString($Rows[$i][$Field]));
-        }
-      }
-    }
-
-    return $Rows;
-  }
-
-  public function logDB($Report, $Category = "system", $Log = "-", $State = "OK", $Data = "", $Client = null)
-  {
-    if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
-
-    if (trim($Report) == "")  return;
-
-    $Log = array(
-      "category" => $Category,
-      "log"      => $Log,
-      "state"    => $State,
-      "report"   => $Report,
-      "data"     => json_encode($Data, true),
-      "created"  => date("Y-m-d H:i:s"),
-      "user"     => $this->user,
-      "avatar"   => $this->avatar
-    );
-
-    if (MODULE != "hosting")  $Log['client']  = ($Client !== null && $Client !== "") ? $Client : $this->client;
-
-    if (MODULE == "hosting") {
-      $SQL  = "insert into logs (category, log, state, report, data, created, " . $this->ident("user") . ", avatar)";
-      $SQL .= " values (:category, :log, :state, :report, :data, :created, :user, :avatar)";
-    } else {
-      $SQL  = "insert into logs (client, category, log, state, report, data, created, " . $this->ident("user") . ", avatar)";
-      $SQL .= " values (:client, :category, :log, :state, :report, :data, :created, :user, :avatar)";
-    }
-    $this->execDB($SQL, $Log);
-  }
-
   private static $StatsKey = array();
 
   private static $StatsExtra = array();
-
 }

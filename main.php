@@ -88,8 +88,7 @@ if ( !file_exists(explode("/",trim($f3->get("SERVER.REQUEST_URI"),"/"))[0]) )   
 define('API', explode("/",trim($f3->get("SERVER.REQUEST_URI"),"/"))[0]);
 
 // Check & define module
-if ( !file_exists(API . '/appl/' . explode("/",trim($f3->get("SERVER.REQUEST_URI"),"/"))[1])
-  || !file_exists(API . '/base/' . explode("/",trim($f3->get("SERVER.REQUEST_URI"),"/"))[1]) )       die(Error('Module not found!'));
+if ( !file_exists(API . '/appl/' . explode("/",trim($f3->get("SERVER.REQUEST_URI"),"/"))[1]) )  die(Error('Module not found!'));
 if ( !file_exists(PROJECTDIR . 'configs/' . MODE . '/'
                   . explode("/",trim($f3->get("SERVER.REQUEST_URI"),"/"))[1] . '.ini') )        die(Error(explode("/",trim(
                                                                                                     $f3->get("SERVER.REQUEST_URI"),"/"))[1]
@@ -98,12 +97,6 @@ define('MODULE', explode("/",trim($f3->get("SERVER.REQUEST_URI"),"/"))[1]);
 
 $f3->config(PROJECTDIR . 'configs/' . MODE . '/' . MODULE . '.ini');
 
-// Set security
-if ( !$f3->get("security.app") )                                                                die(Error('Module sucurity app not found!'));
-if ( !in_array($f3->get("security.app"), array("none", "token")) )                              die(Error('Module sucurity app wrong!'));
-if ( !$f3->get("security.user") )                                                               die(Error('Module sucurity user not found!'));
-if ( !in_array($f3->get("security.user"), array("none", "token")) )                             die(Error('Module sucurity user wrong!'));
-
 // Define Action
 define('ACTION', explode("/",trim($f3->get("SERVER.REQUEST_URI"),"/"))[2]);
 
@@ -111,7 +104,6 @@ define('ACTION', explode("/",trim($f3->get("SERVER.REQUEST_URI"),"/"))[2]);
 $f3->set('AUTOLOAD', implode("/;" , array(API . "/appl",
                                           API . "/appl/" . MODULE,
                                           API . "/base",
-                                          API . "/base/" . MODULE,
                                           API)) . "/;");
 
 $f3->run($f3);

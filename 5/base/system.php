@@ -2,7 +2,6 @@
 
 class system extends systemdb
 {
-  protected $dbpw;
   public    $clientconfigs;
   public    $clienttexts;
   public    $configs;
@@ -26,19 +25,6 @@ class system extends systemdb
     else
     {
       $this->configs  = $this->getAdminConfigsDB();
-
-      $Alt = array(
-        "solrpath"        => array("solr",    "path"),
-        "kisuggest"       => array("project", "kisuggest"),
-      );
-      foreach ( $Alt as $Neu => $Wo )
-      {
-        if ( isset($this->configs["hosting"][$Neu]) && trim((string) $this->configs["hosting"][$Neu]) !== "" ) continue;
-        if ( isset($this->configs[$Wo[0]][$Wo[1]]) && trim((string) $this->configs[$Wo[0]][$Wo[1]]) !== "" )
-        {
-          $this->configs["hosting"][$Neu] = $this->configs[$Wo[0]][$Wo[1]];
-        }
-      }
 
       file_put_contents($File, json_encode($this->configs,true));
     }
@@ -133,7 +119,6 @@ class system extends systemdb
   public function config()
   {
     if ( APPDEBUG["FKT"] ) $this->debug("FKT",__METHOD__);
-
 
     $Source = trim($this->checkPostedStr("source"));
     if ( $Source )

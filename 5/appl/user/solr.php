@@ -1380,15 +1380,6 @@ class solr
     $this->add = $Add;
     $this->CS->works["solr"] = $this->doSearch();
   }
-
-  public function getProject($URL, $Query, $Project)
-  {
-    if ( APPDEBUG["FKT"] ) $this->CS->debug("FKT",__METHOD__);
-
-    $this->nebenabfrage = true;
-    $this->CS->works["project"][$Project] = $this->processSolr($URL, $Query);
-    $this->nebenabfrage = false;
-  }
 }
 
 ?>

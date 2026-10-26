@@ -43,7 +43,6 @@ class appldb extends system
 
     return $Levl;
   }
-
 }
 
 ?>

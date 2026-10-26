@@ -17,7 +17,6 @@ class appl extends appldb
     if ( APPDEBUG["FKT"] ) $this->debug("FKT",__METHOD__);
 
     $this->appl            = $this->f3->get('application.type');
-    $this->dbpw            = "";
     $this->formats         = array("Article","Book","Serial Volume","Sound Recording",
                                    "Journal","Musical Score","Microform","Map","Motion Picture",
                                    "Monograph Series", "Manuscript","unknown","Game",
@@ -26,9 +25,9 @@ class appl extends appldb
     $this->formatsMulti    = array("Book", "Journal", "Monograph Series", "Serial Volume",
                                    "unknown", "Musical Score", "Sound Recording", "Map",
                                    "Microform", "Motion Picture", "Manuscript");
-    $this->getAreas        = array("export", "findex", "hierarchy", "print", "resolve");
+    $this->getAreas        = array("export", "findex", "resolve");
 
-    $this->searchAreas     = array("collections", "facets", "findex", "isils");
+    $this->searchAreas     = array("facets", "findex");
 
     $this->searchOptions   = array("", "person", "signature", "title", "isn");
 

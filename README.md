@@ -100,7 +100,7 @@ An `author.mail` gehen Fehlermeldungen der API (z. B. Datenbank- oder Solr-Fehle
 
 Datei: `/home/<benutzer>/configs/production/user.ini`
 
-Enthält Datenbankzugang, Sicherheitseinstellungen, Mailversand und Debug-Schalter.
+Enthält Datenbankzugang, Mailversand und Debug-Schalter.
 `appdebug` auf `false` lassen — sonst schreibt die API SQL-Abfragen und -Daten ins Log.
 
 ```ini
@@ -110,10 +110,6 @@ host=localhost
 name=lukida_essential
 user=lukida_essential
 pass=<passwort>
-
-[security]
-app=token
-user=none
 
 [smtp]
 host=
@@ -158,9 +154,7 @@ CREATE DATABASE lukida_essential OWNER lukida_essential;
 \q
 ```
 
-Das Passwort muss mit `pass` in `user.ini` übereinstimmen. Die Namen `lukida_essential` für
-DB und User sind auch in `sql/schema.sql` (Rechtevergabe) hinterlegt — bei anderen Namen
-dort ebenfalls anpassen.
+Das Passwort muss mit `pass` in `user.ini` übereinstimmen.
 
 ### 5.2 Platzhalter in `demo-data.sql` befüllen
 
@@ -196,6 +190,10 @@ Die SQL-Dateien liegen im Repo unter `sql/`:
 
 - `schema.sql` — erstellt alle Tabellen
 - `demo-data.sql` — füllt die DB mit Beispieldaten für den Client `Demo`
+
+**Wichtig:** Beide Dateien als DB-User der Anwendung einspielen (wie unten), **nicht** als
+`postgres`. Sonst gehören die Tabellen `postgres`, und die API darf nicht darauf zugreifen
+(`permission denied`).
 
 ```bash
 psql -h localhost -U lukida_essential -d lukida_essential \
@@ -391,6 +389,8 @@ curl -X POST http://<server>:9055/5/user/search \
 | `MODE` undefined / leere API-Antwort | `php -S` statt Apache | Apache-VirtualHost mit `SetEnv` verwenden |
 | `{"code":"apikeyinvalid"}` | Key in UI und `application.ini` verschieden | `VITE_API_KEY` in `ui/.env.local` prüfen, danach `npm run build` |
 | `{"code":"localdatabaseerror"}` | DB nicht erreichbar oder Login falsch | `[db]` in `user.ini` mit DB-User/Passwort aus 5.1 abgleichen |
+| Log: `permission denied for schema/table user` | Schema als `postgres` eingespielt | Tabellen dem DB-User übertragen: `ALTER TABLE "user".<tabelle> OWNER TO lukida_essential` (je Tabelle, als `postgres`) |
+| `{"code":"levelmissing"}` | Keine Level-Konfiguration für den Client | Demo-Daten einspielen bzw. Eintrag `all` in `"user".adminlevels` anlegen; danach `caches/` leeren |
 | 500 bei `/api/...` aus der UI | `mod_proxy_http` nicht aktiv | `sudo a2enmod proxy proxy_http` |
 | `Failed to open stream: Keine Berechtigung` | logs/caches/transfers gehören nicht www-data | `sudo chown -R www-data:www-data` auf die drei Ordner (siehe 4.) |
 | UI lädt, Suche liefert nichts | ProxyPass fehlt | `ProxyPass /api http://localhost:9055` im Port-9056-Block |

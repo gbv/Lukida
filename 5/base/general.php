@@ -203,16 +203,6 @@ class general
       }
     }
   }
-
-  public function getHash($Str)
-  {
-    return hash("sha256", trim((string) $Str));
-  }
-
-  public function getUserHash($Str)
-  {
-    return hash_hmac("sha256", trim((string) $Str), $this->f3->get("application.pepper"));
-  }
 }
 
 ?>

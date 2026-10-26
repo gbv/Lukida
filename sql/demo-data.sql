@@ -70,12 +70,6 @@ INSERT INTO "user".admincasesmedia (id, client, seq, name, active, filters, ligh
 (59964,'Demo',900,'Ende','y','["m.haptic","m.nophysicalitem"]','red','["t.askdesk"]','itembutton.contact','mdi-account-box-outline','y','["t.contactourstaff"]','detailbutton.contact','o.mailelse','o.dialog.else',NULL,NULL);
 
 -- --------------------------------------------------------
--- locationentries
--- --------------------------------------------------------
-INSERT INTO "user".locationentries (id, client, locid, art, sortorder, level, groupid, labelshort_g, labelshort_e, view_g, view_e, updated, comment_g, comment_e) VALUES
-(1, 'Demo', 'FH', 'standort', 0, 1, NULL, 'Freihand', 'Open Stacks', NULL, NULL, CURRENT_TIMESTAMP, NULL, NULL);
-
--- --------------------------------------------------------
 -- Sequenzen auf den nächsten freien Wert setzen
 -- --------------------------------------------------------
 SELECT setval('"user".bms_id_seq',             (SELECT COALESCE(MAX(id),0)+1 FROM "user".adminbms),         false);
@@ -83,4 +77,3 @@ SELECT setval('"user".adminconfigs_id_seq',    (SELECT COALESCE(MAX(id),0)+1 FRO
 SELECT setval('"user".adminlevels_id_seq',     (SELECT COALESCE(MAX(id),0)+1 FROM "user".adminlevels),      false);
 SELECT setval('"user".admincases_id_seq',      (SELECT COALESCE(MAX(id),0)+1 FROM "user".admincases),       false);
 SELECT setval('"user".admincasesmedia_id_seq', (SELECT COALESCE(MAX(id),0)+1 FROM "user".admincasesmedia),  false);
-SELECT setval('"user".locationentries_id_seq', (SELECT COALESCE(MAX(id),0)+1 FROM "user".locationentries),  false);
