@@ -77,3 +77,27 @@ SELECT setval('"user".adminconfigs_id_seq',    (SELECT COALESCE(MAX(id),0)+1 FRO
 SELECT setval('"user".adminlevels_id_seq',     (SELECT COALESCE(MAX(id),0)+1 FROM "user".adminlevels),      false);
 SELECT setval('"user".admincases_id_seq',      (SELECT COALESCE(MAX(id),0)+1 FROM "user".admincases),       false);
 SELECT setval('"user".admincasesmedia_id_seq', (SELECT COALESCE(MAX(id),0)+1 FROM "user".admincasesmedia),  false);
+-- --------------------------------------------------------
+-- TEXTE: Beschriftungen der Exemplarknoepfe
+--
+-- Die Regeln in admincases/admincasesmedia nennen nur den CODE eines
+-- Knopfes (z.B. "itembutton.order"); die Beschriftung steht hier. Ohne
+-- diese Zeilen bleibt der Knopf in der Trefferliste ohne Text.
+-- Welche Codes gebraucht werden, sagen die Spalten itembutton und
+-- detailbutton der beiden Regeltabellen.
+-- --------------------------------------------------------
+
+INSERT INTO "user".admintexts (client, shortcut, german, english) VALUES
+('Demo', 'itembutton.directopen',    'Online lesen',        'Read online'),
+('Demo', 'itembutton.availablesoon', 'Bald verfügbar',      'Available soon'),
+('Demo', 'itembutton.reserve',       'Vormerken',           'Reserve'),
+('Demo', 'detailbutton.reserve',     'Vormerken',           'Reserve'),
+('Demo', 'itembutton.order',         'Bestellen',           'Order'),
+('Demo', 'detailbutton.order',       'Bestellen',           'Order'),
+('Demo', 'itembutton.see',           'Vor Ort nutzbar',     'Available on site'),
+('Demo', 'itembutton.seeloan',       'Ausleihbar',          'Available for loan'),
+('Demo', 'itembutton.lost',          'Verlust gemeldet',    'Reported lost'),
+('Demo', 'itembutton.locked',        'Nicht verfügbar',     'Not available'),
+('Demo', 'itembutton.change',        'Zum Sammelwerk',      'To the collected work'),
+('Demo', 'itembutton.seerelated',    'Zugehörige Titel',    'Related titles'),
+('Demo', 'itembutton.contact',       'Bitte nachfragen',    'Please ask at the desk');

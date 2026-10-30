@@ -32,6 +32,7 @@
     </main>
     <Modal
       :item="selectedItem"
+      :user="currentUser"
       :has-prev="selectedIndex > 0"
       :has-next="selectedIndex >= 0 && selectedIndex < results.length - 1"
       @close="selectedItem = null"
@@ -122,7 +123,11 @@ async function doSearch() {
     const data     = await api('search', {
       area:    'findex',
       search:  { query: query.value },
-      display: { bib: true },
+      // "items" holt die Exemplare samt Ampel und Knopf. Welcher Knopf an
+      // welchem Exemplar steht, entscheiden die Regeln in admincases und
+      // admincasesmedia - die API wertet sie aus und legt das Ergebnis in
+      // items[gruppe].groupitems[].short/light/comments (29.10.2026).
+      display: { bib: true, items: true },
       start:   start.value, limit: pageSize
     })
     const newItems = data.data || []

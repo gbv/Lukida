@@ -74,13 +74,14 @@
                 <div class="text-xs opacity-60 mt-0.5">{{ it.callnumber }}</div>
               </div>
               <div class="shrink-0 flex flex-col items-end gap-1">
-                <span class="badge badge-sm" :class="it.badgeClass">{{ it.statusText }}</span>
+                <!-- Abzeichen und Knopf kommen beide aus short.label - deshalb
+                     das Abzeichen nur dort, wo es KEINEN Knopf gibt; sonst
+                     stuende zweimal dasselbe Wort (29.10.2026). -->
+                <span v-if="!it.action" class="badge badge-sm" :class="it.badgeClass">{{ it.statusText }}</span>
                 <a v-if="it.action === 'link'" :href="it.url" target="_blank"
                    class="btn btn-xs text-white" style="background:#7da820;">LINK &#214;FFNEN</a>
-                <button v-else-if="it.action === 'loan'" @click="loanDialogItem = it"
-                        class="btn btn-xs text-white" style="background:#2d7a2d;">AUSLEIHEN</button>
-                <button v-else-if="it.action === 'order'" @click="orderDialogItem = it"
-                        class="btn btn-xs text-white" style="background:#1a5c1a;">BESTELLEN</button>
+                <button v-else-if="it.action === 'request'" @click="orderDialogItem = it; bestellGrund = ''"
+                        class="btn btn-xs btn-primary">{{ it.knopf }}</button>
               </div>
             </div>
           </div>
@@ -119,25 +120,21 @@
       </div>
     </div>
 
-    <!-- Ausleihen-Dialog -->
-    <div v-if="loanDialogItem" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40" @click.self="loanDialogItem = null">
-      <div class="bg-base-100 rounded-lg shadow-xl p-6 w-80 max-w-full">
-        <div class="font-semibold text-base mb-3">Exemplar ausleihen</div>
-        <div class="text-sm mb-1 font-medium">{{ loanDialogItem.location }}</div>
-        <div class="text-sm mb-1">Signatur: {{ loanDialogItem.callnumber }}</div>
-        <div class="text-sm opacity-70 mb-4">Das Exemplar ist an der Ausleihtheke oder an den Selbstverbuchern ausleihbar. Bitte selbst am Regal entnehmen.</div>
-        <div class="flex justify-end"><button class="btn btn-sm" @click="loanDialogItem = null">OK</button></div>
-      </div>
-    </div>
-
     <!-- Bestellen-Dialog -->
     <div v-if="orderDialogItem" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40" @click.self="orderDialogItem = null">
       <div class="bg-base-100 rounded-lg shadow-xl p-6 w-80 max-w-full">
-        <div class="font-semibold text-base mb-3">Exemplar bestellen</div>
-        <div class="text-sm mb-1 font-medium">{{ orderDialogItem.location }}</div>
-        <div class="text-sm mb-1">Signatur: {{ orderDialogItem.callnumber }}</div>
-        <div class="text-sm opacity-70 mb-4">Das Exemplar kann über das Magazin oder die Fernleihe bestellt werden.</div>
-        <div class="flex justify-end"><button class="btn btn-sm" @click="orderDialogItem = null">OK</button></div>
+        <div class="font-semibold text-base mb-3">{{ orderDialogItem.knopf }}</div>
+        <div v-if="orderDialogItem.location" class="text-sm mb-1 font-medium">{{ orderDialogItem.location }}</div>
+        <div v-if="orderDialogItem.callnumber" class="text-sm mb-1">Signatur: {{ orderDialogItem.callnumber }}</div>
+        <div v-if="!user" class="text-sm opacity-70 my-3">Zum Bestellen müssen Sie angemeldet sein.</div>
+        <div v-if="bestellGrund" class="text-sm my-3">{{ bestellGrund }}</div>
+        <div class="flex justify-end gap-2 mt-4">
+          <button class="btn btn-sm btn-ghost" @click="orderDialogItem = null">Abbrechen</button>
+          <button class="btn btn-sm btn-primary" :disabled="!user || bestellLauft" @click="bestellen">
+            <span v-if="bestellLauft" class="loading loading-spinner loading-xs"></span>
+            {{ orderDialogItem.knopf }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -151,7 +148,7 @@ import { api } from '../api.js'
 import { isFavorite, toggleFavorite } from '../favorites.js'
 import ExportMenu from './ExportMenu.vue'
 
-const props = defineProps(['item', 'hasPrev', 'hasNext'])
+const props = defineProps(['item', 'hasPrev', 'hasNext', 'user'])
 defineEmits(['close', 'navigate', 'openItem'])
 
 const loading         = ref(false)
@@ -159,7 +156,6 @@ const detail          = ref(null)
 const itemsData       = ref({})
 const tab             = ref('titel')
 const showDetails     = ref(false)
-const loanDialogItem  = ref(null)
 const orderDialogItem = ref(null)
 const related         = ref([])
 const relatedLoading  = ref(false)
@@ -212,7 +208,6 @@ watch(() => props.item, async (item) => {
   tab.value            = 'titel'
   showDetails.value    = false
   related.value        = []
-  loanDialogItem.value  = null
   orderDialogItem.value = null
   try {
     const data     = await api('search', {
@@ -345,21 +340,77 @@ const items = computed(() => {
     if (!Array.isArray(group.groupitems)) continue
     const groupLocation = group.text?.g?.[0]?.text || (group.label !== 'default' ? group.label : '') || ''
     for (const gi of group.groupitems) {
-      const callnumber    = gi.meta?.signature?.[0] || ''
-      const light         = gi.light || 'neutral'
-      const url           = gi.action?.link?.url || ''
-      const commentTexts  = (gi.comments?.g || []).map(c => c.text).filter(Boolean)
-      const statusComment = commentTexts.find(t => !t.startsWith('Signatur:') && !t.startsWith('Signature:')) || ''
-      let statusText, badgeClass, action
-      if (light === 'green')  { statusText = statusComment || 'Ausleihbar';        badgeClass = 'badge-success'; action = url ? 'link' : 'loan'  }
-      else if (light === 'red')    { statusText = statusComment || 'Entliehen';         badgeClass = 'badge-error';   action = 'order' }
-      else if (light === 'yellow') { statusText = statusComment || 'Nur im Lesesaal';   badgeClass = 'badge-warning'; action = 'order' }
-      else if (light === 'blue')   { statusText = statusComment || 'Online / Fernleihe';badgeClass = 'badge-info';    action = url ? 'link' : 'order' }
-      else                         { statusText = statusComment || 'Nicht verfügbar';   badgeClass = 'badge-neutral'; action = 'order' }
-      const location = groupLocation || gi.meta?.location?.[0] || ''
-      result.push({ location, subloc: '', callnumber, url, statusText, badgeClass, action })
+      // BESCHRIFTUNG UND AKTION KOMMEN AUS DER REGEL         (29.10.2026)
+      //
+      // Hier wurde der Knopf frueher aus der AMPELFARBE geraten (gruen =
+      // ausleihen, rot = bestellen) und oeffnete einen Hinweistext ohne
+      // Funktion. Was an einem Exemplar moeglich ist, entscheiden aber
+      // admincases/admincasesmedia: die API legt die Beschriftung in
+      // short.label und die Aktion in action ab (p.order -> type
+      // "request"). Genau das wird jetzt angezeigt und ausgefuehrt.
+      const callnumber = gi.meta?.signature?.[0] || ''
+      const light      = gi.light || 'neutral'
+      const url        = gi.action?.link?.url || ''
+      const zeilen     = (gi.comments?.g || [])
+        .map(c => String(c?.text || '').replace(/\*\*/g, '').replace(/^:\s*/, '').trim())
+        .filter(Boolean)
+      const statusText = gi.short?.label
+        || zeilen.find(t => !t.startsWith('Signatur:') && !t.startsWith('Signature:'))
+        || ''
+      const badgeClass = light === 'green'  ? 'badge-success'
+                       : light === 'red'    ? 'badge-error'
+                       : light === 'yellow' ? 'badge-warning'
+                       : light === 'blue'   ? 'badge-info' : 'badge-neutral'
+      const akt  = (gi.action && !Array.isArray(gi.action)) ? gi.action : null
+      const art  = akt?.type === 'request' ? 'request' : (url ? 'link' : '')
+      result.push({
+        location: groupLocation || gi.meta?.location?.[0] || '',
+        subloc: '', callnumber, url, statusText, badgeClass,
+        action: art,
+        // short.label ist die AUFGELOESTE Beschriftung aus admintexts;
+        // action.button enthaelt nur den Code (z.B. "detailbutton.order"),
+        // den die API nicht aufloest. Darum short zuerst (29.10.2026).
+        knopf:  gi.short?.label || 'Bestellen',
+        anfrage: akt?.request || null,
+        regel:  gi.meta?.case || '',
+      })
     }
   }
   return result
 })
+
+// Bestellen aus der Vollanzeige.
+//
+// Die Exemplarkennung und die Bestellart stehen in action.request, das die
+// API aus der Regel gebaut hat (p.order -> {id, type:"order"}). Ohne
+// Anmeldung geht nichts - dann sagt der Dialog das und mehr nicht.
+const bestellLauft = ref(false)
+const bestellGrund = ref('')
+async function bestellen() {
+  const it = orderDialogItem.value
+  if (!it || !it.anfrage || bestellLauft.value) return
+  if (!props.user?.token || !props.user?.login) {
+    bestellGrund.value = 'Bitte melden Sie sich zuerst an.'
+    return
+  }
+  bestellLauft.value = true
+  bestellGrund.value = ''
+  try {
+    const d = await api('action', {
+      type:        'request',
+      id:          it.anfrage.id,
+      requesttype: it.anfrage.type || 'order',
+      login:       props.user.login,
+      tokens:      { user: props.user.token },
+    })
+    const ok = (d.status ?? -1) >= 0 || d.stat === 'success'
+    bestellGrund.value = (Array.isArray(d.mess) ? d.mess.filter(Boolean).join(' ') : '')
+      || (Array.isArray(d.more) ? d.more.filter(Boolean).join(' ') : '')
+      || (ok ? 'Bestellung aufgegeben.' : 'Bestellung nicht möglich.')
+    if (ok) setTimeout(() => { orderDialogItem.value = null; bestellGrund.value = '' }, 2500)
+  } catch {
+    bestellGrund.value = 'Verbindungsfehler.'
+  }
+  bestellLauft.value = false
+}
 </script>

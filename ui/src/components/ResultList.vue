@@ -23,6 +23,31 @@
         </div>
         <p class="text-sm opacity-70">{{ getAuthor(item) }}</p>
         <p class="text-xs opacity-50">{{ item.year || '' }}{{ item.year && item.format && item.format !== 'unknown' ? ' · ' : '' }}{{ item.format !== 'unknown' ? item.format || '' : '' }}</p>
+
+        <!-- EXEMPLARE AUS DEN REGELN                              (29.10.2026)
+             Welche Zeilen und welcher Knopf hier stehen, entscheidet die API
+             anhand von admincases/admincasesmedia. Wir zeigen nur an, was sie
+             liefert: die Ampel (light), die Zeilen (comments) und den Knopf
+             (short mit Code, Beschriftung, Zeichen und Farbe). -->
+        <div v-for="(ex, k) in exemplare(item)" :key="k"
+             class="mt-2 pt-2 border-t border-base-300 flex items-start gap-2 text-sm">
+          <span class="mt-1.5 inline-block w-2 h-2 rounded-full shrink-0"
+                :class="ampel(ex.light)" :title="ex.light || ''"></span>
+          <div class="flex-1 min-w-0">
+            <div v-for="(z, zi) in zeilen(ex)" :key="zi" class="opacity-80 truncate">{{ z }}</div>
+          </div>
+          <!-- Der Knopf zeigt, was die Regel vorsieht. Eine eigene Aktion hat
+               er in der Trefferliste nur selten - die Bestellung selbst
+               haengt an der Vollanzeige. Damit er nicht tot wirkt, oeffnet
+               er dann den Titel, wie ein Klick auf die Karte. -->
+          <button v-if="ex.short && ex.short.label"
+                  class="btn btn-xs shrink-0"
+                  :class="knopfFarbe(ex.short.color)"
+                  :title="ex.meta && ex.meta.case ? ex.meta.case : ''"
+                  @click.stop="hatAktion(ex) ? $emit('action', { item, ex }) : $emit('open', item)">
+            {{ ex.short.label }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -32,7 +57,51 @@
 import { isFavorite, toggleFavorite } from '../favorites.js'
 
 defineProps(['results'])
-defineEmits(['open'])
+defineEmits(['open', 'action'])
+
+// Die API liefert die Exemplare als items[gruppe].groupitems[]. Wir ziehen
+// sie flach, damit die Karte sie einfach untereinander zeigen kann. Ist
+// "items" leer oder ein leeres Array (Titel ohne Bestand), kommt nichts.
+function exemplare(item) {
+  const g = item && item.items
+  if (!g || Array.isArray(g)) return []
+  const aus = []
+  for (const gruppe of Object.values(g))
+    for (const ex of (gruppe.groupitems || [])) aus.push(ex)
+  return aus
+}
+
+// Die Zeilen stehen sprachgetrennt unter comments.g (deutsch) als Liste von
+// {type, text}. Leere Eintraege und die Markdown-Sternchen der Signatur
+// nehmen wir heraus - die Karte ist kein Fliesstext.
+function zeilen(ex) {
+  const c = ex && ex.comments && ex.comments.g
+  if (!Array.isArray(c)) return []
+  return c.map(x => String(x && x.text || '').replace(/\*\*/g, '').replace(/^:\s*/, '').trim())
+          .filter(Boolean)
+}
+
+// Die Ampel kommt als Farbwort vom Server; mehr als diese vier Zustaende
+// gibt es in Essential nicht.
+function ampel(licht) {
+  if (licht === 'green')  return 'bg-success'
+  if (licht === 'red')    return 'bg-error'
+  if (licht === 'yellow' || licht === 'orange') return 'bg-warning'
+  return 'bg-base-content opacity-30'
+}
+function knopfFarbe(farbe) {
+  if (farbe === 'green') return 'btn-success btn-outline'
+  if (farbe === 'red')   return 'btn-error btn-outline'
+  return 'btn-outline'
+}
+
+// Nur ein Knopf mit hinterlegter Aktion ist anklickbar. Steht dort nichts
+// (reine Zustandsanzeige wie "Vor Ort nutzbar"), bleibt er als Beschriftung
+// stehen und ist abgeschaltet.
+function hatAktion(ex) {
+  const a = ex && ex.action
+  return !!(a && !Array.isArray(a) && a.type)
+}
 
 function isFav(item) {
   return isFavorite(item.id)
