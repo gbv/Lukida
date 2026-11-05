@@ -1,0 +1,10 @@
+# Laufzeitdaten und Zugangsdaten (gehören nicht ins Repo)
+logs/
+caches/
+transfers/
+configs/
+
+# Abhängigkeiten und Build
+node_modules/
+ui/dist/
+ui/.env.local
