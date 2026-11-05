@@ -4,7 +4,6 @@
       <a href="#" class="text-xl font-bold text-primary flex-1 min-w-0 py-2 rounded"
          @click.prevent="$emit('show-search')">{{ APP_TITLE }}</a>
       <div class="flex flex-wrap items-center gap-2">
-        <ThemeWahl :model-value="currentTheme" @update:model-value="$emit('theme-change', $event)" />
         <button v-if="!user" ref="anmeldeKnopf" class="btn btn-primary h-11 min-h-11" @click="oeffneAnmeldung">
           Anmelden
         </button>
@@ -63,10 +62,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { api, APP_TITLE } from '../api.js'
-import ThemeWahl from './ThemeWahl.vue'
 
 const props = defineProps(['currentTheme', 'user', 'currentView'])
-const emit  = defineEmits(['theme-change','show-account','show-search','show-favs','show-history','show-info','login','logout'])
+const emit  = defineEmits(['show-account','show-search','show-favs','show-history','show-info','login','logout'])
 
 const ICON = {
   suche:   'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',

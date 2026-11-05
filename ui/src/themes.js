@@ -27,9 +27,6 @@ const KEY = 'lukida_theme'
 
 // Gespeicherte Wahl, sonst nach Systemeinstellung
 export function startTheme() {
-  let gespeichert = ''
-  try { gespeichert = localStorage.getItem(KEY) || '' } catch {}
-  if (THEMES.some(t => t.id === gespeichert)) return gespeichert
   const mq = (q) => window.matchMedia && window.matchMedia(q).matches
   const dunkel = mq('(prefers-color-scheme: dark)')
   if (mq('(prefers-contrast: more)')) return dunkel ? 'kontrast-dunkel' : 'kontrast-hell'
@@ -38,5 +35,4 @@ export function startTheme() {
 
 export function setzeTheme(id) {
   document.documentElement.setAttribute('data-theme', id)
-  try { localStorage.setItem(KEY, id) } catch {}
 }

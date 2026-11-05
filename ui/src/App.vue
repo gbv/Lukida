@@ -3,8 +3,6 @@
     <a href="#inhalt" class="sprunglink btn btn-primary h-11 min-h-11" @click.prevent="zumInhalt">Zum Inhalt springen</a>
 
     <Navbar
-      @theme-change="theme = $event"
-      :current-theme="theme"
       :user="currentUser"
       :current-view="currentView"
       @show-account="zeige('account')"
@@ -89,7 +87,6 @@ const selectedIndex = ref(-1)
 const inhalt        = ref(null)
 let   letzterFokus  = null
 
-watch(theme, val => setzeTheme(val))
 
 const TITEL = { search: 'Suche', account: 'Mein Konto', favs: 'Favoriten', history: 'Suchverlauf', info: 'Infoseite' }
 watch(currentView, v => { document.title = TITEL[v] + ' – ' + APP_TITLE }, { immediate: true })
@@ -201,9 +198,8 @@ onMounted(async () => {
   try {
     const cfg = await api('config')
     if (cfg.status === 1 && cfg.theme) {
-      let stored = ''
-      try { stored = localStorage.getItem('lukida_theme') || '' } catch {}
-      if (!stored) { theme.value = cfg.theme; setzeTheme(cfg.theme) }
+      theme.value = cfg.theme
+      setzeTheme(cfg.theme)
     }
   } catch {}
   window.addEventListener('scroll', onScroll, { passive: true })
