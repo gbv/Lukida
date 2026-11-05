@@ -1,7 +1,9 @@
 // Zentrale Einstellungen (aus ui/.env bzw. ui/.env.local) und Zugriff auf die Lukida-API
 
+const urlParams = new URLSearchParams(window.location.search)
+
 export const APP_TITLE = import.meta.env.VITE_APP_TITLE || 'Lukida Essential'
-export const CLIENT    = import.meta.env.VITE_API_CLIENT || 'Demo'
+export const CLIENT    = urlParams.get('isil') || import.meta.env.VITE_API_CLIENT || 'Demo'
 
 const BASE = {
   apikey: import.meta.env.VITE_API_KEY,

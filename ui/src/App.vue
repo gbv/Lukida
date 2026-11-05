@@ -197,9 +197,16 @@ function onScroll() {
   const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 300
   if (nearBottom && !loading.value && !allLoaded.value && !fehler.value && currentView.value === 'search') doSearch()
 }
-onMounted(() => {
+onMounted(async () => {
+  try {
+    const cfg = await api('config')
+    if (cfg.status === 1 && cfg.theme) {
+      let stored = ''
+      try { stored = localStorage.getItem('lukida_theme') || '' } catch {}
+      if (!stored) { theme.value = cfg.theme; setzeTheme(cfg.theme) }
+    }
+  } catch {}
   window.addEventListener('scroll', onScroll, { passive: true })
-  setzeTheme(theme.value)
 })
 onUnmounted(() => window.removeEventListener('scroll', onScroll))
 </script>

@@ -92,7 +92,7 @@ $f3->config(PROJECTDIR . 'configs/' . MODE . '/' . MODULE . '.ini');
 define('ACTION', explode("/",trim($f3->get("SERVER.REQUEST_URI"),"/"))[2]);
 
 // Nur die Einstiege der Oberfläche freigeben
-const ACTIONS = array("search", "login", "action", "export");
+const ACTIONS = array("search", "login", "action", "export", "config");
 if ( !in_array(ACTION, ACTIONS, true) )                                                         die(Error('Action not found!'));
 
 // Load Controllers

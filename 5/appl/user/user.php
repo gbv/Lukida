@@ -1504,4 +1504,24 @@ class user extends appluserdb
 
     $this->finalize($this->results);
   }
+
+
+  public function config()
+  {
+    if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
+
+    $theme = (isset($this->configs["ui"]["theme"]) && trim($this->configs["ui"]["theme"]))
+      ? trim($this->configs["ui"]["theme"])
+      : "hell";
+
+    $title = (isset($this->configs["ui"]["title"]) && trim($this->configs["ui"]["title"]))
+      ? trim($this->configs["ui"]["title"])
+      : "Lukida Essential";
+
+    $this->finalize(array(
+      "status" => 1,
+      "theme"  => $theme,
+      "title"  => $title,
+    ));
+  }
 }
