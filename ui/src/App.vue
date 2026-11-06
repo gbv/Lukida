@@ -66,7 +66,7 @@ import Account       from './components/Account.vue'
 import FavoritesPage from './components/FavoritesPage.vue'
 import HistoryPage   from './components/HistoryPage.vue'
 import InfoPage      from './components/InfoPage.vue'
-import { api, APP_TITLE } from './api.js'
+import { api, APP_TITLE, THEME } from './api.js'
 import { startTheme, setzeTheme } from './themes.js'
 
 const theme         = ref(startTheme())
@@ -194,14 +194,8 @@ function onScroll() {
   const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 300
   if (nearBottom && !loading.value && !allLoaded.value && !fehler.value && currentView.value === 'search') doSearch()
 }
-onMounted(async () => {
-  try {
-    const cfg = await api('config')
-    if (cfg.status === 1 && cfg.theme) {
-      theme.value = cfg.theme
-      setzeTheme(cfg.theme)
-    }
-  } catch {}
+onMounted(() => {
+  if (THEME) { theme.value = THEME; setzeTheme(THEME) }
   window.addEventListener('scroll', onScroll, { passive: true })
 })
 onUnmounted(() => window.removeEventListener('scroll', onScroll))

@@ -4,6 +4,7 @@ const urlParams = new URLSearchParams(window.location.search)
 
 export const APP_TITLE = import.meta.env.VITE_APP_TITLE || 'Lukida Essential'
 export const CLIENT    = urlParams.get('isil') || import.meta.env.VITE_API_CLIENT || 'Demo'
+export const THEME     = urlParams.get('theme') || null
 
 const BASE = {
   apikey: import.meta.env.VITE_API_KEY,
