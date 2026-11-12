@@ -1,5 +1,6 @@
 <template>
-  <div class="min-h-screen bg-base-100 text-base-content">
+  <HinweisPage v-if="isilUnbekannt" />
+  <div v-else class="min-h-screen bg-base-100 text-base-content">
     <a href="#inhalt" class="sprunglink btn btn-primary h-11 min-h-11" @click.prevent="zumInhalt">Zum Inhalt springen</a>
 
     <Navbar
@@ -66,10 +67,12 @@ import Account       from './components/Account.vue'
 import FavoritesPage from './components/FavoritesPage.vue'
 import HistoryPage   from './components/HistoryPage.vue'
 import InfoPage      from './components/InfoPage.vue'
+import HinweisPage   from './components/HinweisPage.vue'
 import { api, APP_TITLE, THEME } from './api.js'
 import { startTheme, setzeTheme } from './themes.js'
 
 const theme         = ref(startTheme())
+const isilUnbekannt = ref(false)
 const currentView   = ref('search')
 const currentUser   = ref((() => { try { return JSON.parse(sessionStorage.getItem('lukida_user')) } catch { return null } })())
 const accountData   = ref(null)
@@ -194,8 +197,10 @@ function onScroll() {
   const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 300
   if (nearBottom && !loading.value && !allLoaded.value && !fehler.value && currentView.value === 'search') doSearch()
 }
-onMounted(() => {
+onMounted(async () => {
   if (THEME) { theme.value = THEME; setzeTheme(THEME) }
+  const cfg = await api('config')
+  if (cfg.code === 'unknown_isil') { isilUnbekannt.value = true; return }
   window.addEventListener('scroll', onScroll, { passive: true })
 })
 onUnmounted(() => window.removeEventListener('scroll', onScroll))

@@ -1510,6 +1510,14 @@ class user extends appluserdb
   {
     if (APPDEBUG["FKT"]) $this->debug("FKT", __METHOD__);
 
+    if (!isset($this->configs["item"]) && !isset($this->configs["ui"])) {
+      $this->finalize(array(
+        "status" => 0,
+        "code"   => "unknown_isil",
+      ));
+      return;
+    }
+
     $theme = (isset($this->configs["ui"]["theme"]) && trim($this->configs["ui"]["theme"]))
       ? trim($this->configs["ui"]["theme"])
       : "hell";
