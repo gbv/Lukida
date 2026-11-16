@@ -425,5 +425,5 @@ curl -X POST http://<server>:9055/5/user/search \
 | `Failed to open stream: Keine Berechtigung` | logs/caches/transfers gehören nicht www-data | `sudo chown -R www-data:www-data` auf die drei Ordner (siehe 4.) |
 | UI lädt, Suche liefert nichts | ProxyPass fehlt | `ProxyPass /api http://localhost:9055` im Port-9056-Block |
 | `{"code":"indexbusy"}` | Kontingent `indexlimit` je Minute erschöpft | Kurz warten; dauerhaft: `indexcache` erhöhen, `indexlimit` nur unterhalb der Grenze des Indexbetreibers anheben |
-| `{"code":"Action not found!"}` | Aufruf eines Einstiegs, den Essential nicht anbietet | Erlaubt sind `search`, `login`, `action`, `export` |
+| `{"code":"Action not found!"}` | Aufruf eines Einstiegs, den Essential nicht anbietet | Erlaubt sind `search`, `login`, `action`, `export`, `config` |
 | Log: `403 Forbidden` vom Index | Kein Zugang für diese Adresse oder Sperre wegen zu vieler Abfragen | Zugang beim Indexbetreiber klären; `indexlimit` prüfen |
