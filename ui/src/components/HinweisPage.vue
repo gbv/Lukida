@@ -8,7 +8,8 @@
         ist kein Katalog eingerichtet.
       </p>
       <p class="text-base-content/70 text-sm">
-        Bitte wenden Sie sich an Ihren Bibliotheksverbund.
+        Bitte wenden Sie sich an die
+        <a href="https://www.gbv.de/kontakt" class="link link-primary">Verbundzentrale des GBV</a>.
       </p>
     </div>
   </div>
